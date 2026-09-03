@@ -4,14 +4,21 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="stylesheet" href="css/styles.css?v=5.3" />
+  <link rel="stylesheet" href="css/styles.css?v=5.4" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
-    /* Force form visibility with higher specificity */
     form.login-form { display: none !important; }
     form.login-form.active { display: block !important; }
+    .login-screen[hidden], .login-screen.is-hidden,
+    .app-shell[hidden], .app-shell.is-hidden {
+      display: none !important;
+      visibility: hidden !important;
+      height: 0 !important;
+      overflow: hidden !important;
+      pointer-events: none !important;
+    }
   </style>
 </head>
 <body>
@@ -95,7 +102,7 @@
     </div>
   </div>
 
-  <div id="app-shell" class="app-shell" hidden>
+  <div id="app-shell" class="app-shell is-hidden" hidden>
 
     <div class="mode-bar">
       <div class="mode-brand">
@@ -220,7 +227,7 @@
 
         <div class="sidebar-footer">
           <button type="button" class="btn btn-ghost btn-sm" id="btn-export">Export JSON</button>
-          <p class="version">v5.3</p>
+          <p class="version">v5.4</p>
           <p class="credit-side">Lizzz · All Rights Reserved</p>
         </div>
       </aside>
@@ -307,6 +314,48 @@
     </div>
   </div>
 
-  <script src="js/app.js?v=5.3"></script>
+  <script src="js/app.js?v=5.4"></script>
+  <script>
+  (function () {
+    function wrap() {
+      if (typeof showApp !== 'function') return setTimeout(wrap, 50);
+      var _showApp = showApp;
+      window.showApp = showApp = function (session) {
+        var login = document.getElementById('login-screen');
+        var app = document.getElementById('app-shell');
+        if (login) {
+          login.hidden = true;
+          login.classList.add('is-hidden');
+          login.style.cssText = 'display:none!important;visibility:hidden!important;height:0!important;overflow:hidden!important;';
+        }
+        if (app) {
+          app.hidden = false;
+          app.classList.remove('is-hidden');
+          app.style.cssText = '';
+        }
+        window.scrollTo(0, 0);
+        return _showApp(session);
+      };
+      var _showLogin = showLoginScreen;
+      window.showLoginScreen = showLoginScreen = function () {
+        var login = document.getElementById('login-screen');
+        var app = document.getElementById('app-shell');
+        if (login) {
+          login.hidden = false;
+          login.classList.remove('is-hidden');
+          login.style.cssText = '';
+        }
+        if (app) {
+          app.hidden = true;
+          app.classList.add('is-hidden');
+          app.style.cssText = 'display:none!important';
+        }
+        window.scrollTo(0, 0);
+        return _showLogin();
+      };
+    }
+    wrap();
+  })();
+  </script>
 </body>
 </html>
