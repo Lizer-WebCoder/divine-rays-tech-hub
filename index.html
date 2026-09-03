@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="stylesheet" href="css/styles.css?v=5.4" />
+  <link rel="stylesheet" href="css/styles.css?v=6.0" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -70,8 +70,8 @@
 
       <form id="login-agent" class="login-form">
         <div class="form-group">
-          <label for="agent-username">Username</label>
-          <input type="text" id="agent-username" required placeholder="username" autocomplete="username" />
+          <label for="agent-username">Email or Username</label>
+          <input type="text" id="agent-username" required placeholder="you@company.com" autocomplete="username" />
         </div>
         <div class="form-group">
           <label for="agent-password">Password</label>
@@ -87,12 +87,16 @@
           <input type="text" id="reg-agent-name" required placeholder="Your full name" />
         </div>
         <div class="form-group">
+          <label for="reg-agent-email">Work Email</label>
+          <input type="email" id="reg-agent-email" required placeholder="you@company.com" />
+        </div>
+        <div class="form-group">
           <label for="reg-agent-username">Username</label>
           <input type="text" id="reg-agent-username" required placeholder="Choose a username" />
         </div>
         <div class="form-group">
           <label for="reg-agent-password">Password</label>
-          <input type="password" id="reg-agent-password" required minlength="4" placeholder="At least 4 characters" />
+          <input type="password" id="reg-agent-password" required minlength="6" placeholder="At least 6 characters" />
         </div>
         <button type="submit" class="btn btn-primary btn-full">Create Agent Account</button>
         <p class="login-switch">Already have an account? <a href="javascript:void(0)" id="show-login-agent" onclick="window.showForm && showForm('login-agent'); return false;">Sign in</a></p>
@@ -227,7 +231,7 @@
 
         <div class="sidebar-footer">
           <button type="button" class="btn btn-ghost btn-sm" id="btn-export">Export JSON</button>
-          <p class="version">v5.4</p>
+          <p class="version">v6.0</p>
           <p class="credit-side">Lizzz · All Rights Reserved</p>
         </div>
       </aside>
@@ -314,48 +318,8 @@
     </div>
   </div>
 
-  <script src="js/app.js?v=5.4"></script>
-  <script>
-  (function () {
-    function wrap() {
-      if (typeof showApp !== 'function') return setTimeout(wrap, 50);
-      var _showApp = showApp;
-      window.showApp = showApp = function (session) {
-        var login = document.getElementById('login-screen');
-        var app = document.getElementById('app-shell');
-        if (login) {
-          login.hidden = true;
-          login.classList.add('is-hidden');
-          login.style.cssText = 'display:none!important;visibility:hidden!important;height:0!important;overflow:hidden!important;';
-        }
-        if (app) {
-          app.hidden = false;
-          app.classList.remove('is-hidden');
-          app.style.cssText = '';
-        }
-        window.scrollTo(0, 0);
-        return _showApp(session);
-      };
-      var _showLogin = showLoginScreen;
-      window.showLoginScreen = showLoginScreen = function () {
-        var login = document.getElementById('login-screen');
-        var app = document.getElementById('app-shell');
-        if (login) {
-          login.hidden = false;
-          login.classList.remove('is-hidden');
-          login.style.cssText = '';
-        }
-        if (app) {
-          app.hidden = true;
-          app.classList.add('is-hidden');
-          app.style.cssText = 'display:none!important';
-        }
-        window.scrollTo(0, 0);
-        return _showLogin();
-      };
-    }
-    wrap();
-  })();
-  </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js?v=6.0"></script>
+  <script src="js/app.js?v=6.0"></script>
 </body>
 </html>
