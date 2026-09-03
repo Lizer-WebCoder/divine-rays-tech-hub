@@ -11,10 +11,9 @@
 </head>
 <body>
 
-  <!-- Toast container -->
   <div id="toast-container"></div>
 
-  <!-- ==================== LOGIN SCREEN ==================== -->
+  <!-- LOGIN SCREEN -->
   <div id="login-screen" class="login-screen">
     <div class="login-card">
       <div class="login-brand">
@@ -28,61 +27,75 @@
         <button class="ltab" data-ltab="agent">Tech Support</button>
       </div>
 
+      <!-- Customer Login -->
       <form id="login-customer" class="login-form active">
         <div class="form-group">
           <label for="cust-email">Email</label>
-          <input type="email" id="cust-email" required placeholder="you@company.com" />
+          <input type="email" id="cust-email" required placeholder="you@company.com" autocomplete="username" />
         </div>
         <div class="form-group">
           <label for="cust-password">Password</label>
-          <input type="password" id="cust-password" required placeholder="••••••••" />
+          <input type="password" id="cust-password" required placeholder="••••••••" autocomplete="current-password" />
         </div>
         <button type="submit" class="btn btn-primary btn-full">Sign In</button>
-        <p class="login-switch">New here? <a href="#" id="show-register">Create an account</a></p>
+        <p class="login-switch">New here? <a href="#" id="show-register-customer">Create an account</a></p>
       </form>
 
+      <!-- Customer Register -->
       <form id="register-customer" class="login-form">
         <div class="form-group">
-          <label for="reg-name">Full Name</label>
-          <input type="text" id="reg-name" required placeholder="Your name" />
+          <label for="reg-cust-name">Full Name</label>
+          <input type="text" id="reg-cust-name" required placeholder="Your full name" />
         </div>
         <div class="form-group">
-          <label for="reg-email">Email</label>
-          <input type="email" id="reg-email" required placeholder="you@company.com" />
+          <label for="reg-cust-email">Email</label>
+          <input type="email" id="reg-cust-email" required placeholder="you@company.com" />
         </div>
         <div class="form-group">
-          <label for="reg-password">Password</label>
-          <input type="password" id="reg-password" required minlength="4" placeholder="At least 4 characters" />
+          <label for="reg-cust-password">Password</label>
+          <input type="password" id="reg-cust-password" required minlength="4" placeholder="At least 4 characters" />
         </div>
-        <button type="submit" class="btn btn-primary btn-full">Create Account</button>
-        <p class="login-switch">Already have an account? <a href="#" id="show-login">Sign in</a></p>
+        <button type="submit" class="btn btn-primary btn-full">Create Customer Account</button>
+        <p class="login-switch">Already have an account? <a href="#" id="show-login-customer">Sign in</a></p>
       </form>
 
+      <!-- Agent Login -->
       <form id="login-agent" class="login-form">
         <div class="form-group">
           <label for="agent-username">Username</label>
-          <input type="text" id="agent-username" required placeholder="username" />
+          <input type="text" id="agent-username" required placeholder="username" autocomplete="username" />
         </div>
         <div class="form-group">
           <label for="agent-password">Password</label>
-          <input type="password" id="agent-password" required placeholder="••••••••" />
+          <input type="password" id="agent-password" required placeholder="••••••••" autocomplete="current-password" />
         </div>
         <button type="submit" class="btn btn-primary btn-full">Sign In as Agent</button>
+        <p class="login-switch">New agent? <a href="#" id="show-register-agent">Create agent account</a></p>
       </form>
 
-      <div class="demo-creds">
-        <p><strong>Demo Accounts</strong></p>
-        <p><span>Customer:</span> alex.r@example.com / demo123</p>
-        <p><span>Customer:</span> jordan.l@example.com / demo123</p>
-        <p><span>Agent:</span> alex / support1</p>
-        <p><span>Agent:</span> jordan / support1</p>
-        <p><span>Agent:</span> sam / support1</p>
-        <p><span>Agent:</span> taylor / support1</p>
-      </div>
+      <!-- Agent Register -->
+      <form id="register-agent" class="login-form">
+        <div class="form-group">
+          <label for="reg-agent-name">Full Name</label>
+          <input type="text" id="reg-agent-name" required placeholder="Your full name" />
+        </div>
+        <div class="form-group">
+          <label for="reg-agent-username">Username</label>
+          <input type="text" id="reg-agent-username" required placeholder="Choose a username" />
+        </div>
+        <div class="form-group">
+          <label for="reg-agent-password">Password</label>
+          <input type="password" id="reg-agent-password" required minlength="4" placeholder="At least 4 characters" />
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">Create Agent Account</button>
+        <p class="login-switch">Already have an account? <a href="#" id="show-login-agent">Sign in</a></p>
+      </form>
+
+      <p class="credit">Lizzz · All Rights Reserved</p>
     </div>
   </div>
 
-  <!-- ==================== APP ==================== -->
+  <!-- APP -->
   <div id="app-shell" class="app-shell" hidden>
 
     <div class="mode-bar">
@@ -167,7 +180,6 @@
           <div id="track-result" class="track-result" hidden></div>
         </section>
 
-        <!-- Customer Ticket Detail (overlay style) -->
         <section id="ctab-detail" class="ctab-panel">
           <button class="btn btn-ghost" id="btn-cust-back">← Back to My Tickets</button>
           <article class="ticket-detail" id="cust-ticket-detail"></article>
@@ -182,6 +194,8 @@
             </form>
           </div>
         </section>
+
+        <p class="credit-footer">Lizzz · All Rights Reserved</p>
       </main>
     </div>
 
@@ -209,7 +223,8 @@
 
         <div class="sidebar-footer">
           <button class="btn btn-ghost btn-sm" id="btn-export">Export JSON</button>
-          <p class="version">v4.0 · Local Storage</p>
+          <p class="version">v5.0</p>
+          <p class="credit-side">Lizzz · All Rights Reserved</p>
         </div>
       </aside>
 
@@ -257,10 +272,6 @@
                 <label>Assign to</label>
                 <select id="assign-agent">
                   <option value="">— Unassigned —</option>
-                  <option value="Alex Chen">Alex Chen</option>
-                  <option value="Jordan Smith">Jordan Smith</option>
-                  <option value="Sam Rivera">Sam Rivera</option>
-                  <option value="Taylor Kim">Taylor Kim</option>
                 </select>
               </div>
               <div class="form-group">

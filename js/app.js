@@ -1,97 +1,35 @@
 /**
- * Divine Rays Tech Hub — Ticketing System v4
- * Login + Toasts + Claim + Customer replies
+ * Divine Rays Tech Hub — Ticketing System v5
+ * No demo accounts. Clean register + login for Customers and Agents.
+ * Credit: Lizzz · All Rights Reserved
  */
 
-const TICKETS_KEY = 'divineRaysTickets_v3';
-const USERS_KEY = 'divineRaysUsers_v3';
-const SESSION_KEY = 'divineRaysSession_v3';
+const TICKETS_KEY = 'divineRaysTickets_v5';
+const USERS_KEY = 'divineRaysUsers_v5';
+const SESSION_KEY = 'divineRaysSession_v5';
 
-const DEMO_AGENTS = [
-  { username: 'alex', password: 'support1', name: 'Alex Chen', role: 'agent' },
-  { username: 'jordan', password: 'support1', name: 'Jordan Smith', role: 'agent' },
-  { username: 'sam', password: 'support1', name: 'Sam Rivera', role: 'agent' },
-  { username: 'taylor', password: 'support1', name: 'Taylor Kim', role: 'agent' }
-];
-
-const DEMO_CUSTOMERS = [
-  { email: 'alex.r@example.com', password: 'demo123', name: 'Alex Rivera', role: 'customer' },
-  { email: 'jordan.l@example.com', password: 'demo123', name: 'Jordan Lee', role: 'customer' },
-  { email: 'sam.p@example.com', password: 'demo123', name: 'Sam Patel', role: 'customer' }
-];
-
-function ensureSeedData() {
-  let users = loadUsers();
-  if (users.length === 0) {
-    users = [...DEMO_AGENTS, ...DEMO_CUSTOMERS];
-    saveUsers(users);
-  }
-  if (loadTickets().length > 0) return;
-  const now = Date.now();
-  const samples = [
-    {
-      id: 'DR-1001', num: 1001,
-      title: 'Laptop will not connect to office Wi-Fi',
-      description: 'Windows laptop shows "Connected, no internet" on the main SSID. Works on mobile hotspot.',
-      priority: 'High', category: 'Network', status: 'Open',
-      requester: 'Alex Rivera', email: 'alex.r@example.com',
-      assignedTo: '', createdAt: new Date(now - 5*3600000).toISOString(),
-      updatedAt: new Date(now - 5*3600000).toISOString(), comments: []
-    },
-    {
-      id: 'DR-1002', num: 1002,
-      title: 'Need access to shared Finance folder',
-      description: 'New hire needs read/write access to \\\\fileserver\\Finance. Manager already approved.',
-      priority: 'Medium', category: 'Account', status: 'In Progress',
-      requester: 'Jordan Lee', email: 'jordan.l@example.com',
-      assignedTo: 'Alex Chen',
-      createdAt: new Date(now - 26*3600000).toISOString(),
-      updatedAt: new Date(now - 30*60000).toISOString(),
-      comments: [{
-        text: 'Verified manager approval. Creating AD group membership.',
-        author: 'Alex Chen', createdAt: new Date(now - 30*60000).toISOString(),
-        internal: false, statusChange: 'In Progress'
-      }]
-    },
-    {
-      id: 'DR-1003', num: 1003,
-      title: 'Outlook keeps asking for password',
-      description: 'Every morning Outlook prompts for credentials even though password was not changed.',
-      priority: 'Low', category: 'Software', status: 'Resolved',
-      requester: 'Sam Patel', email: 'sam.p@example.com',
-      assignedTo: 'Jordan Smith',
-      createdAt: new Date(now - 72*3600000).toISOString(),
-      updatedAt: new Date(now - 8*3600000).toISOString(),
-      comments: [{
-        text: 'Cleared credential manager and recreated Outlook profile. Resolved.',
-        author: 'Jordan Smith', createdAt: new Date(now - 8*3600000).toISOString(),
-        internal: false, statusChange: 'Resolved'
-      }]
-    },
-    {
-      id: 'DR-1004', num: 1004,
-      title: 'Printer on 3rd floor offline',
-      description: 'HP LaserJet on 3rd floor shows offline. Users cannot print.',
-      priority: 'Critical', category: 'Hardware', status: 'Open',
-      requester: 'Alex Rivera', email: 'alex.r@example.com',
-      assignedTo: '', createdAt: new Date(now - 90*60000).toISOString(),
-      updatedAt: new Date(now - 90*60000).toISOString(), comments: []
-    }
-  ];
-  saveTickets(samples);
+function loadTickets() {
+  try { return JSON.parse(localStorage.getItem(TICKETS_KEY)) || []; }
+  catch { return []; }
 }
-
-function loadTickets() { try { return JSON.parse(localStorage.getItem(TICKETS_KEY)) || []; } catch { return []; } }
 function saveTickets(t) { localStorage.setItem(TICKETS_KEY, JSON.stringify(t)); }
-function loadUsers() { try { return JSON.parse(localStorage.getItem(USERS_KEY)) || []; } catch { return []; } }
+
+function loadUsers() {
+  try { return JSON.parse(localStorage.getItem(USERS_KEY)) || []; }
+  catch { return []; }
+}
 function saveUsers(u) { localStorage.setItem(USERS_KEY, JSON.stringify(u)); }
-function getSession() { try { return JSON.parse(localStorage.getItem(SESSION_KEY)); } catch { return null; } }
+
+function getSession() {
+  try { return JSON.parse(localStorage.getItem(SESSION_KEY)); }
+  catch { return null; }
+}
 function setSession(user) { localStorage.setItem(SESSION_KEY, JSON.stringify(user)); }
 function clearSession() { localStorage.removeItem(SESSION_KEY); }
 
 function generateId() {
   const tickets = loadTickets();
-  const next = tickets.length ? Math.max(...tickets.map(t => t.num)) + 1 : 1001;
+  const next = tickets.length ? Math.max(...tickets.map(t => t.num || 1000)) + 1 : 1001;
   return { id: `DR-${next}`, num: next };
 }
 
@@ -102,8 +40,8 @@ function formatDate(iso) {
   });
 }
 
-function statusClass(s) { return 'badge-' + s.toLowerCase().replace(/\s+/g, '-'); }
-function priorityClass(p) { return 'badge-' + p.toLowerCase(); }
+function statusClass(s) { return 'badge-' + (s || '').toLowerCase().replace(/\s+/g, '-'); }
+function priorityClass(p) { return 'badge-' + (p || '').toLowerCase(); }
 
 function escapeHtml(str) {
   if (!str) return '';
@@ -112,6 +50,7 @@ function escapeHtml(str) {
 
 function toast(message, type = 'info') {
   const container = document.getElementById('toast-container');
+  if (!container) return;
   const el = document.createElement('div');
   el.className = `toast ${type}`;
   el.textContent = message;
@@ -121,39 +60,74 @@ function toast(message, type = 'info') {
     el.style.transform = 'translateX(20px)';
     el.style.transition = 'all 0.25s';
     setTimeout(() => el.remove(), 250);
-  }, 3200);
+  }, 3000);
 }
 
 function showError(formId, msg) {
   const form = document.getElementById(formId);
+  if (!form) return;
   let err = form.querySelector('.login-error');
-  if (!err) { err = document.createElement('div'); err.className = 'login-error'; form.prepend(err); }
+  if (!err) {
+    err = document.createElement('div');
+    err.className = 'login-error';
+    form.prepend(err);
+  }
   err.textContent = msg;
 }
-function clearErrors() { document.querySelectorAll('.login-error').forEach(e => e.remove()); }
+function clearErrors() {
+  document.querySelectorAll('.login-error').forEach(e => e.remove());
+}
 
+// ---------- Auth ----------
 function loginCustomer(email, password) {
   const users = loadUsers();
-  const user = users.find(u => u.role === 'customer' && u.email.toLowerCase() === email.toLowerCase() && u.password === password);
-  return user ? { role: 'customer', email: user.email, name: user.name } : null;
+  const user = users.find(u =>
+    u.role === 'customer' &&
+    u.email && u.email.toLowerCase() === email.toLowerCase().trim() &&
+    u.password === password
+  );
+  if (!user) return null;
+  return { role: 'customer', email: user.email, name: user.name };
 }
 
 function loginAgent(username, password) {
   const users = loadUsers();
-  const user = users.find(u => u.role === 'agent' && u.username === username && u.password === password);
-  return user ? { role: 'agent', username: user.username, name: user.name } : null;
+  const user = users.find(u =>
+    u.role === 'agent' &&
+    u.username && u.username.toLowerCase() === username.toLowerCase().trim() &&
+    u.password === password
+  );
+  if (!user) return null;
+  return { role: 'agent', username: user.username, name: user.name };
 }
 
 function registerCustomer(name, email, password) {
   const users = loadUsers();
-  if (users.some(u => u.email && u.email.toLowerCase() === email.toLowerCase())) {
+  const cleanEmail = email.toLowerCase().trim();
+  if (users.some(u => u.email && u.email.toLowerCase() === cleanEmail)) {
     return { error: 'An account with this email already exists.' };
   }
-  users.push({ email, password, name, role: 'customer' });
+  users.push({ email: cleanEmail, password, name: name.trim(), role: 'customer' });
   saveUsers(users);
-  return { user: { role: 'customer', email, name } };
+  return { user: { role: 'customer', email: cleanEmail, name: name.trim() } };
 }
 
+function registerAgent(name, username, password) {
+  const users = loadUsers();
+  const cleanUser = username.toLowerCase().trim();
+  if (users.some(u => u.username && u.username.toLowerCase() === cleanUser)) {
+    return { error: 'This username is already taken.' };
+  }
+  users.push({ username: cleanUser, password, name: name.trim(), role: 'agent' });
+  saveUsers(users);
+  return { user: { role: 'agent', username: cleanUser, name: name.trim() } };
+}
+
+function getAgentNames() {
+  return loadUsers().filter(u => u.role === 'agent').map(u => u.name);
+}
+
+// ---------- UI helpers ----------
 function showApp(session) {
   document.getElementById('login-screen').hidden = true;
   document.getElementById('app-shell').hidden = false;
@@ -169,6 +143,7 @@ function showApp(session) {
     document.getElementById('portal-agent').classList.add('active');
     document.getElementById('logged-user-label').textContent = session.name + ' (Agent)';
     document.getElementById('agent-name-display').textContent = session.name;
+    refreshAssignDropdown();
     showAgentView('dashboard');
   }
 }
@@ -178,9 +153,10 @@ function showLoginScreen() {
   document.getElementById('app-shell').hidden = true;
   clearSession();
   clearErrors();
-  document.getElementById('login-customer').reset();
-  document.getElementById('login-agent').reset();
-  document.getElementById('register-customer').reset();
+  ['login-customer','login-agent','register-customer','register-agent'].forEach(id => {
+    const f = document.getElementById(id);
+    if (f) f.reset();
+  });
   switchLoginTab('customer');
 }
 
@@ -188,20 +164,24 @@ function switchLoginTab(tab) {
   document.querySelectorAll('.ltab').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.login-form').forEach(f => f.classList.remove('active'));
   document.querySelector(`[data-ltab="${tab}"]`)?.classList.add('active');
-  document.getElementById(tab === 'customer' ? 'login-customer' : 'login-agent').classList.add('active');
-  document.getElementById('register-customer').classList.remove('active');
+  document.getElementById(tab === 'customer' ? 'login-customer' : 'login-agent')?.classList.add('active');
   clearErrors();
 }
 
-function showRegisterForm() {
+function showForm(formId) {
   document.querySelectorAll('.login-form').forEach(f => f.classList.remove('active'));
-  document.getElementById('register-customer').classList.add('active');
+  document.getElementById(formId)?.classList.add('active');
   clearErrors();
 }
-function showLoginForm() {
-  document.querySelectorAll('.login-form').forEach(f => f.classList.remove('active'));
-  document.getElementById('login-customer').classList.add('active');
-  clearErrors();
+
+function refreshAssignDropdown() {
+  const sel = document.getElementById('assign-agent');
+  if (!sel) return;
+  const current = sel.value;
+  const names = getAgentNames();
+  sel.innerHTML = '<option value="">— Unassigned —</option>' +
+    names.map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
+  if (current) sel.value = current;
 }
 
 // ---------- Customer ----------
@@ -221,7 +201,7 @@ function renderMyTickets() {
   const session = getSession();
   if (!session || session.role !== 'customer') return;
   const container = document.getElementById('my-tickets-list');
-  let tickets = loadTickets().filter(t => t.email.toLowerCase() === session.email.toLowerCase());
+  let tickets = loadTickets().filter(t => t.email && t.email.toLowerCase() === session.email.toLowerCase());
   tickets.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
 
   if (tickets.length === 0) {
@@ -253,8 +233,7 @@ function renderMyTickets() {
 }
 
 function openCustomerTicket(id) {
-  const tickets = loadTickets();
-  const ticket = tickets.find(t => t.id === id);
+  const ticket = loadTickets().find(t => t.id === id);
   if (!ticket) return;
   currentCustTicketId = id;
   showCustomerTab('detail');
@@ -274,19 +253,16 @@ function openCustomerTicket(id) {
 
   const publicComments = (ticket.comments || []).filter(c => !c.internal);
   const list = document.getElementById('cust-comments-list');
-  if (publicComments.length === 0) {
-    list.innerHTML = `<p style="color:var(--text-muted);font-size:0.88rem">No replies yet.</p>`;
-  } else {
-    list.innerHTML = publicComments.slice().reverse().map(c => `
-      <div class="comment">
-        <div class="comment-header">
-          <span>${escapeHtml(c.author)}</span>
-          <span>${formatDate(c.createdAt)}${c.statusChange ? ` · → ${c.statusChange}` : ''}</span>
-        </div>
-        <div class="comment-body">${escapeHtml(c.text)}</div>
-      </div>
-    `).join('');
-  }
+  list.innerHTML = publicComments.length === 0
+    ? `<p style="color:var(--text-muted);font-size:0.88rem">No replies yet.</p>`
+    : publicComments.slice().reverse().map(c => `
+        <div class="comment">
+          <div class="comment-header">
+            <span>${escapeHtml(c.author)}</span>
+            <span>${formatDate(c.createdAt)}${c.statusChange ? ` · → ${c.statusChange}` : ''}</span>
+          </div>
+          <div class="comment-body">${escapeHtml(c.text)}</div>
+        </div>`).join('');
 }
 
 function setupCustomer() {
@@ -320,7 +296,7 @@ function setupCustomer() {
     document.getElementById('customer-form').hidden = true;
     document.getElementById('submit-success').hidden = false;
     document.getElementById('new-ticket-id').textContent = id;
-    toast('Ticket ' + id + ' created successfully', 'success');
+    toast('Ticket ' + id + ' created', 'success');
   });
 
   document.getElementById('btn-go-mytickets').addEventListener('click', () => {
@@ -373,22 +349,14 @@ function setupCustomer() {
     if (!ticket) return;
 
     ticket.comments = ticket.comments || [];
-    ticket.comments.push({
-      text,
-      author: session.name,
-      createdAt: new Date().toISOString(),
-      internal: false
-    });
+    ticket.comments.push({ text, author: session.name, createdAt: new Date().toISOString(), internal: false });
     ticket.updatedAt = new Date().toISOString();
-    // If it was resolved/closed, reopen to Waiting so agent sees it
     if (ticket.status === 'Resolved' || ticket.status === 'Closed') {
       ticket.status = 'Waiting';
       ticket.comments.push({
         text: 'Customer replied — status set to Waiting',
-        author: 'System',
-        createdAt: new Date().toISOString(),
-        internal: true,
-        statusChange: 'Waiting'
+        author: 'System', createdAt: new Date().toISOString(),
+        internal: true, statusChange: 'Waiting'
       });
     }
     saveTickets(tickets);
@@ -433,9 +401,11 @@ function renderTicketList() {
   if (priorityF) tickets = tickets.filter(t => t.priority === priorityF);
   if (search) {
     tickets = tickets.filter(t =>
-      t.title.toLowerCase().includes(search) || t.id.toLowerCase().includes(search) ||
-      t.requester.toLowerCase().includes(search) || (t.email||'').toLowerCase().includes(search) ||
-      (t.description||'').toLowerCase().includes(search)
+      (t.title || '').toLowerCase().includes(search) ||
+      (t.id || '').toLowerCase().includes(search) ||
+      (t.requester || '').toLowerCase().includes(search) ||
+      (t.email || '').toLowerCase().includes(search) ||
+      (t.description || '').toLowerCase().includes(search)
     );
   }
 
@@ -479,8 +449,7 @@ function renderTicketList() {
 }
 
 function openTicket(id) {
-  const tickets = loadTickets();
-  const ticket = tickets.find(t => t.id === id);
+  const ticket = loadTickets().find(t => t.id === id);
   if (!ticket) return;
   currentTicketId = id;
   showAgentView('detail');
@@ -501,6 +470,7 @@ function openTicket(id) {
     <div class="detail-description">${escapeHtml(ticket.description)}</div>
   `;
 
+  refreshAssignDropdown();
   document.getElementById('assign-agent').value = ticket.assignedTo || '';
   document.getElementById('quick-status').value = ticket.status;
   renderComments(ticket);
@@ -509,19 +479,16 @@ function openTicket(id) {
 function renderComments(ticket) {
   const list = document.getElementById('comments-list');
   const comments = ticket.comments || [];
-  if (comments.length === 0) {
-    list.innerHTML = `<p style="color:var(--text-muted);font-size:0.88rem">No activity yet.</p>`;
-    return;
-  }
-  list.innerHTML = comments.slice().reverse().map(c => `
-    <div class="comment ${c.internal ? 'internal' : ''}">
-      <div class="comment-header">
-        <span>${escapeHtml(c.author)}${c.internal ? ' · Internal' : ''}</span>
-        <span>${formatDate(c.createdAt)}${c.statusChange ? ` · → ${c.statusChange}` : ''}</span>
-      </div>
-      <div class="comment-body">${escapeHtml(c.text)}</div>
-    </div>
-  `).join('');
+  list.innerHTML = comments.length === 0
+    ? `<p style="color:var(--text-muted);font-size:0.88rem">No activity yet.</p>`
+    : comments.slice().reverse().map(c => `
+        <div class="comment ${c.internal ? 'internal' : ''}">
+          <div class="comment-header">
+            <span>${escapeHtml(c.author)}${c.internal ? ' · Internal' : ''}</span>
+            <span>${formatDate(c.createdAt)}${c.statusChange ? ` · → ${c.statusChange}` : ''}</span>
+          </div>
+          <div class="comment-body">${escapeHtml(c.text)}</div>
+        </div>`).join('');
 }
 
 function showAgentView(name) {
@@ -568,10 +535,8 @@ function setupAgent() {
     ticket.comments = ticket.comments || [];
     ticket.comments.push({
       text: `Claimed by ${session.name}`,
-      author: session.name,
-      createdAt: new Date().toISOString(),
-      internal: true,
-      statusChange: ticket.status
+      author: session.name, createdAt: new Date().toISOString(),
+      internal: true, statusChange: ticket.status
     });
     ticket.updatedAt = new Date().toISOString();
     saveTickets(tickets);
@@ -650,37 +615,80 @@ function setupAgent() {
 
 // ---------- Init ----------
 document.addEventListener('DOMContentLoaded', () => {
-  ensureSeedData();
-
+  // Login tabs
   document.querySelectorAll('.ltab').forEach(btn => {
     btn.addEventListener('click', () => switchLoginTab(btn.dataset.ltab));
   });
-  document.getElementById('show-register').addEventListener('click', e => { e.preventDefault(); showRegisterForm(); });
-  document.getElementById('show-login').addEventListener('click', e => { e.preventDefault(); showLoginForm(); });
 
+  document.getElementById('show-register-customer').addEventListener('click', e => { e.preventDefault(); showForm('register-customer'); });
+  document.getElementById('show-login-customer').addEventListener('click', e => { e.preventDefault(); showForm('login-customer'); });
+  document.getElementById('show-register-agent').addEventListener('click', e => { e.preventDefault(); showForm('register-agent'); });
+  document.getElementById('show-login-agent').addEventListener('click', e => { e.preventDefault(); showForm('login-agent'); });
+
+  // Customer login
   document.getElementById('login-customer').addEventListener('submit', e => {
-    e.preventDefault(); clearErrors();
-    const user = loginCustomer(document.getElementById('cust-email').value.trim(), document.getElementById('cust-password').value);
-    if (!user) { showError('login-customer', 'Invalid email or password.'); return; }
-    setSession(user); showApp(user); toast('Welcome back, ' + user.name.split(' ')[0], 'success');
+    e.preventDefault();
+    clearErrors();
+    const email = document.getElementById('cust-email').value.trim();
+    const password = document.getElementById('cust-password').value;
+    const user = loginCustomer(email, password);
+    if (!user) {
+      showError('login-customer', 'Invalid email or password.');
+      return;
+    }
+    setSession(user);
+    showApp(user);
+    toast('Welcome back, ' + user.name.split(' ')[0], 'success');
   });
 
+  // Agent login
   document.getElementById('login-agent').addEventListener('submit', e => {
-    e.preventDefault(); clearErrors();
-    const user = loginAgent(document.getElementById('agent-username').value.trim().toLowerCase(), document.getElementById('agent-password').value);
-    if (!user) { showError('login-agent', 'Invalid username or password.'); return; }
-    setSession(user); showApp(user); toast('Welcome, ' + user.name, 'success');
+    e.preventDefault();
+    clearErrors();
+    const username = document.getElementById('agent-username').value.trim();
+    const password = document.getElementById('agent-password').value;
+    const user = loginAgent(username, password);
+    if (!user) {
+      showError('login-agent', 'Invalid username or password.');
+      return;
+    }
+    setSession(user);
+    showApp(user);
+    toast('Welcome, ' + user.name, 'success');
   });
 
+  // Customer register
   document.getElementById('register-customer').addEventListener('submit', e => {
-    e.preventDefault(); clearErrors();
-    const result = registerCustomer(
-      document.getElementById('reg-name').value.trim(),
-      document.getElementById('reg-email').value.trim(),
-      document.getElementById('reg-password').value
-    );
-    if (result.error) { showError('register-customer', result.error); return; }
-    setSession(result.user); showApp(result.user); toast('Account created — welcome!', 'success');
+    e.preventDefault();
+    clearErrors();
+    const name = document.getElementById('reg-cust-name').value.trim();
+    const email = document.getElementById('reg-cust-email').value.trim();
+    const password = document.getElementById('reg-cust-password').value;
+    const result = registerCustomer(name, email, password);
+    if (result.error) {
+      showError('register-customer', result.error);
+      return;
+    }
+    setSession(result.user);
+    showApp(result.user);
+    toast('Account created — welcome!', 'success');
+  });
+
+  // Agent register
+  document.getElementById('register-agent').addEventListener('submit', e => {
+    e.preventDefault();
+    clearErrors();
+    const name = document.getElementById('reg-agent-name').value.trim();
+    const username = document.getElementById('reg-agent-username').value.trim();
+    const password = document.getElementById('reg-agent-password').value;
+    const result = registerAgent(name, username, password);
+    if (result.error) {
+      showError('register-agent', result.error);
+      return;
+    }
+    setSession(result.user);
+    showApp(result.user);
+    toast('Agent account created — welcome!', 'success');
   });
 
   document.getElementById('btn-logout').addEventListener('click', () => {

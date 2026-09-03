@@ -2,38 +2,27 @@
 
 **Live:** https://lizer-webcoder.github.io/divine-rays-tech-hub/
 
-## Login
+## How to use
 
-### Customers
-| Email | Password |
-|-------|----------|
-| alex.r@example.com | demo123 |
-| jordan.l@example.com | demo123 |
-| sam.p@example.com | demo123 |
+1. Open the site
+2. Choose **Customer** or **Tech Support**
+3. Click **Create an account** / **Create agent account**
+4. Register with your details
+5. You are logged in automatically
+6. Next time just Sign In with the same credentials
 
-New customers can register on the login screen.
-
-### Tech Support Agents
-| Username | Password | Name |
-|----------|----------|------|
-| alex | support1 | Alex Chen |
-| jordan | support1 | Jordan Smith |
-| sam | support1 | Sam Rivera |
-| taylor | support1 | Taylor Kim |
-
-## What's new in v4
-- Toast notifications for actions
-- **Claim Ticket** button for agents
-- Customers can open their tickets and **reply**
-- Customer replies automatically set status to Waiting if the ticket was resolved
-- Better visual feedback overall
+No demo accounts. Everything you create is stored in your browser (localStorage).
 
 ## Features
-- Dual portals (Customer + Tech Support)
-- Login + session
-- Ticket lifecycle, assignment, internal notes
-- Search, filters, export JSON
-- Fully client-side (localStorage)
+
+- Customer registration + login
+- Agent registration + login
+- Submit & track tickets
+- Agent dashboard, claim, assign, status changes
+- Public replies + internal notes
+- Toast notifications
+- Export tickets as JSON
 
 ---
-**Divine Rays Tech Hub** · v4.0
+
+**Lizzz · All Rights Reserved**
