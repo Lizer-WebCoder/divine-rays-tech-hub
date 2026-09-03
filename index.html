@@ -4,10 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="stylesheet" href="css/styles.css?v=5.2" />
+  <link rel="stylesheet" href="css/styles.css?v=5.3" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* Force form visibility with higher specificity */
+    form.login-form { display: none !important; }
+    form.login-form.active { display: block !important; }
+  </style>
 </head>
 <body>
 
@@ -22,8 +27,8 @@
       </div>
 
       <div class="login-tabs">
-        <button type="button" class="ltab active" data-ltab="customer">Customer</button>
-        <button type="button" class="ltab" data-ltab="agent">Tech Support</button>
+        <button type="button" class="ltab active" data-ltab="customer" onclick="window.switchLoginTab && switchLoginTab('customer')">Customer</button>
+        <button type="button" class="ltab" data-ltab="agent" onclick="window.switchLoginTab && switchLoginTab('agent')">Tech Support</button>
       </div>
 
       <form id="login-customer" class="login-form active">
@@ -36,7 +41,7 @@
           <input type="password" id="cust-password" required placeholder="••••••••" autocomplete="current-password" />
         </div>
         <button type="submit" class="btn btn-primary btn-full">Sign In</button>
-        <p class="login-switch">New here? <a href="#" id="show-register-customer">Create an account</a></p>
+        <p class="login-switch">New here? <a href="javascript:void(0)" id="show-register-customer" onclick="window.showForm && showForm('register-customer'); return false;">Create an account</a></p>
       </form>
 
       <form id="register-customer" class="login-form">
@@ -53,7 +58,7 @@
           <input type="password" id="reg-cust-password" required minlength="4" placeholder="At least 4 characters" />
         </div>
         <button type="submit" class="btn btn-primary btn-full">Create Customer Account</button>
-        <p class="login-switch">Already have an account? <a href="#" id="show-login-customer">Sign in</a></p>
+        <p class="login-switch">Already have an account? <a href="javascript:void(0)" id="show-login-customer" onclick="window.showForm && showForm('login-customer'); return false;">Sign in</a></p>
       </form>
 
       <form id="login-agent" class="login-form">
@@ -66,7 +71,7 @@
           <input type="password" id="agent-password" required placeholder="••••••••" autocomplete="current-password" />
         </div>
         <button type="submit" class="btn btn-primary btn-full">Sign In as Agent</button>
-        <p class="login-switch">New agent? <a href="#" id="show-register-agent">Create agent account</a></p>
+        <p class="login-switch">New agent? <a href="javascript:void(0)" id="show-register-agent" onclick="window.showForm && showForm('register-agent'); return false;">Create agent account</a></p>
       </form>
 
       <form id="register-agent" class="login-form">
@@ -83,7 +88,7 @@
           <input type="password" id="reg-agent-password" required minlength="4" placeholder="At least 4 characters" />
         </div>
         <button type="submit" class="btn btn-primary btn-full">Create Agent Account</button>
-        <p class="login-switch">Already have an account? <a href="#" id="show-login-agent">Sign in</a></p>
+        <p class="login-switch">Already have an account? <a href="javascript:void(0)" id="show-login-agent" onclick="window.showForm && showForm('login-agent'); return false;">Sign in</a></p>
       </form>
 
       <p class="credit">Lizzz · All Rights Reserved</p>
@@ -215,7 +220,7 @@
 
         <div class="sidebar-footer">
           <button type="button" class="btn btn-ghost btn-sm" id="btn-export">Export JSON</button>
-          <p class="version">v5.2</p>
+          <p class="version">v5.3</p>
           <p class="credit-side">Lizzz · All Rights Reserved</p>
         </div>
       </aside>
@@ -302,6 +307,6 @@
     </div>
   </div>
 
-  <script src="js/app.js?v=5.2"></script>
+  <script src="js/app.js?v=5.3"></script>
 </body>
 </html>
