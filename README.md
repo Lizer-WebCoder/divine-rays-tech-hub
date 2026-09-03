@@ -1,51 +1,50 @@
 # Divine Rays Tech Hub — Support Ticketing System
 
-A modern dual-sided tech support ticketing system.
-
 **Live:** https://lizer-webcoder.github.io/divine-rays-tech-hub/
 
-## Two Sides
+A dual-sided tech support ticketing system with **login** for both Customers and Tech Support agents.
 
-### 1. Customer Portal
-- Submit support tickets easily
-- Track ticket status by ID or email
-- See only public updates (internal notes are hidden)
+## Login
 
-### 2. Tech Support (Agent Console)
-- Full dashboard with live stats
-- My Tickets / Unassigned / All Tickets views
+### Demo Customer Accounts
+| Email | Password |
+|-------|----------|
+| alex.r@example.com | demo123 |
+| jordan.l@example.com | demo123 |
+| sam.p@example.com | demo123 |
+
+Customers can also **create a new account** on the login screen.
+
+### Demo Agent Accounts
+| Username | Password | Name |
+|----------|----------|------|
+| alex | support1 | Alex Chen |
+| jordan | support1 | Jordan Smith |
+| sam | support1 | Sam Rivera |
+| taylor | support1 | Taylor Kim |
+
+## Features
+
+### Customer Portal (after login)
+- Submit new tickets
+- View **My Tickets** (only their own)
+- Track any ticket by ID
+- See only public updates (internal notes hidden)
+
+### Tech Support Console (after agent login)
+- Full dashboard + live stats
+- My Tickets / Unassigned / All Tickets
 - Assign tickets to agents
 - Change status
 - Public replies + Internal notes
-- Search + filter by status & priority
-- Export all tickets as JSON
+- Search & filter
+- Export tickets as JSON
 
-## How it works
-
-Everything runs in the browser using `localStorage`.  
-No server or database required — perfect for demos and small teams.
-
-Open the live link or just open `index.html` locally.
-
-## Features added in v2
-- Clear separation: Customer Portal ↔ Tech Support
-- Agent assignment
-- Internal notes (not visible to customers)
-- Unassigned queue
-- "My Tickets" filter
-- Better sorting (priority + status)
-- Export to JSON
-- Sample critical ticket
-
-## Project structure
-
-```
-├── index.html
-├── css/styles.css
-├── js/app.js
-└── README.md
-```
+## Notes
+- Everything runs in the browser (`localStorage`)
+- No real backend — perfect for demos and prototypes
+- Session persists until you click **Logout**
 
 ---
 
-**Divine Rays Tech Hub** · v2.0
+**Divine Rays Tech Hub** · v3.0

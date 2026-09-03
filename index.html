@@ -10,40 +10,114 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 </head>
 <body>
-  <!-- Mode Switcher (top bar) -->
-  <div class="mode-bar">
-    <div class="mode-brand">
-      <span class="logo-sm">✦</span>
-      <strong>Divine Rays Tech Hub</strong>
-    </div>
-    <div class="mode-switch">
-      <button id="mode-customer" class="mode-btn active">Customer Portal</button>
-      <button id="mode-agent" class="mode-btn">Tech Support</button>
+
+  <!-- ==================== LOGIN SCREEN ==================== -->
+  <div id="login-screen" class="login-screen">
+    <div class="login-card">
+      <div class="login-brand">
+        <div class="logo">✦</div>
+        <h1>Divine Rays Tech Hub</h1>
+        <p>Support Portal</p>
+      </div>
+
+      <div class="login-tabs">
+        <button class="ltab active" data-ltab="customer">Customer</button>
+        <button class="ltab" data-ltab="agent">Tech Support</button>
+      </div>
+
+      <!-- Customer Login -->
+      <form id="login-customer" class="login-form active">
+        <div class="form-group">
+          <label for="cust-email">Email</label>
+          <input type="email" id="cust-email" required placeholder="you@company.com" />
+        </div>
+        <div class="form-group">
+          <label for="cust-password">Password</label>
+          <input type="password" id="cust-password" required placeholder="••••••••" />
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">Sign In</button>
+        <p class="login-switch">New here? <a href="#" id="show-register">Create an account</a></p>
+      </form>
+
+      <!-- Customer Register -->
+      <form id="register-customer" class="login-form">
+        <div class="form-group">
+          <label for="reg-name">Full Name</label>
+          <input type="text" id="reg-name" required placeholder="Your name" />
+        </div>
+        <div class="form-group">
+          <label for="reg-email">Email</label>
+          <input type="email" id="reg-email" required placeholder="you@company.com" />
+        </div>
+        <div class="form-group">
+          <label for="reg-password">Password</label>
+          <input type="password" id="reg-password" required minlength="4" placeholder="At least 4 characters" />
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">Create Account</button>
+        <p class="login-switch">Already have an account? <a href="#" id="show-login">Sign in</a></p>
+      </form>
+
+      <!-- Agent Login -->
+      <form id="login-agent" class="login-form">
+        <div class="form-group">
+          <label for="agent-username">Username</label>
+          <input type="text" id="agent-username" required placeholder="username" />
+        </div>
+        <div class="form-group">
+          <label for="agent-password">Password</label>
+          <input type="password" id="agent-password" required placeholder="••••••••" />
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">Sign In as Agent</button>
+      </form>
+
+      <div class="demo- creds">
+        <p><strong>Demo Accounts</strong></p>
+        <p><span>Customer:</span> alex.r@example.com / demo123</p>
+        <p><span>Customer:</span> jordan.l@example.com / demo123</p>
+        <p><span>Agent:</span> alex / support1</p>
+        <p><span>Agent:</span> jordan / support1</p>
+        <p><span>Agent:</span> sam / support1</p>
+        <p><span>Agent:</span> taylor / support1</p>
+      </div>
     </div>
   </div>
 
-  <div class="app">
-    <!-- ==================== CUSTOMER PORTAL ==================== -->
-    <div id="portal-customer" class="portal active">
+  <!-- ==================== APP (after login) ==================== -->
+  <div id="app-shell" class="app-shell" hidden>
+
+    <!-- Top bar -->
+    <div class="mode-bar">
+      <div class="mode-brand">
+        <span class="logo-sm">✦</span>
+        <strong>Divine Rays Tech Hub</strong>
+      </div>
+      <div class="user-info">
+        <span id="logged-user-label"></span>
+        <button class="btn btn-ghost btn-sm" id="btn-logout">Logout</button>
+      </div>
+    </div>
+
+    <!-- CUSTOMER PORTAL -->
+    <div id="portal-customer" class="portal">
       <main class="customer-main">
         <header class="customer-header">
-          <h1>Need Help?</h1>
-          <p>Submit a support request and our team will get back to you.</p>
+          <h1>Welcome, <span id="cust-welcome-name">User</span></h1>
+          <p>Submit a request or track your existing tickets.</p>
         </header>
 
         <div class="customer-tabs">
           <button class="ctab active" data-ctab="submit">Submit a Ticket</button>
-          <button class="ctab" data-ctab="track">Track a Ticket</button>
+          <button class="ctab" data-ctab="mytickets">My Tickets</button>
+          <button class="ctab" data-ctab="track">Track by ID</button>
         </div>
 
-        <!-- Submit Ticket -->
+        <!-- Submit -->
         <section id="ctab-submit" class="ctab-panel active">
           <form id="customer-form" class="ticket-form">
             <div class="form-group">
               <label for="c-title">What do you need help with? *</label>
               <input type="text" id="c-title" required placeholder="e.g. Can't connect to Wi-Fi" />
             </div>
-
             <div class="form-row">
               <div class="form-group">
                 <label for="c-priority">How urgent is this?</label>
@@ -65,53 +139,41 @@
                 </select>
               </div>
             </div>
-
-            <div class="form-group">
-              <label for="c-name">Your Name *</label>
-              <input type="text" id="c-name" required placeholder="Full name" />
-            </div>
-
-            <div class="form-group">
-              <label for="c-email">Email *</label>
-              <input type="email" id="c-email" required placeholder="you@company.com" />
-            </div>
-
             <div class="form-group">
               <label for="c-description">Describe the problem *</label>
               <textarea id="c-description" rows="5" required placeholder="Please give as much detail as possible..."></textarea>
             </div>
-
             <button type="submit" class="btn btn-primary btn-full">Submit Ticket</button>
           </form>
 
           <div id="submit-success" class="success-box" hidden>
             <h3>Ticket Submitted!</h3>
             <p>Your ticket ID is <strong id="new-ticket-id"></strong></p>
-            <p>Please save this ID to track your request.</p>
-            <button class="btn btn-secondary" id="btn-view-new">View Ticket Status</button>
+            <p>You can track it anytime from the My Tickets tab.</p>
+            <button class="btn btn-secondary" id="btn-go-mytickets">Go to My Tickets</button>
           </div>
         </section>
 
-        <!-- Track Ticket -->
+        <!-- My Tickets -->
+        <section id="ctab-mytickets" class="ctab-panel">
+          <div id="my-tickets-list" class="ticket-list"></div>
+        </section>
+
+        <!-- Track by ID -->
         <section id="ctab-track" class="ctab-panel">
           <div class="track-box">
             <div class="form-group">
               <label for="track-id">Ticket ID</label>
               <input type="text" id="track-id" placeholder="e.g. DR-1001" />
             </div>
-            <div class="form-group">
-              <label for="track-email">Your Email (optional)</label>
-              <input type="email" id="track-email" placeholder="Used if you forgot the ID" />
-            </div>
             <button class="btn btn-primary" id="btn-track">Check Status</button>
           </div>
-
           <div id="track-result" class="track-result" hidden></div>
         </section>
       </main>
     </div>
 
-    <!-- ==================== TECH SUPPORT (AGENT) ==================== -->
+    <!-- TECH SUPPORT (AGENT) -->
     <div id="portal-agent" class="portal">
       <aside class="sidebar">
         <div class="brand">
@@ -122,14 +184,8 @@
           </div>
         </div>
 
-        <div class="agent-select">
-          <label>Working as</label>
-          <select id="current-agent">
-            <option value="Alex Chen">Alex Chen</option>
-            <option value="Jordan Smith">Jordan Smith</option>
-            <option value="Sam Rivera">Sam Rivera</option>
-            <option value="Taylor Kim">Taylor Kim</option>
-          </select>
+        <div class="agent-badge">
+          <span id="agent-name-display">Agent</span>
         </div>
 
         <nav class="nav">
@@ -141,7 +197,7 @@
 
         <div class="sidebar-footer">
           <button class="btn btn-ghost btn-sm" id="btn-export">Export JSON</button>
-          <p class="version">v2.0 · Local Storage</p>
+          <p class="version">v3.0 · Local Storage</p>
         </div>
       </aside>
 
@@ -168,38 +224,19 @@
           </div>
         </header>
 
-        <!-- Dashboard / List View -->
         <section id="view-dashboard" class="view active">
           <div class="stats">
-            <div class="stat-card">
-              <span class="stat-label">Open</span>
-              <span class="stat-value" id="stat-open">0</span>
-            </div>
-            <div class="stat-card">
-              <span class="stat-label">In Progress</span>
-              <span class="stat-value" id="stat-progress">0</span>
-            </div>
-            <div class="stat-card">
-              <span class="stat-label">Waiting</span>
-              <span class="stat-value" id="stat-waiting">0</span>
-            </div>
-            <div class="stat-card">
-              <span class="stat-label">Unassigned</span>
-              <span class="stat-value" id="stat-unassigned">0</span>
-            </div>
-            <div class="stat-card">
-              <span class="stat-label">Resolved</span>
-              <span class="stat-value" id="stat-resolved">0</span>
-            </div>
+            <div class="stat-card"><span class="stat-label">Open</span><span class="stat-value" id="stat-open">0</span></div>
+            <div class="stat-card"><span class="stat-label">In Progress</span><span class="stat-value" id="stat-progress">0</span></div>
+            <div class="stat-card"><span class="stat-label">Waiting</span><span class="stat-value" id="stat-waiting">0</span></div>
+            <div class="stat-card"><span class="stat-label">Unassigned</span><span class="stat-value" id="stat-unassigned">0</span></div>
+            <div class="stat-card"><span class="stat-label">Resolved</span><span class="stat-value" id="stat-resolved">0</span></div>
           </div>
-
           <div id="ticket-list" class="ticket-list"></div>
         </section>
 
-        <!-- Ticket Detail (Agent) -->
         <section id="view-detail" class="view">
           <button class="btn btn-ghost" id="btn-back">← Back to list</button>
-
           <article class="ticket-detail" id="ticket-detail"></article>
 
           <div class="agent-actions">
@@ -233,7 +270,6 @@
           <div class="comments-section">
             <h3>Activity & Notes</h3>
             <div id="comments-list" class="comments-list"></div>
-
             <form id="comment-form" class="comment-form">
               <textarea id="comment-text" rows="3" placeholder="Add a public reply or internal note..."></textarea>
               <div class="form-actions">
