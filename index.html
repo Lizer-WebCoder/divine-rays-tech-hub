@@ -11,6 +11,9 @@
 </head>
 <body>
 
+  <!-- Toast container -->
+  <div id="toast-container"></div>
+
   <!-- ==================== LOGIN SCREEN ==================== -->
   <div id="login-screen" class="login-screen">
     <div class="login-card">
@@ -25,7 +28,6 @@
         <button class="ltab" data-ltab="agent">Tech Support</button>
       </div>
 
-      <!-- Customer Login -->
       <form id="login-customer" class="login-form active">
         <div class="form-group">
           <label for="cust-email">Email</label>
@@ -39,7 +41,6 @@
         <p class="login-switch">New here? <a href="#" id="show-register">Create an account</a></p>
       </form>
 
-      <!-- Customer Register -->
       <form id="register-customer" class="login-form">
         <div class="form-group">
           <label for="reg-name">Full Name</label>
@@ -57,7 +58,6 @@
         <p class="login-switch">Already have an account? <a href="#" id="show-login">Sign in</a></p>
       </form>
 
-      <!-- Agent Login -->
       <form id="login-agent" class="login-form">
         <div class="form-group">
           <label for="agent-username">Username</label>
@@ -70,7 +70,7 @@
         <button type="submit" class="btn btn-primary btn-full">Sign In as Agent</button>
       </form>
 
-      <div class="demo- creds">
+      <div class="demo-creds">
         <p><strong>Demo Accounts</strong></p>
         <p><span>Customer:</span> alex.r@example.com / demo123</p>
         <p><span>Customer:</span> jordan.l@example.com / demo123</p>
@@ -82,10 +82,9 @@
     </div>
   </div>
 
-  <!-- ==================== APP (after login) ==================== -->
+  <!-- ==================== APP ==================== -->
   <div id="app-shell" class="app-shell" hidden>
 
-    <!-- Top bar -->
     <div class="mode-bar">
       <div class="mode-brand">
         <span class="logo-sm">✦</span>
@@ -102,16 +101,15 @@
       <main class="customer-main">
         <header class="customer-header">
           <h1>Welcome, <span id="cust-welcome-name">User</span></h1>
-          <p>Submit a request or track your existing tickets.</p>
+          <p>Submit a request or manage your tickets.</p>
         </header>
 
         <div class="customer-tabs">
-          <button class="ctab active" data-ctab="submit">Submit a Ticket</button>
+          <button class="ctab active" data-ctab="submit">Submit Ticket</button>
           <button class="ctab" data-ctab="mytickets">My Tickets</button>
           <button class="ctab" data-ctab="track">Track by ID</button>
         </div>
 
-        <!-- Submit -->
         <section id="ctab-submit" class="ctab-panel active">
           <form id="customer-form" class="ticket-form">
             <div class="form-group">
@@ -149,17 +147,15 @@
           <div id="submit-success" class="success-box" hidden>
             <h3>Ticket Submitted!</h3>
             <p>Your ticket ID is <strong id="new-ticket-id"></strong></p>
-            <p>You can track it anytime from the My Tickets tab.</p>
+            <p>You can track it from the My Tickets tab.</p>
             <button class="btn btn-secondary" id="btn-go-mytickets">Go to My Tickets</button>
           </div>
         </section>
 
-        <!-- My Tickets -->
         <section id="ctab-mytickets" class="ctab-panel">
           <div id="my-tickets-list" class="ticket-list"></div>
         </section>
 
-        <!-- Track by ID -->
         <section id="ctab-track" class="ctab-panel">
           <div class="track-box">
             <div class="form-group">
@@ -170,10 +166,26 @@
           </div>
           <div id="track-result" class="track-result" hidden></div>
         </section>
+
+        <!-- Customer Ticket Detail (overlay style) -->
+        <section id="ctab-detail" class="ctab-panel">
+          <button class="btn btn-ghost" id="btn-cust-back">← Back to My Tickets</button>
+          <article class="ticket-detail" id="cust-ticket-detail"></article>
+          <div class="comments-section">
+            <h3>Conversation</h3>
+            <div id="cust-comments-list" class="comments-list"></div>
+            <form id="cust-reply-form" class="comment-form">
+              <textarea id="cust-reply-text" rows="3" placeholder="Add a reply or more information..."></textarea>
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Send Reply</button>
+              </div>
+            </form>
+          </div>
+        </section>
       </main>
     </div>
 
-    <!-- TECH SUPPORT (AGENT) -->
+    <!-- TECH SUPPORT -->
     <div id="portal-agent" class="portal">
       <aside class="sidebar">
         <div class="brand">
@@ -197,7 +209,7 @@
 
         <div class="sidebar-footer">
           <button class="btn btn-ghost btn-sm" id="btn-export">Export JSON</button>
-          <p class="version">v3.0 · Local Storage</p>
+          <p class="version">v4.0 · Local Storage</p>
         </div>
       </aside>
 
@@ -240,7 +252,7 @@
           <article class="ticket-detail" id="ticket-detail"></article>
 
           <div class="agent-actions">
-            <div class="form-row">
+            <div class="form-row three-col">
               <div class="form-group">
                 <label>Assign to</label>
                 <select id="assign-agent">
@@ -261,7 +273,8 @@
                   <option value="Closed">Closed</option>
                 </select>
               </div>
-              <div class="form-group" style="align-self:end">
+              <div class="form-group action-btns">
+                <button class="btn btn-secondary" id="btn-claim">Claim Ticket</button>
                 <button class="btn btn-primary" id="btn-save-meta">Save Changes</button>
               </div>
             </div>
