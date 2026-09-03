@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="stylesheet" href="css/styles.css?v=5.1" />
+  <link rel="stylesheet" href="css/styles.css?v=5.2" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -13,7 +13,6 @@
 
   <div id="toast-container"></div>
 
-  <!-- LOGIN SCREEN -->
   <div id="login-screen" class="login-screen">
     <div class="login-card">
       <div class="login-brand">
@@ -23,11 +22,10 @@
       </div>
 
       <div class="login-tabs">
-        <button class="ltab active" data-ltab="customer">Customer</button>
-        <button class="ltab" data-ltab="agent">Tech Support</button>
+        <button type="button" class="ltab active" data-ltab="customer">Customer</button>
+        <button type="button" class="ltab" data-ltab="agent">Tech Support</button>
       </div>
 
-      <!-- Customer Login -->
       <form id="login-customer" class="login-form active">
         <div class="form-group">
           <label for="cust-email">Email</label>
@@ -41,7 +39,6 @@
         <p class="login-switch">New here? <a href="#" id="show-register-customer">Create an account</a></p>
       </form>
 
-      <!-- Customer Register -->
       <form id="register-customer" class="login-form">
         <div class="form-group">
           <label for="reg-cust-name">Full Name</label>
@@ -51,14 +48,14 @@
           <label for="reg-cust-email">Email</label>
           <input type="email" id="reg-cust-email" required placeholder="you@company.com" />
         </div>
-        <div class="form-group">\tableofcontents <label for="reg-cust-password">Password</label>
+        <div class="form-group">
+          <label for="reg-cust-password">Password</label>
           <input type="password" id="reg-cust-password" required minlength="4" placeholder="At least 4 characters" />
         </div>
         <button type="submit" class="btn btn-primary btn-full">Create Customer Account</button>
         <p class="login-switch">Already have an account? <a href="#" id="show-login-customer">Sign in</a></p>
       </form>
 
-      <!-- Agent Login -->
       <form id="login-agent" class="login-form">
         <div class="form-group">
           <label for="agent-username">Username</label>
@@ -72,7 +69,6 @@
         <p class="login-switch">New agent? <a href="#" id="show-register-agent">Create agent account</a></p>
       </form>
 
-      <!-- Agent Register -->
       <form id="register-agent" class="login-form">
         <div class="form-group">
           <label for="reg-agent-name">Full Name</label>
@@ -94,7 +90,6 @@
     </div>
   </div>
 
-  <!-- APP -->
   <div id="app-shell" class="app-shell" hidden>
 
     <div class="mode-bar">
@@ -104,11 +99,10 @@
       </div>
       <div class="user-info">
         <span id="logged-user-label"></span>
-        <button class="btn btn-ghost btn-sm" id="btn-logout">Logout</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="btn-logout">Logout</button>
       </div>
     </div>
 
-    <!-- CUSTOMER PORTAL -->
     <div id="portal-customer" class="portal">
       <main class="customer-main">
         <header class="customer-header">
@@ -117,9 +111,9 @@
         </header>
 
         <div class="customer-tabs">
-          <button class="ctab active" data-ctab="submit">Submit Ticket</button>
-          <button class="ctab" data-ctab="mytickets">My Tickets</button>
-          <button class="ctab" data-ctab="track">Track by ID</button>
+          <button type="button" class="ctab active" data-ctab="submit">Submit Ticket</button>
+          <button type="button" class="ctab" data-ctab="mytickets">My Tickets</button>
+          <button type="button" class="ctab" data-ctab="track">Track by ID</button>
         </div>
 
         <section id="ctab-submit" class="ctab-panel active">
@@ -160,7 +154,7 @@
             <h3>Ticket Submitted!</h3>
             <p>Your ticket ID is <strong id="new-ticket-id"></strong></p>
             <p>You can track it from the My Tickets tab.</p>
-            <button class="btn btn-secondary" id="btn-go-mytickets">Go to My Tickets</button>
+            <button type="button" class="btn btn-secondary" id="btn-go-mytickets">Go to My Tickets</button>
           </div>
         </section>
 
@@ -174,13 +168,13 @@
               <label for="track-id">Ticket ID</label>
               <input type="text" id="track-id" placeholder="e.g. DR-1001" />
             </div>
-            <button class="btn btn-primary" id="btn-track">Check Status</button>
+            <button type="button" class="btn btn-primary" id="btn-track">Check Status</button>
           </div>
           <div id="track-result" class="track-result" hidden></div>
         </section>
 
         <section id="ctab-detail" class="ctab-panel">
-          <button class="btn btn-ghost" id="btn-cust-back">← Back to My Tickets</button>
+          <button type="button" class="btn btn-ghost" id="btn-cust-back">← Back to My Tickets</button>
           <article class="ticket-detail" id="cust-ticket-detail"></article>
           <div class="comments-section">
             <h3>Conversation</h3>
@@ -198,7 +192,6 @@
       </main>
     </div>
 
-    <!-- TECH SUPPORT -->
     <div id="portal-agent" class="portal">
       <aside class="sidebar">
         <div class="brand">
@@ -214,15 +207,15 @@
         </div>
 
         <nav class="nav">
-          <button class="nav-btn active" data-view="dashboard">Dashboard</button>
-          <button class="nav-btn" data-view="my-tickets">My Tickets</button>
-          <button class="nav-btn" data-view="unassigned">Unassigned</button>
-          <button class="nav-btn" data-view="all-tickets">All Tickets</button>
+          <button type="button" class="nav-btn active" data-view="dashboard">Dashboard</button>
+          <button type="button" class="nav-btn" data-view="my-tickets">My Tickets</button>
+          <button type="button" class="nav-btn" data-view="unassigned">Unassigned</button>
+          <button type="button" class="nav-btn" data-view="all-tickets">All Tickets</button>
         </nav>
 
         <div class="sidebar-footer">
-          <button class="btn btn-ghost btn-sm" id="btn-export">Export JSON</button>
-          <p class="version">v5.1</p>
+          <button type="button" class="btn btn-ghost btn-sm" id="btn-export">Export JSON</button>
+          <p class="version">v5.2</p>
           <p class="credit-side">Lizzz · All Rights Reserved</p>
         </div>
       </aside>
@@ -262,7 +255,7 @@
         </section>
 
         <section id="view-detail" class="view">
-          <button class="btn btn-ghost" id="btn-back">← Back to list</button>
+          <button type="button" class="btn btn-ghost" id="btn-back">← Back to list</button>
           <article class="ticket-detail" id="ticket-detail"></article>
 
           <div class="agent-actions">
@@ -284,8 +277,8 @@
                 </select>
               </div>
               <div class="form-group action-btns">
-                <button class="btn btn-secondary" id="btn-claim">Claim Ticket</button>
-                <button class="btn btn-primary" id="btn-save-meta">Save Changes</button>
+                <button type="button" class="btn btn-secondary" id="btn-claim">Claim Ticket</button>
+                <button type="button" class="btn btn-primary" id="btn-save-meta">Save Changes</button>
               </div>
             </div>
           </div>
@@ -309,6 +302,6 @@
     </div>
   </div>
 
-  <script src="js/app.js?v=5.1"></script>
+  <script src="js/app.js?v=5.2"></script>
 </body>
 </html>
