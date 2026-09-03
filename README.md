@@ -1,54 +1,51 @@
 # Divine Rays Tech Hub — Support Ticketing System
 
-A clean, modern **client-side** tech support ticketing system.
+A modern dual-sided tech support ticketing system.
 
-**Live demo style**: Open `index.html` in any modern browser. All data is stored in the browser’s `localStorage` (no server required).
+**Live:** https://lizer-webcoder.github.io/divine-rays-tech-hub/
 
-## Features
+## Two Sides
 
-- Create tickets with title, description, priority, category, requester info
-- Status workflow: Open → In Progress → Waiting → Resolved → Closed
-- Priority levels: Low / Medium / High / Critical
-- Search and filter by status
-- Ticket detail view with activity / comments and status updates
-- Dashboard with live counts
-- Sample tickets on first load
-- Fully responsive dark theme with Divine Rays branding
+### 1. Customer Portal
+- Submit support tickets easily
+- Track ticket status by ID or email
+- See only public updates (internal notes are hidden)
 
-## How to use
+### 2. Tech Support (Agent Console)
+- Full dashboard with live stats
+- My Tickets / Unassigned / All Tickets views
+- Assign tickets to agents
+- Change status
+- Public replies + Internal notes
+- Search + filter by status & priority
+- Export all tickets as JSON
 
-1. Clone or download this repository
-2. Open `index.html` in your browser (double-click or use a local server)
-3. Start creating and managing tickets
+## How it works
 
-> Tip: For a better experience, run a simple local server:
-> ```bash
-> npx serve .
-> # or
-> python -m http.server 8000
-> ```
+Everything runs in the browser using `localStorage`.  
+No server or database required — perfect for demos and small teams.
+
+Open the live link or just open `index.html` locally.
+
+## Features added in v2
+- Clear separation: Customer Portal ↔ Tech Support
+- Agent assignment
+- Internal notes (not visible to customers)
+- Unassigned queue
+- "My Tickets" filter
+- Better sorting (priority + status)
+- Export to JSON
+- Sample critical ticket
 
 ## Project structure
 
 ```
-├── index.html          # Main page
-├── css/
-│   └── styles.css      # Dark theme + layout
-├── js/
-│   └── app.js          # All logic + localStorage
+├── index.html
+├── css/styles.css
+├── js/app.js
 └── README.md
 ```
 
-## Next steps (optional)
-
-This version is intentionally simple and fully offline. Easy upgrades:
-
-- Connect to a real backend (Firebase, Supabase, Node/Express, etc.)
-- Add user authentication & agent assignment
-- Email notifications
-- File attachments
-- Export to CSV / reports
-
 ---
 
-**Divine Rays Tech Hub** · Support Ticketing System v1.0
+**Divine Rays Tech Hub** · v2.0
