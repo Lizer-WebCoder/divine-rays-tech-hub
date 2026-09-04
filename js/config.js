@@ -4,6 +4,5 @@
  */
 window.DR_CONFIG = {
   SUPABASE_URL: 'https://rtkejzecxycdoxgvpson.supabase.co',
-  // Paste your full Publishable key (sb_publishable_...) from Supabase → Settings → API Keys
-  SUPABASE_ANON_KEY: ''
+  SUPABASE_ANON_KEY: 'sb_publishable_Jv9As0Sv46haWPJBzICW6w_R0PnyHV0'
 };
