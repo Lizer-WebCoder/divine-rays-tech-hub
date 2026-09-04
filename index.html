@@ -4,11 +4,19 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="stylesheet" href="css/styles.css?v=6.4" />
+  <link rel="stylesheet" href="css/styles.css?v=6.5" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
+    /* Critical fallback — works even if css/styles.css fails to load */
+    html, body {
+      margin: 0; padding: 0;
+      background: #0f0f14 !important;
+      color: #e8e8f0 !important;
+      font-family: Inter, system-ui, sans-serif;
+      min-height: 100vh;
+    }
     form.login-form { display: none !important; }
     form.login-form.active { display: block !important; }
     .login-screen[hidden], .login-screen.is-hidden,
@@ -19,6 +27,39 @@
       overflow: hidden !important;
       pointer-events: none !important;
     }
+    /* Only one portal at a time */
+    .portal { display: none !important; }
+    .portal.active { display: block !important; }
+    #portal-agent.active { display: flex !important; min-height: calc(100vh - 49px); }
+    /* Only one customer tab panel */
+    .ctab-panel { display: none !important; }
+    .ctab-panel.active { display: block !important; }
+    /* Only one agent view */
+    #portal-agent .view { display: none !important; }
+    #portal-agent .view.active { display: block !important; }
+    /* Basic layout so page is usable without external CSS */
+    .mode-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.55rem 1.25rem; background: #12121a;
+      border-bottom: 1px solid #2e2e42;
+    }
+    .customer-main { max-width: 700px; margin: 0 auto; padding: 2rem 1.25rem; }
+    .ticket-form, .track-box, .success-box, .comments-section, .ticket-detail {
+      background: #1a1a24; border: 1px solid #2e2e42; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem;
+    }
+    input, select, textarea, button {
+      font-family: inherit; font-size: 0.9rem;
+    }
+    .btn-primary {
+      background: #7c6af0; color: #fff; border: none; border-radius: 9px;
+      padding: 0.55rem 1rem; font-weight: 600; cursor: pointer;
+    }
+    .customer-tabs { display: flex; gap: 0.4rem; margin-bottom: 1.25rem; }
+    .ctab {
+      flex: 1; border: none; background: #1a1a24; color: #9898b0;
+      padding: 0.55rem; border-radius: 9px; font-weight: 600; cursor: pointer;
+    }
+    .ctab.active { background: #7c6af0; color: #fff; }
   </style>
 </head>
 <body>
@@ -231,7 +272,7 @@
 
         <div class="sidebar-footer">
           <button type="button" class="btn btn-ghost btn-sm" id="btn-export">Export JSON</button>
-          <p class="version">v6.4</p>
+          <p class="version">v6.5</p>
           <p class="credit-side">Lizzz · All Rights Reserved</p>
         </div>
       </aside>
@@ -347,7 +388,7 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js?v=6.4"></script>
-  <script src="js/app.js?v=6.4"></script>
+  <script src="js/config.js?v=6.5"></script>
+  <script src="js/app.js?v=6.5"></script>
 </body>
 </html>
