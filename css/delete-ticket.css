@@ -1,0 +1,52 @@
+.btn-danger {
+  background: rgba(248, 113, 113, 0.2) !important;
+  color: #fca5a5 !important;
+  border: 1px solid rgba(248, 113, 113, 0.45) !important;
+  font-weight: 600;
+}
+.btn-danger:hover {
+  background: rgba(248, 113, 113, 0.35) !important;
+  color: #fecaca !important;
+}
+.delete-ticket-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding-top: 0.5rem;
+  border-top: 1px dashed var(--border, #2e2e42);
+}
+.delete-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted, #9898b0);
+}
+.cust-notifications {
+  margin-bottom: 1.25rem;
+}
+.notif-banner {
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+}
+.notif-banner strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #fbbf24;
+  font-size: 0.85rem;
+}
+.notif-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.45rem 0;
+  border-top: 1px solid rgba(251, 191, 36, 0.2);
+}
+.notif-item:first-of-type { border-top: none; }
+.notif-item p {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--text, #e8e8f0);
+}
