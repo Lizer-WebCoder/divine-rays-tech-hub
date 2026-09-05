@@ -101,44 +101,95 @@
   opacity: 0.9;
 }
 
-/* Team / agent performance */
+/* Simple team performance cards */
 .team-board {
+  background: transparent;
+  border: none;
+  overflow: visible;
+}
+.team-help {
+  font-size: 0.85rem;
+  color: var(--text-muted, #9898b0);
+  margin: 0 0 0.85rem;
+  line-height: 1.4;
+}
+.team-loading, .team-empty {
+  font-size: 0.9rem;
+  color: var(--text-muted, #9898b0);
+  padding: 1rem;
   background: var(--surface, #1a1a24);
   border: 1px solid var(--border, #2e2e42);
   border-radius: 12px;
-  overflow: hidden;
 }
-.team-board .perf-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
-.team-board .perf-table th {
-  text-align: left;
-  padding: 0.7rem 1rem;
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-muted, #9898b0);
-  background: var(--bg, #0f0f14);
-  border-bottom: 1px solid var(--border, #2e2e42);
+.team-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.75rem;
 }
-.team-board .perf-table td {
-  padding: 0.7rem 1rem;
-  border-bottom: 1px solid var(--border, #2e2e42);
-  color: var(--text, #e8e8f0);
+.team-card {
+  background: var(--surface, #1a1a24);
+  border: 1px solid var(--border, #2e2e42);
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
 }
-.team-board .perf-table tr.mine {
+.team-card.is-you {
+  border-color: rgba(124, 106, 240, 0.5);
   background: rgba(124, 106, 240, 0.1);
 }
-.you-tag {
+.team-card-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  color: var(--text, #e8e8f0);
+}
+.team-badge {
   font-size: 0.65rem;
   font-weight: 700;
-  color: #a78bfa;
-  background: rgba(124,106,240,0.2);
-  padding: 0.1rem 0.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.12rem 0.4rem;
   border-radius: 999px;
-  margin-left: 0.35rem;
 }
-
+.team-badge.you {
+  background: rgba(124, 106, 240, 0.25);
+  color: #c4b5fd;
+}
+.team-badge.admin {
+  background: rgba(251, 191, 36, 0.2);
+  color: #fbbf24;
+}
+.team-card-stats {
+  display: flex;
+  gap: 1rem;
+}
+.team-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+.team-stat-num {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text, #e8e8f0);
+  line-height: 1.1;
+}
+.team-stat-label {
+  font-size: 0.72rem;
+  color: var(--text-muted, #9898b0);
+  font-weight: 500;
+}
+html[data-theme="light"] .team-card {
+  background: #fff;
+  border-color: #d0d3e0;
+}
+html[data-theme="light"] .team-card.is-you {
+  background: rgba(124, 106, 240, 0.08);
+}
 html[data-theme="light"] .report-card,
-html[data-theme="light"] .team-board,
 html[data-theme="light"] .saved-views-block {
   background: #fff;
   border-color: #d0d3e0;

@@ -1,5 +1,5 @@
 /**
- * Divine Rays — team performance board (all agents)
+ * Divine Rays — simple team performance
  * Credit: Lizzz · All Rights Reserved
  */
 (function () {
@@ -7,34 +7,40 @@
 
   function dr() { return window.DR || {}; }
 
+  function escapeHtml(s) {
+    return String(s || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
   async function buildTeamRows() {
     var tickets = (dr().getAllTickets && dr().getAllTickets()) || [];
     if (!tickets.length && dr().fetchTickets) {
-      tickets = await dr().fetchTickets({}) || [];
+      tickets = (await dr().fetchTickets({})) || [];
       if (dr().setAllTickets) dr().setAllTickets(tickets);
     }
 
     var byAgent = {};
     tickets.forEach(function (t) {
-      var aid = t.assignee_id;
+      var aid = t.assignee_id || t.assigned_to;
       if (!aid) return;
-      if (!byAgent[aid]) byAgent[aid] = { claimed: 0, resolved: 0, open: 0, waiting: 0, critical: 0 };
-      var a = byAgent[aid];
+      if (!byAgent[aid]) byAgent[aid] = { working: 0, solved: 0 };
       var st = t.status || '';
-      if (st === 'Resolved' || st === 'Closed') a.resolved++;
-      else {
-        a.claimed++;
-        a.open++;
-        if (st === 'Waiting') a.waiting++;
-        if (t.priority === 'Critical') a.critical++;
-      }
+      if (st === 'Resolved' || st === 'Closed') byAgent[aid].solved++;
+      else byAgent[aid].working++;
     });
 
     var profiles = [];
     try {
-      var sb = dr().sb && dr().sb();
-      if (sb) {
-        var r = await sb.from('profiles').select('id,full_name,role,username').in('role', ['agent', 'admin']).order('full_name');
+      var client = dr().sb && dr().sb();
+      if (client) {
+        var r = await client
+          .from('profiles')
+          .select('id,full_name,role,username')
+          .in('role', ['agent', 'admin'])
+          .order('full_name');
         profiles = r.data || [];
       }
     } catch (e) {}
@@ -45,17 +51,13 @@
 
     if (profiles.length) {
       profiles.forEach(function (p) {
-        var s = byAgent[p.id] || { claimed: 0, resolved: 0, open: 0, waiting: 0, critical: 0 };
+        var s = byAgent[p.id] || { working: 0, solved: 0 };
         rows.push({
           id: p.id,
           name: p.full_name || p.username || 'Agent',
           role: p.role,
-          claimed: s.claimed,
-          resolved: s.resolved,
-          open: s.open,
-          waiting: s.waiting,
-          critical: s.critical,
-          total: s.claimed + s.resolved
+          working: s.working,
+          solved: s.solved
         });
       });
     } else {
@@ -68,65 +70,80 @@
           id: id,
           name: names[id] || 'Agent',
           role: 'agent',
-          claimed: s.claimed,
-          resolved: s.resolved,
-          open: s.open,
-          waiting: s.waiting,
-          critical: s.critical,
-          total: s.claimed + s.resolved
+          working: s.working,
+          solved: s.solved
         });
       });
     }
 
     rows.sort(function (a, b) {
-      return (b.resolved * 2 + b.claimed) - (a.resolved * 2 + a.claimed);
+      return b.solved - a.solved || b.working - a.working;
     });
     return { rows: rows, meId: meId };
-  }
-
-  function escapeHtml(s) {
-    return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
   function renderTeamBoard(targetId) {
     var box = document.getElementById(targetId || 'agent-perf-list');
     if (!box) return;
     box.classList.add('team-board');
-    box.innerHTML = '<p class="empty-state" style="padding:1rem">Loading team…</p>';
-    buildTeamRows().then(function (data) {
-      var rows = data.rows;
-      var meId = data.meId;
-      if (!rows.length) {
-        box.innerHTML = '<p class="empty-state" style="padding:1rem">No agents found yet.</p>';
-        return;
-      }
-      box.innerHTML =
-        '<table class="perf-table"><thead><tr>' +
-        '<th>Agent</th><th>Active</th><th>Resolved</th><th>Waiting</th><th>Critical</th><th>Total</th>' +
-        '</tr></thead><tbody>' +
-        rows.map(function (r) {
-          var mine = meId && r.id === meId ? ' class="mine"' : '';
-          var you = mine ? ' <span class="you-tag">you</span>' : '';
-          var role = r.role === 'admin' ? ' <span class="you-tag">admin</span>' : '';
-          return '<tr' + mine + '>' +
-            '<td>' + escapeHtml(r.name) + you + role + '</td>' +
-            '<td>' + r.claimed + '</td>' +
-            '<td>' + r.resolved + '</td>' +
-            '<td>' + r.waiting + '</td>' +
-            '<td>' + r.critical + '</td>' +
-            '<td>' + r.total + '</td>' +
-            '</tr>';
-        }).join('') +
-        '</tbody></table>';
-    }).catch(function (e) {
-      console.error(e);
-      box.innerHTML = '<p class="empty-state" style="padding:1rem">Could not load team stats.</p>';
-    });
+    box.innerHTML = '<p class="team-loading">Loading team…</p>';
+
+    buildTeamRows()
+      .then(function (data) {
+        var rows = data.rows;
+        var meId = data.meId;
+
+        if (!rows.length) {
+          box.innerHTML =
+            '<p class="team-empty">No tech support agents yet. When agents claim tickets, they will show up here.</p>';
+          return;
+        }
+
+        box.innerHTML =
+          '<p class="team-help">Who is handling tickets right now, and how many they have finished.</p>' +
+          '<div class="team-cards">' +
+          rows
+            .map(function (r) {
+              var isYou = meId && r.id === meId;
+              var badge =
+                (isYou ? '<span class="team-badge you">You</span>' : '') +
+                (r.role === 'admin' ? '<span class="team-badge admin">Admin</span>' : '');
+              return (
+                '<div class="team-card' + (isYou ? ' is-you' : '') + '">' +
+                '<div class="team-card-name">' +
+                escapeHtml(r.name) +
+                badge +
+                '</div>' +
+                '<div class="team-card-stats">' +
+                '<div class="team-stat">' +
+                '<span class="team-stat-num">' +
+                r.working +
+                '</span>' +
+                '<span class="team-stat-label">Working on</span>' +
+                '</div>' +
+                '<div class="team-stat">' +
+                '<span class="team-stat-num">' +
+                r.solved +
+                '</span>' +
+                '<span class="team-stat-label">Solved</span>' +
+                '</div>' +
+                '</div>' +
+                '</div>'
+              );
+            })
+            .join('') +
+          '</div>';
+      })
+      .catch(function (e) {
+        console.error(e);
+        box.innerHTML = '<p class="team-empty">Could not load team stats.</p>';
+      });
   }
 
   function enhanceDashboardHeading() {
     document.querySelectorAll('.stats-heading').forEach(function (h) {
-      if ((h.textContent || '').toLowerCase().indexOf('all agents') !== -1) {
+      var t = (h.textContent || '').toLowerCase();
+      if (t.indexOf('all agents') !== -1 || t.indexOf('team performance') !== -1) {
         h.textContent = 'Team performance';
       }
     });
@@ -158,5 +175,10 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else setTimeout(boot, 400);
 
-  window.DR_TEAM = { render: renderTeamBoard, refresh: function () { renderTeamBoard('agent-perf-list'); } };
+  window.DR_TEAM = {
+    render: renderTeamBoard,
+    refresh: function () {
+      renderTeamBoard('agent-perf-list');
+    }
+  };
 })();
