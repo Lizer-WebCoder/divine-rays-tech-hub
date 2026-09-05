@@ -1,5 +1,5 @@
 /**
- * Divine Rays Tech Hub — login + app loader (role-safe)
+ * Divine Rays Tech Hub — login loader (safe role switch)
  * Credit: Lizzz · All Rights Reserved
  */
 (function () {
@@ -16,7 +16,9 @@
   var sb = null;
   var usingCloud = !!(cfg.SUPABASE_URL && cfg.SUPABASE_ANON_KEY && window.supabase);
   if (usingCloud) {
-    sb = window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY);
+    sb = window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY, {
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+    });
   }
 
   function toast(m, t) {
@@ -61,6 +63,28 @@
     if (el) el.classList.add('active');
   };
 
+  async function hardSignOut() {
+    window.__drFullLoaded = false;
+    window.__drBooting = false;
+    try { sessionStorage.removeItem('dr_last_ticket'); } catch (e) {}
+    try { if (sb) await sb.auth.signOut({ scope: 'local' }); } catch (e) {}
+    try {
+      if (window.DR && window.DR.sb) {
+        var s2 = window.DR.sb();
+        if (s2 && s2.auth) await s2.auth.signOut({ scope: 'local' });
+      }
+    } catch (e2) {}
+    try {
+      Object.keys(localStorage).forEach(function (k) {
+        if (k.indexOf('supabase') !== -1 || k.indexOf('sb-') === 0) localStorage.removeItem(k);
+      });
+    } catch (e3) {}
+    var pc = document.getElementById('portal-customer');
+    var pa = document.getElementById('portal-agent');
+    if (pc) pc.classList.remove('active');
+    if (pa) pa.classList.remove('active');
+  }
+
   async function getProfile(userId) {
     var r = await sb.from('profiles').select('*').eq('id', userId).maybeSingle();
     return r.error ? null : r.data;
@@ -69,18 +93,7 @@
   async function ensureProfile(user, extras) {
     extras = extras || {};
     var existing = await getProfile(user.id);
-    if (existing) {
-      var patch = {};
-      if (extras.full_name && !existing.full_name) patch.full_name = extras.full_name;
-      if (extras.username && !existing.username) patch.username = extras.username;
-      if (extras.email && !existing.email) patch.email = extras.email;
-      if (Object.keys(patch).length) {
-        var u = await sb.from('profiles').update(patch).eq('id', user.id).select('*').maybeSingle();
-        if (u.data) return u.data;
-      }
-      return existing;
-    }
-
+    if (existing) return existing;
     var row = {
       id: user.id,
       email: user.email || extras.email || null,
@@ -89,14 +102,23 @@
       username: extras.username || (user.user_metadata && user.user_metadata.username) || null
     };
     var r = await sb.from('profiles').upsert(row, { onConflict: 'id' }).select('*').maybeSingle();
-    if (r.error) {
-      var s = await getProfile(user.id);
-      return s || row;
-    }
+    if (r.error) return (await getProfile(user.id)) || row;
     return r.data || row;
   }
 
+  async function resolveAgentEmail(login) {
+    login = (login || '').trim();
+    if (!login) return null;
+    if (login.indexOf('@') !== -1) return login;
+    var q = await sb.from('profiles').select('email').eq('username', login).maybeSingle();
+    if (q.data && q.data.email) return q.data.email;
+    var q2 = await sb.from('profiles').select('email').ilike('username', login).maybeSingle();
+    if (q2.data && q2.data.email) return q2.data.email;
+    return null;
+  }
+
   async function signIn(email, password) {
+    try { await sb.auth.signOut({ scope: 'local' }); } catch (e) {}
     var r = await sb.auth.signInWithPassword({ email: email, password: password });
     if (r.error) return { error: r.error.message };
     var user = r.data.user;
@@ -130,8 +152,23 @@
     return { user: user, profile: prof };
   }
 
-  async function loadFullAppThen() {
+  function applyPortalForRole(role) {
+    var pc = document.getElementById('portal-customer');
+    var pa = document.getElementById('portal-agent');
+    if (pc) pc.classList.remove('active');
+    if (pa) pa.classList.remove('active');
+    if (role === 'customer') {
+      if (pc) pc.classList.add('active');
+    } else {
+      if (pa) pa.classList.add('active');
+    }
+  }
+
+  async function loadFullAppThen(expectedRole) {
+    if (window.__drBooting) return;
+    window.__drBooting = true;
     toast('Signed in…', 'success');
+
     var urls = [
       'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@abdc47355c0342744e79b8545458cd7d729f93d1/js/app.js',
       'https://fastly.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@abdc47355c0342744e79b8545458cd7d729f93d1/js/app.js'
@@ -144,7 +181,8 @@
       } catch (e) {}
     }
     if (!code) {
-      toast('Could not load workspace. Hard refresh (Ctrl+Shift+R).', 'error');
+      window.__drBooting = false;
+      toast('Could not load workspace. Hard refresh.', 'error');
       return;
     }
 
@@ -155,8 +193,13 @@
     code = code.replace(/\}\);\s*\}\)\(\);\s*$/m, "}\n__drBoot();\n})();");
 
     code = code.replace(
+      "function signInAgent(login,password){\n  var email=login.trim().indexOf('@')===-1?login.trim().toLowerCase().replace(/[^a-z0-9._-]/g,'')+'@agent.divinerays.app':login.trim();\n  return signInWithEmail(email,password);\n}",
+      "async function signInAgent(login,password){\n  var email=login.trim();\n  if(email.indexOf('@')===-1){\n    var q=await sb.from('profiles').select('email').eq('username',email).maybeSingle();\n    if(q.data&&q.data.email)email=q.data.email; else return {error:'Unknown username. Use your email.'};\n  }\n  return signInWithEmail(email,password);\n}"
+    );
+
+    code = code.replace(
       "await sb.from('profiles').upsert({id:session.user.id,full_name:meta.full_name||'User',role:meta.role||'customer',username:meta.username||null});",
-      "var __ex=await sb.from('profiles').select('id,role').eq('id',session.user.id).maybeSingle();\nif(!__ex.data){await sb.from('profiles').upsert({id:session.user.id,full_name:meta.full_name||'User',role:meta.role||'customer',username:meta.username||null});}"
+      "var __ex=await sb.from('profiles').select('id,role').eq('id',session.user.id).maybeSingle();if(!__ex.data){await sb.from('profiles').upsert({id:session.user.id,full_name:meta.full_name||'User',role:meta.role||'customer',username:meta.username||null});}"
     );
 
     code = code.replace(
@@ -165,8 +208,8 @@
     );
 
     code = code.replace(
-      "currentProfile={id:r.data.id,name:r.data.full_name||'User',role:r.data.role||'customer',username:r.data.username};",
-      "currentProfile={id:r.data.id,name:r.data.full_name||r.data.username||'User',role:r.data.role||'customer',username:r.data.username};"
+      "async function signOut(){if(usingCloud)await sb.auth.signOut();currentProfile=null;}",
+      "async function signOut(){currentProfile=null;window.__drFullLoaded=false;window.__drBooting=false;if(usingCloud){try{await sb.auth.signOut({scope:'local'});}catch(e){}}try{Object.keys(localStorage).forEach(function(k){if(k.indexOf('supabase')!==-1||k.indexOf('sb-')===0)localStorage.removeItem(k);});}catch(e){} var pc=document.getElementById('portal-customer'),pa=document.getElementById('portal-agent');if(pc)pc.classList.remove('active');if(pa)pa.classList.remove('active');}"
     );
 
     try {
@@ -174,51 +217,111 @@
     } catch (err) {
       console.error(err);
       toast('Workspace error — hard refresh', 'error');
+      window.__drBooting = false;
+      return;
     }
+
+    try {
+      var sess = await sb.auth.getSession();
+      var user = sess.data && sess.data.session && sess.data.session.user;
+      if (user) {
+        var prof = await getProfile(user.id);
+        if (prof) {
+          var role = prof.role || 'customer';
+          applyPortalForRole(role);
+          if (window.DR && window.DR.renderStats) {
+            try { window.DR.renderStats(); } catch (e) {}
+          }
+          var lb = document.getElementById('logged-user-label');
+          var name = prof.full_name || prof.username || 'User';
+          if (lb) {
+            lb.textContent = name + (role === 'admin' ? ' (Admin)' : role === 'agent' ? ' (Agent)' : ' (Customer)');
+          }
+          var an = document.getElementById('agent-name-display');
+          if (an && role !== 'customer') {
+            an.textContent = name + (role === 'admin' ? ' · Admin' : '');
+          }
+          var navAdmin = document.getElementById('nav-admin');
+          if (navAdmin) {
+            if (role === 'admin') navAdmin.classList.remove('is-hidden');
+            else navAdmin.classList.add('is-hidden');
+          }
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
+    window.__drFullLoaded = true;
+    window.__drBooting = false;
   }
 
   function bindAuth() {
+    document.addEventListener('click', function (e) {
+      var t = e.target;
+      if (t && (t.id === 'btn-logout' || (t.closest && t.closest('#btn-logout')))) {
+        e.preventDefault();
+        e.stopPropagation();
+        hardSignOut().then(function () {
+          var login = document.getElementById('login-screen');
+          var shell = document.getElementById('app-shell');
+          if (login) {
+            login.hidden = false;
+            login.classList.remove('is-hidden');
+            login.style.cssText = '';
+          }
+          if (shell) {
+            shell.hidden = true;
+            shell.classList.add('is-hidden');
+          }
+          clearErrors();
+          window.switchLoginTab('customer');
+          toast('Logged out', 'info');
+        });
+      }
+    }, true);
+
     var lc = document.getElementById('login-customer');
     if (lc) lc.addEventListener('submit', async function (e) {
       e.preventDefault();
+      e.stopImmediatePropagation();
       clearErrors();
       if (!usingCloud) { showError('login-customer', 'Supabase not configured'); return; }
       var email = document.getElementById('cust-email').value.trim();
       var password = document.getElementById('cust-password').value;
       var r = await signIn(email, password);
       if (r.error) { showError('login-customer', r.error); return; }
-      window.__drFullLoaded = true;
-      loadFullAppThen();
+      await loadFullAppThen(r.profile && r.profile.role);
     });
 
     var la = document.getElementById('login-agent');
     if (la) la.addEventListener('submit', async function (e) {
       e.preventDefault();
+      e.stopImmediatePropagation();
       clearErrors();
       if (!usingCloud) { showError('login-agent', 'Supabase not configured'); return; }
       var id = document.getElementById('agent-username').value.trim();
       var password = document.getElementById('agent-password').value;
-      var email = id;
-      if (id.indexOf('@') === -1) {
-        var q = await sb.from('profiles').select('email').eq('username', id).maybeSingle();
-        if (q.data && q.data.email) email = q.data.email;
-        else {
-          showError('login-agent', 'Unknown username. Use your email instead.');
-          return;
-        }
+      var email = await resolveAgentEmail(id);
+      if (!email) {
+        showError('login-agent', 'Unknown username. Use your full email address.');
+        return;
       }
       var r = await signIn(email, password);
       if (r.error) { showError('login-agent', r.error); return; }
-      if (r.profile && r.profile.role === 'customer') {
-        showError('login-agent', 'This account is still a customer. Set role to admin in Supabase (see instructions).');
+      var role = r.profile && r.profile.role;
+      if (role !== 'agent' && role !== 'admin') {
+        await hardSignOut();
+        showError('login-agent', 'This account is a customer, not agent/admin. Promote role in Supabase.');
+        return;
       }
-      window.__drFullLoaded = true;
-      loadFullAppThen();
+      await loadFullAppThen(role);
     });
 
     var rc = document.getElementById('register-customer');
     if (rc) rc.addEventListener('submit', async function (e) {
       e.preventDefault();
+      e.stopImmediatePropagation();
       clearErrors();
       if (!usingCloud) { showError('register-customer', 'Supabase not configured'); return; }
       var name = document.getElementById('reg-cust-name').value.trim();
@@ -226,13 +329,13 @@
       var password = document.getElementById('reg-cust-password').value;
       var r = await signUpCustomer(name, email, password);
       if (r.error) { showError('register-customer', r.error); return; }
-      window.__drFullLoaded = true;
-      loadFullAppThen();
+      await loadFullAppThen('customer');
     });
 
     var ra = document.getElementById('register-agent');
     if (ra) ra.addEventListener('submit', async function (e) {
       e.preventDefault();
+      e.stopImmediatePropagation();
       clearErrors();
       if (!usingCloud) { showError('register-agent', 'Supabase not configured'); return; }
       var name = document.getElementById('reg-agent-name').value.trim();
@@ -241,20 +344,19 @@
       var password = document.getElementById('reg-agent-password').value;
       var r = await signUpAgent(name, username, password, email);
       if (r.error) { showError('register-agent', r.error); return; }
-      window.__drFullLoaded = true;
-      loadFullAppThen();
+      await loadFullAppThen(r.profile && r.profile.role);
     });
   }
 
   async function trySession() {
-    if (!usingCloud || window.__drFullLoaded) return;
+    if (!usingCloud || window.__drFullLoaded || window.__drBooting) return;
     var res = await sb.auth.getSession();
     var session = res.data && res.data.session;
     if (session && session.user) {
       var shell = document.getElementById('app-shell');
       if (shell && (shell.hidden || shell.classList.contains('is-hidden'))) {
-        window.__drFullLoaded = true;
-        loadFullAppThen();
+        var prof = await getProfile(session.user.id);
+        await loadFullAppThen(prof && prof.role);
       }
     }
   }
