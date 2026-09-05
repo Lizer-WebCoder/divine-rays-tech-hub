@@ -94,6 +94,12 @@ body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color
 .badge-open { background: rgba(96,165,250,0.15); color: var(--info); }
 .badge-in-progress { background: rgba(251,191,36,0.15); color: var(--warning); }
 .badge-resolved { background: rgba(52,211,153,0.15); color: var(--success); }
+.badge-waiting { background: rgba(168,85,247,0.15); color: #c084fc; }
+.badge-closed { background: rgba(152,152,176,0.15); color: var(--text-muted); }
+.badge-low { background: rgba(52,211,153,0.12); color: var(--success); }
+.badge-medium { background: rgba(251,191,36,0.12); color: var(--warning); }
+.badge-high { background: rgba(248,113,113,0.15); color: var(--danger); }
+.badge-critical { background: rgba(248,113,113,0.28); color: #fca5a5; }
 .badge-role-customer { background: rgba(96,165,250,0.15); color: var(--info); }
 .badge-role-agent { background: rgba(52,211,153,0.15); color: var(--success); }
 .badge-role-admin { background: rgba(251,191,36,0.2); color: #fbbf24; }
@@ -117,6 +123,20 @@ body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color
 .ticket-detail, .agent-actions, .comments-section, .ticket-form, .track-box, .success-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1rem; }
 .empty-state { text-align: center; padding: 2rem 1rem; color: var(--text-muted); }
 .credit-footer, .credit-side { font-size: 0.6rem; color: #4a4a5e; text-transform: uppercase; letter-spacing: 0.05em; }
+.detail-meta { display: flex; flex-wrap: wrap; gap: 0.45rem 0.7rem; margin: 0.75rem 0 1rem; font-size: 0.8rem; color: var(--text-muted); }
+.meta-chip { display: inline-flex; align-items: center; gap: 0.35rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 0.28rem 0.55rem; }
+.meta-k { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.04em; color: #6b6b80; font-weight: 600; }
+.detail-description { white-space: pre-wrap; line-height: 1.65; font-size: 0.95rem; padding: 0.85rem 0 0.25rem; border-top: 1px solid var(--border); margin-top: 0.25rem; }
+.comment { background: var(--bg); border-radius: 9px; padding: 0.7rem 0.9rem; border: 1px solid var(--border); margin-bottom: 0.55rem; }
+.comment.internal { border-left: 3px solid var(--warning); background: rgba(251,191,36,0.05); }
+.comment-header { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; font-size: 0.76rem; color: var(--text-muted); margin-bottom: 0.3rem; flex-wrap: wrap; }
+.comment-header strong { color: var(--text); font-weight: 600; }
+.comment-body { font-size: 0.9rem; white-space: pre-wrap; line-height: 1.5; }
+.internal-tag { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--warning); background: rgba(251,191,36,0.15); padding: 0.1rem 0.4rem; border-radius: 999px; }
+.ticket-detail h3 { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 0.35rem; }
+.ticket-meta { font-size: 0.76rem; color: var(--text-muted); display: flex; flex-wrap: wrap; gap: 0.45rem; }
+.ticket-id { font-family: ui-monospace, monospace; color: var(--accent); }
+.badges { display: flex; gap: 0.3rem; flex-wrap: wrap; justify-content: flex-end; }
 @media (max-width: 800px) {
   #portal-agent.active { flex-direction: column; }
   .sidebar { width: 100%; height: auto; position: relative; top: 0; border-right: none; border-bottom: 1px solid var(--border); }
