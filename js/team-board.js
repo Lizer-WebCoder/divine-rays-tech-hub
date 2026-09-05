@@ -1,5 +1,5 @@
 /**
- * Divine Rays — simple team performance
+ * Divine Rays — team performance with charts
  * Credit: Lizzz · All Rights Reserved
  */
 (function () {
@@ -82,6 +82,98 @@
     return { rows: rows, meId: meId };
   }
 
+  function donutSvg(solved, working, size) {
+    size = size || 120;
+    var total = solved + working;
+    var pct = total ? solved / total : 0;
+    var r = 42;
+    var c = 2 * Math.PI * r;
+    var dash = pct * c;
+    var gap = c - dash;
+    var label = total ? Math.round(pct * 100) + '%' : '—';
+    var sub = total ? 'solved' : 'no data';
+    return (
+      '<svg class="donut" width="' + size + '" height="' + size + '" viewBox="0 0 100 100">' +
+      '<circle class="donut-track" cx="50" cy="50" r="' + r + '" fill="none" stroke-width="10"/>' +
+      '<circle class="donut-fill" cx="50" cy="50" r="' + r + '" fill="none" stroke-width="10"' +
+      ' stroke-dasharray="' + dash.toFixed(2) + ' ' + gap.toFixed(2) + '"' +
+      ' stroke-dashoffset="' + (c / 4).toFixed(2) + '" transform="rotate(-90 50 50)"/>' +
+      '<text class="donut-pct" x="50" y="48" text-anchor="middle">' + label + '</text>' +
+      '<text class="donut-sub" x="50" y="60" text-anchor="middle">' + sub + '</text>' +
+      '</svg>'
+    );
+  }
+
+  function miniRing(solved, working) {
+    var total = solved + working;
+    var pct = total ? solved / total : 0;
+    var r = 18;
+    var c = 2 * Math.PI * r;
+    var dash = pct * c;
+    var gap = c - dash;
+    return (
+      '<svg class="mini-ring" width="48" height="48" viewBox="0 0 44 44">' +
+      '<circle class="donut-track" cx="22" cy="22" r="' + r + '" fill="none" stroke-width="5"/>' +
+      '<circle class="donut-fill mini" cx="22" cy="22" r="' + r + '" fill="none" stroke-width="5"' +
+      ' stroke-dasharray="' + dash.toFixed(2) + ' ' + gap.toFixed(2) + '"' +
+      ' stroke-dashoffset="' + (c / 4).toFixed(2) + '" transform="rotate(-90 22 22)"/>' +
+      '<text class="mini-ring-text" x="22" y="25" text-anchor="middle">' +
+      (total ? Math.round(pct * 100) : 0) +
+      '</text>' +
+      '</svg>'
+    );
+  }
+
+  function barsHtml(rows) {
+    if (!rows.length) return '';
+    var max = Math.max.apply(
+      null,
+      rows.map(function (r) {
+        return Math.max(r.solved + r.working, 1);
+      })
+    );
+    return (
+      '<div class="tower-chart">' +
+      rows
+        .map(function (r) {
+          var total = r.solved + r.working;
+          var hSolved = total ? Math.round((r.solved / max) * 100) : 0;
+          var hWork = total ? Math.round((r.working / max) * 100) : 0;
+          var short = (r.name || 'A').split(' ')[0];
+          return (
+            '<div class="tower-col" title="' +
+            escapeHtml(r.name) +
+            ': ' +
+            r.working +
+            ' working, ' +
+            r.solved +
+            ' solved">' +
+            '<div class="tower-stack">' +
+            '<div class="tower-seg working" style="height:' +
+            hWork +
+            '%"></div>' +
+            '<div class="tower-seg solved" style="height:' +
+            hSolved +
+            '%"></div>' +
+            '</div>' +
+            '<span class="tower-name">' +
+            escapeHtml(short) +
+            '</span>' +
+            '<span class="tower-n">' +
+            total +
+            '</span>' +
+            '</div>'
+          );
+        })
+        .join('') +
+      '</div>' +
+      '<div class="tower-legend">' +
+      '<span><i class="lg solved"></i> Solved</span>' +
+      '<span><i class="lg working"></i> Working on</span>' +
+      '</div>'
+    );
+  }
+
   function renderTeamBoard(targetId) {
     var box = document.getElementById(targetId || 'agent-perf-list');
     if (!box) return;
@@ -99,40 +191,92 @@
           return;
         }
 
-        box.innerHTML =
-          '<p class="team-help">Who is handling tickets right now, and how many they have finished.</p>' +
-          '<div class="team-cards">' +
-          rows
-            .map(function (r) {
-              var isYou = meId && r.id === meId;
-              var badge =
-                (isYou ? '<span class="team-badge you">You</span>' : '') +
-                (r.role === 'admin' ? '<span class="team-badge admin">Admin</span>' : '');
-              return (
-                '<div class="team-card' + (isYou ? ' is-you' : '') + '">' +
-                '<div class="team-card-name">' +
-                escapeHtml(r.name) +
-                badge +
-                '</div>' +
-                '<div class="team-card-stats">' +
-                '<div class="team-stat">' +
-                '<span class="team-stat-num">' +
-                r.working +
-                '</span>' +
-                '<span class="team-stat-label">Working on</span>' +
-                '</div>' +
-                '<div class="team-stat">' +
-                '<span class="team-stat-num">' +
-                r.solved +
-                '</span>' +
-                '<span class="team-stat-label">Solved</span>' +
-                '</div>' +
-                '</div>' +
-                '</div>'
-              );
-            })
-            .join('') +
+        var teamWorking = 0;
+        var teamSolved = 0;
+        rows.forEach(function (r) {
+          teamWorking += r.working;
+          teamSolved += r.solved;
+        });
+
+        var meRow = rows.find(function (r) {
+          return meId && r.id === meId;
+        });
+
+        var html = '';
+        html += '<div class="chart-row">';
+        html +=
+          '<div class="chart-panel">' +
+          '<h4 class="chart-title">Team overall</h4>' +
+          '<p class="chart-desc">Share of assigned tickets that are finished</p>' +
+          '<div class="chart-donut-wrap">' +
+          donutSvg(teamSolved, teamWorking, 130) +
+          '<div class="chart-side-stats">' +
+          '<div><strong>' +
+          teamWorking +
+          '</strong><span>Working on</span></div>' +
+          '<div><strong>' +
+          teamSolved +
+          '</strong><span>Solved</span></div>' +
+          '</div></div></div>';
+
+        if (meRow) {
+          html +=
+            '<div class="chart-panel">' +
+            '<h4 class="chart-title">Your performance</h4>' +
+            '<p class="chart-desc">Your finished vs open tickets</p>' +
+            '<div class="chart-donut-wrap">' +
+            donutSvg(meRow.solved, meRow.working, 130) +
+            '<div class="chart-side-stats">' +
+            '<div><strong>' +
+            meRow.working +
+            '</strong><span>Working on</span></div>' +
+            '<div><strong>' +
+            meRow.solved +
+            '</strong><span>Solved</span></div>' +
+            '</div></div></div>';
+        }
+
+        html +=
+          '<div class="chart-panel chart-panel-wide">' +
+          '<h4 class="chart-title">Team comparison</h4>' +
+          '<p class="chart-desc">Taller bars = more tickets handled</p>' +
+          barsHtml(rows) +
           '</div>';
+
+        html += '</div>';
+
+        html += '<p class="team-help" style="margin-top:1.1rem">Each person</p>';
+        html += '<div class="team-cards">';
+        html += rows
+          .map(function (r) {
+            var isYou = meId && r.id === meId;
+            var badge =
+              (isYou ? '<span class="team-badge you">You</span>' : '') +
+              (r.role === 'admin' ? '<span class="team-badge admin">Admin</span>' : '');
+            return (
+              '<div class="team-card' +
+              (isYou ? ' is-you' : '') +
+              '">' +
+              '<div class="team-card-top">' +
+              miniRing(r.solved, r.working) +
+              '<div class="team-card-name">' +
+              escapeHtml(r.name) +
+              badge +
+              '</div></div>' +
+              '<div class="team-card-stats">' +
+              '<div class="team-stat"><span class="team-stat-num">' +
+              r.working +
+              '</span><span class="team-stat-label">Working on</span></div>' +
+              '<div class="team-stat"><span class="team-stat-num">' +
+              r.solved +
+              '</span><span class="team-stat-label">Solved</span></div>' +
+              '</div></div>'
+            );
+          })
+          .join('');
+        html += '</div>';
+
+        box.innerHTML = html;
       })
       .catch(function (e) {
         console.error(e);
