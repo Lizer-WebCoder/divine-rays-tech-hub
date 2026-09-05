@@ -4,305 +4,135 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="stylesheet" href="css/styles.css?v=6.5" />
+  <link rel="stylesheet" href="css/styles.css?v=6.6" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
-    /* Critical fallback — works even if css/styles.css fails to load */
-    html, body {
-      margin: 0; padding: 0;
-      background: #0f0f14 !important;
-      color: #e8e8f0 !important;
-      font-family: Inter, system-ui, sans-serif;
-      min-height: 100vh;
-    }
+    html, body { margin: 0; padding: 0; background: #0f0f14 !important; color: #e8e8f0 !important; font-family: Inter, system-ui, sans-serif; min-height: 100vh; }
     form.login-form { display: none !important; }
     form.login-form.active { display: block !important; }
-    .login-screen[hidden], .login-screen.is-hidden,
-    .app-shell[hidden], .app-shell.is-hidden {
-      display: none !important;
-      visibility: hidden !important;
-      height: 0 !important;
-      overflow: hidden !important;
-      pointer-events: none !important;
-    }
-    /* Only one portal at a time */
+    .login-screen[hidden], .login-screen.is-hidden, .app-shell[hidden], .app-shell.is-hidden { display: none !important; visibility: hidden !important; height: 0 !important; overflow: hidden !important; pointer-events: none !important; }
     .portal { display: none !important; }
     .portal.active { display: block !important; }
     #portal-agent.active { display: flex !important; min-height: calc(100vh - 49px); }
-    /* Only one customer tab panel */
     .ctab-panel { display: none !important; }
     .ctab-panel.active { display: block !important; }
-    /* Only one agent view */
     #portal-agent .view { display: none !important; }
     #portal-agent .view.active { display: block !important; }
-    /* Basic layout so page is usable without external CSS */
-    .mode-bar {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0.55rem 1.25rem; background: #12121a;
-      border-bottom: 1px solid #2e2e42;
-    }
+    .nav-admin.is-hidden { display: none !important; }
+    .mode-bar { display: flex; align-items: center; justify-content: space-between; padding: 0.55rem 1.25rem; background: #12121a; border-bottom: 1px solid #2e2e42; }
     .customer-main { max-width: 700px; margin: 0 auto; padding: 2rem 1.25rem; }
-    .ticket-form, .track-box, .success-box, .comments-section, .ticket-detail {
-      background: #1a1a24; border: 1px solid #2e2e42; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem;
-    }
-    input, select, textarea, button {
-      font-family: inherit; font-size: 0.9rem;
-    }
-    .btn-primary {
-      background: #7c6af0; color: #fff; border: none; border-radius: 9px;
-      padding: 0.55rem 1rem; font-weight: 600; cursor: pointer;
-    }
+    .ticket-form, .track-box, .success-box, .comments-section, .ticket-detail { background: #1a1a24; border: 1px solid #2e2e42; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
+    .btn-primary { background: #7c6af0; color: #fff; border: none; border-radius: 9px; padding: 0.55rem 1rem; font-weight: 600; cursor: pointer; }
     .customer-tabs { display: flex; gap: 0.4rem; margin-bottom: 1.25rem; }
-    .ctab {
-      flex: 1; border: none; background: #1a1a24; color: #9898b0;
-      padding: 0.55rem; border-radius: 9px; font-weight: 600; cursor: pointer;
-    }
+    .ctab { flex: 1; border: none; background: #1a1a24; color: #9898b0; padding: 0.55rem; border-radius: 9px; font-weight: 600; cursor: pointer; }
     .ctab.active { background: #7c6af0; color: #fff; }
   </style>
 </head>
 <body>
-
   <div id="toast-container"></div>
-
   <div id="login-screen" class="login-screen">
     <div class="login-card">
-      <div class="login-brand">
-        <div class="logo">✦</div>
-        <h1>Divine Rays Tech Hub</h1>
-        <p>Support Portal</p>
-      </div>
-
+      <div class="login-brand"><div class="logo">✦</div><h1>Divine Rays Tech Hub</h1><p>Support Portal</p></div>
       <div class="login-tabs">
         <button type="button" class="ltab active" data-ltab="customer" onclick="window.switchLoginTab && switchLoginTab('customer')">Customer</button>
         <button type="button" class="ltab" data-ltab="agent" onclick="window.switchLoginTab && switchLoginTab('agent')">Tech Support</button>
       </div>
-
       <form id="login-customer" class="login-form active">
-        <div class="form-group">
-          <label for="cust-email">Email</label>
-          <input type="email" id="cust-email" required placeholder="you@company.com" autocomplete="username" />
-        </div>
-        <div class="form-group">
-          <label for="cust-password">Password</label>
-          <input type="password" id="cust-password" required placeholder="••••••••" autocomplete="current-password" />
-        </div>
+        <div class="form-group"><label for="cust-email">Email</label><input type="email" id="cust-email" required placeholder="you@company.com" autocomplete="username" /></div>
+        <div class="form-group"><label for="cust-password">Password</label><input type="password" id="cust-password" required placeholder="••••••••" autocomplete="current-password" /></div>
         <button type="submit" class="btn btn-primary btn-full">Sign In</button>
-        <p class="login-switch">New here? <a href="javascript:void(0)" id="show-register-customer" onclick="window.showForm && showForm('register-customer'); return false;">Create an account</a></p>
+        <p class="login-switch">New here? <a href="javascript:void(0)" onclick="window.showForm && showForm('register-customer'); return false;">Create an account</a></p>
       </form>
-
       <form id="register-customer" class="login-form">
-        <div class="form-group">
-          <label for="reg-cust-name">Full Name</label>
-          <input type="text" id="reg-cust-name" required placeholder="Your full name" />
-        </div>
-        <div class="form-group">
-          <label for="reg-cust-email">Email</label>
-          <input type="email" id="reg-cust-email" required placeholder="you@company.com" />
-        </div>
-        <div class="form-group">
-          <label for="reg-cust-password">Password</label>
-          <input type="password" id="reg-cust-password" required minlength="4" placeholder="At least 4 characters" />
-        </div>
+        <div class="form-group"><label for="reg-cust-name">Full Name</label><input type="text" id="reg-cust-name" required /></div>
+        <div class="form-group"><label for="reg-cust-email">Email</label><input type="email" id="reg-cust-email" required /></div>
+        <div class="form-group"><label for="reg-cust-password">Password</label><input type="password" id="reg-cust-password" required minlength="4" /></div>
         <button type="submit" class="btn btn-primary btn-full">Create Customer Account</button>
-        <p class="login-switch">Already have an account? <a href="javascript:void(0)" id="show-login-customer" onclick="window.showForm && showForm('login-customer'); return false;">Sign in</a></p>
+        <p class="login-switch">Already have an account? <a href="javascript:void(0)" onclick="window.showForm && showForm('login-customer'); return false;">Sign in</a></p>
       </form>
-
       <form id="login-agent" class="login-form">
-        <div class="form-group">
-          <label for="agent-username">Email or Username</label>
-          <input type="text" id="agent-username" required placeholder="you@company.com" autocomplete="username" />
-        </div>
-        <div class="form-group">
-          <label for="agent-password">Password</label>
-          <input type="password" id="agent-password" required placeholder="••••••••" autocomplete="current-password" />
-        </div>
+        <div class="form-group"><label for="agent-username">Email or Username</label><input type="text" id="agent-username" required autocomplete="username" /></div>
+        <div class="form-group"><label for="agent-password">Password</label><input type="password" id="agent-password" required autocomplete="current-password" /></div>
         <button type="submit" class="btn btn-primary btn-full">Sign In as Agent</button>
-        <p class="login-switch">New agent? <a href="javascript:void(0)" id="show-register-agent" onclick="window.showForm && showForm('register-agent'); return false;">Create agent account</a></p>
+        <p class="login-switch">New agent? <a href="javascript:void(0)" onclick="window.showForm && showForm('register-agent'); return false;">Create agent account</a></p>
       </form>
-
       <form id="register-agent" class="login-form">
-        <div class="form-group">
-          <label for="reg-agent-name">Full Name</label>
-          <input type="text" id="reg-agent-name" required placeholder="Your full name" />
-        </div>
-        <div class="form-group">
-          <label for="reg-agent-email">Work Email</label>
-          <input type="email" id="reg-agent-email" required placeholder="you@company.com" />
-        </div>
-        <div class="form-group">
-          <label for="reg-agent-username">Username</label>
-          <input type="text" id="reg-agent-username" required placeholder="Choose a username" />
-        </div>
-        <div class="form-group">
-          <label for="reg-agent-password">Password</label>
-          <input type="password" id="reg-agent-password" required minlength="6" placeholder="At least 6 characters" />
-        </div>
+        <div class="form-group"><label for="reg-agent-name">Full Name</label><input type="text" id="reg-agent-name" required /></div>
+        <div class="form-group"><label for="reg-agent-email">Work Email</label><input type="email" id="reg-agent-email" required /></div>
+        <div class="form-group"><label for="reg-agent-username">Username</label><input type="text" id="reg-agent-username" required /></div>
+        <div class="form-group"><label for="reg-agent-password">Password</label><input type="password" id="reg-agent-password" required minlength="6" /></div>
         <button type="submit" class="btn btn-primary btn-full">Create Agent Account</button>
-        <p class="login-switch">Already have an account? <a href="javascript:void(0)" id="show-login-agent" onclick="window.showForm && showForm('login-agent'); return false;">Sign in</a></p>
+        <p class="login-switch">Already have an account? <a href="javascript:void(0)" onclick="window.showForm && showForm('login-agent'); return false;">Sign in</a></p>
       </form>
-
       <p class="credit">Lizzz · All Rights Reserved</p>
     </div>
   </div>
-
   <div id="app-shell" class="app-shell is-hidden" hidden>
-
     <div class="mode-bar">
-      <div class="mode-brand">
-        <span class="logo-sm">✦</span>
-        <strong>Divine Rays Tech Hub</strong>
-      </div>
-      <div class="user-info">
-        <span id="logged-user-label"></span>
-        <button type="button" class="btn btn-ghost btn-sm" id="btn-logout">Logout</button>
-      </div>
+      <div class="mode-brand"><span class="logo-sm">✦</span><strong>Divine Rays Tech Hub</strong></div>
+      <div class="user-info"><span id="logged-user-label"></span><button type="button" class="btn btn-ghost btn-sm" id="btn-logout">Logout</button></div>
     </div>
-
     <div id="portal-customer" class="portal">
       <main class="customer-main">
-        <header class="customer-header">
-          <h1>Welcome, <span id="cust-welcome-name">User</span></h1>
-          <p>Submit a request or manage your tickets.</p>
-        </header>
-
+        <header class="customer-header"><h1>Welcome, <span id="cust-welcome-name">User</span></h1><p>Submit a request or manage your tickets.</p></header>
         <div class="customer-tabs">
           <button type="button" class="ctab active" data-ctab="submit">Submit Ticket</button>
           <button type="button" class="ctab" data-ctab="mytickets">My Tickets</button>
           <button type="button" class="ctab" data-ctab="track">Track by ID</button>
         </div>
-
         <section id="ctab-submit" class="ctab-panel active">
           <form id="customer-form" class="ticket-form">
-            <div class="form-group">
-              <label for="c-title">What do you need help with? *</label>
-              <input type="text" id="c-title" required placeholder="e.g. Can't connect to Wi-Fi" />
-            </div>
+            <div class="form-group"><label for="c-title">What do you need help with? *</label><input type="text" id="c-title" required /></div>
             <div class="form-row">
-              <div class="form-group">
-                <label for="c-priority">How urgent is this?</label>
-                <select id="c-priority">
-                  <option value="Low">Low – Not urgent</option>
-                  <option value="Medium" selected>Medium – Affects my work</option>
-                  <option value="High">High – Blocking me</option>
-                  <option value="Critical">Critical – System down</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="c-category">Category</label>
-                <select id="c-category">
-                  <option value="Hardware">Hardware</option>
-                  <option value="Software">Software</option>
-                  <option value="Network">Network / Internet</option>
-                  <option value="Account">Account / Login / Access</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
+              <div class="form-group"><label for="c-priority">How urgent is this?</label><select id="c-priority"><option value="Low">Low</option><option value="Medium" selected>Medium</option><option value="High">High</option><option value="Critical">Critical</option></select></div>
+              <div class="form-group"><label for="c-category">Category</label><select id="c-category"><option>Hardware</option><option>Software</option><option>Network</option><option>Account</option><option>Other</option></select></div>
             </div>
-            <div class="form-group">
-              <label for="c-description">Describe the problem *</label>
-              <textarea id="c-description" rows="5" required placeholder="Please give as much detail as possible..."></textarea>
-            </div>
+            <div class="form-group"><label for="c-description">Describe the problem *</label><textarea id="c-description" rows="5" required></textarea></div>
             <button type="submit" class="btn btn-primary btn-full">Submit Ticket</button>
           </form>
-
-          <div id="submit-success" class="success-box" hidden>
-            <h3>Ticket Submitted!</h3>
-            <p>Your ticket ID is <strong id="new-ticket-id"></strong></p>
-            <p>You can track it from the My Tickets tab.</p>
-            <button type="button" class="btn btn-secondary" id="btn-go-mytickets">Go to My Tickets</button>
-          </div>
+          <div id="submit-success" class="success-box" hidden><h3>Ticket Submitted!</h3><p>Your ticket ID is <strong id="new-ticket-id"></strong></p><button type="button" class="btn btn-secondary" id="btn-go-mytickets">Go to My Tickets</button></div>
         </section>
-
-        <section id="ctab-mytickets" class="ctab-panel">
-          <div id="my-tickets-list" class="ticket-list"></div>
-        </section>
-
+        <section id="ctab-mytickets" class="ctab-panel"><div id="my-tickets-list" class="ticket-list"></div></section>
         <section id="ctab-track" class="ctab-panel">
-          <div class="track-box">
-            <div class="form-group">
-              <label for="track-id">Ticket ID</label>
-              <input type="text" id="track-id" placeholder="e.g. DR-1001" />
-            </div>
-            <button type="button" class="btn btn-primary" id="btn-track">Check Status</button>
-          </div>
+          <div class="track-box"><div class="form-group"><label for="track-id">Ticket ID</label><input type="text" id="track-id" placeholder="e.g. DR-1001" /></div><button type="button" class="btn btn-primary" id="btn-track">Check Status</button></div>
           <div id="track-result" class="track-result" hidden></div>
         </section>
-
         <section id="ctab-detail" class="ctab-panel">
-          <button type="button" class="btn btn-ghost" id="btn-cust-back">← Back to My Tickets</button>
+          <button type="button" class="btn btn-ghost" id="btn-cust-back">← Back</button>
           <article class="ticket-detail" id="cust-ticket-detail"></article>
-          <div class="comments-section">
-            <h3>Conversation</h3>
-            <div id="cust-comments-list" class="comments-list"></div>
-            <form id="cust-reply-form" class="comment-form">
-              <textarea id="cust-reply-text" rows="3" placeholder="Add a reply or more information..."></textarea>
-              <div class="form-actions">
-                <button type="submit" class="btn btn-primary">Send Reply</button>
-              </div>
-            </form>
+          <div class="comments-section"><h3>Conversation</h3><div id="cust-comments-list" class="comments-list"></div>
+            <form id="cust-reply-form" class="comment-form"><textarea id="cust-reply-text" rows="3"></textarea><div class="form-actions"><button type="submit" class="btn btn-primary">Send Reply</button></div></form>
           </div>
         </section>
-
         <p class="credit-footer">Lizzz · All Rights Reserved</p>
       </main>
     </div>
-
     <div id="portal-agent" class="portal">
       <aside class="sidebar">
-        <div class="brand">
-          <div class="logo">✦</div>
-          <div>
-            <h1>Divine Rays</h1>
-            <p>Tech Support</p>
-          </div>
-        </div>
-
-        <div class="agent-badge">
-          <span id="agent-name-display">Agent</span>
-        </div>
-
+        <div class="brand"><div class="logo">✦</div><div><h1>Divine Rays</h1><p>Tech Support</p></div></div>
+        <div class="agent-badge"><span id="agent-name-display">Agent</span></div>
         <nav class="nav">
           <button type="button" class="nav-btn active" data-view="dashboard">Dashboard</button>
           <button type="button" class="nav-btn" data-view="my-tickets">My Tickets</button>
           <button type="button" class="nav-btn" data-view="unassigned">Unassigned</button>
           <button type="button" class="nav-btn" data-view="all-tickets">All Tickets</button>
+          <button type="button" class="nav-btn nav-admin is-hidden" data-view="admin" id="nav-admin">Admin</button>
         </nav>
-
-        <div class="sidebar-footer">
-          <button type="button" class="btn btn-ghost btn-sm" id="btn-export">Export JSON</button>
-          <p class="version">v6.5</p>
-          <p class="credit-side">Lizzz · All Rights Reserved</p>
-        </div>
+        <div class="sidebar-footer"><button type="button" class="btn btn-ghost btn-sm" id="btn-export">Export JSON</button><p class="version">v6.6</p><p class="credit-side">Lizzz · All Rights Reserved</p></div>
       </aside>
-
       <main class="main">
         <header class="topbar">
           <h2 id="page-title">Dashboard</h2>
           <div class="topbar-actions">
             <input type="search" id="search-input" placeholder="Search tickets..." />
-            <select id="filter-status">
-              <option value="">All Statuses</option>
-              <option value="Open">Open</option>
-              <option value="In Progress">In Progress</option>
-              <option value="Waiting">Waiting</option>
-              <option value="Resolved">Resolved</option>
-              <option value="Closed">Closed</option>
-            </select>
-            <select id="filter-priority">
-              <option value="">All Priorities</option>
-              <option value="Critical">Critical</option>
-              <option value="High">High</option>
-              <option value="Medium">Medium</option>
-              <option value="Low">Low</option>
-            </select>
+            <select id="filter-status"><option value="">All Statuses</option><option>Open</option><option>In Progress</option><option>Waiting</option><option>Resolved</option><option>Closed</option></select>
+            <select id="filter-priority"><option value="">All Priorities</option><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select>
           </div>
         </header>
-
         <section id="view-dashboard" class="view active">
-          <div class="stats-section">
-            <h3 class="stats-heading">Overview</h3>
+          <div class="stats-section"><h3 class="stats-heading">Overview</h3>
             <div class="stats">
               <div class="stat-card"><span class="stat-label">Total</span><span class="stat-value" id="stat-total">0</span></div>
               <div class="stat-card"><span class="stat-label">Open</span><span class="stat-value" id="stat-open">0</span></div>
@@ -313,82 +143,56 @@
               <div class="stat-card"><span class="stat-label">Closed</span><span class="stat-value" id="stat-closed">0</span></div>
             </div>
           </div>
-
-          <div class="stats-section">
-            <h3 class="stats-heading">Priority alerts</h3>
-            <div class="stats stats-priority">
-              <div class="stat-card critical"><span class="stat-label">Critical (open)</span><span class="stat-value" id="stat-critical">0</span></div>
-              <div class="stat-card high"><span class="stat-label">High (open)</span><span class="stat-value" id="stat-high">0</span></div>
-            </div>
+          <div class="stats-section"><h3 class="stats-heading">Priority alerts</h3>
+            <div class="stats"><div class="stat-card critical"><span class="stat-label">Critical (open)</span><span class="stat-value" id="stat-critical">0</span></div><div class="stat-card high"><span class="stat-label">High (open)</span><span class="stat-value" id="stat-high">0</span></div></div>
           </div>
-
-          <div class="stats-section">
-            <h3 class="stats-heading">My performance</h3>
-            <div class="stats">
-              <div class="stat-card me"><span class="stat-label">Claimed by me</span><span class="stat-value" id="stat-claimed-me">0</span></div>
-              <div class="stat-card me"><span class="stat-label">Resolved by me</span><span class="stat-value" id="stat-resolved-me">0</span></div>
-            </div>
+          <div class="stats-section"><h3 class="stats-heading">My performance</h3>
+            <div class="stats"><div class="stat-card me"><span class="stat-label">Claimed by me</span><span class="stat-value" id="stat-claimed-me">0</span></div><div class="stat-card me"><span class="stat-label">Resolved by me</span><span class="stat-value" id="stat-resolved-me">0</span></div></div>
           </div>
-
-          <div class="stats-section">
-            <h3 class="stats-heading">All agents</h3>
-            <div id="agent-perf-list" class="agent-perf"></div>
-          </div>
-
+          <div class="stats-section"><h3 class="stats-heading">All agents</h3><div id="agent-perf-list" class="agent-perf"></div></div>
           <h3 class="stats-heading" style="margin-top:1.5rem">Recent tickets</h3>
           <div id="ticket-list" class="ticket-list"></div>
         </section>
-
+        <section id="view-admin" class="view">
+          <p class="admin-hint">Manage users and roles. Only admins can change roles.</p>
+          <div class="admin-stats">
+            <div class="stat-card"><span class="stat-label">Users</span><span class="stat-value" id="admin-stat-users">0</span></div>
+            <div class="stat-card"><span class="stat-label">Customers</span><span class="stat-value" id="admin-stat-customers">0</span></div>
+            <div class="stat-card"><span class="stat-label">Agents</span><span class="stat-value" id="admin-stat-agents">0</span></div>
+            <div class="stat-card me"><span class="stat-label">Admins</span><span class="stat-value" id="admin-stat-admins">0</span></div>
+          </div>
+          <div class="admin-toolbar">
+            <input type="search" id="admin-search" placeholder="Search by name or username..." />
+            <select id="admin-filter-role"><option value="">All roles</option><option value="customer">Customer</option><option value="agent">Agent</option><option value="admin">Admin</option></select>
+            <button type="button" class="btn btn-secondary" id="btn-admin-refresh">Refresh</button>
+          </div>
+          <div id="admin-users-list" class="agent-perf"></div>
+        </section>
         <section id="view-detail" class="view">
           <button type="button" class="btn btn-ghost" id="btn-back">← Back to list</button>
           <article class="ticket-detail" id="ticket-detail"></article>
-
           <div class="agent-actions">
             <div class="form-row three-col">
-              <div class="form-group">
-                <label>Assign to</label>
-                <select id="assign-agent">
-                  <option value="">— Unassigned —</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label>Change Status</label>
-                <select id="quick-status">
-                  <option value="Open">Open</option>
-                  <option value="In Progress">In Progress</option>
-                  <option value="Waiting">Waiting</option>
-                  <option value="Resolved">Resolved</option>
-                  <option value="Closed">Closed</option>
-                </select>
-              </div>
-              <div class="form-group action-btns">
-                <button type="button" class="btn btn-secondary" id="btn-claim">Claim Ticket</button>
-                <button type="button" class="btn btn-primary" id="btn-save-meta">Save Changes</button>
-              </div>
+              <div class="form-group"><label>Assign to</label><select id="assign-agent"><option value="">— Unassigned —</option></select></div>
+              <div class="form-group"><label>Change Status</label><select id="quick-status"><option>Open</option><option>In Progress</option><option>Waiting</option><option>Resolved</option><option>Closed</option></select></div>
+              <div class="form-group action-btns"><button type="button" class="btn btn-secondary" id="btn-claim">Claim Ticket</button><button type="button" class="btn btn-primary" id="btn-save-meta">Save Changes</button></div>
             </div>
           </div>
-
           <div class="comments-section">
             <h3>Activity & Notes</h3>
             <div id="comments-list" class="comments-list"></div>
             <form id="comment-form" class="comment-form">
-              <textarea id="comment-text" rows="3" placeholder="Add a public reply or internal note..."></textarea>
-              <div class="form-actions">
-                <label class="checkbox-label">
-                  <input type="checkbox" id="comment-internal" />
-                  Internal note (not visible to customer)
-                </label>
-                <button type="submit" class="btn btn-primary">Add Update</button>
-              </div>
+              <textarea id="comment-text" rows="3"></textarea>
+              <div class="form-actions"><label class="checkbox-label"><input type="checkbox" id="comment-internal" /> Internal note</label><button type="submit" class="btn btn-primary">Add Update</button></div>
             </form>
           </div>
         </section>
       </main>
     </div>
   </div>
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js?v=6.5"></script>
-  <script src="js/app.js?v=6.5"></script>
+  <script src="js/config.js?v=6.6"></script>
+  <script src="js/app.js?v=6.6"></script>
+  <script src="js/admin.js?v=6.6"></script>
 </body>
 </html>
