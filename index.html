@@ -4,32 +4,54 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="stylesheet" href="css/styles.css?v=7.3" />
-  <link rel="stylesheet" href="css/comments.css?v=7.3" />
+  <link rel="stylesheet" href="css/styles.css?v=7.4" />
+  <link rel="stylesheet" href="css/comments.css?v=7.4" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
-    html, body { margin: 0; padding: 0; background: #0f0f14; color: #e8e8f0; font-family: Inter, system-ui, sans-serif; min-height: 100vh; }
-    html[data-theme="light"], html[data-theme="light"] body { background: #f0f0f5 !important; color: #1a1a28 !important; }
-    form.login-form { display: none !important; }
-    form.login-form.active { display: block !important; }
-    .login-screen[hidden], .login-screen.is-hidden, .app-shell[hidden], .app-shell.is-hidden { display: none !important; visibility: hidden !important; height: 0 !important; overflow: hidden !important; pointer-events: none !important; }
-    .portal { display: none !important; }
-    .portal.active { display: block !important; }
-    #portal-agent.active { display: flex !important; min-height: calc(100vh - 49px); }
-    .ctab-panel { display: none !important; }
-    .ctab-panel.active { display: block !important; }
-    #portal-agent .view { display: none !important; }
-    #portal-agent .view.active { display: block !important; }
-    .nav-admin.is-hidden { display: none !important; }
-    .mode-bar { display: flex; align-items: center; justify-content: space-between; padding: 0.55rem 1.25rem; background: var(--surface, #12121a); border-bottom: 1px solid var(--border, #2e2e42); }
-    .customer-main { max-width: 700px; margin: 0 auto; padding: 2rem 1.25rem; }
-    .ticket-form, .track-box, .success-box, .comments-section, .ticket-detail { background: var(--surface, #1a1a24); border: 1px solid var(--border, #2e2e42); border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
-    .btn-primary { background: #7c6af0; color: #fff; border: none; border-radius: 9px; padding: 0.55rem 1rem; font-weight: 600; cursor: pointer; }
-    .customer-tabs { display: flex; gap: 0.4rem; margin-bottom: 1.25rem; }
-    .ctab { flex: 1; border: none; background: var(--surface, #1a1a24); color: var(--text-muted, #9898b0); padding: 0.55rem; border-radius: 9px; font-weight: 600; cursor: pointer; }
-    .ctab.active { background: #7c6af0; color: #fff; }
+    :root { --bg:#0f0f14; --surface:#1a1a24; --surface-2:#242433; --border:#2e2e42; --text:#e8e8f0; --text-muted:#9898b0; --primary:#7c6af0; --accent:#c4b5fd; --radius:12px; }
+    html, body { margin:0; padding:0; background:var(--bg)!important; color:var(--text)!important; font-family:Inter,system-ui,sans-serif; min-height:100vh; }
+    html[data-theme="light"], html[data-theme="light"] body { background:#f0f0f5!important; color:#1a1a28!important; }
+    * { box-sizing:border-box; }
+    .login-screen { min-height:100vh; display:flex!important; align-items:center; justify-content:center; padding:1.5rem; background:radial-gradient(ellipse at top,#1a1530 0%,#0f0f14 60%); }
+    .login-card { width:100%; max-width:420px; background:#1a1a24!important; border:1px solid #2e2e42; border-radius:16px; padding:2rem 1.75rem; }
+    .login-brand { text-align:center; margin-bottom:1.75rem; }
+    .login-brand .logo { width:52px; height:52px; background:linear-gradient(135deg,#7c6af0,#a78bfa); border-radius:14px; display:grid; place-items:center; font-size:1.5rem; color:#fff; margin:0 auto .9rem; }
+    .login-brand h1 { font-size:1.35rem; margin:0 0 .25rem; color:#e8e8f0; }
+    .login-brand p { color:#9898b0; font-size:.9rem; margin:0; }
+    .login-tabs { display:flex; background:#0f0f14; border-radius:10px; padding:3px; margin-bottom:1.4rem; gap:0; }
+    .ltab { flex:1; border:none; background:transparent; color:#9898b0; padding:.55rem; border-radius:8px; font-weight:600; font-size:.88rem; cursor:pointer; font-family:inherit; }
+    .ltab.active { background:#7c6af0!important; color:#fff!important; }
+    form.login-form { display:none!important; }
+    form.login-form.active { display:block!important; }
+    .form-group { margin-bottom:.95rem; }
+    .form-group label { display:block!important; font-size:.8rem; font-weight:500; margin-bottom:.3rem; color:#9898b0; }
+    .form-group input, .form-group select, .form-group textarea {
+      display:block!important; width:100%!important; background:#0f0f14!important; border:1px solid #2e2e42!important;
+      color:#e8e8f0!important; padding:.55rem .8rem!important; border-radius:9px!important; font-size:.9rem!important; font-family:inherit;
+    }
+    .btn { border:none; border-radius:9px; padding:.5rem 1rem; font-size:.88rem; font-weight:600; cursor:pointer; font-family:inherit; }
+    .btn-primary { background:#7c6af0!important; color:#fff!important; }
+    .btn-full { width:100%; padding:.75rem; }
+    .login-switch { text-align:center; margin-top:1rem; font-size:.88rem; color:#9898b0; }
+    .login-switch a { color:#c4b5fd; text-decoration:none; }
+    .credit { text-align:center; margin-top:1.75rem; padding-top:1.1rem; border-top:1px solid rgba(46,46,66,.6); font-size:.65rem; color:#5a5a70; text-transform:uppercase; letter-spacing:.06em; }
+    .login-screen[hidden], .login-screen.is-hidden, .app-shell[hidden], .app-shell.is-hidden { display:none!important; visibility:hidden!important; height:0!important; overflow:hidden!important; pointer-events:none!important; }
+    .portal { display:none!important; }
+    .portal.active { display:block!important; }
+    #portal-agent.active { display:flex!important; min-height:calc(100vh - 49px); }
+    .ctab-panel { display:none!important; }
+    .ctab-panel.active { display:block!important; }
+    #portal-agent .view { display:none!important; }
+    #portal-agent .view.active { display:block!important; }
+    .nav-admin.is-hidden { display:none!important; }
+    .mode-bar { display:flex; align-items:center; justify-content:space-between; padding:.55rem 1.25rem; background:#1a1a24; border-bottom:1px solid #2e2e42; }
+    .customer-main { max-width:700px; margin:0 auto; padding:2rem 1.25rem; }
+    .ticket-form, .track-box, .success-box, .comments-section, .ticket-detail { background:#1a1a24; border:1px solid #2e2e42; border-radius:12px; padding:1.25rem; margin-bottom:1rem; }
+    .customer-tabs { display:flex; gap:.4rem; margin-bottom:1.25rem; }
+    .ctab { flex:1; border:none; background:#1a1a24; color:#9898b0; padding:.55rem; border-radius:9px; font-weight:600; cursor:pointer; }
+    .ctab.active { background:#7c6af0; color:#fff; }
   </style>
 </head>
 <body>
@@ -122,7 +144,7 @@
           <button type="button" class="nav-btn" data-view="all-tickets">All Tickets</button>
           <button type="button" class="nav-btn nav-admin is-hidden" data-view="admin" id="nav-admin">Admin</button>
         </nav>
-        <div class="sidebar-footer"><button type="button" class="btn btn-ghost btn-sm" id="btn-export">Export JSON</button><p class="kbd-hint">/ search · Esc back · C claim</p><p class="version">v7.3</p><p class="credit-side">Lizzz · All Rights Reserved</p></div>
+        <div class="sidebar-footer"><button type="button" class="btn btn-ghost btn-sm" id="btn-export">Export JSON</button><p class="kbd-hint">/ search · Esc back · C claim</p><p class="version">v7.4</p><p class="credit-side">Lizzz · All Rights Reserved</p></div>
       </aside>
       <main class="main">
         <header class="topbar">
@@ -196,11 +218,11 @@
     </div>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js?v=7.3"></script>
-  <script src="js/app.js?v=7.3"></script>
-  <script src="js/admin.js?v=7.3"></script>
-  <script src="js/filters.js?v=7.3"></script>
-  <script src="js/extras.js?v=7.3"></script>
-  <script src="js/polish.js?v=7.3"></script>
+  <script src="js/config.js?v=7.4"></script>
+  <script src="js/app.js?v=7.4"></script>
+  <script src="js/admin.js?v=7.4"></script>
+  <script src="js/filters.js?v=7.4"></script>
+  <script src="js/extras.js?v=7.4"></script>
+  <script src="js/polish.js?v=7.4"></script>
 </body>
 </html>
