@@ -192,10 +192,7 @@
     );
     code = code.replace(/\}\);\s*\}\)\(\);\s*$/m, "}\n__drBoot();\n})();");
 
-    code = code.replace(
-      "function signInAgent(login,password){\n  var email=login.trim().indexOf('@')===-1?login.trim().toLowerCase().replace(/[^a-z0-9._-]/g,'')+'@agent.divinerays.app':login.trim();\n  return signInWithEmail(email,password);\n}",
-      "async function signInAgent(login,password){\n  var email=login.trim();\n  if(email.indexOf('@')===-1){\n    var q=await sb.from('profiles').select('email').eq('username',email).maybeSingle();\n    if(q.data&&q.data.email)email=q.data.email; else return {error:'Unknown username. Use your email.'};\n  }\n  return signInWithEmail(email,password);\n}"
-    );
+    
 
     code = code.replace(
       "await sb.from('profiles').upsert({id:session.user.id,full_name:meta.full_name||'User',role:meta.role||'customer',username:meta.username||null});",
