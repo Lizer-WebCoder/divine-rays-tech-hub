@@ -208,7 +208,10 @@
       "async function signOut(){if(usingCloud)await sb.auth.signOut();currentProfile=null;}",
       "async function signOut(){currentProfile=null;window.__drFullLoaded=false;window.__drBooting=false;if(usingCloud){try{await sb.auth.signOut({scope:'local'});}catch(e){}}try{Object.keys(localStorage).forEach(function(k){if(k.indexOf('supabase')!==-1||k.indexOf('sb-')===0)localStorage.removeItem(k);});}catch(e){} var pc=document.getElementById('portal-customer'),pa=document.getElementById('portal-agent');if(pc)pc.classList.remove('active');if(pa)pa.classList.remove('active');}"
     );
-
+    // Fix any double-async from patches
+    code = code.replace(/async\s+async\s+function/g, 'async function');
+    code = code.replace(/async\s+async\s+function/g, 'async function');
+    
     try {
       (0, eval)(code);
     } catch (err) {
