@@ -4,12 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="stylesheet" href="css/styles.css?v=7.0" />
+  <link rel="stylesheet" href="css/styles.css?v=7.1" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
-    html, body { margin: 0; padding: 0; background: #0f0f14 !important; color: #e8e8f0 !important; font-family: Inter, system-ui, sans-serif; min-height: 100vh; }
+    html, body { margin: 0; padding: 0; background: #0f0f14; color: #e8e8f0; font-family: Inter, system-ui, sans-serif; min-height: 100vh; }
+    html[data-theme="light"], html[data-theme="light"] body { background: #f0f0f5 !important; color: #1a1a28 !important; }
     form.login-form { display: none !important; }
     form.login-form.active { display: block !important; }
     .login-screen[hidden], .login-screen.is-hidden, .app-shell[hidden], .app-shell.is-hidden { display: none !important; visibility: hidden !important; height: 0 !important; overflow: hidden !important; pointer-events: none !important; }
@@ -21,12 +22,12 @@
     #portal-agent .view { display: none !important; }
     #portal-agent .view.active { display: block !important; }
     .nav-admin.is-hidden { display: none !important; }
-    .mode-bar { display: flex; align-items: center; justify-content: space-between; padding: 0.55rem 1.25rem; background: #12121a; border-bottom: 1px solid #2e2e42; }
+    .mode-bar { display: flex; align-items: center; justify-content: space-between; padding: 0.55rem 1.25rem; background: var(--surface, #12121a); border-bottom: 1px solid var(--border, #2e2e42); }
     .customer-main { max-width: 700px; margin: 0 auto; padding: 2rem 1.25rem; }
-    .ticket-form, .track-box, .success-box, .comments-section, .ticket-detail { background: #1a1a24; border: 1px solid #2e2e42; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
+    .ticket-form, .track-box, .success-box, .comments-section, .ticket-detail { background: var(--surface, #1a1a24); border: 1px solid var(--border, #2e2e42); border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
     .btn-primary { background: #7c6af0; color: #fff; border: none; border-radius: 9px; padding: 0.55rem 1rem; font-weight: 600; cursor: pointer; }
     .customer-tabs { display: flex; gap: 0.4rem; margin-bottom: 1.25rem; }
-    .ctab { flex: 1; border: none; background: #1a1a24; color: #9898b0; padding: 0.55rem; border-radius: 9px; font-weight: 600; cursor: pointer; }
+    .ctab { flex: 1; border: none; background: var(--surface, #1a1a24); color: var(--text-muted, #9898b0); padding: 0.55rem; border-radius: 9px; font-weight: 600; cursor: pointer; }
     .ctab.active { background: #7c6af0; color: #fff; }
   </style>
 </head>
@@ -111,7 +112,7 @@
     </div>
     <div id="portal-agent" class="portal">
       <aside class="sidebar">
-        <div class="brand"><div class="logo">✦</div><div><h1>Divine Rays</h1><p>Tech Support</p></div></div>
+        <div class="brand"><div class="logo">✦</div><div class="brand-text"><h1>Divine Rays</h1><p>Tech Support</p></div></div>
         <div class="agent-badge"><span id="agent-name-display">Agent</span></div>
         <nav class="nav">
           <button type="button" class="nav-btn active" data-view="dashboard">Dashboard</button>
@@ -120,7 +121,7 @@
           <button type="button" class="nav-btn" data-view="all-tickets">All Tickets</button>
           <button type="button" class="nav-btn nav-admin is-hidden" data-view="admin" id="nav-admin">Admin</button>
         </nav>
-        <div class="sidebar-footer"><button type="button" class="btn btn-ghost btn-sm" id="btn-export">Export JSON</button><p class="kbd-hint">/ search · Esc back · C claim</p><p class="version">v7.0</p><p class="credit-side">Lizzz · All Rights Reserved</p></div>
+        <div class="sidebar-footer"><button type="button" class="btn btn-ghost btn-sm" id="btn-export">Export JSON</button><p class="kbd-hint">/ search · Esc back · C claim</p><p class="version">v7.1</p><p class="credit-side">Lizzz · All Rights Reserved</p></div>
       </aside>
       <main class="main">
         <header class="topbar">
@@ -193,10 +194,10 @@
     </div>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js?v=7.0"></script>
-  <script src="js/app.js?v=7.0"></script>
-  <script src="js/admin.js?v=7.0"></script>
-  <script src="js/filters.js?v=7.0"></script>
-  <script src="js/extras.js?v=7.0"></script>
+  <script src="js/config.js?v=7.1"></script>
+  <script src="js/app.js?v=7.1"></script>
+  <script src="js/admin.js?v=7.1"></script>
+  <script src="js/filters.js?v=7.1"></script>
+  <script src="js/extras.js?v=7.1"></script>
 </body>
 </html>
