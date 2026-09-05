@@ -1,5 +1,5 @@
 /**
- * Divine Rays Tech Hub — login fix + full app loader
+ * Divine Rays Tech Hub — login + app loader (role-safe)
  * Credit: Lizzz · All Rights Reserved
  */
 (function () {
@@ -61,19 +61,37 @@
     if (el) el.classList.add('active');
   };
 
+  async function getProfile(userId) {
+    var r = await sb.from('profiles').select('*').eq('id', userId).maybeSingle();
+    return r.error ? null : r.data;
+  }
+
   async function ensureProfile(user, extras) {
     extras = extras || {};
+    var existing = await getProfile(user.id);
+    if (existing) {
+      var patch = {};
+      if (extras.full_name && !existing.full_name) patch.full_name = extras.full_name;
+      if (extras.username && !existing.username) patch.username = extras.username;
+      if (extras.email && !existing.email) patch.email = extras.email;
+      if (Object.keys(patch).length) {
+        var u = await sb.from('profiles').update(patch).eq('id', user.id).select('*').maybeSingle();
+        if (u.data) return u.data;
+      }
+      return existing;
+    }
+
     var row = {
       id: user.id,
       email: user.email || extras.email || null,
       full_name: extras.full_name || (user.user_metadata && user.user_metadata.full_name) || user.email || 'User',
-      role: extras.role || 'customer',
-      username: extras.username || null
+      role: extras.role || (user.user_metadata && user.user_metadata.role) || 'customer',
+      username: extras.username || (user.user_metadata && user.user_metadata.username) || null
     };
     var r = await sb.from('profiles').upsert(row, { onConflict: 'id' }).select('*').maybeSingle();
     if (r.error) {
-      var s = await sb.from('profiles').select('*').eq('id', user.id).maybeSingle();
-      return s.data || row;
+      var s = await getProfile(user.id);
+      return s || row;
     }
     return r.data || row;
   }
@@ -82,7 +100,7 @@
     var r = await sb.auth.signInWithPassword({ email: email, password: password });
     if (r.error) return { error: r.error.message };
     var user = r.data.user;
-    var prof = await ensureProfile(user);
+    var prof = await ensureProfile(user, {});
     return { user: user, profile: prof };
   }
 
@@ -129,11 +147,28 @@
       toast('Could not load workspace. Hard refresh (Ctrl+Shift+R).', 'error');
       return;
     }
+
     code = code.replace(
       "document.addEventListener('DOMContentLoaded',async function(){",
       "async function __drBoot(){"
     );
     code = code.replace(/\}\);\s*\}\)\(\);\s*$/m, "}\n__drBoot();\n})();");
+
+    code = code.replace(
+      "await sb.from('profiles').upsert({id:session.user.id,full_name:meta.full_name||'User',role:meta.role||'customer',username:meta.username||null});",
+      "var __ex=await sb.from('profiles').select('id,role').eq('id',session.user.id).maybeSingle();\nif(!__ex.data){await sb.from('profiles').upsert({id:session.user.id,full_name:meta.full_name||'User',role:meta.role||'customer',username:meta.username||null});}"
+    );
+
+    code = code.replace(
+      "function showApp(p){",
+      "function showApp(p){if(p&&!p.name&&p.full_name)p.name=p.full_name;if(p&&!p.name)p.name=p.email||'User';"
+    );
+
+    code = code.replace(
+      "currentProfile={id:r.data.id,name:r.data.full_name||'User',role:r.data.role||'customer',username:r.data.username};",
+      "currentProfile={id:r.data.id,name:r.data.full_name||r.data.username||'User',role:r.data.role||'customer',username:r.data.username};"
+    );
+
     try {
       (0, eval)(code);
     } catch (err) {
@@ -174,6 +209,9 @@
       }
       var r = await signIn(email, password);
       if (r.error) { showError('login-agent', r.error); return; }
+      if (r.profile && r.profile.role === 'customer') {
+        showError('login-agent', 'This account is still a customer. Set role to admin in Supabase (see instructions).');
+      }
       window.__drFullLoaded = true;
       loadFullAppThen();
     });
