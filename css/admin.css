@@ -1,0 +1,52 @@
+.admin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+}
+.admin-role-select {
+  background: var(--bg, #0f0f14);
+  border: 1px solid var(--border, #2e2e42);
+  color: var(--text, #e8e8f0);
+  border-radius: 8px;
+  padding: 0.3rem 0.45rem;
+  font-size: 0.8rem;
+}
+.admin-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+.admin-modal-overlay.is-hidden { display: none !important; }
+.admin-modal {
+  width: 100%;
+  max-width: 420px;
+  background: var(--surface, #1a1a24);
+  border: 1px solid var(--border, #2e2e42);
+  border-radius: 14px;
+  padding: 1.35rem 1.4rem;
+}
+.admin-modal h3 {
+  margin: 0 0 1rem;
+  font-size: 1.1rem;
+}
+.admin-modal-hint {
+  font-size: 0.78rem;
+  color: var(--text-muted, #9898b0);
+  line-height: 1.45;
+  margin: 0.5rem 0 1rem;
+}
+.admin-modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+.badge-role-admin { background: rgba(251,191,36,0.2); color: #fbbf24; }
+.badge-role-agent { background: rgba(124,106,240,0.2); color: #c4b5fd; }
+.badge-role-customer { background: rgba(96,165,250,0.2); color: #93c5fd; }
