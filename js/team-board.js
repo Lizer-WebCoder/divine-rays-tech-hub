@@ -1,5 +1,5 @@
 /**
- * Divine Rays — team performance with charts
+ * Divine Rays — team performance charts (survives nav + async renderStats)
  * Credit: Lizzz · All Rights Reserved
  */
 (function () {
@@ -15,11 +15,16 @@
       .replace(/"/g, '&quot;');
   }
 
+  var _renderToken = 0;
+  var _rendering = false;
+
   async function buildTeamRows() {
     var tickets = (dr().getAllTickets && dr().getAllTickets()) || [];
     if (!tickets.length && dr().fetchTickets) {
-      tickets = (await dr().fetchTickets({})) || [];
-      if (dr().setAllTickets) dr().setAllTickets(tickets);
+      try {
+        tickets = (await dr().fetchTickets({})) || [];
+        if (dr().setAllTickets) dr().setAllTickets(tickets);
+      } catch (e) {}
     }
 
     var byAgent = {};
@@ -61,14 +66,11 @@
         });
       });
     } else {
-      var ids = Object.keys(byAgent);
-      var names = {};
-      if (dr().fetchProfileNames) names = await dr().fetchProfileNames(ids);
-      ids.forEach(function (id) {
+      Object.keys(byAgent).forEach(function (id) {
         var s = byAgent[id];
         rows.push({
           id: id,
-          name: names[id] || 'Agent',
+          name: 'Agent',
           role: 'agent',
           working: s.working,
           solved: s.solved
@@ -119,8 +121,7 @@
       ' stroke-dashoffset="' + (c / 4).toFixed(2) + '" transform="rotate(-90 22 22)"/>' +
       '<text class="mini-ring-text" x="22" y="25" text-anchor="middle">' +
       (total ? Math.round(pct * 100) : 0) +
-      '</text>' +
-      '</svg>'
+      '</text></svg>'
     );
   }
 
@@ -154,8 +155,7 @@
             '%"></div>' +
             '<div class="tower-seg solved" style="height:' +
             hSolved +
-            '%"></div>' +
-            '</div>' +
+            '%"></div></div>' +
             '<div class="tower-label">' +
             escapeHtml(short) +
             '</div>' +
@@ -170,151 +170,202 @@
     );
   }
 
-  function renderTeamBoard(targetId) {
-    var box = document.getElementById(targetId || 'agent-perf-list');
-    if (!box) return;
-    box.classList.add('team-board');
-    box.innerHTML = '<p class="team-loading">Loading team…</p>';
-
-    buildTeamRows()
-      .then(function (data) {
-        var rows = data.rows;
-        var meId = data.meId;
-
-        if (!rows.length) {
-          box.innerHTML =
-            '<p class="team-empty">No tech support agents yet. When agents claim tickets, they will show up here.</p>';
-          return;
-        }
-
-        var teamWorking = 0;
-        var teamSolved = 0;
-        rows.forEach(function (r) {
-          teamWorking += r.working;
-          teamSolved += r.solved;
-        });
-
-        var meRow = rows.find(function (r) {
-          return meId && r.id === meId;
-        });
-
-        var html = '';
-        html += '<div class="chart-row">';
-        html +=
-          '<div class="chart-panel">' +
-          '<h4 class="chart-title">Team overall</h4>' +
-          '<p class="chart-desc">Share of assigned tickets that are finished</p>' +
-          '<div class="chart-donut-wrap">' +
-          donutSvg(teamSolved, teamWorking, 130) +
-          '<div class="chart-side-stats">' +
-          '<div><strong>' +
-          teamWorking +
-          '</strong><span>Working on</span></div>' +
-          '<div><strong>' +
-          teamSolved +
-          '</strong><span>Solved</span></div>' +
-          '</div></div></div>';
-
-        if (meRow) {
-          html +=
-            '<div class="chart-panel">' +
-            '<h4 class="chart-title">Your performance</h4>' +
-            '<p class="chart-desc">Your finished vs open tickets</p>' +
-            '<div class="chart-donut-wrap">' +
-            donutSvg(meRow.solved, meRow.working, 130) +
-            '<div class="chart-side-stats">' +
-            '<div><strong>' +
-            meRow.working +
-            '</strong><span>Working on</span></div>' +
-            '<div><strong>' +
-            meRow.solved +
-            '</strong><span>Solved</span></div>' +
-            '</div></div></div>';
-        }
-
-        html += '</div>';
-
-        html +=
-          '<div class="chart-panel full">' +
-          '<h4 class="chart-title">Team comparison</h4>' +
-          '<p class="chart-desc">Taller bars = more tickets handled</p>' +
-          barsHtml(rows) +
-          '</div>';
-
-        html += '<h4 class="chart-title" style="margin-top:1.25rem">Each person</h4>';
-        html += '<div class="person-grid">';
-        rows.forEach(function (r) {
-          var isMe = meId && r.id === meId;
-          html +=
-            '<div class="person-card' +
-            (isMe ? ' me' : '') +
-            '">' +
-            miniRing(r.solved, r.working) +
-            '<div class="person-meta">' +
-            '<div class="person-name">' +
-            escapeHtml(r.name) +
-            (isMe ? ' <span class="you-tag">you</span>' : '') +
-            (r.role === 'admin' ? ' <span class="you-tag">admin</span>' : '') +
-            '</div>' +
-            '<div class="person-stats"><span>' +
-            r.working +
-            ' working</span><span>' +
-            r.solved +
-            ' solved</span></div>' +
-            '</div></div>';
-        });
-        html += '</div>';
-
-        box.innerHTML = html;
-      })
-      .catch(function (err) {
-        console.warn('team board', err);
-        box.innerHTML = '<p class="team-empty">Could not load team performance.</p>';
-      });
+  function hasCharts(box) {
+    return !!(box && box.querySelector && box.querySelector('.chart-row, .tower-chart, .donut-fill, .person-grid'));
   }
 
-  function enhanceDashboardHeading() {
-    var h = document.querySelector('#view-dashboard .stats-heading');
-    // no-op placeholder for compatibility
+  function isPlainEmptyMessage(box) {
+    if (!box) return false;
+    var t = (box.textContent || '').trim();
+    return (
+      t.indexOf('No claimed tickets') !== -1 ||
+      (t.indexOf('Loading team') === -1 && !hasCharts(box) && box.querySelector('table.perf-table') != null)
+    );
+  }
+
+  async function renderTeamBoard(targetId) {
+    var box = document.getElementById(targetId || 'agent-perf-list');
+    if (!box) return;
+    var token = ++_renderToken;
+    _rendering = true;
+    box.classList.add('team-board');
+    box.setAttribute('data-team-charts', '1');
+
+    try {
+      var data = await buildTeamRows();
+      if (token !== _renderToken) return;
+      var rows = data.rows;
+      var meId = data.meId;
+
+      if (!rows.length) {
+        box.innerHTML =
+          '<p class="team-empty">No tech support agents yet. When agents claim tickets, they will show up here.</p>';
+        return;
+      }
+
+      var teamWorking = 0;
+      var teamSolved = 0;
+      rows.forEach(function (r) {
+        teamWorking += r.working;
+        teamSolved += r.solved;
+      });
+
+      var meRow = rows.find(function (r) {
+        return meId && r.id === meId;
+      });
+
+      var html = '';
+      html += '<div class="chart-row">';
+      html +=
+        '<div class="chart-panel">' +
+        '<h4 class="chart-title">Team overall</h4>' +
+        '<p class="chart-desc">Share of assigned tickets that are finished</p>' +
+        '<div class="chart-donut-wrap">' +
+        donutSvg(teamSolved, teamWorking, 130) +
+        '<div class="chart-side-stats">' +
+        '<div><strong>' +
+        teamWorking +
+        '</strong><span>Working on</span></div>' +
+        '<div><strong>' +
+        teamSolved +
+        '</strong><span>Solved</span></div>' +
+        '</div></div></div>';
+
+      if (meRow) {
+        html +=
+          '<div class="chart-panel">' +
+          '<h4 class="chart-title">Your performance</h4>' +
+          '<p class="chart-desc">Your finished vs open tickets</p>' +
+          '<div class="chart-donut-wrap">' +
+          donutSvg(meRow.solved, meRow.working, 130) +
+          '<div class="chart-side-stats">' +
+          '<div><strong>' +
+          meRow.working +
+          '</strong><span>Working on</span></div>' +
+          '<div><strong>' +
+          meRow.solved +
+          '</strong><span>Solved</span></div>' +
+          '</div></div></div>';
+      }
+      html += '</div>';
+
+      html +=
+        '<div class="chart-panel full">' +
+        '<h4 class="chart-title">Team comparison</h4>' +
+        '<p class="chart-desc">Taller bars = more tickets handled</p>' +
+        barsHtml(rows) +
+        '</div>';
+
+      html += '<h4 class="chart-title" style="margin-top:1.25rem">Each person</h4>';
+      html += '<div class="person-grid">';
+      rows.forEach(function (r) {
+        var isMe = meId && r.id === meId;
+        html +=
+          '<div class="person-card' +
+          (isMe ? ' me' : '') +
+          '">' +
+          miniRing(r.solved, r.working) +
+          '<div class="person-meta">' +
+          '<div class="person-name">' +
+          escapeHtml(r.name) +
+          (isMe ? ' <span class="you-tag">you</span>' : '') +
+          (r.role === 'admin' ? ' <span class="you-tag">admin</span>' : '') +
+          '</div>' +
+          '<div class="person-stats"><span>' +
+          r.working +
+          ' working</span><span>' +
+          r.solved +
+          ' solved</span></div></div></div>';
+      });
+      html += '</div>';
+
+      if (token !== _renderToken) return;
+      box.innerHTML = html;
+      box.setAttribute('data-team-charts', '1');
+    } catch (err) {
+      console.warn('team board', err);
+      if (token === _renderToken) {
+        box.innerHTML = '<p class="team-empty">Could not load team performance.</p>';
+      }
+    } finally {
+      if (token === _renderToken) _rendering = false;
+    }
+  }
+
+  function isDashboardVisible() {
+    var dash = document.getElementById('view-dashboard');
+    if (dash && dash.classList.contains('active')) return true;
+    var nav = document.querySelector('#portal-agent .nav-btn[data-view="dashboard"]');
+    if (nav && nav.classList.contains('active')) return true;
+    var any = document.querySelector(
+      '#portal-agent .nav-btn[data-view="my-tickets"].active, #portal-agent .nav-btn[data-view="unassigned"].active, #portal-agent .nav-btn[data-view="all-tickets"].active, #portal-agent .nav-btn[data-view="dashboard"].active'
+    );
+    return !!any && !!document.getElementById('agent-perf-list');
+  }
+
+  function scheduleChartRestore() {
+    [0, 50, 150, 350, 700, 1200].forEach(function (ms) {
+      setTimeout(function () {
+        if (!document.getElementById('agent-perf-list')) return;
+        if (!isDashboardVisible()) return;
+        var box = document.getElementById('agent-perf-list');
+        if (hasCharts(box) && !isPlainEmptyMessage(box)) return;
+        renderTeamBoard('agent-perf-list');
+      }, ms);
+    });
   }
 
   function hookRenderStats() {
-    if (!window.DR || typeof window.DR.renderStats !== 'function') return;
-    if (window.DR.renderStats.__teamPatched) return;
-    var prev = window.DR.renderStats;
+    if (!window.DR || typeof window.DR.renderStats !== 'function') return false;
+    var current = window.DR.renderStats;
+    if (current.__teamPatched) return true;
+
+    var prev = current;
     var wrapped = function () {
-      var r = prev.apply(this, arguments);
-      setTimeout(function () {
-        enhanceDashboardHeading();
-        renderTeamBoard('agent-perf-list');
-      }, 60);
-      return r;
+      var result = prev.apply(this, arguments);
+      Promise.resolve(result)
+        .catch(function () {})
+        .then(function () {
+          scheduleChartRestore();
+        });
+      scheduleChartRestore();
+      return result;
     };
     wrapped.__teamPatched = true;
-    wrapped.__teamPrev = prev;
     window.DR.renderStats = wrapped;
+    return true;
   }
 
   function keepHookAlive() {
     hookRenderStats();
   }
 
-  function isDashboardVisible() {
-    var dash = document.getElementById('view-dashboard');
-    if (!dash) return false;
-    if (dash.classList.contains('active')) return true;
-    var nav = document.querySelector('#portal-agent .nav-btn[data-view="dashboard"]');
-    return !!(nav && nav.classList.contains('active'));
+  function observePerfBox() {
+    if (document.__teamBoxObs) return;
+    document.__teamBoxObs = true;
+
+    function watchBox(box) {
+      if (!box || box.__teamWatched) return;
+      box.__teamWatched = true;
+      new MutationObserver(function () {
+        if (_rendering) return;
+        if (!isDashboardVisible()) return;
+        if (hasCharts(box) && !isPlainEmptyMessage(box)) return;
+        scheduleChartRestore();
+      }).observe(box, { childList: true, characterData: true, subtree: true });
+    }
+
+    var existing = document.getElementById('agent-perf-list');
+    if (existing) watchBox(existing);
+
+    new MutationObserver(function () {
+      keepHookAlive();
+      var box = document.getElementById('agent-perf-list');
+      if (box) watchBox(box);
+    }).observe(document.body, { childList: true, subtree: true });
   }
 
-  function refreshIfDashboard() {
-    keepHookAlive();
-    if (!isDashboardVisible()) return;
-    if (!document.getElementById('agent-perf-list')) return;
-    renderTeamBoard('agent-perf-list');
-  }
-
-  function bindDashboardNav() {
+  function bindNav() {
     if (document.__teamNavBound) return;
     document.__teamNavBound = true;
     document.addEventListener(
@@ -323,56 +374,41 @@
         var t = e.target && e.target.closest && e.target.closest('#portal-agent .nav-btn');
         if (!t) return;
         var view = t.getAttribute('data-view') || '';
-        if (view === 'dashboard' || view === 'my-tickets' || view === 'unassigned' || view === 'all-tickets') {
-          setTimeout(refreshIfDashboard, 100);
-          setTimeout(refreshIfDashboard, 400);
-          setTimeout(refreshIfDashboard, 900);
+        if (
+          view === 'dashboard' ||
+          view === 'my-tickets' ||
+          view === 'unassigned' ||
+          view === 'all-tickets'
+        ) {
+          scheduleChartRestore();
         }
       },
       true
     );
   }
 
-  function observeDashboard() {
-    if (document.__teamObs) return;
-    document.__teamObs = true;
-    var obs = new MutationObserver(function () {
-      keepHookAlive();
-      if (!isDashboardVisible()) return;
-      var box = document.getElementById('agent-perf-list');
-      if (!box) return;
-      if (!box.querySelector('.chart-row, .tower-chart, .donut-fill')) {
-        renderTeamBoard('agent-perf-list');
-      }
-    });
-    var root = document.getElementById('portal-agent') || document.body;
-    obs.observe(root, { attributes: true, childList: true, subtree: true, attributeFilter: ['class'] });
-  }
-
   function boot() {
-    enhanceDashboardHeading();
     keepHookAlive();
-    bindDashboardNav();
-    observeDashboard();
-    setTimeout(function () {
-      keepHookAlive();
-      if (document.getElementById('agent-perf-list')) renderTeamBoard('agent-perf-list');
-    }, 800);
-    setTimeout(keepHookAlive, 2000);
-    setTimeout(keepHookAlive, 5000);
+    bindNav();
+    observePerfBox();
+    scheduleChartRestore();
+    setTimeout(keepHookAlive, 1500);
+    setTimeout(keepHookAlive, 4000);
+    setTimeout(scheduleChartRestore, 1500);
+    setTimeout(scheduleChartRestore, 4000);
     setInterval(function () {
       keepHookAlive();
       if (!isDashboardVisible()) return;
       var box = document.getElementById('agent-perf-list');
       if (!box) return;
-      if (!box.querySelector('.chart-row, .tower-chart')) {
+      if (!hasCharts(box) || isPlainEmptyMessage(box)) {
         renderTeamBoard('agent-perf-list');
       }
-    }, 2500);
+    }, 2000);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-  else setTimeout(boot, 400);
+  else setTimeout(boot, 300);
 
   window.DR_TEAM = {
     render: renderTeamBoard,
