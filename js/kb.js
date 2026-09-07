@@ -87,8 +87,8 @@
     Object.keys(byCat).forEach(function (cat) {
       html += '<div class="kb-cat-block"><h3 class="kb-cat-title">' + esc(cat) + '</h3>';
       byCat[cat].forEach(function (a) {
-        html += '<details class="kb-item"><summary>' + esc(a.title) + '</summary>' +
-          '<div class="kb-item-body">' + esc(a.body).replace(/\n/g, '<br>') + '</div></details>';
+        html += '<details class="kb-item"><summary>' + esc(a.title) + '</summary><div class="kb-item-body">' +
+          esc(a.body).replace(/\n/g, '<br>') + '</div></details>';
       });
       html += '</div>';
     });
@@ -109,16 +109,18 @@
 
   async function loadAgentKb() {
     window.__kbAll = await fetchArticles({});
-    renderAgentKbTable(window.__kbAll);
+    renderAgentKbTable(window.__kbAll || []);
   }
 
   function renderAgentKbTable(list) {
     var el = document.getElementById('kb-manage-list');
     if (!el) return;
     var q = (document.getElementById('kb-manage-search') || {}).value || '';
-    var filtered = filterArticles(list, q, '');
+    var filtered = filterArticles(list || [], q, '');
     if (!filtered.length) {
-      el.innerHTML = '<p class="empty-state">No articles. Click “New article” to add one.</p>';
+      el.innerHTML = '<div class="kb-empty-box"><p class="empty-state">No articles yet.</p>' +
+        '<p class="kb-sub">Click <strong>New article</strong> to create your first FAQ.</p>' +
+        '<p class="kb-sub">If save fails, run the kb_articles SQL in Supabase first.</p></div>';
       return;
     }
     el.innerHTML = '<table class="perf-table kb-table"><thead><tr><th>Title</th><th>Category</th><th>Status</th><th>Updated</th><th></th></tr></thead><tbody>' +
@@ -151,14 +153,15 @@
     var o = document.createElement('div');
     o.id = 'kb-editor-overlay';
     o.className = 'kb-overlay is-hidden';
-    o.innerHTML = '<div class="kb-editor"><h3 id="kb-editor-title">New article</h3><input type="hidden" id="kb-edit-id" />' +
-      '<div class="form-group"><label>Title</label><input type="text" id="kb-edit-title" /></div>' +
+    o.innerHTML = '<div class="kb-editor" role="dialog"><h3 id="kb-editor-title">New article</h3><input type="hidden" id="kb-edit-id" />' +
+      '<div class="form-group"><label>Title</label><input type="text" id="kb-edit-title" placeholder="e.g. How do I reset my password?" /></div>' +
       '<div class="form-row"><div class="form-group"><label>Category</label><select id="kb-edit-category">' +
       CATEGORIES.map(function (c) { return '<option value="' + c + '">' + c + '</option>'; }).join('') +
-      '</select></div><div class="form-group"><label>Published</label><select id="kb-edit-published"><option value="true">Yes</option><option value="false">Draft</option></select></div></div>' +
+      '</select></div><div class="form-group"><label>Published</label><select id="kb-edit-published">' +
+      '<option value="true">Published (customers see it)</option><option value="false">Draft (staff only)</option></select></div></div>' +
       '<div class="form-group"><label>Article body</label><textarea id="kb-edit-body" rows="8" placeholder="Write clear steps for the customer…"></textarea></div>' +
       '<div class="kb-editor-actions"><button type="button" class="btn btn-ghost" id="kb-edit-cancel">Cancel</button>' +
-      '<button type="button" class="btn btn-primary" id="kb-edit-save">Save</button></div></div>';
+      '<button type="button" class="btn btn-primary" id="kb-edit-save">Save article</button></div></div>';
     document.body.appendChild(o);
     o.addEventListener('click', function (e) { if (e.target === o) closeEditor(); });
     document.getElementById('kb-edit-cancel').onclick = closeEditor;
@@ -192,11 +195,75 @@
       published: document.getElementById('kb-edit-published').value === 'true'
     };
     var r = await saveArticle(row);
-    if (r.error) { toast(r.error, 'error'); return; }
+    if (r.error) {
+      toast(r.error + ' — make sure you ran the kb_articles SQL in Supabase', 'error');
+      return;
+    }
     toast('Article saved', 'success');
     closeEditor();
     loadAgentKb();
     loadCustomerFaq();
+  }
+
+  function showKbView() {
+    ensureAgentUi();
+    document.querySelectorAll('#portal-agent .nav-btn').forEach(function (b) {
+      b.classList.toggle('active', b.id === 'nav-kb' || b.getAttribute('data-view') === 'kb');
+    });
+    document.querySelectorAll('#portal-agent .view').forEach(function (v) {
+      v.classList.toggle('active', v.id === 'view-kb');
+    });
+    var title = document.getElementById('page-title');
+    if (title) title.textContent = 'Knowledge Base';
+    var actions = document.querySelector('#portal-agent .topbar-actions');
+    if (actions) actions.style.display = 'none';
+    loadAgentKb();
+  }
+
+  function restoreTopbarFilters() {
+    var actions = document.querySelector('#portal-agent .topbar-actions');
+    if (actions) actions.style.display = '';
+  }
+
+  function ensureAgentUi() {
+    var nav = document.querySelector('#portal-agent .nav');
+    var main = document.querySelector('#portal-agent .main');
+
+    if (nav && !document.getElementById('nav-kb')) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'nav-btn';
+      btn.id = 'nav-kb';
+      btn.setAttribute('data-view', 'kb');
+      btn.textContent = 'Knowledge Base';
+      var adminBtn = document.getElementById('nav-admin');
+      if (adminBtn) nav.insertBefore(btn, adminBtn);
+      else nav.appendChild(btn);
+    }
+
+    if (main && !document.getElementById('view-kb')) {
+      var sec = document.createElement('section');
+      sec.id = 'view-kb';
+      sec.className = 'view';
+      sec.innerHTML = '<div class="kb-manage"><div class="kb-manage-head"><div>' +
+        '<h3 class="stats-heading" style="margin:0">Knowledge Base</h3>' +
+        '<p class="kb-sub">Articles customers see under Help / FAQ. Create, edit, publish, or delete below.</p></div>' +
+        '<button type="button" class="btn btn-primary" id="kb-btn-new">+ New article</button></div>' +
+        '<div class="kb-toolbar"><input type="search" id="kb-manage-search" placeholder="Search articles…" /></div>' +
+        '<div id="kb-manage-list"><p class="empty-state">Loading…</p></div></div>';
+      main.appendChild(sec);
+    }
+
+    var neu = document.getElementById('kb-btn-new');
+    if (neu && !neu.__kbBound) {
+      neu.__kbBound = true;
+      neu.addEventListener('click', function () { openEditor(null); });
+    }
+    var search = document.getElementById('kb-manage-search');
+    if (search && !search.__kbBound) {
+      search.__kbBound = true;
+      search.addEventListener('input', function () { renderAgentKbTable(window.__kbAll || []); });
+    }
   }
 
   function ensureCustomerTab() {
@@ -239,58 +306,42 @@
     });
   }
 
-  function ensureAgentNav() {
-    var nav = document.querySelector('#portal-agent .nav');
-    if (!nav || document.getElementById('nav-kb')) return;
-    var adminBtn = document.getElementById('nav-admin');
-    var btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'nav-btn';
-    btn.id = 'nav-kb';
-    btn.setAttribute('data-view', 'kb');
-    btn.textContent = 'Knowledge Base';
-    if (adminBtn) nav.insertBefore(btn, adminBtn);
-    else nav.appendChild(btn);
-
-    var main = document.querySelector('#portal-agent .main');
-    if (!main || document.getElementById('view-kb')) return;
-    var sec = document.createElement('section');
-    sec.id = 'view-kb';
-    sec.className = 'view';
-    sec.innerHTML = '<div class="kb-manage"><div class="kb-manage-head"><div>' +
-      '<h3 class="stats-heading" style="margin:0">Knowledge Base</h3>' +
-      '<p class="kb-sub">Articles customers see under Help / FAQ</p></div>' +
-      '<button type="button" class="btn btn-primary" id="kb-btn-new">New article</button></div>' +
-      '<div class="kb-toolbar"><input type="search" id="kb-manage-search" placeholder="Search articles…" /></div>' +
-      '<div id="kb-manage-list"></div></div>';
-    main.appendChild(sec);
-
-    btn.addEventListener('click', function () {
-      document.querySelectorAll('#portal-agent .nav-btn').forEach(function (b) { b.classList.toggle('active', b === btn); });
-      document.querySelectorAll('#portal-agent .view').forEach(function (v) { v.classList.toggle('active', v.id === 'view-kb'); });
-      var title = document.getElementById('page-title');
-      if (title) title.textContent = 'Knowledge Base';
-      loadAgentKb();
-    });
-    document.getElementById('kb-btn-new').addEventListener('click', function () { openEditor(null); });
-    document.getElementById('kb-manage-search').addEventListener('input', function () {
-      renderAgentKbTable(window.__kbAll || []);
-    });
+  function bindGlobalClicks() {
+    if (document.__kbClickBound) return;
+    document.__kbClickBound = true;
+    document.addEventListener('click', function (e) {
+      var t = e.target;
+      if (!t || !t.closest) return;
+      var kbNav = t.closest('#nav-kb, .nav-btn[data-view="kb"]');
+      if (kbNav) {
+        e.preventDefault();
+        e.stopPropagation();
+        showKbView();
+        return;
+      }
+      var otherNav = t.closest('#portal-agent .nav-btn');
+      if (otherNav && otherNav.getAttribute('data-view') !== 'kb' && otherNav.id !== 'nav-kb') {
+        restoreTopbarFilters();
+      }
+    }, true);
   }
 
   function boot() {
-    ensureCustomerTab();
-    ensureAgentNav();
     ensureEditor();
+    ensureCustomerTab();
+    ensureAgentUi();
+    bindGlobalClicks();
     var shell = document.getElementById('app-shell') || document.body;
     new MutationObserver(function () {
       ensureCustomerTab();
-      ensureAgentNav();
+      ensureAgentUi();
     }).observe(shell, { attributes: true, childList: true, subtree: true });
+    setTimeout(function () { ensureAgentUi(); ensureCustomerTab(); }, 1200);
+    setTimeout(function () { ensureAgentUi(); }, 3000);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-  else setTimeout(boot, 500);
+  else setTimeout(boot, 300);
 
-  window.DR_KB = { loadCustomerFaq: loadCustomerFaq, loadAgentKb: loadAgentKb, openEditor: openEditor };
+  window.DR_KB = { show: showKbView, loadCustomerFaq: loadCustomerFaq, loadAgentKb: loadAgentKb, openEditor: openEditor };
 })();
