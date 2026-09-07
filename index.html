@@ -5,12 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Divine Rays Tech Hub — Support</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg?v=3" />
-  <link rel="stylesheet" href="css/styles.css?v=7.6.6" />
-  <link rel="stylesheet" href="css/comments.css?v=7.6.6" />
-  <link rel="stylesheet" href="css/ui-polish.css?v=7.6.6" />
-  <link rel="stylesheet" href="css/delete-ticket.css?v=7.6.6" />
-  <link rel="stylesheet" href="css/admin.css?v=7.6.6" />
-  <link rel="stylesheet" href="css/profile.css?v=7.6.6" />
+  <link rel="stylesheet" href="css/styles.css?v=7.6.7" />
+  <link rel="stylesheet" href="css/comments.css?v=7.6.7" />
+  <link rel="stylesheet" href="css/ui-polish.css?v=7.6.7" />
+  <link rel="stylesheet" href="css/delete-ticket.css?v=7.6.7" />
+  <link rel="stylesheet" href="css/admin.css?v=7.6.7" />
+  <link rel="stylesheet" href="css/profile.css?v=7.6.7" />
+  <link rel="stylesheet" href="css/kb.css?v=7.6.7" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -41,7 +42,6 @@
     .login-switch { text-align:center; margin-top:1rem; font-size:.88rem; color:#9898b0; }
     .login-switch a { color:#c4b5fd; text-decoration:none; }
     .credit { text-align:center; margin-top:1.75rem; padding-top:1.1rem; border-top:1px solid rgba(46,46,66,.6); font-size:.65rem; color:#5a5a70; text-transform:uppercase; letter-spacing:.06em; }
-    .login-error { background:rgba(248,113,113,0.12); border:1px solid rgba(248,113,113,0.3); color:#f87171; padding:0.55rem 0.8rem; border-radius:8px; font-size:0.85rem; margin-bottom:0.9rem; }
     .login-screen[hidden], .login-screen.is-hidden, .app-shell[hidden], .app-shell.is-hidden { display:none!important; visibility:hidden!important; height:0!important; overflow:hidden!important; pointer-events:none!important; }
     .portal { display:none!important; }
     .portal.active { display:block!important; }
@@ -54,16 +54,26 @@
     .mode-bar { display:flex; align-items:center; justify-content:space-between; padding:.55rem 1.25rem; background:#1a1a24; border-bottom:1px solid #2e2e42; }
     .customer-main { max-width:700px; margin:0 auto; padding:2rem 1.25rem; }
     .ticket-form, .track-box, .success-box, .comments-section, .ticket-detail { background:#1a1a24; border:1px solid #2e2e42; border-radius:12px; padding:1.25rem; margin-bottom:1rem; }
-    .customer-tabs { display:flex; gap:.4rem; margin-bottom:1.25rem; }
-    .ctab { flex:1; border:none; background:#1a1a24; color:#9898b0; padding:.55rem; border-radius:9px; font-weight:600; cursor:pointer; }
+    .customer-tabs { display:flex; gap:.4rem; margin-bottom:1.25rem; flex-wrap:wrap; }
+    .ctab { flex:1; border:none; background:#1a1a24; color:#9898b0; padding:.55rem; border-radius:9px; font-weight:600; cursor:pointer; min-width:100px; }
     .ctab.active { background:#7c6af0; color:#fff; }
+    .logo.logo-gear, .logo-sm.logo-gear {
+      display: grid !important; place-items: center; color: #e9d5ff;
+      background: linear-gradient(145deg, #3d2e1a 0%, #1a1625 55%, #2a1f3d 100%) !important;
+      border: 1px solid rgba(196, 181, 253, 0.35);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 4px 14px rgba(0,0,0,0.4);
+    }
+    .logo.logo-gear { width: 52px; height: 52px; border-radius: 14px; margin: 0 auto .9rem; }
+    .logo-sm.logo-gear { width: 32px; height: 32px; border-radius: 9px; display: inline-grid !important; vertical-align: middle; margin-right: 0.45rem; }
+    .logo.logo-gear .gear-icon, .logo-sm.logo-gear .gear-icon { width: 70%; height: 70%; display: block; }
+    .sidebar .logo.logo-gear { width: 40px; height: 40px; border-radius: 11px; margin: 0; }
   </style>
 </head>
 <body>
   <div id="toast-container"></div>
   <div id="login-screen" class="login-screen">
     <div class="login-card">
-      <div class="login-brand"><div class="logo">✦</div><h1>Divine Rays Tech Hub</h1><p>Support Portal</p></div>
+      <div class="login-brand"><div class="logo logo-gear"><svg class="gear-icon" viewBox="0 0 64 64" aria-hidden="true"><g transform="translate(32,32)" fill="currentColor"><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(45)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(90)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(135)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(180)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(225)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(270)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(315)"/><circle r="17"/><circle r="9" fill="#1a1625"/><circle r="5"/><circle r="2.2" fill="#1a1625"/></g></svg></div><h1>Divine Rays Tech Hub</h1><p>Support Portal</p></div>
       <div class="login-tabs">
         <button type="button" class="ltab active" data-ltab="customer" onclick="window.switchLoginTab && switchLoginTab('customer')">Customer</button>
         <button type="button" class="ltab" data-ltab="agent" onclick="window.switchLoginTab && switchLoginTab('agent')">Tech Support</button>
@@ -100,7 +110,7 @@
   </div>
   <div id="app-shell" class="app-shell is-hidden" hidden>
     <div class="mode-bar">
-      <div class="mode-brand"><span class="logo-sm">✦</span><strong>Divine Rays Tech Hub</strong></div>
+      <div class="mode-brand"><span class="logo-sm logo-gear"><svg class="gear-icon" viewBox="0 0 64 64" aria-hidden="true"><g transform="translate(32,32)" fill="currentColor"><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(45)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(90)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(135)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(180)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(225)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(270)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(315)"/><circle r="17"/><circle r="9" fill="#1a1625"/><circle r="5"/><circle r="2.2" fill="#1a1625"/></g></svg></span><strong>Divine Rays Tech Hub</strong></div>
       <div class="user-info"><span id="logged-user-label"></span><button type="button" class="btn btn-ghost btn-sm" id="btn-logout">Logout</button></div>
     </div>
     <div id="portal-customer" class="portal">
@@ -140,7 +150,7 @@
     </div>
     <div id="portal-agent" class="portal">
       <aside class="sidebar">
-        <div class="brand"><div class="logo">✦</div><div class="brand-text"><h1>Divine Rays</h1><p>Tech Support</p></div></div>
+        <div class="brand"><div class="logo logo-gear"><svg class="gear-icon" viewBox="0 0 64 64" aria-hidden="true"><g transform="translate(32,32)" fill="currentColor"><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(45)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(90)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(135)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(180)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(225)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(270)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(315)"/><circle r="17"/><circle r="9" fill="#1a1625"/><circle r="5"/><circle r="2.2" fill="#1a1625"/></g></svg></div><div class="brand-text"><h1>Divine Rays</h1><p>Tech Support</p></div></div>
         <div class="agent-badge"><span id="agent-name-display">Agent</span></div>
         <nav class="nav">
           <button type="button" class="nav-btn active" data-view="dashboard">Dashboard</button>
@@ -149,7 +159,7 @@
           <button type="button" class="nav-btn" data-view="all-tickets">All Tickets</button>
           <button type="button" class="nav-btn nav-admin is-hidden" data-view="admin" id="nav-admin">Admin</button>
         </nav>
-        <div class="sidebar-footer"><button type="button" class="btn btn-ghost btn-sm" id="btn-export">Export JSON</button><p class="kbd-hint">/ search · Esc back · C claim</p><p class="version">v7.6.6</p><p class="credit-side">Lizzz · All Rights Reserved</p></div>
+        <div class="sidebar-footer"><button type="button" class="btn btn-ghost btn-sm" id="btn-export">Export JSON</button><p class="kbd-hint">/ search · Esc back · C claim</p><p class="version">v7.6.7</p><p class="credit-side">Lizzz · All Rights Reserved</p></div>
       </aside>
       <main class="main">
         <header class="topbar">
@@ -223,15 +233,16 @@
     </div>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/config.js?v=7.6.6"></script>
-  <script src="js/app.js?v=7.6.6"></script>
-  <script src="js/admin.js?v=7.6.6"></script>
-  <script src="js/filters.js?v=7.6.6"></script>
-  <script src="js/extras.js?v=7.6.6"></script>
-  <script src="js/polish.js?v=7.6.6"></script>
-  <script src="js/team-board.js?v=7.6.6"></script>
-  <script src="js/saved-views.js?v=7.6.6"></script>
-  <script src="js/delete-ticket.js?v=7.6.6"></script>
-  <script src="js/profile.js?v=7.6.6"></script>
+  <script src="js/config.js?v=7.6.7"></script>
+  <script src="js/app.js?v=7.6.7"></script>
+  <script src="js/admin.js?v=7.6.7"></script>
+  <script src="js/filters.js?v=7.6.7"></script>
+  <script src="js/extras.js?v=7.6.7"></script>
+  <script src="js/polish.js?v=7.6.7"></script>
+  <script src="js/team-board.js?v=7.6.7"></script>
+  <script src="js/saved-views.js?v=7.6.7"></script>
+  <script src="js/delete-ticket.js?v=7.6.7"></script>
+  <script src="js/profile.js?v=7.6.7"></script>
+  <script src="js/kb.js?v=7.6.7"></script>
 </body>
 </html>
