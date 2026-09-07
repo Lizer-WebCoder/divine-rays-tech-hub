@@ -1,1 +1,42 @@
-PLACEHOLDER
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Divine Rays Tech Hub — Support</title>
+  <style>html,body{margin:0;background:#0c0c12;color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
+  #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae}</style>
+</head>
+<body>
+  <div id="boot">Loading Divine Rays Tech Hub…</div>
+  <script>
+  (async function () {
+    var urls = [
+      'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@830dac02096eb08be1b2dc22bdc191a14df91a04/index.html',
+      'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/830dac02096eb08be1b2dc22bdc191a14df91a04/index.html'
+    ];
+    var html = null;
+    for (var i = 0; i < urls.length; i++) {
+      try {
+        var r = await fetch(urls[i] + '?t=' + Date.now());
+        if (r.ok) { html = await r.text(); if (html && html.length > 5000) break; }
+      } catch (e) {}
+    }
+    if (!html || html.length < 5000) {
+      document.getElementById('boot').textContent = 'Could not load app. Hard refresh or check GitHub Pages.';
+      return;
+    }
+    if (html.indexOf('ui-upgrade.css') === -1) {
+      html = html.replace(
+        /css\/ui-polish\.css\?v=[^"]+/,
+        function (m) { return m + '" />\n  <link rel="stylesheet" href="css/ui-upgrade.css?v=7.7.0'; }
+      );
+    }
+    html = html.replace(/\?v=7\.6\.7/g, '?v=7.7.0');
+    document.open();
+    document.write(html);
+    document.close();
+  })();
+  </script>
+</body>
+</html>
