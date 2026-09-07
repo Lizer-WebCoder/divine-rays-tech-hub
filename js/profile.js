@@ -1,5 +1,5 @@
 /**
- * Divine Rays — Profile page (phone, address, avatar, etc.)
+ * Divine Rays — Profile page (phone, address, avatar from files/URL)
  * Credit: Lizzz · All Rights Reserved
  */
 (function () {
@@ -34,6 +34,104 @@
     if (!client || !id) return null;
     var r = await client.from('profiles').select('*').eq('id', id).maybeSingle();
     return r.error ? null : r.data;
+  }
+
+  function setUploadStatus(msg, isErr) {
+    var el = document.getElementById('pf-upload-status');
+    if (!el) return;
+    el.textContent = msg;
+    el.style.color = isErr ? '#f87171' : '';
+  }
+
+  function resizeImageFile(file, maxEdge, quality) {
+    return new Promise(function (resolve, reject) {
+      var reader = new FileReader();
+      reader.onerror = function () { reject(new Error('Could not read file')); };
+      reader.onload = function () {
+        var img = new Image();
+        img.onerror = function () { reject(new Error('Invalid image')); };
+        img.onload = function () {
+          var w = img.width, h = img.height;
+          var scale = Math.min(1, maxEdge / Math.max(w, h));
+          w = Math.round(w * scale);
+          h = Math.round(h * scale);
+          var canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          var ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          canvas.toBlob(
+            function (blob) {
+              if (!blob) reject(new Error('Could not process image'));
+              else resolve(blob);
+            },
+            'image/jpeg',
+            quality || 0.85
+          );
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function uploadAvatarFile(userId, file) {
+    if (!file) return { error: 'No file' };
+    if (!file.type || file.type.indexOf('image/') !== 0) {
+      return { error: 'Please choose an image file' };
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      return { error: 'Image must be under 5 MB' };
+    }
+    setUploadStatus('Processing photo…');
+    var blob;
+    try {
+      blob = await resizeImageFile(file, 512, 0.85);
+    } catch (e) {
+      return { error: e.message || 'Could not process image' };
+    }
+
+    var client = sb();
+    if (!client) return { error: 'Not connected' };
+
+    var path = userId + '/avatar.jpg';
+    try {
+      setUploadStatus('Uploading…');
+      var up = await client.storage.from('avatars').upload(path, blob, {
+        upsert: true,
+        contentType: 'image/jpeg',
+        cacheControl: '3600'
+      });
+      if (!up.error) {
+        var pub = client.storage.from('avatars').getPublicUrl(path);
+        var url = pub && pub.data && pub.data.publicUrl;
+        if (url) {
+          url = url.split('?')[0] + '?t=' + Date.now();
+          setUploadStatus('Photo uploaded.');
+          return { url: url };
+        }
+      } else {
+        console.warn('Storage upload:', up.error);
+      }
+    } catch (e) {
+      console.warn('Storage error', e);
+    }
+
+    if (blob.size > 350000) {
+      return {
+        error:
+          'Create a public Storage bucket named "avatars" in Supabase (see instructions), then try again. Or use a smaller image / photo URL.'
+      };
+    }
+    setUploadStatus('Saving photo on profile…');
+    var dataUrl = await new Promise(function (resolve, reject) {
+      var fr = new FileReader();
+      fr.onload = function () { resolve(fr.result); };
+      fr.onerror = function () { reject(new Error('Read failed')); };
+      fr.readAsDataURL(blob);
+    });
+    setUploadStatus('Photo ready — click Save profile.');
+    return { url: dataUrl };
   }
 
   async function saveProfile(id, fields) {
@@ -129,9 +227,11 @@
       avatarHtml(data.avatar_url, data.full_name, 'lg') +
       '</div>' +
       '<div class="profile-avatar-fields">' +
-      '<label class="form-group"><span>Photo URL</span>' +
+      '<label class="form-group"><span>Photo from your files</span>' +
+      '<input type="file" id="pf-avatar-file" accept="image/*" /></label>' +
+      '<p class="profile-hint" id="pf-upload-status">Choose a JPG, PNG, or WebP (max ~2 MB).</p>' +
+      '<label class="form-group"><span>Or photo URL</span>' +
       '<input type="url" id="pf-avatar_url" value="' + esc(data.avatar_url || '') + '" placeholder="https://…" /></label>' +
-      '<p class="profile-hint">Paste an image link (Imgur, Google Drive public link, etc.)</p>' +
       '</div></div>' +
       '<div class="profile-grid">' +
       field('Full name', 'pf-full_name', data.full_name, false) +
@@ -155,6 +255,26 @@
       var prev = document.getElementById('profile-avatar-preview');
       if (prev) prev.innerHTML = avatarHtml(url, data.full_name, 'lg');
     });
+    var fileInput = document.getElementById('pf-avatar-file');
+    if (fileInput) {
+      fileInput.addEventListener('change', async function () {
+        var file = fileInput.files && fileInput.files[0];
+        if (!file) return;
+        setUploadStatus('Working…');
+        var r = await uploadAvatarFile(id, file);
+        if (r.error) {
+          setUploadStatus(r.error, true);
+          toast(r.error, 'error');
+          return;
+        }
+        var urlInput = document.getElementById('pf-avatar_url');
+        if (urlInput) urlInput.value = r.url;
+        var prev = document.getElementById('profile-avatar-preview');
+        if (prev) prev.innerHTML = avatarHtml(r.url, data.full_name, 'lg');
+        setUploadStatus('Photo ready — click Save profile.');
+        toast('Photo ready — click Save profile', 'success');
+      });
+    }
     document.getElementById('pf-save').onclick = async function () {
       var btn = document.getElementById('pf-save');
       btn.disabled = true;
@@ -259,18 +379,15 @@
       chip.id = 'header-avatar-chip';
       chip.className = 'header-avatar-chip';
       chip.innerHTML = avatarHtml(null, 'U', 'sm');
-
       var btn = document.createElement('button');
       btn.type = 'button';
       btn.id = 'btn-my-profile';
       btn.className = 'btn btn-ghost btn-sm';
       btn.textContent = 'Profile';
       btn.addEventListener('click', function () { openProfile({ readOnly: false }); });
-
       userInfo.insertBefore(btn, userInfo.firstChild);
       userInfo.insertBefore(chip, userInfo.firstChild);
     }
-
     var badge = document.querySelector('#portal-agent .agent-badge');
     if (badge && !document.getElementById('sidebar-avatar-chip')) {
       var wrap = document.createElement('div');
@@ -279,7 +396,6 @@
       wrap.innerHTML = avatarHtml(null, 'A', 'md');
       badge.parentNode.insertBefore(wrap, badge);
     }
-
     var custHeader = document.querySelector('#portal-customer .customer-header');
     if (custHeader && !document.getElementById('btn-cust-profile')) {
       var cbtn = document.createElement('button');
