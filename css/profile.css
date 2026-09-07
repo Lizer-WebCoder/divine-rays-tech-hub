@@ -1,0 +1,102 @@
+.profile-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 10050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+.profile-overlay.is-hidden { display: none !important; }
+.profile-panel {
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow: auto;
+  background: var(--surface, #1a1a24);
+  border: 1px solid var(--border, #2e2e42);
+  border-radius: 16px;
+  padding: 1.25rem 1.35rem 1.4rem;
+}
+.profile-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+.profile-panel-head h2 { margin: 0; font-size: 1.15rem; }
+.profile-avatar-row {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1.1rem;
+}
+.profile-avatar-preview { flex-shrink: 0; }
+.profile-avatar-fields { flex: 1; min-width: 0; }
+.profile-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted, #9898b0);
+  margin: 0.35rem 0 0;
+}
+.avatar-img, .avatar-fallback {
+  border-radius: 50%;
+  object-fit: cover;
+  background: linear-gradient(135deg, #7c6af0, #a78bfa);
+  color: #fff;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+}
+.avatar-img.sm, .avatar-fallback.sm { width: 28px; height: 28px; font-size: 0.75rem; }
+.avatar-img.md, .avatar-fallback.md { width: 48px; height: 48px; font-size: 1.1rem; }
+.avatar-img.lg, .avatar-fallback.lg { width: 72px; height: 72px; font-size: 1.5rem; }
+.header-avatar-chip {
+  display: inline-flex;
+  vertical-align: middle;
+  margin-right: 0.35rem;
+}
+.sidebar-avatar-chip {
+  display: flex;
+  justify-content: center;
+  margin: 0.5rem 0 0.25rem;
+}
+.profile-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem 0.85rem;
+}
+@media (max-width: 520px) {
+  .profile-grid { grid-template-columns: 1fr; }
+}
+.profile-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+.profile-dl { margin: 0; }
+.profile-dl-row {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 0.5rem;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid var(--border, #2e2e42);
+  font-size: 0.9rem;
+}
+.profile-dl-row dt {
+  color: var(--text-muted, #9898b0);
+  font-weight: 500;
+}
+.profile-dl-row dd {
+  margin: 0;
+  color: var(--text, #e8e8f0);
+}
+.profile-view-name {
+  margin: 0 0 0.35rem;
+  font-size: 1.1rem;
+}
+html[data-theme="light"] .profile-panel {
+  background: #fff;
+  border-color: #d0d3e0;
+}
