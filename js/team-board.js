@@ -176,17 +176,17 @@
           '<div class="tower-stack">' +
           '<div class="tower-seg working" style="height:' + hWork + '%"></div>' +
           '<div class="tower-seg solved" style="height:' + hSolved + '%"></div></div>' +
-          '<div class="tower-label">' + escapeHtml(short) + '</div>' +
-          '<div class="tower-nums">' + total + '</div></div>'
+          '<div class="tower-name">' + escapeHtml(short) + '</div>' +
+          '<div class="tower-n">' + total + '</div></div>'
         );
       }).join('') +
       '</div>' +
-      '<div class="tower-legend"><span class="leg solved"></span> Solved <span class="leg working"></span> Working on</div>'
+      '<div class="tower-legend"><span><i class="lg solved"></i>Solved</span><span><i class="lg working"></i>Working on</span></div>'
     );
   }
 
   function hasCharts(box) {
-    return !!(box && box.querySelector('.chart-row, .tower-chart, .donut-fill, .person-grid'));
+    return !!(box && box.querySelector('.chart-row, .tower-chart, .donut-fill, .team-cards'));
   }
 
   async function renderTeamBoard() {
@@ -260,23 +260,25 @@
         '<p class="chart-desc">Taller bars = more tickets handled</p>' +
         barsHtml(rows) +
         '</div>';
-      html += '<h4 class="chart-title" style="margin-top:1.25rem">Each person</h4><div class="person-grid">';
+      html += '<h4 class="chart-title" style="margin-top:1.25rem">Each person</h4>';
+      html += '<div class="team-cards">';
       rows.forEach(function (r) {
         var isMe = meId && r.id === meId;
+        var badges = '';
+        if (isMe) badges += '<span class="team-badge you">You</span>';
+        if (r.role === 'admin') badges += '<span class="team-badge admin">Admin</span>';
         html +=
-          '<div class="person-card' +
-          (isMe ? ' me' : '') +
-          '">' +
+          '<div class="team-card' + (isMe ? ' is-you' : '') + '">' +
+          '<div class="team-card-top">' +
           miniRing(r.solved, r.working) +
-          '<div class="person-meta"><div class="person-name">' +
-          escapeHtml(r.name) +
-          (isMe ? ' <span class="you-tag">you</span>' : '') +
-          (r.role === 'admin' ? ' <span class="you-tag">admin</span>' : '') +
-          '</div><div class="person-stats"><span>' +
-          r.working +
-          ' working</span><span>' +
-          r.solved +
-          ' solved</span></div></div></div>';
+          '<div class="team-card-name">' + escapeHtml(r.name) + badges + '</div>' +
+          '</div>' +
+          '<div class="team-card-stats">' +
+          '<div class="team-stat"><span class="team-stat-num">' + r.working + '</span>' +
+          '<span class="team-stat-label">Working on</span></div>' +
+          '<div class="team-stat"><span class="team-stat-num">' + r.solved + '</span>' +
+          '<span class="team-stat-label">Solved</span></div>' +
+          '</div></div>';
       });
       html += '</div>';
 
