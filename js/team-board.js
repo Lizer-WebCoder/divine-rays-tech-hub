@@ -90,7 +90,7 @@
     var c = 2 * Math.PI * r;
     var dash = pct * c;
     var gap = c - dash;
-    var label = total ? Math.round(pct * 100) + '%' : '—';
+    var label = total ? Math.round(pct * 100) + '%' : '0%';
     var sub = total ? 'solved' : 'no data';
     return (
       '<svg class="donut" width="' + size + '" height="' + size + '" viewBox="0 0 100 100">' +
@@ -156,21 +156,17 @@
             hSolved +
             '%"></div>' +
             '</div>' +
-            '<span class="tower-name">' +
+            '<div class="tower-label">' +
             escapeHtml(short) +
-            '</span>' +
-            '<span class="tower-n">' +
+            '</div>' +
+            '<div class="tower-nums">' +
             total +
-            '</span>' +
-            '</div>'
+            '</div></div>'
           );
         })
         .join('') +
       '</div>' +
-      '<div class="tower-legend">' +
-      '<span><i class="lg solved"></i> Solved</span>' +
-      '<span><i class="lg working"></i> Working on</span>' +
-      '</div>'
+      '<div class="tower-legend"><span class="leg solved"></span> Solved <span class="leg working"></span> Working on</div>'
     );
   }
 
@@ -236,84 +232,143 @@
             '</div></div></div>';
         }
 
+        html += '</div>';
+
         html +=
-          '<div class="chart-panel chart-panel-wide">' +
+          '<div class="chart-panel full">' +
           '<h4 class="chart-title">Team comparison</h4>' +
           '<p class="chart-desc">Taller bars = more tickets handled</p>' +
           barsHtml(rows) +
           '</div>';
 
-        html += '</div>';
-
-        html += '<p class="team-help" style="margin-top:1.1rem">Each person</p>';
-        html += '<div class="team-cards">';
-        html += rows
-          .map(function (r) {
-            var isYou = meId && r.id === meId;
-            var badge =
-              (isYou ? '<span class="team-badge you">You</span>' : '') +
-              (r.role === 'admin' ? '<span class="team-badge admin">Admin</span>' : '');
-            return (
-              '<div class="team-card' +
-              (isYou ? ' is-you' : '') +
-              '">' +
-              '<div class="team-card-top">' +
-              miniRing(r.solved, r.working) +
-              '<div class="team-card-name">' +
-              escapeHtml(r.name) +
-              badge +
-              '</div></div>' +
-              '<div class="team-card-stats">' +
-              '<div class="team-stat"><span class="team-stat-num">' +
-              r.working +
-              '</span><span class="team-stat-label">Working on</span></div>' +
-              '<div class="team-stat"><span class="team-stat-num">' +
-              r.solved +
-              '</span><span class="team-stat-label">Solved</span></div>' +
-              '</div></div>'
-            );
-          })
-          .join('');
+        html += '<h4 class="chart-title" style="margin-top:1.25rem">Each person</h4>';
+        html += '<div class="person-grid">';
+        rows.forEach(function (r) {
+          var isMe = meId && r.id === meId;
+          html +=
+            '<div class="person-card' +
+            (isMe ? ' me' : '') +
+            '">' +
+            miniRing(r.solved, r.working) +
+            '<div class="person-meta">' +
+            '<div class="person-name">' +
+            escapeHtml(r.name) +
+            (isMe ? ' <span class="you-tag">you</span>' : '') +
+            (r.role === 'admin' ? ' <span class="you-tag">admin</span>' : '') +
+            '</div>' +
+            '<div class="person-stats"><span>' +
+            r.working +
+            ' working</span><span>' +
+            r.solved +
+            ' solved</span></div>' +
+            '</div></div>';
+        });
         html += '</div>';
 
         box.innerHTML = html;
       })
-      .catch(function (e) {
-        console.error(e);
-        box.innerHTML = '<p class="team-empty">Could not load team stats.</p>';
+      .catch(function (err) {
+        console.warn('team board', err);
+        box.innerHTML = '<p class="team-empty">Could not load team performance.</p>';
       });
   }
 
   function enhanceDashboardHeading() {
-    document.querySelectorAll('.stats-heading').forEach(function (h) {
-      var t = (h.textContent || '').toLowerCase();
-      if (t.indexOf('all agents') !== -1 || t.indexOf('team performance') !== -1) {
-        h.textContent = 'Team performance';
-      }
-    });
+    var h = document.querySelector('#view-dashboard .stats-heading');
+    // no-op placeholder for compatibility
   }
 
   function hookRenderStats() {
-    if (!window.DR || !window.DR.renderStats || window.DR.renderStats.__teamPatched) return;
+    if (!window.DR || typeof window.DR.renderStats !== 'function') return;
+    if (window.DR.renderStats.__teamPatched) return;
     var prev = window.DR.renderStats;
     var wrapped = function () {
       var r = prev.apply(this, arguments);
       setTimeout(function () {
         enhanceDashboardHeading();
         renderTeamBoard('agent-perf-list');
-      }, 80);
+      }, 60);
       return r;
     };
     wrapped.__teamPatched = true;
+    wrapped.__teamPrev = prev;
     window.DR.renderStats = wrapped;
+  }
+
+  function keepHookAlive() {
+    hookRenderStats();
+  }
+
+  function isDashboardVisible() {
+    var dash = document.getElementById('view-dashboard');
+    if (!dash) return false;
+    if (dash.classList.contains('active')) return true;
+    var nav = document.querySelector('#portal-agent .nav-btn[data-view="dashboard"]');
+    return !!(nav && nav.classList.contains('active'));
+  }
+
+  function refreshIfDashboard() {
+    keepHookAlive();
+    if (!isDashboardVisible()) return;
+    if (!document.getElementById('agent-perf-list')) return;
+    renderTeamBoard('agent-perf-list');
+  }
+
+  function bindDashboardNav() {
+    if (document.__teamNavBound) return;
+    document.__teamNavBound = true;
+    document.addEventListener(
+      'click',
+      function (e) {
+        var t = e.target && e.target.closest && e.target.closest('#portal-agent .nav-btn');
+        if (!t) return;
+        var view = t.getAttribute('data-view') || '';
+        if (view === 'dashboard' || view === 'my-tickets' || view === 'unassigned' || view === 'all-tickets') {
+          setTimeout(refreshIfDashboard, 100);
+          setTimeout(refreshIfDashboard, 400);
+          setTimeout(refreshIfDashboard, 900);
+        }
+      },
+      true
+    );
+  }
+
+  function observeDashboard() {
+    if (document.__teamObs) return;
+    document.__teamObs = true;
+    var obs = new MutationObserver(function () {
+      keepHookAlive();
+      if (!isDashboardVisible()) return;
+      var box = document.getElementById('agent-perf-list');
+      if (!box) return;
+      if (!box.querySelector('.chart-row, .tower-chart, .donut-fill')) {
+        renderTeamBoard('agent-perf-list');
+      }
+    });
+    var root = document.getElementById('portal-agent') || document.body;
+    obs.observe(root, { attributes: true, childList: true, subtree: true, attributeFilter: ['class'] });
   }
 
   function boot() {
     enhanceDashboardHeading();
-    hookRenderStats();
+    keepHookAlive();
+    bindDashboardNav();
+    observeDashboard();
     setTimeout(function () {
+      keepHookAlive();
       if (document.getElementById('agent-perf-list')) renderTeamBoard('agent-perf-list');
-    }, 1000);
+    }, 800);
+    setTimeout(keepHookAlive, 2000);
+    setTimeout(keepHookAlive, 5000);
+    setInterval(function () {
+      keepHookAlive();
+      if (!isDashboardVisible()) return;
+      var box = document.getElementById('agent-perf-list');
+      if (!box) return;
+      if (!box.querySelector('.chart-row, .tower-chart')) {
+        renderTeamBoard('agent-perf-list');
+      }
+    }, 2500);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
