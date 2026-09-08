@@ -28,12 +28,30 @@
     if (dedupe(key)) return { skipped: true, reason: 'deduped' };
 
     try {
-      var res = await client.functions.invoke('send-ticket-email', { body: payload });
-      if (res.error) {
-        console.warn('[email]', res.error);
-        return { error: res.error };
+      // Try preferred name, then fallbacks if Supabase auto-named the function
+      var names = ['send-ticket-email', 'clever-handler', 'clever-responder'];
+      var lastErr = null;
+      for (var i = 0; i < names.length; i++) {
+        try {
+          var res = await client.functions.invoke(names[i], { body: payload });
+          if (!res.error) {
+            if (names[i] !== 'send-ticket-email') {
+              console.info('[email] using function:', names[i]);
+            }
+            return res.data || { ok: true };
+          }
+          lastErr = res.error;
+          var msg = String((res.error && (res.error.message || res.error)) || '');
+          if (msg.indexOf('NOT_FOUND') === -1 && msg.indexOf('not found') === -1 && msg.indexOf('404') === -1) {
+            console.warn('[email]', names[i], res.error);
+            return { error: res.error };
+          }
+        } catch (e1) {
+          lastErr = e1;
+        }
       }
-      return res.data || { ok: true };
+      console.warn('[email]', lastErr);
+      return { error: lastErr };
     } catch (e) {
       console.warn('[email]', e);
       return { error: String(e) };
