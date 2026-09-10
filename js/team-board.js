@@ -9,10 +9,10 @@
 
   function escapeHtml(s) {
     return String(s || '')
-      .replace(/&/g, '&')
-      .replace(/</g, '<')
-      .replace(/>/g, '>')
-      .replace(/"/g, '"');
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
   }
 
   var _token = 0;
@@ -44,7 +44,6 @@
   async function buildTeamRows() {
     var tickets = [];
     try {
-      // Prefer live tickets from Supabase so status (Resolved/Closed) is accurate
       var client = dr().sb && dr().sb();
       if (client) {
         var tr = await client.from('tickets').select('*');
@@ -77,9 +76,14 @@
     tickets.forEach(function (t) {
       var aid = t.assignee_id || t.assigned_to;
       if (!aid) return;
-      if (!byAgent[aid]) byAgent[aid] = { working: 0, solved: 0 };
+      if (!byAgent[aid]) byAgent[aid] = { working: 0, solved: 0, csatSum: 0, csatN: 0 };
       if (isSolvedStatus(t.status)) byAgent[aid].solved++;
       else byAgent[aid].working++;
+      var sc = parseInt(t.csat_score, 10);
+      if (sc >= 1 && sc <= 5) {
+        byAgent[aid].csatSum += sc;
+        byAgent[aid].csatN++;
+      }
     });
 
     var profiles = [];
@@ -111,13 +115,15 @@
     var rows = [];
     if (profiles.length) {
       profiles.forEach(function (p) {
-        var s = byAgent[p.id] || { working: 0, solved: 0 };
+        var s = byAgent[p.id] || { working: 0, solved: 0, csatSum: 0, csatN: 0 };
         rows.push({
           id: p.id,
           name: p.full_name || p.username || 'Agent',
           role: p.role,
           working: s.working,
-          solved: s.solved
+          solved: s.solved,
+          csatAvg: s.csatN ? (s.csatSum / s.csatN) : null,
+          csatN: s.csatN || 0
         });
       });
     } else if (me && (me.role === 'agent' || me.role === 'admin')) {
@@ -126,7 +132,9 @@
         name: me.full_name || me.name || 'You',
         role: me.role,
         working: 0,
-        solved: 0
+        solved: 0,
+        csatAvg: null,
+        csatN: 0
       });
     }
 
@@ -271,7 +279,11 @@
           meRow.working +
           '</strong><span>Working on</span></div><div><strong>' +
           meRow.solved +
-          '</strong><span>Solved</span></div></div></div></div>';
+          '</strong><span>Solved</span></div>' +
+          (meRow.csatAvg != null
+            ? '<div><strong>' + meRow.csatAvg.toFixed(1) + '★</strong><span>CSAT</span></div>'
+            : '') +
+          '</div></div></div>';
       }
       html += '</div>';
       html +=
@@ -297,7 +309,11 @@
           '<span class="team-stat-label">Working on</span></div>' +
           '<div class="team-stat"><span class="team-stat-num">' + r.solved + '</span>' +
           '<span class="team-stat-label">Solved</span></div>' +
-          '</div></div>';
+          '</div>' +
+          (r.csatAvg != null
+            ? '<div class="team-csat">Avg rating: <strong>' + r.csatAvg.toFixed(1) + ' ★</strong> (' + r.csatN + ')</div>'
+            : '<div class="team-csat">No ratings yet</div>') +
+          '</div>';
       });
       html += '</div>';
 
@@ -305,60 +321,23 @@
       box.classList.add('team-board');
       box.innerHTML = html;
       _lastHtml = html;
-      showTeamSection();
     } catch (e) {
-      console.warn('team board', e);
-      if (_lastHtml && isDashboard()) box.innerHTML = _lastHtml;
+      console.warn('[team-board]', e);
     } finally {
-      if (token === _token) _busy = false;
+      _busy = false;
     }
   }
 
   function applyView() {
     if (isDashboard()) {
       showTeamSection();
-      if (_timer) clearTimeout(_timer);
-      _timer = setTimeout(function () {
-        renderTeamBoard();
-      }, 100);
+      renderTeamBoard();
     } else {
       hideTeamSection();
     }
   }
 
-  function hookRenderStats() {
-    if (!window.DR || typeof window.DR.renderStats !== 'function') return;
-    if (window.DR.renderStats.__teamPatched) return;
-    var prev = window.DR.renderStats;
-    var wrapped = function () {
-      var result = prev.apply(this, arguments);
-      Promise.resolve(result)
-        .catch(function () {})
-        .then(function () {
-          applyView();
-        });
-      applyView();
-      return result;
-    };
-    wrapped.__teamPatched = true;
-    window.DR.renderStats = wrapped;
-  }
-
   function boot() {
-    hookRenderStats();
-    setTimeout(hookRenderStats, 2000);
-
-    document.addEventListener(
-      'click',
-      function (e) {
-        var t = e.target && e.target.closest && e.target.closest('#portal-agent .nav-btn');
-        if (!t) return;
-        setTimeout(applyView, 30);
-        setTimeout(applyView, 200);
-      },
-      true
-    );
-
     var nav = document.querySelector('#portal-agent .nav');
     if (nav) {
       new MutationObserver(function () {
@@ -380,6 +359,13 @@
     setTimeout(applyView, 800);
     setTimeout(applyView, 2000);
   }
+
+  window.addEventListener('dr-status-saved', function () {
+    setTimeout(renderTeamBoard, 400);
+  });
+  window.addEventListener('dr-csat-saved', function () {
+    setTimeout(renderTeamBoard, 400);
+  });
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else setTimeout(boot, 300);
