@@ -29,14 +29,14 @@
     if (html.indexOf('ui-upgrade.css') === -1) {
       html = html.replace(
         /css\/ui-polish\.css\?v=[^"]+/,
-        function (m) { return m + '" />\n  <link rel="stylesheet" href="css/ui-upgrade.css?v=7.9.1'; }
+        function (m) { return m + '" />\n  <link rel="stylesheet" href="css/ui-upgrade.css?v=7.9.2'; }
       );
     }
-    html = html.replace(/\?v=7\.[0-9.]+/g, '?v=7.9.1');
+    html = html.replace(/\?v=7\.[0-9.]+/g, '?v=7.9.2');
     var extras = '';
-    if (html.indexOf('email-notify.js') === -1) extras += '  <script src="js/email-notify.js?v=7.9.1"><\/script>\n';
-    if (html.indexOf('ticket-plus.js') === -1) extras += '  <link rel="stylesheet" href="css/ticket-plus.css?v=7.9.1" />\n  <script src="js/ticket-plus.js?v=7.9.1"><\/script>\n';
-    if (html.indexOf('ticket-plus-fix.js') === -1) extras += '  <script src="js/ticket-plus-fix.js?v=7.9.1"><\/script>\n';
+    if (html.indexOf('email-notify.js') === -1) extras += '  <script src="js/email-notify.js?v=7.9.2"><\/script>\n';
+    if (html.indexOf('ticket-plus.js') === -1) extras += '  <link rel="stylesheet" href="css/ticket-plus.css?v=7.9.2" />\n  <script src="js/ticket-plus.js?v=7.9.2"><\/script>\n';
+    if (html.indexOf('ticket-plus-fix.js') === -1) extras += '  <script src="js/ticket-plus-fix.js?v=7.9.2"><\/script>\n';
     if (extras) html = html.replace(/<\/body>/i, extras + '</body>');
     document.open();
     document.write(html);
