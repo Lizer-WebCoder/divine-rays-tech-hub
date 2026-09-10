@@ -73,7 +73,7 @@
       }
 
       lockStatus = newStatus;
-      lockUntil = Date.now() + 5000;
+      lockUntil = Date.now() + 8000;
       applyStatusToUI(newStatus);
 
       var idEl = document.querySelector('#ticket-detail .ticket-id, #ticket-detail .ticket-number');
@@ -90,7 +90,6 @@
       var tr = await client.from('tickets').select('id, status, ticket_number').eq('ticket_number', num).maybeSingle();
       if (tr.error) {
         toast('Load failed: ' + (tr.error.message || 'error'), 'error');
-        console.warn(tr.error);
         return;
       }
       if (!tr.data) {
@@ -105,16 +104,13 @@
         var rpc = await client.rpc('set_ticket_status', { p_ticket_id: tid, p_status: newStatus });
         if (!rpc.error) rpcOk = true;
         else console.warn('[status-fix] rpc', rpc.error);
-      } catch (e) {
-        console.warn('[status-fix] rpc missing', e);
-      }
+      } catch (e) {}
 
       if (!rpcOk) {
         var rs = await client.from('tickets').update({ status: newStatus }).eq('id', tid);
         if (rs.error) {
-          console.warn('[status-fix] update', rs.error);
           toast('Status blocked: ' + (rs.error.message || 'permission/RLS'), 'error');
-          toast('Run the SQL in Supabase (tickets-status-fix)', 'error');
+          toast('Run tickets-status-fix SQL in Supabase', 'error');
           return;
         }
       }
@@ -130,7 +126,12 @@
       var finalStatus = (fresh.data && fresh.data.status) || newStatus;
       applyStatusToUI(finalStatus);
       lockStatus = finalStatus;
-      lockUntil = Date.now() + 8000;
+      lockUntil = Date.now() + 10000;
+
+      try { window.dispatchEvent(new Event('dr-status-saved')); } catch (e) {}
+      if (window.DR_TICKET_PLUS && window.DR_TICKET_PLUS.clearStatusDirty) {
+        window.DR_TICKET_PLUS.clearStatusDirty();
+      }
 
       if (String(finalStatus).toLowerCase() !== String(newStatus).toLowerCase()) {
         toast('Still "' + finalStatus + '" in DB (wanted "' + newStatus + '"). Run SQL.', 'error');
@@ -161,24 +162,9 @@
     );
   }
 
-  function guardSelect() {
-    var statusEl = document.getElementById('quick-status');
-    if (!statusEl || statusEl._guarded) return;
-    statusEl._guarded = true;
-    var detail = document.getElementById('ticket-detail');
-    if (!detail) return;
-    new MutationObserver(function () {
-      if (Date.now() < lockUntil && lockStatus) applyStatusToUI(lockStatus);
-    }).observe(detail, { childList: true, subtree: true, characterData: true });
-  }
-
   function boot() {
     bindSave();
-    guardSelect();
-    setInterval(function () {
-      bindSave();
-      guardSelect();
-    }, 1500);
+    setInterval(bindSave, 1500);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

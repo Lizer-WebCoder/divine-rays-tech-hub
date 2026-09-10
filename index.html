@@ -19,7 +19,7 @@
       'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PIN + '/index.html',
       'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + PIN + '/index.html'
     ];
-    var ver = '7.9.5';
+    var ver = '7.9.6';
 
     function loadScript(src) {
       return new Promise(function (resolve) {
@@ -31,14 +31,12 @@
         document.body.appendChild(s);
       });
     }
-
     function loadCss(href) {
       var l = document.createElement('link');
       l.rel = 'stylesheet';
       l.href = href;
       document.head.appendChild(l);
     }
-
     function switchLoginTab(tab) {
       tab = tab === 'agent' ? 'agent' : 'customer';
       document.querySelectorAll('.ltab').forEach(function (b) {
@@ -47,15 +45,11 @@
       document.querySelectorAll('form.login-form').forEach(function (f) {
         f.classList.remove('active');
       });
-      var formId = tab === 'agent' ? 'login-agent' : 'login-customer';
-      var f = document.getElementById(formId);
+      var f = document.getElementById(tab === 'agent' ? 'login-agent' : 'login-customer');
       if (f) f.classList.add('active');
     }
-
     function showForm(id) {
-      document.querySelectorAll('form.login-form').forEach(function (f) {
-        f.classList.remove('active');
-      });
+      document.querySelectorAll('form.login-form').forEach(function (f) { f.classList.remove('active'); });
       var f = document.getElementById(id);
       if (f) f.classList.add('active');
       var tab = (id || '').indexOf('agent') !== -1 ? 'agent' : 'customer';
@@ -63,15 +57,12 @@
         b.classList.toggle('active', b.getAttribute('data-ltab') === tab);
       });
     }
-
     window.switchLoginTab = switchLoginTab;
     window.showForm = showForm;
-
     function wireTabs() {
       document.querySelectorAll('.ltab').forEach(function (btn) {
         btn.onclick = function (e) {
           e.preventDefault();
-          e.stopPropagation();
           switchLoginTab(btn.getAttribute('data-ltab') || 'customer');
         };
       });
@@ -83,35 +74,26 @@
       for (var i = 0; i < urls.length; i++) {
         try {
           var r = await fetch(urls[i] + '?t=' + Date.now());
-          if (r.ok) {
-            html = await r.text();
-            if (html && html.length > 5000) break;
-          }
+          if (r.ok) { html = await r.text(); if (html && html.length > 5000) break; }
         } catch (e) {}
       }
       if (!html || html.length < 5000) {
-        if (BOOT) BOOT.textContent = 'Could not load app. Check connection and hard refresh.';
+        if (BOOT) BOOT.textContent = 'Could not load app.';
         return;
       }
-
       var doc = new DOMParser().parseFromString(html, 'text/html');
       if (doc.title) document.title = doc.title;
-
       doc.querySelectorAll('link[rel="stylesheet"]').forEach(function (link) {
-        var href = link.getAttribute('href') || '';
-        if (!href) return;
-        href = href.replace(/\?v=[^&"]+/g, '?v=' + ver);
-        loadCss(href);
+        var href = (link.getAttribute('href') || '').replace(/\?v=[^&"]+/g, '?v=' + ver);
+        if (href) loadCss(href);
       });
       loadCss('css/ui-upgrade.css?v=' + ver);
       loadCss('css/ticket-plus.css?v=' + ver);
-
       doc.querySelectorAll('head style').forEach(function (st) {
         var n = document.createElement('style');
         n.textContent = st.textContent;
         document.head.appendChild(n);
       });
-
       var bodyHtml = '';
       Array.prototype.forEach.call(doc.body.childNodes, function (node) {
         if (node.nodeName === 'SCRIPT') return;
@@ -119,33 +101,23 @@
         else if (node.nodeType === 3) bodyHtml += node.textContent;
       });
       document.body.innerHTML = bodyHtml;
-
       wireTabs();
       window.switchLoginTab = switchLoginTab;
       window.showForm = showForm;
 
       var scriptSrcs = [];
       doc.querySelectorAll('script[src]').forEach(function (sc) {
-        var src = sc.getAttribute('src') || '';
-        if (!src) return;
-        src = src.replace(/\?v=[^&"]+/g, '?v=' + ver);
-        scriptSrcs.push(src);
+        var src = (sc.getAttribute('src') || '').replace(/\?v=[^&"]+/g, '?v=' + ver);
+        if (src) scriptSrcs.push(src);
       });
-
       ['js/email-notify.js','js/ticket-plus.js','js/ticket-plus-fix.js','js/saved-views.js'].forEach(function (base) {
-        if (!scriptSrcs.some(function (s) { return s.indexOf(base) !== -1; })) {
-          scriptSrcs.push(base + '?v=' + ver);
-        }
+        if (!scriptSrcs.some(function (s) { return s.indexOf(base) !== -1; })) scriptSrcs.push(base + '?v=' + ver);
       });
-
-      for (var j = 0; j < scriptSrcs.length; j++) {
-        await loadScript(scriptSrcs[j]);
-      }
+      for (var j = 0; j < scriptSrcs.length; j++) await loadScript(scriptSrcs[j]);
 
       window.switchLoginTab = switchLoginTab;
       window.showForm = showForm;
       wireTabs();
-
       setInterval(function () {
         if (!window.switchLoginTab || String(window.switchLoginTab).indexOf('data-ltab') === -1) {
           window.switchLoginTab = switchLoginTab;
