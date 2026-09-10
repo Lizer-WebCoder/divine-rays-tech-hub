@@ -19,7 +19,7 @@
       'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PIN + '/index.html',
       'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + PIN + '/index.html'
     ];
-    var ver = '7.9.4';
+    var ver = '7.9.5';
 
     function loadScript(src) {
       return new Promise(function (resolve) {
@@ -72,8 +72,7 @@
         btn.onclick = function (e) {
           e.preventDefault();
           e.stopPropagation();
-          var tab = btn.getAttribute('data-ltab') || 'customer';
-          switchLoginTab(tab);
+          switchLoginTab(btn.getAttribute('data-ltab') || 'customer');
         };
       });
       switchLoginTab('customer');
@@ -133,16 +132,9 @@
         scriptSrcs.push(src);
       });
 
-      var extras = [
-        'js/email-notify.js?v=' + ver,
-        'js/ticket-plus.js?v=' + ver,
-        'js/ticket-plus-fix.js?v=' + ver,
-        'js/saved-views.js?v=' + ver
-      ];
-      extras.forEach(function (x) {
-        var base = x.split('?')[0];
+      ['js/email-notify.js','js/ticket-plus.js','js/ticket-plus-fix.js','js/saved-views.js'].forEach(function (base) {
         if (!scriptSrcs.some(function (s) { return s.indexOf(base) !== -1; })) {
-          scriptSrcs.push(x);
+          scriptSrcs.push(base + '?v=' + ver);
         }
       });
 
@@ -155,18 +147,14 @@
       wireTabs();
 
       setInterval(function () {
-        var fn = window.switchLoginTab;
-        if (!fn || String(fn).indexOf('data-ltab') === -1) {
+        if (!window.switchLoginTab || String(window.switchLoginTab).indexOf('data-ltab') === -1) {
           window.switchLoginTab = switchLoginTab;
           window.showForm = showForm;
         }
       }, 1000);
-
     } catch (err) {
       console.error(err);
-      var msg = 'Load error: ' + (err.message || err);
-      if (document.getElementById('boot')) document.getElementById('boot').textContent = msg;
-      else alert(msg);
+      if (document.getElementById('boot')) document.getElementById('boot').textContent = 'Load error: ' + (err.message || err);
     }
   })();
   </script>

@@ -8,16 +8,51 @@
   function dr() { return window.DR || {}; }
   function sb() {
     try {
-      if (dr().sb) return dr().sb();
+      if (window.DR && typeof window.DR.sb === 'function') return window.DR.sb();
     } catch (e) {}
-    return null;
+    return window.__drSb || null;
   }
   function toast(m, t) {
     if (dr().toast) dr().toast(m, t);
-    else console.log('[status-fix]', m);
+    else {
+      console.log('[status-fix]', m);
+      try {
+        var c = document.getElementById('toast-container');
+        if (c) {
+          var e = document.createElement('div');
+          e.className = 'toast ' + (t || 'info');
+          e.textContent = m;
+          c.appendChild(e);
+          setTimeout(function () { e.remove(); }, 4000);
+        }
+      } catch (e2) {}
+    }
   }
 
   var saving = false;
+  var lockStatus = null;
+  var lockUntil = 0;
+
+  function applyStatusToUI(status) {
+    if (!status) return;
+    var statusEl = document.getElementById('quick-status');
+    if (statusEl) {
+      var opts = statusEl.options;
+      for (var i = 0; i < opts.length; i++) {
+        if (String(opts[i].value).toLowerCase() === String(status).toLowerCase() ||
+            String(opts[i].text).toLowerCase() === String(status).toLowerCase()) {
+          statusEl.selectedIndex = i;
+          break;
+        }
+      }
+    }
+    document.querySelectorAll('#ticket-detail .badge, #ticket-detail .meta-chip, #ticket-detail span').forEach(function (el) {
+      var t = (el.textContent || '').trim();
+      if (/^(OPEN|IN PROGRESS|WAITING|RESOLVED|CLOSED|Open|In Progress|Waiting|Resolved|Closed)$/i.test(t)) {
+        el.textContent = status;
+      }
+    });
+  }
 
   async function forceSave() {
     if (saving) return;
@@ -25,7 +60,7 @@
     try {
       var client = sb();
       if (!client) {
-        toast('Not connected — wait a second and try again', 'error');
+        toast('Not connected — wait 2s after login, then try again', 'error');
         return;
       }
 
@@ -37,8 +72,16 @@
         return;
       }
 
-      var idEl = document.querySelector('#ticket-detail .ticket-id');
+      lockStatus = newStatus;
+      lockUntil = Date.now() + 5000;
+      applyStatusToUI(newStatus);
+
+      var idEl = document.querySelector('#ticket-detail .ticket-id, #ticket-detail .ticket-number');
       var num = idEl ? idEl.textContent.trim() : '';
+      if (!num) {
+        var pt = document.getElementById('page-title');
+        if (pt && /^DR-/i.test(pt.textContent.trim())) num = pt.textContent.trim();
+      }
       if (!num) {
         toast('Open a ticket first', 'error');
         return;
@@ -46,7 +89,7 @@
 
       var tr = await client.from('tickets').select('id, status, ticket_number').eq('ticket_number', num).maybeSingle();
       if (tr.error) {
-        toast(tr.error.message || 'Could not load ticket', 'error');
+        toast('Load failed: ' + (tr.error.message || 'error'), 'error');
         console.warn(tr.error);
         return;
       }
@@ -54,23 +97,27 @@
         toast('Ticket not found: ' + num, 'error');
         return;
       }
-
       var tid = tr.data.id;
+      var before = tr.data.status;
 
-      var rs = await client
-        .from('tickets')
-        .update({ status: newStatus })
-        .eq('id', tid)
-        .select('id, status')
-        .maybeSingle();
-
-      if (rs.error) {
-        console.warn('[status-fix]', rs.error);
-        toast('Status blocked: ' + (rs.error.message || 'RLS/policy error'), 'error');
-        return;
+      var rpcOk = false;
+      try {
+        var rpc = await client.rpc('set_ticket_status', { p_ticket_id: tid, p_status: newStatus });
+        if (!rpc.error) rpcOk = true;
+        else console.warn('[status-fix] rpc', rpc.error);
+      } catch (e) {
+        console.warn('[status-fix] rpc missing', e);
       }
 
-      var savedStatus = (rs.data && rs.data.status) || newStatus;
+      if (!rpcOk) {
+        var rs = await client.from('tickets').update({ status: newStatus }).eq('id', tid);
+        if (rs.error) {
+          console.warn('[status-fix] update', rs.error);
+          toast('Status blocked: ' + (rs.error.message || 'permission/RLS'), 'error');
+          toast('Run the SQL in Supabase (tickets-status-fix)', 'error');
+          return;
+        }
+      }
 
       if (assignEl && assignEl.value) {
         var ra = await client.from('tickets').update({ assigned_to: assignEl.value }).eq('id', tid);
@@ -80,22 +127,15 @@
       }
 
       var fresh = await client.from('tickets').select('status').eq('id', tid).maybeSingle();
-      var finalStatus = (fresh.data && fresh.data.status) || savedStatus;
-
-      if (statusEl) statusEl.value = finalStatus;
-
-      document.querySelectorAll('#ticket-detail .badge, #ticket-detail span').forEach(function (el) {
-        var t = (el.textContent || '').trim();
-        if (/^(OPEN|IN PROGRESS|WAITING|RESOLVED|CLOSED)$/i.test(t) ||
-            /^(Open|In Progress|Waiting|Resolved|Closed)$/.test(t)) {
-          el.textContent = finalStatus;
-        }
-      });
+      var finalStatus = (fresh.data && fresh.data.status) || newStatus;
+      applyStatusToUI(finalStatus);
+      lockStatus = finalStatus;
+      lockUntil = Date.now() + 8000;
 
       if (String(finalStatus).toLowerCase() !== String(newStatus).toLowerCase()) {
-        toast('DB kept status as "' + finalStatus + '" (wanted "' + newStatus + '")', 'error');
+        toast('Still "' + finalStatus + '" in DB (wanted "' + newStatus + '"). Run SQL.', 'error');
       } else {
-        toast('Status saved: ' + finalStatus, 'success');
+        toast('Status saved: ' + before + ' → ' + finalStatus, 'success');
       }
     } catch (e) {
       console.error(e);
@@ -105,29 +145,42 @@
     }
   }
 
-  function bind() {
+  function bindSave() {
     var save = document.getElementById('btn-save-meta');
-    if (!save) return;
-    if (!save._statusFixV2) {
-      save._statusFixV2 = true;
-      save.addEventListener(
-        'click',
-        function (e) {
-          e.preventDefault();
-          e.stopPropagation();
-          e.stopImmediatePropagation();
-          forceSave();
-        },
-        true
-      );
-    }
+    if (!save || save._statusFixV3) return;
+    save._statusFixV3 = true;
+    save.addEventListener(
+      'click',
+      function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        forceSave();
+      },
+      true
+    );
+  }
+
+  function guardSelect() {
+    var statusEl = document.getElementById('quick-status');
+    if (!statusEl || statusEl._guarded) return;
+    statusEl._guarded = true;
+    var detail = document.getElementById('ticket-detail');
+    if (!detail) return;
+    new MutationObserver(function () {
+      if (Date.now() < lockUntil && lockStatus) applyStatusToUI(lockStatus);
+    }).observe(detail, { childList: true, subtree: true, characterData: true });
   }
 
   function boot() {
-    bind();
-    setInterval(bind, 1500);
+    bindSave();
+    guardSelect();
+    setInterval(function () {
+      bindSave();
+      guardSelect();
+    }, 1500);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-  else setTimeout(boot, 300);
+  else setTimeout(boot, 400);
 })();
