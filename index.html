@@ -4,43 +4,112 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <style>html,body{margin:0;background:#0c0c12;color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
-  #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae}</style>
+  <style>
+    html,body{margin:0;background:#0c0c12;color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
+    #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae}
+  </style>
 </head>
 <body>
   <div id="boot">Loading Divine Rays Tech Hub…</div>
   <script>
   (async function () {
+    var BOOT = document.getElementById('boot');
+    var PIN = '830dac02096eb08be1b2dc22bdc191a14df91a04';
     var urls = [
-      'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@830dac02096eb08be1b2dc22bdc191a14df91a04/index.html',
-      'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/830dac02096eb08be1b2dc22bdc191a14df91a04/index.html'
+      'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PIN + '/index.html',
+      'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + PIN + '/index.html'
     ];
-    var html = null;
-    for (var i = 0; i < urls.length; i++) {
-      try {
-        var r = await fetch(urls[i] + '?t=' + Date.now());
-        if (r.ok) { html = await r.text(); if (html && html.length > 5000) break; }
-      } catch (e) {}
+
+    function loadScript(src) {
+      return new Promise(function (resolve) {
+        var s = document.createElement('script');
+        s.src = src;
+        s.async = false;
+        s.onload = function () { resolve(src); };
+        s.onerror = function () { console.warn('script fail', src); resolve(src); };
+        document.body.appendChild(s);
+      });
     }
-    if (!html || html.length < 5000) {
-      document.getElementById('boot').textContent = 'Could not load app. Hard refresh or check GitHub Pages.';
-      return;
+
+    function loadCss(href) {
+      var l = document.createElement('link');
+      l.rel = 'stylesheet';
+      l.href = href;
+      document.head.appendChild(l);
     }
-    if (html.indexOf('ui-upgrade.css') === -1) {
-      html = html.replace(
-        /css\/ui-polish\.css\?v=[^"]+/,
-        function (m) { return m + '" />\n  <link rel="stylesheet" href="css/ui-upgrade.css?v=7.9.2'; }
-      );
+
+    try {
+      var html = null;
+      for (var i = 0; i < urls.length; i++) {
+        try {
+          var r = await fetch(urls[i] + '?t=' + Date.now());
+          if (r.ok) {
+            html = await r.text();
+            if (html && html.length > 5000) break;
+          }
+        } catch (e) {}
+      }
+      if (!html || html.length < 5000) {
+        if (BOOT) BOOT.textContent = 'Could not load app. Check your connection and hard refresh.';
+        return;
+      }
+
+      var doc = new DOMParser().parseFromString(html, 'text/html');
+      if (doc.title) document.title = doc.title;
+
+      var ver = '7.9.3';
+      doc.querySelectorAll('link[rel="stylesheet"]').forEach(function (link) {
+        var href = link.getAttribute('href') || '';
+        if (!href) return;
+        href = href.replace(/\?v=[^&"]+/g, '?v=' + ver);
+        loadCss(href);
+      });
+      loadCss('css/ui-upgrade.css?v=' + ver);
+      loadCss('css/ticket-plus.css?v=' + ver);
+
+      doc.querySelectorAll('head style').forEach(function (st) {
+        var n = document.createElement('style');
+        n.textContent = st.textContent;
+        document.head.appendChild(n);
+      });
+
+      var bodyHtml = '';
+      Array.prototype.forEach.call(doc.body.childNodes, function (node) {
+        if (node.nodeName === 'SCRIPT') return;
+        if (node.nodeType === 1) bodyHtml += node.outerHTML;
+        else if (node.nodeType === 3) bodyHtml += node.textContent;
+      });
+      document.body.innerHTML = bodyHtml;
+
+      var scriptSrcs = [];
+      doc.querySelectorAll('script[src]').forEach(function (sc) {
+        var src = sc.getAttribute('src') || '';
+        if (!src) return;
+        src = src.replace(/\?v=[^&"]+/g, '?v=' + ver);
+        scriptSrcs.push(src);
+      });
+
+      var extras = [
+        'js/email-notify.js?v=' + ver,
+        'js/ticket-plus.js?v=' + ver,
+        'js/ticket-plus-fix.js?v=' + ver,
+        'js/saved-views.js?v=' + ver
+      ];
+      extras.forEach(function (x) {
+        var base = x.split('?')[0];
+        var has = scriptSrcs.some(function (s) { return s.indexOf(base) !== -1; });
+        if (!has) scriptSrcs.push(x);
+      });
+
+      for (var j = 0; j < scriptSrcs.length; j++) {
+        await loadScript(scriptSrcs[j]);
+      }
+    } catch (err) {
+      console.error(err);
+      var msg = 'Load error: ' + (err.message || err);
+      if (document.getElementById('boot')) document.getElementById('boot').textContent = msg;
+      else alert(msg);
     }
-    html = html.replace(/\?v=7\.[0-9.]+/g, '?v=7.9.2');
-    var extras = '';
-    if (html.indexOf('email-notify.js') === -1) extras += '  <script src="js/email-notify.js?v=7.9.2"><\/script>\n';
-    if (html.indexOf('ticket-plus.js') === -1) extras += '  <link rel="stylesheet" href="css/ticket-plus.css?v=7.9.2" />\n  <script src="js/ticket-plus.js?v=7.9.2"><\/script>\n';
-    if (html.indexOf('ticket-plus-fix.js') === -1) extras += '  <script src="js/ticket-plus-fix.js?v=7.9.2"><\/script>\n';
-    if (extras) html = html.replace(/<\/body>/i, extras + '</body>');
-    document.open();
-    document.write(html);
-    document.close();
   })();
   </script>
 </body>
