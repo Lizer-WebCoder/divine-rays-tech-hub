@@ -15,7 +15,6 @@
   <div id="boot">Loading Divine Rays Tech Hub…</div>
   <script>
   (async function () {
-    var BOOT = document.getElementById('boot');
     var PIN = '830dac02096eb08be1b2dc22bdc191a14df91a04';
     var urls = [
       'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PIN + '/index.html',
@@ -128,15 +127,17 @@
       });
       for (var j = 0; j < scriptSrcs.length; j++) await loadScript(scriptSrcs[j]);
 
-      // v8.0.3 light overlay (no heavy loops)
       var OVERLAY_SHA = 'a2897de681305e165f83f8da20bf3aafa201008e';
       var JS_SHA = '8c7414ba0de46bb365414df630f20f6e6481369c';
       loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + OVERLAY_SHA + '/css/v8-overlay.css?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + JS_SHA + '/js/theme.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + JS_SHA + '/js/filters.js?v=' + ver);
+      var STATUS_SHA = 'eb8d62238c29fe04bdbbbfb3faaf400279fc8b99';
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + STATUS_SHA + '/js/status-card.js?v=' + ver);
       setTimeout(function () {
         if (!window.DRTheme) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + JS_SHA + '/js/theme.js?v=' + ver);
         if (!window.DRClearFilters) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + JS_SHA + '/js/filters.js?v=' + ver);
+        if (!window.DRStatusCard) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + STATUS_SHA + '/js/status-card.js?v=' + ver);
       }, 600);
 
       function applyV8Once() {
@@ -164,6 +165,9 @@
         }
         if (window.DRTheme && window.DRTheme.ensure) {
           try { window.DRTheme.ensure(); } catch (e) {}
+        }
+        if (window.DRStatusCard && window.DRStatusCard.refresh) {
+          try { window.DRStatusCard.refresh(); } catch (e) {}
         }
       }
       applyV8Once();
