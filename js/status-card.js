@@ -1,33 +1,52 @@
 /**
- * Divine Rays — sidebar mini status card
+ * Divine Rays — sidebar mini status card (self-contained)
  * Credit: Lizzz · All Rights Reserved
  */
 (function () {
   'use strict';
+
+  if (!document.getElementById('dr-status-card-css')) {
+    var st = document.createElement('style');
+    st.id = 'dr-status-card-css';
+    st.textContent = [
+      '.dr-status-card{margin:.75rem .35rem .85rem;padding:.75rem .8rem;background:linear-gradient(180deg,rgba(124,106,240,.1),rgba(124,106,240,.04));border:1px solid rgba(124,106,240,.22);border-radius:12px}',
+      '.dr-status-row{display:flex;align-items:center;gap:.45rem;margin-bottom:.65rem;font-size:.8rem;color:var(--text-muted,#8b8ba3)}',
+      '.dr-status-you-label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+      '.dr-status-name{color:var(--text,#f0f0f8);font-weight:600}',
+      '.dr-status-dot{width:8px;height:8px;border-radius:50%;background:#34d399;box-shadow:0 0 0 3px rgba(52,211,153,.2);flex-shrink:0}',
+      '.dr-status-metrics{display:grid;grid-template-columns:1fr 1fr;gap:.45rem}',
+      '.dr-status-metric{background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.06);border-radius:9px;padding:.45rem .5rem;cursor:pointer;text-align:center;transition:border-color .15s,background .15s}',
+      '.dr-status-metric:hover{border-color:rgba(124,106,240,.4);background:rgba(124,106,240,.1)}',
+      '.dr-status-metric-value{display:block;font-size:1.15rem;font-weight:700;letter-spacing:-.03em;color:var(--text,#f0f0f8);line-height:1.2}',
+      '.dr-status-metric-label{display:block;font-size:.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted,#8b8ba3);margin-top:.1rem}',
+      '.dr-status-critical.is-hot{border-color:rgba(248,113,113,.45);background:rgba(248,113,113,.1)}',
+      '.dr-status-critical.is-hot .dr-status-metric-value{color:#fca5a5}',
+      'html[data-theme="light"] .dr-status-card{background:linear-gradient(180deg,rgba(109,94,245,.08),rgba(109,94,245,.03));border-color:rgba(109,94,245,.2)}',
+      'html[data-theme="light"] .dr-status-metric{background:rgba(15,15,30,.04);border-color:rgba(15,15,30,.08)}',
+      'html[data-theme="light"] .dr-status-name,html[data-theme="light"] .dr-status-metric-value{color:var(--text,#1a1a2e)}'
+    ].join('');
+    document.head.appendChild(st);
+  }
 
   var CARD_ID = 'dr-status-card';
 
   function textOf(id) {
     var el = document.getElementById(id);
     if (!el) return '0';
-    var t = (el.textContent || '0').trim();
-    return t || '0';
+    return ((el.textContent || '0').trim()) || '0';
   }
 
   function agentLabel() {
     var n = document.getElementById('agent-name-display');
     if (n && n.textContent) return n.textContent.trim().split('·')[0].trim() || 'You';
     var lb = document.getElementById('logged-user-label');
-    if (lb && lb.textContent) {
-      return lb.textContent.replace(/\s*\(.*\)\s*$/, '').trim() || 'You';
-    }
+    if (lb && lb.textContent) return lb.textContent.replace(/\s*\(.*\)\s*$/, '').trim() || 'You';
     return 'You';
   }
 
   function ensureCard() {
     var sidebar = document.querySelector('#portal-agent .sidebar') || document.querySelector('.sidebar');
     if (!sidebar) return null;
-
     var existing = document.getElementById(CARD_ID);
     if (existing) return existing;
 
@@ -36,16 +55,16 @@
     card.id = CARD_ID;
     card.className = 'dr-status-card';
     card.innerHTML =
-      '<div class="dr-status-row dr-status-you">' +
+      '<div class="dr-status-row">' +
         '<span class="dr-status-dot" aria-hidden="true"></span>' +
         '<span class="dr-status-you-label"><strong class="dr-status-name">You</strong> · Online</span>' +
       '</div>' +
       '<div class="dr-status-metrics">' +
-        '<div class="dr-status-metric" data-jump="unassigned" title="Unassigned tickets">' +
+        '<div class="dr-status-metric" data-jump="unassigned" title="View unassigned">' +
           '<span class="dr-status-metric-value" id="dr-stat-unassigned">0</span>' +
           '<span class="dr-status-metric-label">Unassigned</span>' +
         '</div>' +
-        '<div class="dr-status-metric dr-status-critical" data-jump="critical" title="Critical open">' +
+        '<div class="dr-status-metric dr-status-critical" data-jump="critical" title="Filter critical">' +
           '<span class="dr-status-metric-value" id="dr-stat-critical">0</span>' +
           '<span class="dr-status-metric-label">Critical</span>' +
         '</div>' +
@@ -61,9 +80,9 @@
           var btn = document.querySelector('#portal-agent .nav-btn[data-view="unassigned"]');
           if (btn) btn.click();
         } else if (jump === 'critical') {
-          var fp = document.getElementById('filter-priority');
           var dash = document.querySelector('#portal-agent .nav-btn[data-view="dashboard"]');
           if (dash) dash.click();
+          var fp = document.getElementById('filter-priority');
           if (fp) {
             fp.value = 'Critical';
             fp.dispatchEvent(new Event('change', { bubbles: true }));
@@ -71,28 +90,22 @@
         }
       });
     });
-
     return card;
   }
 
   function refresh() {
     var card = ensureCard();
     if (!card) return;
-
     var nameEl = card.querySelector('.dr-status-name');
     if (nameEl) nameEl.textContent = agentLabel();
-
     var u = textOf('stat-unassigned');
     var c = textOf('stat-critical');
     var uEl = document.getElementById('dr-stat-unassigned');
     var cEl = document.getElementById('dr-stat-critical');
     if (uEl) uEl.textContent = u;
     if (cEl) cEl.textContent = c;
-
-    var critMetric = card.querySelector('.dr-status-critical');
-    if (critMetric) {
-      critMetric.classList.toggle('is-hot', parseInt(c, 10) > 0);
-    }
+    var crit = card.querySelector('.dr-status-critical');
+    if (crit) crit.classList.toggle('is-hot', parseInt(c, 10) > 0);
   }
 
   function boot() {
@@ -100,21 +113,16 @@
     refresh();
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', boot);
-  } else {
-    boot();
-  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
 
   setTimeout(boot, 600);
   setTimeout(boot, 2000);
   setTimeout(boot, 5000);
 
   setInterval(function () {
-    if (document.getElementById('portal-agent') &&
-        document.getElementById('portal-agent').classList.contains('active')) {
-      refresh();
-    }
+    var pa = document.getElementById('portal-agent');
+    if (pa && pa.classList.contains('active')) refresh();
   }, 8000);
 
   window.DRStatusCard = { refresh: refresh, ensure: ensureCard };
