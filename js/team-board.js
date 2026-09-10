@@ -9,10 +9,10 @@
 
   function escapeHtml(s) {
     return String(s || '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
+      .replace(/&/g, '&')
+      .replace(/</g, '<')
+      .replace(/>/g, '>')
+      .replace(/"/g, '"');
   }
 
   var _token = 0;
@@ -44,7 +44,15 @@
   async function buildTeamRows() {
     var tickets = [];
     try {
-      tickets = (dr().getAllTickets && dr().getAllTickets()) || [];
+      // Prefer live tickets from Supabase so status (Resolved/Closed) is accurate
+      var client = dr().sb && dr().sb();
+      if (client) {
+        var tr = await client.from('tickets').select('*');
+        if (!tr.error && tr.data) tickets = tr.data;
+      }
+      if (!tickets.length) {
+        tickets = (dr().getAllTickets && dr().getAllTickets()) || [];
+      }
       if (!tickets.length && dr().fetchTickets) {
         tickets = (await dr().fetchTickets({})) || [];
         if (dr().setAllTickets) dr().setAllTickets(tickets);
@@ -53,21 +61,32 @@
       tickets = (dr().getAllTickets && dr().getAllTickets()) || [];
     }
 
+    function isSolvedStatus(st) {
+      st = String(st || '').trim().toLowerCase();
+      return (
+        st === 'resolved' ||
+        st === 'closed' ||
+        st === 'done' ||
+        st === 'complete' ||
+        st === 'completed' ||
+        st === 'solved'
+      );
+    }
+
     var byAgent = {};
     tickets.forEach(function (t) {
       var aid = t.assignee_id || t.assigned_to;
       if (!aid) return;
       if (!byAgent[aid]) byAgent[aid] = { working: 0, solved: 0 };
-      var st = t.status || '';
-      if (st === 'Resolved' || st === 'Closed') byAgent[aid].solved++;
+      if (isSolvedStatus(t.status)) byAgent[aid].solved++;
       else byAgent[aid].working++;
     });
 
     var profiles = [];
     try {
-      var client = dr().sb && dr().sb();
-      if (client) {
-        var r = await client
+      var client2 = dr().sb && dr().sb();
+      if (client2) {
+        var r = await client2
           .from('profiles')
           .select('id,full_name,role,username')
           .in('role', ['agent', 'admin'])
