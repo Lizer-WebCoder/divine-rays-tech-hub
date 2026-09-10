@@ -58,10 +58,28 @@
 
   window.switchLoginTab = function (tab) {
     document.querySelectorAll('.ltab').forEach(function (b) {
-      b.classList.toggle('active', b.getAttribute('data-tab') === tab);
+      b.classList.remove('active');
     });
-    document.querySelectorAll('.lpanel').forEach(function (p) {
-      p.classList.toggle('active', p.id === 'panel-' + tab);
+    document.querySelectorAll('.login-form').forEach(function (f) {
+      f.classList.remove('active');
+    });
+    var t = document.querySelector('[data-ltab="' + tab + '"]');
+    if (t) t.classList.add('active');
+    var formId = tab === 'customer' ? 'login-customer' : 'login-agent';
+    var f = document.getElementById(formId);
+    if (f) f.classList.add('active');
+    clearErrors();
+  };
+
+  window.showForm = function (id) {
+    document.querySelectorAll('.login-form').forEach(function (f) {
+      f.classList.remove('active');
+    });
+    var f = document.getElementById(id);
+    if (f) f.classList.add('active');
+    var tab = id.indexOf('agent') !== -1 ? 'agent' : 'customer';
+    document.querySelectorAll('.ltab').forEach(function (b) {
+      b.classList.toggle('active', b.getAttribute('data-ltab') === tab);
     });
     clearErrors();
   };
@@ -190,7 +208,6 @@
       "async function signOut(){currentProfile=null;window.__drFullLoaded=false;window.__drBooting=false;if(usingCloud){try{await sb.auth.signOut({scope:'local'});}catch(e){}}try{Object.keys(localStorage).forEach(function(k){if(k.indexOf('supabase')!==-1||k.indexOf('sb-')===0)localStorage.removeItem(k);});}catch(e){} var pc=document.getElementById('portal-customer'),pa=document.getElementById('portal-agent');if(pc)pc.classList.remove('active');if(pa)pa.classList.remove('active');}"
     );
 
-    // Fix: save status alone first so Resolved/Closed always sticks
     code = code.replace(
       "async function updateTicket(id,p){var r=await sb.from('tickets').update(p).eq('id',id).select().single();return r.error?{error:r.error.message}:{ticket:r.data};}",
       "async function updateTicket(id,p){var r=await sb.from('tickets').update(p).eq('id',id).select().single();if(r.error){console.warn('[updateTicket]',r.error);return{error:r.error.message||String(r.error)};}return{ticket:r.data};}"
