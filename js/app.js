@@ -23,7 +23,10 @@
 
   function toast(m, t) {
     var c = document.getElementById('toast-container');
-    if (!c) return;
+    if (!c) {
+      console.log('[toast]', m);
+      return;
+    }
     var e = document.createElement('div');
     e.className = 'toast ' + (t || 'info');
     e.textContent = m;
@@ -33,11 +36,17 @@
 
   function showError(formId, msg) {
     var f = document.getElementById(formId);
-    if (!f) return;
+    if (!f) {
+      alert(msg);
+      return;
+    }
     var e = f.querySelector('.login-error');
     if (!e) {
       e = document.createElement('div');
       e.className = 'login-error';
+      e.style.color = '#f87171';
+      e.style.marginBottom = '0.5rem';
+      e.style.fontSize = '0.9rem';
       f.insertBefore(e, f.firstChild);
     }
     e.textContent = msg;
@@ -191,7 +200,6 @@
       "var __st=(document.getElementById('quick-status')||{}).value;var __as=(document.getElementById('assign-agent')||{}).value||null;var r=await updateTicket(currentTicketId,{status:__st});if(r.error){toast(r.error,'error');return;}if(__as!==null){var r2=await updateTicket(currentTicketId,{assigned_to:__as});if(r2.error){r2=await updateTicket(currentTicketId,{assignee_id:__as});}if(r2&&r2.error)console.warn('assign',r2.error);}toast('Updated: '+__st,'success');openTicket(currentTicketId);"
     );
 
-    // Fix any double-async from patches
     code = code.replace(/async\s+async\s+function/g, 'async function');
     code = code.replace(/async\s+async\s+function/g, 'async function');
 
@@ -243,11 +251,19 @@
       e.stopImmediatePropagation();
       clearErrors();
       if (!usingCloud) { showError('login-customer', 'Supabase not configured'); return; }
-      var email = document.getElementById('cust-email').value.trim();
-      var password = document.getElementById('cust-password').value;
-      var r = await signIn(email, password);
-      if (r.error) { showError('login-customer', r.error); return; }
-      await loadFullAppThen(r.profile && r.profile.role);
+      var emailEl = document.getElementById('cust-email');
+      var passEl = document.getElementById('cust-password');
+      if (!emailEl || !passEl) { showError('login-customer', 'Login form incomplete'); return; }
+      var email = emailEl.value.trim();
+      var password = passEl.value;
+      try {
+        var r = await signIn(email, password);
+        if (r.error) { showError('login-customer', r.error); return; }
+        await loadFullAppThen(r.profile && r.profile.role);
+      } catch (err) {
+        console.error(err);
+        showError('login-customer', err.message || String(err));
+      }
     });
 
     var la = document.getElementById('login-agent');
@@ -256,17 +272,24 @@
       e.stopImmediatePropagation();
       clearErrors();
       if (!usingCloud) { showError('login-agent', 'Supabase not configured'); return; }
-      var userOrEmail = document.getElementById('agent-user').value.trim();
+      var __au = document.getElementById('agent-username') || document.getElementById('agent-user');
+      if (!__au) { showError('login-agent', 'Login form missing username field'); return; }
+      var userOrEmail = __au.value.trim();
       var password = document.getElementById('agent-password').value;
       var email = userOrEmail;
-      if (userOrEmail.indexOf('@') === -1) {
-        var resolved = await resolveAgentEmail(userOrEmail);
-        if (!resolved) { showError('login-agent', 'Username not found'); return; }
-        email = resolved;
+      try {
+        if (userOrEmail.indexOf('@') === -1) {
+          var resolved = await resolveAgentEmail(userOrEmail);
+          if (!resolved) { showError('login-agent', 'Username not found'); return; }
+          email = resolved;
+        }
+        var r = await signIn(email, password);
+        if (r.error) { showError('login-agent', r.error); return; }
+        await loadFullAppThen(r.profile && r.profile.role);
+      } catch (err) {
+        console.error(err);
+        showError('login-agent', err.message || String(err));
       }
-      var r = await signIn(email, password);
-      if (r.error) { showError('login-agent', r.error); return; }
-      await loadFullAppThen(r.profile && r.profile.role);
     });
 
     var rc = document.getElementById('register-customer');
@@ -278,9 +301,13 @@
       var name = document.getElementById('reg-cust-name').value.trim();
       var email = document.getElementById('reg-cust-email').value.trim();
       var password = document.getElementById('reg-cust-password').value;
-      var r = await signUpCustomer(name, email, password);
-      if (r.error) { showError('register-customer', r.error); return; }
-      await loadFullAppThen('customer');
+      try {
+        var r = await signUpCustomer(name, email, password);
+        if (r.error) { showError('register-customer', r.error); return; }
+        await loadFullAppThen('customer');
+      } catch (err) {
+        showError('register-customer', err.message || String(err));
+      }
     });
 
     var ra = document.getElementById('register-agent');
@@ -293,9 +320,13 @@
       var email = document.getElementById('reg-agent-email').value.trim();
       var username = document.getElementById('reg-agent-username').value.trim();
       var password = document.getElementById('reg-agent-password').value;
-      var r = await signUpAgent(name, username, password, email);
-      if (r.error) { showError('register-agent', r.error); return; }
-      await loadFullAppThen(r.profile && r.profile.role);
+      try {
+        var r = await signUpAgent(name, username, password, email);
+        if (r.error) { showError('register-agent', r.error); return; }
+        await loadFullAppThen(r.profile && r.profile.role);
+      } catch (err) {
+        showError('register-agent', err.message || String(err));
+      }
     });
   }
 
