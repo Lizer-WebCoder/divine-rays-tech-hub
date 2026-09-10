@@ -1,0 +1,141 @@
+/* Divine Rays v8.0.3 overlay — theme + sidebar avatar + Clear polish */
+:root {
+  --primary-soft: rgba(124, 106, 240, 0.14);
+  --primary-glow: rgba(124, 106, 240, 0.35);
+  --text-dim: #5c5c74;
+  --radius-lg: 16px;
+}
+
+html[data-theme="light"] {
+  --bg: #f4f5fb !important;
+  --surface: #ffffff !important;
+  --surface-2: #f0f1f8 !important;
+  --surface-3: #e8eaf4 !important;
+  --border: #d8dae8 !important;
+  --text: #1a1a2e !important;
+  --text-muted: #6b6b86 !important;
+  --text-dim: #9a9ab0;
+  --primary: #6d5ef5 !important;
+  --primary-hover: #5b4ce0 !important;
+  --primary-soft: rgba(109, 94, 245, 0.12);
+  --primary-glow: rgba(109, 94, 245, 0.22);
+  --accent: #5b4ce0 !important;
+}
+
+html[data-theme="light"] body,
+html[data-theme="light"] .app-shell,
+html[data-theme="light"] .main {
+  background: var(--bg) !important;
+  color: var(--text) !important;
+}
+
+html[data-theme="light"] .mode-bar,
+html[data-theme="light"] .sidebar,
+html[data-theme="light"] .login-card,
+html[data-theme="light"] .stat-card,
+html[data-theme="light"] .ticket-card,
+html[data-theme="light"] .ticket-detail,
+html[data-theme="light"] .ticket-form,
+html[data-theme="light"] .comments-section,
+html[data-theme="light"] .agent-actions,
+html[data-theme="light"] .agent-perf {
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+
+html[data-theme="light"] .form-group input,
+html[data-theme="light"] .form-group select,
+html[data-theme="light"] .form-group textarea,
+html[data-theme="light"] #search-input,
+html[data-theme="light"] #filter-status,
+html[data-theme="light"] #filter-priority,
+html[data-theme="light"] #filter-sort {
+  background: var(--surface-2) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+
+html[data-theme="light"] .nav-btn.active {
+  background: rgba(109, 94, 245, 0.12) !important;
+  color: var(--primary) !important;
+}
+
+/* Sidebar user card / avatar spacing */
+.sidebar-user-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65rem;
+  margin: 0 0 1.15rem;
+  padding: 0.85rem 0.65rem 0.9rem;
+  background: linear-gradient(180deg, rgba(124, 106, 240, 0.08) 0%, rgba(124, 106, 240, 0.03) 100%);
+  border: 1px solid rgba(124, 106, 240, 0.18);
+  border-radius: 14px;
+}
+
+.sidebar-avatar-chip {
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
+  margin: 0.35rem 0 0.15rem !important;
+  padding: 0 !important;
+  line-height: 0;
+}
+
+.sidebar-avatar-chip:empty { display: none !important; }
+
+.sidebar-avatar-chip .avatar-img,
+.sidebar-avatar-chip .avatar-fallback,
+.sidebar-avatar-chip img {
+  width: 52px !important;
+  height: 52px !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  border: 2px solid rgba(196, 181, 253, 0.45) !important;
+  box-shadow: 0 4px 14px rgba(124, 106, 240, 0.35), 0 0 0 3px rgba(124, 106, 240, 0.12) !important;
+  display: block;
+}
+
+.agent-badge {
+  width: 100%;
+  margin-bottom: 1rem !important;
+}
+
+/* Theme button */
+#btn-theme,
+.btn-theme {
+  border: 1px solid var(--border, #2a2a3a) !important;
+  background: var(--surface-2, #1e1e2a) !important;
+  color: var(--text, #f0f0f8) !important;
+  font-weight: 600 !important;
+  min-width: 3.4rem;
+  padding: 0.35rem 0.7rem !important;
+  border-radius: 8px !important;
+  cursor: pointer;
+}
+
+#btn-theme:hover,
+.btn-theme:hover {
+  border-color: var(--primary, #7c6af0) !important;
+  color: var(--accent, #c4b5fd) !important;
+}
+
+#btn-clear-filters {
+  font-weight: 600 !important;
+}
+
+.user-info {
+  display: flex !important;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+html[data-theme="light"] #btn-theme,
+html[data-theme="light"] .btn-theme {
+  background: var(--surface-2) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
