@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=7.10.1" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.0.3" />
   <style>
     html,body{margin:0;background:#0c0c12;color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
     #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae}
@@ -20,7 +20,7 @@
       'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PIN + '/index.html',
       'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + PIN + '/index.html'
     ];
-    var ver = '7.10.1';
+    var ver = '8.0.3';
 
     function loadScript(src) {
       return new Promise(function (resolve) {
@@ -60,36 +60,49 @@
     }
     window.switchLoginTab = switchLoginTab;
     window.showForm = showForm;
+
     function wireTabs() {
       document.querySelectorAll('.ltab').forEach(function (btn) {
         btn.onclick = function (e) {
           e.preventDefault();
-          switchLoginTab(btn.getAttribute('data-ltab') || 'customer');
+          switchLoginTab(btn.getAttribute('data-ltab'));
         };
       });
-      switchLoginTab('customer');
+      document.querySelectorAll('.login-switch a').forEach(function (a) {
+        var href = a.getAttribute('href') || '';
+        var m = href.match(/showForm\(['\"]([^'\"]+)['\"]\)/) || (a.getAttribute('onclick') || '').match(/showForm\(['\"]([^'\"]+)['\"]\)/);
+        if (m) {
+          a.onclick = function (e) {
+            e.preventDefault();
+            showForm(m[1]);
+            return false;
+          };
+        }
+      });
     }
 
     try {
       var html = null;
       for (var i = 0; i < urls.length; i++) {
         try {
-          var r = await fetch(urls[i] + '?t=' + Date.now());
-          if (r.ok) { html = await r.text(); if (html && html.length > 5000) break; }
+          var r = await fetch(urls[i] + (urls[i].indexOf('?') === -1 ? '?t=' : '&t=') + Date.now());
+          if (r.ok) { html = await r.text(); break; }
         } catch (e) {}
       }
-      if (!html || html.length < 5000) {
-        if (BOOT) BOOT.textContent = 'Could not load app.';
-        return;
-      }
-      var doc = new DOMParser().parseFromString(html, 'text/html');
-      if (doc.title) document.title = doc.title;
+      if (!html) throw new Error('Could not load app shell');
+
+      var parser = new DOMParser();
+      var doc = parser.parseFromString(html, 'text/html');
+
       doc.querySelectorAll('link[rel="stylesheet"]').forEach(function (link) {
-        var href = (link.getAttribute('href') || '').replace(/\?v=[^&"]+/g, '?v=' + ver);
-        if (href) loadCss(href);
+        var href = link.getAttribute('href') || '';
+        if (!href) return;
+        href = href.replace(/\?v=[^&"]+/g, '?v=' + ver);
+        if (href.indexOf('http') !== 0 && href.indexOf('//') !== 0) {
+          href = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PIN + '/' + href.replace(/^\.\//, '');
+        }
+        loadCss(href);
       });
-      loadCss('css/ui-upgrade.css?v=' + ver);
-      loadCss('css/ticket-plus.css?v=' + ver);
 
       doc.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"]').forEach(function (link) {
         var href = link.getAttribute('href') || 'favicon.svg';
@@ -126,12 +139,26 @@
       var scriptSrcs = [];
       doc.querySelectorAll('script[src]').forEach(function (sc) {
         var src = (sc.getAttribute('src') || '').replace(/\?v=[^&"]+/g, '?v=' + ver);
-        if (src) scriptSrcs.push(src);
+        if (src) {
+          if (src.indexOf('http') !== 0 && src.indexOf('//') !== 0) {
+            src = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PIN + '/' + src.replace(/^\.\//, '');
+          }
+          scriptSrcs.push(src);
+        }
       });
       ['js/email-notify.js','js/ticket-plus.js','js/ticket-plus-fix.js','js/status-lock.js','js/csat.js','js/polish-fixes.js','js/saved-views.js'].forEach(function (base) {
-        if (!scriptSrcs.some(function (s) { return s.indexOf(base) !== -1; })) scriptSrcs.push(base + '?v=' + ver);
+        if (!scriptSrcs.some(function (s) { return s.indexOf(base) !== -1; })) {
+          scriptSrcs.push('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PIN + '/' + base + '?v=' + ver);
+        }
       });
       for (var j = 0; j < scriptSrcs.length; j++) await loadScript(scriptSrcs[j]);
+
+      // v8.0.3 overlay: light/dark + Clear + avatar spacing
+      var MAIN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@main';
+      loadCss(MAIN + '/css/v8-overlay.css?v=' + ver);
+      await loadScript(MAIN + '/js/theme.js?v=' + ver);
+      await loadScript(MAIN + '/js/filters.js?v=' + ver);
+      document.querySelectorAll('.version').forEach(function (el) { el.textContent = 'v' + ver; });
 
       window.switchLoginTab = switchLoginTab;
       window.showForm = showForm;
