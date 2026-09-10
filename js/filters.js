@@ -1,5 +1,5 @@
 /**
- * Divine Rays — filters + Clear (local, always works)
+ * Divine Rays — filters + Clear (lightweight)
  * Credit: Lizzz · All Rights Reserved
  */
 (function () {
@@ -13,7 +13,7 @@
     e.className = 'toast ' + (type || 'info');
     e.textContent = msg;
     c.appendChild(e);
-    setTimeout(function () { e.remove(); }, 2800);
+    setTimeout(function () { e.remove(); }, 2500);
   }
 
   function getLF() {
@@ -31,13 +31,7 @@
       window.applyTicketFilters(false);
       return;
     }
-    if (window.DR && typeof DR.renderTicketList === 'function') {
-      DR.renderTicketList();
-      return;
-    }
-    if (window.DR && typeof DR.renderStats === 'function') {
-      DR.renderStats();
-    }
+    if (window.DR && typeof DR.renderTicketList === 'function') DR.renderTicketList();
   }
 
   function clearFilters() {
@@ -46,7 +40,6 @@
     lf.status = '';
     lf.priority = '';
     lf.sort = 'newest';
-
     var si = document.getElementById('search-input');
     var fs = document.getElementById('filter-status');
     var fp = document.getElementById('filter-priority');
@@ -55,18 +48,15 @@
     if (fs) fs.value = '';
     if (fp) fp.value = '';
     if (so) so.value = 'newest';
-
     var hint = document.getElementById('filter-hint');
     if (hint) hint.textContent = '';
-
     refreshList();
     toast('Filters cleared', 'info');
   }
 
   function bindClear() {
     var clr = document.getElementById('btn-clear-filters');
-    if (!clr) return;
-    if (clr.__drClearBound) return;
+    if (!clr || clr.__drClearBound) return;
     clr.__drClearBound = true;
     clr.addEventListener('click', function (e) {
       e.preventDefault();
@@ -78,7 +68,6 @@
   function bindSearchFilters() {
     var lf = getLF();
     if (lf.sort == null) lf.sort = 'newest';
-
     var si = document.getElementById('search-input');
     var fs = document.getElementById('filter-status');
     var fp = document.getElementById('filter-priority');
@@ -90,7 +79,7 @@
       si.addEventListener('input', function () {
         lf.q = si.value || '';
         clearTimeout(timer);
-        timer = setTimeout(function () { refreshList(); }, 180);
+        timer = setTimeout(function () { refreshList(); }, 200);
       });
     }
     if (fs && !fs.__drFilterBound) {
@@ -114,14 +103,6 @@
         refreshList();
       });
     }
-
-    document.addEventListener('click', function (e) {
-      var t = e.target;
-      if (t && (t.id === 'empty-clear' || (t.closest && t.closest('#empty-clear')))) {
-        e.preventDefault();
-        clearFilters();
-      }
-    });
   }
 
   function boot() {
@@ -135,12 +116,9 @@
     boot();
   }
 
-  var n = 0;
-  var t = setInterval(function () {
-    n++;
-    boot();
-    if (n > 60) clearInterval(t);
-  }, 250);
+  setTimeout(boot, 400);
+  setTimeout(boot, 1500);
+  setTimeout(boot, 4000);
 
   window.DRClearFilters = clearFilters;
 })();

@@ -1,5 +1,5 @@
 /**
- * Divine Rays — theme toggle (always visible, always works)
+ * Divine Rays — theme toggle (lightweight)
  * Credit: Lizzz · All Rights Reserved
  */
 (function () {
@@ -22,7 +22,6 @@
     theme = theme || current();
     document.querySelectorAll('#btn-theme, .btn-theme').forEach(function (btn) {
       btn.textContent = theme === 'light' ? 'Dark' : 'Light';
-      btn.setAttribute('aria-label', theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode');
       btn.title = theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode';
     });
   }
@@ -45,10 +44,9 @@
       btn.addEventListener('click', function (e) {
         e.preventDefault();
         e.stopPropagation();
-        var next = current() === 'dark' ? 'light' : 'dark';
-        apply(next);
+        apply(current() === 'dark' ? 'light' : 'dark');
         if (window.DR && DR.toast) {
-          DR.toast(next === 'light' ? 'Light mode' : 'Dark mode', 'info');
+          DR.toast(current() === 'light' ? 'Light mode' : 'Dark mode', 'info');
         }
       });
     }
@@ -73,22 +71,9 @@
     boot();
   }
 
-  var n = 0;
-  var timer = setInterval(function () {
-    n++;
-    ensureButton();
-    if (n > 80) clearInterval(timer);
-  }, 200);
-
-  try {
-    var obs = new MutationObserver(function () { ensureButton(); });
-    function watch() {
-      var bar = document.querySelector('.mode-bar') || document.body;
-      if (bar) obs.observe(bar, { childList: true, subtree: true });
-    }
-    if (document.body) watch();
-    else document.addEventListener('DOMContentLoaded', watch);
-  } catch (e) {}
+  setTimeout(boot, 400);
+  setTimeout(boot, 1500);
+  setTimeout(boot, 4000);
 
   window.DRTheme = { apply: apply, current: current, ensure: ensureButton };
 })();
