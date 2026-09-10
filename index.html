@@ -19,7 +19,7 @@
       'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PIN + '/index.html',
       'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + PIN + '/index.html'
     ];
-    var ver = '7.9.6';
+    var ver = '7.9.7';
 
     function loadScript(src) {
       return new Promise(function (resolve) {
@@ -110,7 +110,7 @@
         var src = (sc.getAttribute('src') || '').replace(/\?v=[^&"]+/g, '?v=' + ver);
         if (src) scriptSrcs.push(src);
       });
-      ['js/email-notify.js','js/ticket-plus.js','js/ticket-plus-fix.js','js/saved-views.js'].forEach(function (base) {
+      ['js/email-notify.js','js/ticket-plus.js','js/ticket-plus-fix.js','js/status-lock.js','js/saved-views.js'].forEach(function (base) {
         if (!scriptSrcs.some(function (s) { return s.indexOf(base) !== -1; })) scriptSrcs.push(base + '?v=' + ver);
       });
       for (var j = 0; j < scriptSrcs.length; j++) await loadScript(scriptSrcs[j]);
