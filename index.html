@@ -69,17 +69,6 @@
           switchLoginTab(btn.getAttribute('data-ltab'));
         };
       });
-      document.querySelectorAll('.login-switch a').forEach(function (a) {
-        var href = a.getAttribute('href') || '';
-        var m = href.match(/showForm\(['\"]([^'\"]+)['\"]\)/) || (a.getAttribute('onclick') || '').match(/showForm\(['\"]([^'\"]+)['\"]\)/);
-        if (m) {
-          a.onclick = function (e) {
-            e.preventDefault();
-            showForm(m[1]);
-            return false;
-          };
-        }
-      });
     }
 
     try {
@@ -105,20 +94,12 @@
         loadCss(href);
       });
 
-      doc.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"]').forEach(function (link) {
-        var href = link.getAttribute('href') || 'favicon.svg';
-        var l = document.createElement('link');
-        l.rel = 'icon';
-        l.type = link.getAttribute('type') || 'image/svg+xml';
-        l.href = href.indexOf('?') === -1 ? href + '?v=' + ver : href.replace(/\?v=[^&"]+/g, '?v=' + ver);
-        document.head.appendChild(l);
-      });
-
       doc.querySelectorAll('head style').forEach(function (st) {
         var n = document.createElement('style');
         n.textContent = st.textContent;
         document.head.appendChild(n);
       });
+
       var bodyHtml = '';
       Array.prototype.forEach.call(doc.body.childNodes, function (node) {
         if (node.nodeName === 'SCRIPT') return;
@@ -147,77 +128,52 @@
       });
       for (var j = 0; j < scriptSrcs.length; j++) await loadScript(scriptSrcs[j]);
 
-      // v8.0.3 overlay — SHA-pinned + force Theme/version
-      var SHA = 'a2897de681305e165f83f8da20bf3aafa201008e';
-      var BASES = [
-        'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + SHA,
-        'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + SHA
-      ];
-      function loadCssMulti(path) {
-        BASES.forEach(function (b) { loadCss(b + path + '?v=' + ver + '&t=' + Date.now()); });
-      }
-      async function loadScriptMulti(path) {
-        for (var bi = 0; bi < BASES.length; bi++) {
-          await loadScript(BASES[bi] + path + '?v=' + ver + '&t=' + Date.now());
-        }
-      }
-      loadCssMulti('/css/v8-overlay.css');
-      await loadScriptMulti('/js/theme.js');
-      await loadScriptMulti('/js/filters.js');
+      // v8.0.3 light overlay (no heavy loops)
+      var OVERLAY_SHA = 'a2897de681305e165f83f8da20bf3aafa201008e';
+      var JS_SHA = '8c7414ba0de46bb365414df630f20f6e6481369c';
+      loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + OVERLAY_SHA + '/css/v8-overlay.css?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + JS_SHA + '/js/theme.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + JS_SHA + '/js/filters.js?v=' + ver);
+      setTimeout(function () {
+        if (!window.DRTheme) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + JS_SHA + '/js/theme.js?v=' + ver);
+        if (!window.DRClearFilters) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + JS_SHA + '/js/filters.js?v=' + ver);
+      }, 600);
 
-      function forceV8UI() {
-        document.querySelectorAll('.version').forEach(function (el) { el.textContent = 'v' + ver; });
+      function applyV8Once() {
+        document.querySelectorAll('.version').forEach(function (el) {
+          if (el.textContent.indexOf('8.0.3') === -1) el.textContent = 'v' + ver;
+        });
         var info = document.querySelector('.mode-bar .user-info') || document.querySelector('.user-info');
         if (info && !document.getElementById('btn-theme')) {
           var b = document.createElement('button');
           b.type = 'button';
           b.id = 'btn-theme';
           b.className = 'btn btn-ghost btn-sm btn-theme';
-          var cur0 = document.documentElement.getAttribute('data-theme') || localStorage.getItem('dr_theme') || 'dark';
+          var cur0 = document.documentElement.getAttribute('data-theme') || 'dark';
+          try { cur0 = localStorage.getItem('dr_theme') || cur0; } catch (e) {}
           document.documentElement.setAttribute('data-theme', cur0);
           b.textContent = cur0 === 'light' ? 'Dark' : 'Light';
-          b.onclick = function () {
+          b.addEventListener('click', function () {
             var cur = document.documentElement.getAttribute('data-theme') || 'dark';
             var next = cur === 'dark' ? 'light' : 'dark';
             document.documentElement.setAttribute('data-theme', next);
             try { localStorage.setItem('dr_theme', next); } catch (e) {}
             b.textContent = next === 'light' ? 'Dark' : 'Light';
-          };
+          });
           info.insertBefore(b, info.firstChild);
         }
-        if (window.DRTheme && window.DRTheme.ensure) try { window.DRTheme.ensure(); } catch (e) {}
-        var clr = document.getElementById('btn-clear-filters');
-        if (clr && !clr.__drClearBound2) {
-          clr.__drClearBound2 = true;
-          clr.addEventListener('click', function (e) {
-            e.preventDefault();
-            if (window.DRClearFilters) window.DRClearFilters();
-            else {
-              var si = document.getElementById('search-input');
-              var fs = document.getElementById('filter-status');
-              var fp = document.getElementById('filter-priority');
-              var so = document.getElementById('filter-sort');
-              if (si) si.value = '';
-              if (fs) fs.value = '';
-              if (fp) fp.value = '';
-              if (so) so.value = 'newest';
-              if (window.applyTicketFilters) window.applyTicketFilters(false);
-            }
-          });
+        if (window.DRTheme && window.DRTheme.ensure) {
+          try { window.DRTheme.ensure(); } catch (e) {}
         }
       }
-      forceV8UI();
-      setInterval(forceV8UI, 1200);
+      applyV8Once();
+      setTimeout(applyV8Once, 500);
+      setTimeout(applyV8Once, 2000);
+      setTimeout(applyV8Once, 5000);
 
       window.switchLoginTab = switchLoginTab;
       window.showForm = showForm;
       wireTabs();
-      setInterval(function () {
-        if (!window.switchLoginTab || String(window.switchLoginTab).indexOf('data-ltab') === -1) {
-          window.switchLoginTab = switchLoginTab;
-          window.showForm = showForm;
-        }
-      }, 1000);
     } catch (err) {
       console.error(err);
       if (document.getElementById('boot')) document.getElementById('boot').textContent = 'Load error: ' + (err.message || err);
