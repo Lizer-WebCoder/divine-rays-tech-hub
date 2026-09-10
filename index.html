@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Divine Rays Tech Hub — Support</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=7.10.1" />
   <style>
     html,body{margin:0;background:#0c0c12;color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
     #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae}
@@ -19,7 +20,7 @@
       'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PIN + '/index.html',
       'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + PIN + '/index.html'
     ];
-    var ver = '7.10.0';
+    var ver = '7.10.1';
 
     function loadScript(src) {
       return new Promise(function (resolve) {
@@ -89,6 +90,23 @@
       });
       loadCss('css/ui-upgrade.css?v=' + ver);
       loadCss('css/ticket-plus.css?v=' + ver);
+
+      doc.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"]').forEach(function (link) {
+        var href = link.getAttribute('href') || 'favicon.svg';
+        var l = document.createElement('link');
+        l.rel = 'icon';
+        l.type = link.getAttribute('type') || 'image/svg+xml';
+        l.href = href.indexOf('?') === -1 ? href + '?v=' + ver : href.replace(/\?v=[^&"]+/g, '?v=' + ver);
+        document.head.appendChild(l);
+      });
+      if (!document.querySelector('link[rel="icon"]')) {
+        var l2 = document.createElement('link');
+        l2.rel = 'icon';
+        l2.type = 'image/svg+xml';
+        l2.href = 'favicon.svg?v=' + ver;
+        document.head.appendChild(l2);
+      }
+
       doc.querySelectorAll('head style').forEach(function (st) {
         var n = document.createElement('style');
         n.textContent = st.textContent;
