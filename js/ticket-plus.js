@@ -2,7 +2,7 @@
  * Divine Rays — Ticket Plus
  * Internal notes · File attachments · Assign/transfer · SLA countdown
  * Credit: Lizzz · All Rights Reserved
- * Note: status save is handled by ticket-plus-fix.js to avoid handler conflicts.
+ * Status save is handled by ticket-plus-fix.js
  */
 (function () {
   'use strict';
@@ -10,11 +10,17 @@
   var SLA_HOURS = { Critical: 1, High: 4, Medium: 24, Low: 72 };
   var agentsCache = null;
   var currentTicket = null;
-  var slaTimer = null;
+  var statusDirty = false;
+  var lastSlaText = '';
+  var lastTicketNum = '';
+  var detailBusy = false;
+  var detailTimer = null;
 
   function dr() { return window.DR || {}; }
   function sb() {
-    if (dr().sb) return dr().sb();
+    try {
+      if (dr().sb) return dr().sb();
+    } catch (e) {}
     return window.__drSb || null;
   }
   function toast(m, t) {
@@ -24,10 +30,10 @@
   function esc(s) {
     if (dr().esc) return dr().esc(s);
     return String(s || '')
-      .replace(/&/g, '&')
-      .replace(/</g, '<')
-      .replace(/>/g, '>')
-      .replace(/"/g, '"');
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
   }
   function profile() {
     return (dr().getProfile && dr().getProfile()) || window.__drProfile || null;
@@ -41,7 +47,9 @@
     try { return (Date.now() - new Date(iso).getTime()) / 36e5; } catch (e) { return 0; }
   }
   function slaInfo(t) {
-    if (!t || t.status === 'Resolved' || t.status === 'Closed') return null;
+    if (!t) return null;
+    var st = String(t.status || '').toLowerCase();
+    if (st === 'resolved' || st === 'closed') return null;
     var limit = SLA_HOURS[t.priority] || 24;
     var age = hoursSince(t.created_at);
     var remaining = limit - age;
@@ -54,26 +62,45 @@
     var m = Math.floor((hours - h) * 60);
     if (h >= 24) {
       var d = Math.floor(h / 24);
-      var rh = h % 24;
-      return d + 'd ' + rh + 'h';
+      return d + 'd ' + (h % 24) + 'h';
     }
     if (h > 0) return h + 'h ' + m + 'm';
     return Math.max(0, m) + 'm';
   }
+
   function enhanceDetailSla(ticket) {
     if (!ticket) return;
     currentTicket = ticket;
     var d = document.getElementById('ticket-detail');
     if (!d) return;
     var meta = d.querySelector('.detail-meta') || d;
-    var existing = meta.querySelector('.sla-chip');
-    if (existing) existing.remove();
     var s = slaInfo(ticket);
-    if (!s) return;
-    var cls = s.state === 'overdue' ? 'sla-overdue' : (s.state === 'soon' ? 'sla-soon' : 'sla-ok');
-    var txt = s.state === 'overdue'
-      ? ('Overdue ' + formatCountdown(s.hours))
-      : ('Due in ' + formatCountdown(s.hours));
+    var txt = '';
+    var cls = 'sla-ok';
+    if (s) {
+      cls = s.state === 'overdue' ? 'sla-overdue' : (s.state === 'soon' ? 'sla-soon' : 'sla-ok');
+      txt = s.state === 'overdue'
+        ? ('Overdue ' + formatCountdown(s.hours))
+        : ('Due in ' + formatCountdown(s.hours));
+    }
+    if (txt === lastSlaText) {
+      var chip = meta.querySelector('.sla-chip .sla-countdown');
+      if (chip) chip.textContent = txt;
+      return;
+    }
+    lastSlaText = txt;
+    var existing = meta.querySelector('.sla-chip');
+    if (!txt) {
+      if (existing) existing.remove();
+      return;
+    }
+    if (existing) {
+      existing.className = 'meta-chip sla-chip ' + cls;
+      var cd = existing.querySelector('.sla-countdown');
+      if (cd) cd.textContent = txt;
+      else existing.innerHTML = '<span class="meta-k">SLA</span> <span class="sla-countdown">' + esc(txt) + '</span>';
+      return;
+    }
     var span = document.createElement('span');
     span.className = 'meta-chip sla-chip ' + cls;
     span.innerHTML = '<span class="meta-k">SLA</span> <span class="sla-countdown">' + esc(txt) + '</span>';
@@ -100,15 +127,25 @@
   async function populateAssignSelect(ticket) {
     var sel = document.getElementById('assign-agent');
     if (!sel || !isStaff()) return;
+    if (document.activeElement === sel) return;
     var agents = await loadAgents();
     var cur = (ticket && (ticket.assigned_to || ticket.assignee_id)) || '';
-    sel.innerHTML = '<option value="">— Unassigned —</option>' +
+    var html = '<option value="">— Unassigned —</option>' +
       agents.map(function (a) {
         var label = a.full_name || a.username || a.email || a.id.slice(0, 8);
         return '<option value="' + esc(a.id) + '"' +
           (a.id === cur ? ' selected' : '') + '>' + esc(label) +
           (a.role === 'admin' ? ' (Admin)' : '') + '</option>';
       }).join('');
+    if (sel.innerHTML !== html) sel.innerHTML = html;
+  }
+
+  function bindStatusDirty() {
+    var st = document.getElementById('quick-status');
+    if (!st || st._dirtyBound) return;
+    st._dirtyBound = true;
+    st.addEventListener('change', function () { statusDirty = true; });
+    st.addEventListener('focus', function () { statusDirty = true; });
   }
 
   function bindCommentForm() {
@@ -179,7 +216,9 @@
         } catch (e) {}
         var row = document.createElement('div');
         row.className = 'attach-row';
-        row.innerHTML = (url ? '<a href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(a.file_name) + '</a>' : '<span>' + esc(a.file_name) + '</span>') +
+        row.innerHTML = (url
+          ? '<a href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(a.file_name) + '</a>'
+          : '<span>' + esc(a.file_name) + '</span>') +
           '<span class="kb-sub">' + (a.file_size ? Math.round(a.file_size / 1024) + ' KB' : '') + '</span>';
         list.appendChild(row);
       }
@@ -220,21 +259,40 @@
   }
 
   function onDetailChange() {
+    if (detailBusy) return;
     var detail = document.getElementById('ticket-detail');
     if (!detail) return;
     var idEl = detail.querySelector('.ticket-id');
     if (!idEl) return;
     var num = idEl.textContent.trim();
     if (!num) return;
+
+    bindStatusDirty();
+
+    if (num === lastTicketNum && currentTicket) {
+      enhanceDetailSla(currentTicket);
+      return;
+    }
+
+    detailBusy = true;
     loadTicketByNumber(num).then(function (t) {
+      detailBusy = false;
       if (!t) return;
+      var switched = num !== lastTicketNum;
+      lastTicketNum = num;
       currentTicket = t;
       enhanceDetailSla(t);
       populateAssignSelect(t);
       ensureAttachPanel();
       loadAttachments(t.id);
+
       var st = document.getElementById('quick-status');
-      if (st && t.status) st.value = t.status;
+      if (st && t.status && switched && !statusDirty) {
+        st.value = t.status;
+      }
+      if (switched) statusDirty = false;
+    }).catch(function () {
+      detailBusy = false;
     });
   }
 
@@ -243,15 +301,25 @@
     if (!detail || detail._tpWatch) return;
     detail._tpWatch = true;
     new MutationObserver(function () {
-      onDetailChange();
-      bindCommentForm();
+      if (detailTimer) clearTimeout(detailTimer);
+      detailTimer = setTimeout(function () {
+        onDetailChange();
+        bindCommentForm();
+        bindStatusDirty();
+      }, 300);
     }).observe(detail, { childList: true, subtree: true });
   }
 
+  window.addEventListener('dr-status-saved', function () {
+    statusDirty = false;
+  });
+
   function boot() {
     bindCommentForm();
+    bindStatusDirty();
     watchDetail();
     setTimeout(bindCommentForm, 1500);
+    setTimeout(bindStatusDirty, 1500);
   }
 
   document.addEventListener('DOMContentLoaded', function () {
@@ -267,5 +335,10 @@
   });
   if (document.readyState !== 'loading') setTimeout(boot, 500);
 
-  window.DR_TICKET_PLUS = { slaInfo: slaInfo, refresh: onDetailChange, loadAgents: loadAgents };
+  window.DR_TICKET_PLUS = {
+    slaInfo: slaInfo,
+    refresh: onDetailChange,
+    loadAgents: loadAgents,
+    clearStatusDirty: function () { statusDirty = false; }
+  };
 })();
