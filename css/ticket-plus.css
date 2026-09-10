@@ -1,0 +1,124 @@
+/* Ticket plus: internal notes, attachments, assign, SLA */
+
+.checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.85rem;
+  color: var(--text-muted, #9494ae);
+  cursor: pointer;
+  user-select: none;
+}
+.checkbox-label input { accent-color: var(--primary, #8b7cf7); }
+
+.comment-card.is-internal,
+.comment-item.is-internal {
+  border-left: 3px solid #fbbf24 !important;
+  background: rgba(251, 191, 36, 0.08) !important;
+}
+.internal-tag {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.15);
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  margin-left: 0.35rem;
+}
+
+.attach-panel {
+  margin: 1rem 0;
+  padding: 1rem 1.1rem;
+  background: var(--surface, #15151f);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+}
+.attach-panel h4 {
+  margin: 0 0 0.65rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-muted, #9494ae);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.attach-list { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 0.75rem; }
+.attach-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0.7rem;
+  background: var(--surface-2, #1c1c2a);
+  border-radius: 8px;
+  font-size: 0.88rem;
+}
+.attach-row a { color: var(--accent, #c4b5fd); text-decoration: none; font-weight: 600; }
+.attach-row a:hover { text-decoration: underline; }
+.attach-upload {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+.attach-upload input[type="file"] {
+  font-size: 0.82rem;
+  color: var(--text-muted, #9494ae);
+  max-width: 100%;
+}
+
+.agent-actions {
+  margin: 1rem 0 1.25rem;
+  padding: 1rem 1.1rem;
+  background: var(--surface, #15151f);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+}
+.agent-actions .three-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 0.75rem;
+  align-items: end;
+}
+@media (max-width: 800px) {
+  .agent-actions .three-col { grid-template-columns: 1fr; }
+}
+
+.sla-chip, .meta-chip.sla-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.sla-ok { background: rgba(52,211,153,0.12); color: #6ee7b7; }
+.sla-soon { background: rgba(251,191,36,0.15); color: #fbbf24; }
+.sla-overdue { background: rgba(248,113,113,0.15); color: #fca5a5; }
+
+.badge-sla-overdue, .badge-sla-soon {
+  font-size: 0.68rem !important;
+  font-weight: 700 !important;
+  padding: 0.18rem 0.5rem !important;
+  border-radius: 999px !important;
+}
+.badge-sla-overdue { background: rgba(248,113,113,0.2) !important; color: #fca5a5 !important; }
+.badge-sla-soon { background: rgba(251,191,36,0.2) !important; color: #fbbf24 !important; }
+
+.sla-countdown {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+html[data-theme="light"] .attach-panel,
+html[data-theme="light"] .agent-actions {
+  background: #fff;
+  border-color: #d8dae8;
+}
+html[data-theme="light"] .comment-card.is-internal,
+html[data-theme="light"] .comment-item.is-internal {
+  background: rgba(251, 191, 36, 0.12) !important;
+}
