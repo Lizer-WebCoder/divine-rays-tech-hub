@@ -5,7 +5,7 @@
 (function () {
   'use strict';
   var CH = 'dr-staff-presence', FAB = 'dr-staff-fab', PN = 'dr-staff-panel', CT = 'dr-chat-panel';
-  var channel = null, me = null, people = [], online = {}, active = null, msgCh = null;
+  var channel = null, me = null, people = [], online = {}, active = null, msgCh = null, unreadBySender = {};
 
   function sb() { try { return window.DR && DR.sb && DR.sb(); } catch (e) { return null; } }
   function toast(m, t) { if (window.DR && DR.toast) DR.toast(m, t); }
@@ -27,7 +27,7 @@
       '#'+FAB+':hover{transform:scale(1.06)}',
       '#'+FAB+' svg{width:22px;height:22px;fill:currentColor}',
       '#'+FAB+' .b{position:absolute;top:-2px;right:-2px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#34d399;color:#0a1f16;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid #0c0c12}',
-      '#'+FAB+' .b.m{background:#f472b6;color:#1a0a14;top:auto;bottom:-2px}',
+      '#'+FAB+' .b.m{background:#ef4444!important;color:#fff!important;border-color:#0c0c12;top:auto;bottom:-2px}',
       '#'+PN+'-bd,#'+CT+'-bd{position:fixed;inset:0;z-index:12010;background:rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:opacity .18s}',
       '#'+PN+'-bd.open,#'+CT+'-bd.open{opacity:1;pointer-events:auto}',
       '#'+PN+'{position:fixed;right:1.15rem;bottom:5rem;z-index:12020;width:min(360px,calc(100vw - 2rem));max-height:min(480px,72vh);background:var(--surface,#1a1a24);border:1px solid rgba(124,106,240,.28);border-radius:14px;box-shadow:0 16px 48px rgba(0,0,0,.5);display:flex;flex-direction:column;overflow:hidden;opacity:0;transform:translateY(12px) scale(.96);pointer-events:none;transition:opacity .18s,transform .18s}',
@@ -42,13 +42,14 @@
       '#'+PN+' .row:hover{background:rgba(124,106,240,.1)}',
       '#'+PN+' .av{width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;background:linear-gradient(135deg,#7c6af0,#a78bfa);color:#fff;display:grid;place-items:center;font-size:.75rem;font-weight:700}',
       '#'+PN+' .meta{min-width:0;flex:1}',
-      '#'+PN+' .nm{font-size:.84rem;font-weight:600;color:var(--text,#f0f0f8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+      '#'+PN+' .nm{font-size:.84rem;font-weight:600;color:var(--text,#f0f0f8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:.35rem}',
       '#'+PN+' .rl{font-size:.66rem;color:#8b8ba3;text-transform:capitalize}',
       '#'+PN+' .st{font-size:.62rem;font-weight:700;text-transform:uppercase;padding:.18rem .4rem;border-radius:6px}',
       '#'+PN+' .st.on{background:rgba(52,211,153,.15);color:#34d399}',
       '#'+PN+' .st.off{background:rgba(148,148,174,.12);color:#9494ae}',
       '#'+PN+' .em{font-size:.8rem;color:#8b8ba3;padding:.45rem;text-align:center}',
       '#'+PN+' .ft{padding:.4rem .85rem;border-top:1px solid rgba(255,255,255,.06);font-size:.62rem;color:#8b8ba3;text-align:center}',
+      '#'+PN+' .ub{min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#ef4444;color:#fff;font-size:10px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 0 2px rgba(15,15,25,.4)}',
       '#'+CT+'{position:fixed;right:1.15rem;bottom:5rem;z-index:12030;width:min(380px,calc(100vw - 2rem));height:min(460px,70vh);background:var(--surface,#1a1a24);border:1px solid rgba(124,106,240,.3);border-radius:14px;box-shadow:0 16px 48px rgba(0,0,0,.55);display:none;flex-direction:column;overflow:hidden}',
       '#'+CT+'.open{display:flex}',
       '#'+CT+' .hd{display:flex;align-items:center;gap:.55rem;padding:.7rem .85rem;border-bottom:1px solid rgba(255,255,255,.06)}',
@@ -105,7 +106,7 @@
     }
   }
 
-  function openP() { ui(); closeC(); document.getElementById(PN+'-bd').classList.add('open'); document.getElementById(PN).classList.add('open'); render(); refresh().then(render); }
+  function openP() { ui(); closeC(); document.getElementById(PN+'-bd').classList.add('open'); document.getElementById(PN).classList.add('open'); render(); refresh().then(function(){ return unread(); }).then(render); }
   function closeP() { var a = document.getElementById(PN+'-bd'), b = document.getElementById(PN); if (a) a.classList.remove('open'); if (b) b.classList.remove('open'); }
   function tog() { var p = document.getElementById(PN); if (p && p.classList.contains('open')) closeP(); else openP(); }
   function on(id) { return !!(online[id]); }
@@ -128,13 +129,15 @@
       var row = { id: id, full_name: m.name || 'User', role: r, avatar_url: m.avatar_url || null };
       if (r === 'agent' || r === 'admin') staff.push(row); else users.push(row);
     });
-    function sort(a) { a.sort(function (x, y) { var xo = on(x.id) ? 0 : 1, yo = on(y.id) ? 0 : 1; return xo !== yo ? xo - yo : String(x.full_name || '').localeCompare(String(y.full_name || '')); }); }
+    function sort(a) { a.sort(function (x, y) { var xu = unreadBySender[x.id] || 0, yu = unreadBySender[y.id] || 0; if (xu !== yu) return yu - xu; var xo = on(x.id) ? 0 : 1, yo = on(y.id) ? 0 : 1; return xo !== yo ? xo - yo : String(x.full_name || '').localeCompare(String(y.full_name || '')); }); }
     sort(staff); sort(users);
     function rows(list) {
       if (!list.length) return '<div class="em">None</div>';
       return list.map(function (p) {
         var o = on(p.id);
-        return '<button type="button" class="row" data-id="'+esc(p.id)+'">'+av(p)+'<div class="meta"><div class="nm">'+esc(p.full_name||p.username||'User')+'</div><div class="rl">'+esc((p.role||'user'))+' · Message</div></div><span class="st '+(o?'on':'off')+'">'+(o?'Online':'Offline')+'</span></button>';
+        var n = unreadBySender[p.id] || 0;
+        var badge = n > 0 ? '<span class="ub" title="'+n+' unread">'+(n > 99 ? '99+' : n)+'</span>' : '';
+        return '<button type="button" class="row" data-id="'+esc(p.id)+'">'+av(p)+'<div class="meta"><div class="nm">'+esc(p.full_name||p.username||'User')+badge+'</div><div class="rl">'+esc((p.role||'user'))+' · Message</div></div><span class="st '+(o?'on':'off')+'">'+(o?'Online':'Offline')+'</span></button>';
       }).join('');
     }
     var html = '<div class="sec"><div class="lb">Staff · '+staff.length+'</div>'+rows(staff)+'</div>';
@@ -245,6 +248,7 @@
       }
       draw(r.data || []);
       try { await c.from('messages').update({ read_at: new Date().toISOString() }).eq('recipient_id', my).eq('sender_id', oid).is('read_at', null); } catch (e) {}
+      if (oid) unreadBySender[oid] = 0;
       unread();
     } catch (e) {
       document.getElementById('dr-ch-msgs').innerHTML = '<div class="hn">Could not load messages.</div>';
@@ -293,10 +297,30 @@
   async function unread() {
     var c = sb(), my = getMe() && getMe().id; if (!c || !my) return;
     try {
-      var r = await c.from('messages').select('id', { count: 'exact', head: true }).eq('recipient_id', my).is('read_at', null);
-      var n = r.count || 0;
+      var r = await c.from('messages')
+        .select('id,sender_id')
+        .eq('recipient_id', my)
+        .is('read_at', null)
+        .limit(500);
+      var map = {};
+      var total = 0;
+      (r.data || []).forEach(function (row) {
+        if (!row.sender_id) return;
+        map[row.sender_id] = (map[row.sender_id] || 0) + 1;
+        total++;
+      });
+      unreadBySender = map;
       var b = document.getElementById('dr-fab-msg-count');
-      if (b) { if (n > 0) { b.style.display = 'flex'; b.textContent = String(n > 9 ? '9+' : n); } else b.style.display = 'none'; }
+      if (b) {
+        if (total > 0) {
+          b.style.display = 'flex';
+          b.textContent = String(total > 99 ? '99+' : total);
+        } else {
+          b.style.display = 'none';
+        }
+      }
+      var p = document.getElementById(PN);
+      if (p && p.classList.contains('open')) render();
     } catch (e) {}
   }
 
@@ -314,7 +338,7 @@
   else setTimeout(boot, 800);
   setTimeout(boot, 2000); setTimeout(boot, 5000);
   setInterval(function () {
-    if (show()) { var f = document.getElementById(FAB); if (f) f.style.display = 'flex'; if (!channel) start(); }
+    if (show()) { var f = document.getElementById(FAB); if (f) f.style.display = 'flex'; if (!channel) start(); unread(); }
     else { var f2 = document.getElementById(FAB); if (f2) f2.style.display = 'none'; closeP(); closeC(); }
   }, 4000);
 
