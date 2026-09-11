@@ -21,55 +21,37 @@
       'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + PIN + '/index.html'
     ];
     var ver = '8.0.3';
-
     function loadScript(src) {
       return new Promise(function (resolve) {
         var s = document.createElement('script');
-        s.src = src;
-        s.async = false;
+        s.src = src; s.async = false;
         s.onload = function () { resolve(src); };
         s.onerror = function () { console.warn('script fail', src); resolve(src); };
         document.body.appendChild(s);
       });
     }
     function loadCss(href) {
-      var l = document.createElement('link');
-      l.rel = 'stylesheet';
-      l.href = href;
-      document.head.appendChild(l);
+      var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = href; document.head.appendChild(l);
     }
     function switchLoginTab(tab) {
       tab = tab === 'agent' ? 'agent' : 'customer';
-      document.querySelectorAll('.ltab').forEach(function (b) {
-        b.classList.toggle('active', b.getAttribute('data-ltab') === tab);
-      });
-      document.querySelectorAll('form.login-form').forEach(function (f) {
-        f.classList.remove('active');
-      });
+      document.querySelectorAll('.ltab').forEach(function (b) { b.classList.toggle('active', b.getAttribute('data-ltab') === tab); });
+      document.querySelectorAll('form.login-form').forEach(function (f) { f.classList.remove('active'); });
       var f = document.getElementById(tab === 'agent' ? 'login-agent' : 'login-customer');
       if (f) f.classList.add('active');
     }
     function showForm(id) {
       document.querySelectorAll('form.login-form').forEach(function (f) { f.classList.remove('active'); });
-      var f = document.getElementById(id);
-      if (f) f.classList.add('active');
+      var f = document.getElementById(id); if (f) f.classList.add('active');
       var tab = (id || '').indexOf('agent') !== -1 ? 'agent' : 'customer';
-      document.querySelectorAll('.ltab').forEach(function (b) {
-        b.classList.toggle('active', b.getAttribute('data-ltab') === tab);
-      });
+      document.querySelectorAll('.ltab').forEach(function (b) { b.classList.toggle('active', b.getAttribute('data-ltab') === tab); });
     }
-    window.switchLoginTab = switchLoginTab;
-    window.showForm = showForm;
-
+    window.switchLoginTab = switchLoginTab; window.showForm = showForm;
     function wireTabs() {
       document.querySelectorAll('.ltab').forEach(function (btn) {
-        btn.onclick = function (e) {
-          e.preventDefault();
-          switchLoginTab(btn.getAttribute('data-ltab'));
-        };
+        btn.onclick = function (e) { e.preventDefault(); switchLoginTab(btn.getAttribute('data-ltab')); };
       });
     }
-
     try {
       var html = null;
       for (var i = 0; i < urls.length; i++) {
@@ -79,10 +61,8 @@
         } catch (e) {}
       }
       if (!html) throw new Error('Could not load app shell');
-
       var parser = new DOMParser();
       var doc = parser.parseFromString(html, 'text/html');
-
       doc.querySelectorAll('link[rel="stylesheet"]').forEach(function (link) {
         var href = link.getAttribute('href') || '';
         if (!href) return;
@@ -92,27 +72,19 @@
         }
         loadCss(href);
       });
-
       doc.querySelectorAll('head style').forEach(function (st) {
-        var n = document.createElement('style');
-        n.textContent = st.textContent;
-        document.head.appendChild(n);
+        var n = document.createElement('style'); n.textContent = st.textContent; document.head.appendChild(n);
       });
-
       var bodyHtml = '';
       Array.prototype.forEach.call(doc.body.childNodes, function (node) {
         if (node.nodeName === 'SCRIPT') return;
         if (node.nodeType === 1) bodyHtml += node.outerHTML;
         else if (node.nodeType === 3) bodyHtml += node.textContent;
       });
-      bodyHtml = bodyHtml.replace(/>v7\.[0-9.]+</g, '>v' + ver + '<').replace(/>v7\.[0-9.]+\s*</g, '>v' + ver + '<');
-      bodyHtml = bodyHtml.replace(/v7\.6\.7/g, 'v' + ver);
+      bodyHtml = bodyHtml.replace(/>v7\.[0-9.]+</g, '>v' + ver + '<').replace(/v7\.6\.7/g, 'v' + ver);
       document.body.innerHTML = bodyHtml;
       document.querySelectorAll('.version').forEach(function (el) { el.textContent = 'v' + ver; });
       wireTabs();
-      window.switchLoginTab = switchLoginTab;
-      window.showForm = showForm;
-
       var scriptSrcs = [];
       doc.querySelectorAll('script[src]').forEach(function (sc) {
         var src = (sc.getAttribute('src') || '').replace(/\?v=[^&"]+/g, '?v=' + ver);
@@ -129,7 +101,6 @@
         }
       });
       for (var j = 0; j < scriptSrcs.length; j++) await loadScript(scriptSrcs[j]);
-
       var OVERLAY_SHA = 'a2897de681305e165f83f8da20bf3aafa201008e';
       var JS_SHA = '8c7414ba0de46bb365414df630f20f6e6481369c';
       loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + OVERLAY_SHA + '/css/v8-overlay.css?v=' + ver);
@@ -137,7 +108,7 @@
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + JS_SHA + '/js/filters.js?v=' + ver);
       var STATUS_SHA = '1e6520dca83cccafdc0f0d7d031f3bf6cde80c82';
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + STATUS_SHA + '/js/status-card.js?v=' + ver);
-      var PRESENCE_SHA = '3bf1293083e877fe7edc9c37f58b73a9381526a8';
+      var PRESENCE_SHA = 'ee8e28322862e1f4624da41b8d46e017d0303079';
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PRESENCE_SHA + '/js/staff-presence.js?v=' + ver);
       var AVATAR_SHA = '7671a3fa3bdb1e3a3ab9e6a79a124661a0bdbf9e';
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + AVATAR_SHA + '/js/avatar-fix.js?v=' + ver);
@@ -148,7 +119,6 @@
         if (!window.DRStaffPresence) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + PRESENCE_SHA + '/js/staff-presence.js?v=' + ver);
         if (!window.DRAvatarFix) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + AVATAR_SHA + '/js/avatar-fix.js?v=' + ver);
       }, 600);
-
       function applyV8Once() {
         document.querySelectorAll('.version').forEach(function (el) {
           if (el.textContent.indexOf('8.0.3') === -1) el.textContent = 'v' + ver;
@@ -156,9 +126,7 @@
         var info = document.querySelector('.mode-bar .user-info') || document.querySelector('.user-info');
         if (info && !document.getElementById('btn-theme')) {
           var b = document.createElement('button');
-          b.type = 'button';
-          b.id = 'btn-theme';
-          b.className = 'btn btn-ghost btn-sm btn-theme';
+          b.type = 'button'; b.id = 'btn-theme'; b.className = 'btn btn-ghost btn-sm btn-theme';
           var cur0 = document.documentElement.getAttribute('data-theme') || 'dark';
           try { cur0 = localStorage.getItem('dr_theme') || cur0; } catch (e) {}
           document.documentElement.setAttribute('data-theme', cur0);
@@ -172,27 +140,16 @@
           });
           info.insertBefore(b, info.firstChild);
         }
-        if (window.DRTheme && window.DRTheme.ensure) {
-          try { window.DRTheme.ensure(); } catch (e) {}
-        }
-        if (window.DRStatusCard && window.DRStatusCard.refresh) {
-          try { window.DRStatusCard.refresh(); } catch (e) {}
-        }
-        if (window.DRStaffPresence && window.DRStaffPresence.refresh) {
-          try { window.DRStaffPresence.refresh(); } catch (e) {}
-        }
-        if (window.DRAvatarFix && window.DRAvatarFix.sync) {
-          try { window.DRAvatarFix.sync(); } catch (e) {}
-        }
+        if (window.DRTheme && window.DRTheme.ensure) try { window.DRTheme.ensure(); } catch (e) {}
+        if (window.DRStatusCard && window.DRStatusCard.refresh) try { window.DRStatusCard.refresh(); } catch (e) {}
+        if (window.DRStaffPresence && window.DRStaffPresence.refresh) try { window.DRStaffPresence.refresh(); } catch (e) {}
+        if (window.DRAvatarFix && window.DRAvatarFix.sync) try { window.DRAvatarFix.sync(); } catch (e) {}
       }
       applyV8Once();
       setTimeout(applyV8Once, 500);
       setTimeout(applyV8Once, 2000);
       setTimeout(applyV8Once, 5000);
-
-      window.switchLoginTab = switchLoginTab;
-      window.showForm = showForm;
-      wireTabs();
+      window.switchLoginTab = switchLoginTab; window.showForm = showForm; wireTabs();
     } catch (err) {
       console.error(err);
       if (document.getElementById('boot')) document.getElementById('boot').textContent = 'Load error: ' + (err.message || err);
