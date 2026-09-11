@@ -105,7 +105,10 @@
         if (node.nodeType === 1) bodyHtml += node.outerHTML;
         else if (node.nodeType === 3) bodyHtml += node.textContent;
       });
+      bodyHtml = bodyHtml.replace(/>v7\.[0-9.]+</g, '>v' + ver + '<').replace(/>v7\.[0-9.]+\s*</g, '>v' + ver + '<');
+      bodyHtml = bodyHtml.replace(/v7\.6\.7/g, 'v' + ver);
       document.body.innerHTML = bodyHtml;
+      document.querySelectorAll('.version').forEach(function (el) { el.textContent = 'v' + ver; });
       wireTabs();
       window.switchLoginTab = switchLoginTab;
       window.showForm = showForm;
@@ -136,11 +139,14 @@
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + STATUS_SHA + '/js/status-card.js?v=' + ver);
       var PRESENCE_SHA = '89e97df26b46f2dfebcf1633f4c414e0e775094e';
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PRESENCE_SHA + '/js/staff-presence.js?v=' + ver);
+      var AVATAR_SHA = '7671a3fa3bdb1e3a3ab9e6a79a124661a0bdbf9e';
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + AVATAR_SHA + '/js/avatar-fix.js?v=' + ver);
       setTimeout(function () {
         if (!window.DRTheme) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + JS_SHA + '/js/theme.js?v=' + ver);
         if (!window.DRClearFilters) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + JS_SHA + '/js/filters.js?v=' + ver);
         if (!window.DRStatusCard) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + STATUS_SHA + '/js/status-card.js?v=' + ver);
         if (!window.DRStaffPresence) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + PRESENCE_SHA + '/js/staff-presence.js?v=' + ver);
+        if (!window.DRAvatarFix) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + AVATAR_SHA + '/js/avatar-fix.js?v=' + ver);
       }, 600);
 
       function applyV8Once() {
@@ -174,6 +180,9 @@
         }
         if (window.DRStaffPresence && window.DRStaffPresence.refresh) {
           try { window.DRStaffPresence.refresh(); } catch (e) {}
+        }
+        if (window.DRAvatarFix && window.DRAvatarFix.sync) {
+          try { window.DRAvatarFix.sync(); } catch (e) {}
         }
       }
       applyV8Once();
