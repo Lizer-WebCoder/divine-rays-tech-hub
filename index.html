@@ -134,10 +134,13 @@
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + JS_SHA + '/js/filters.js?v=' + ver);
       var STATUS_SHA = '711c2672bc10239115696a27ca26eb319a4e1c46';
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + STATUS_SHA + '/js/status-card.js?v=' + ver);
+      var PRESENCE_SHA = '89e97df26b46f2dfebcf1633f4c414e0e775094e';
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PRESENCE_SHA + '/js/staff-presence.js?v=' + ver);
       setTimeout(function () {
         if (!window.DRTheme) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + JS_SHA + '/js/theme.js?v=' + ver);
         if (!window.DRClearFilters) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + JS_SHA + '/js/filters.js?v=' + ver);
         if (!window.DRStatusCard) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + STATUS_SHA + '/js/status-card.js?v=' + ver);
+        if (!window.DRStaffPresence) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + PRESENCE_SHA + '/js/staff-presence.js?v=' + ver);
       }, 600);
 
       function applyV8Once() {
@@ -168,6 +171,9 @@
         }
         if (window.DRStatusCard && window.DRStatusCard.refresh) {
           try { window.DRStatusCard.refresh(); } catch (e) {}
+        }
+        if (window.DRStaffPresence && window.DRStaffPresence.refresh) {
+          try { window.DRStaffPresence.refresh(); } catch (e) {}
         }
       }
       applyV8Once();
