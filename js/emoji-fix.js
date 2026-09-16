@@ -45,7 +45,10 @@
       'html[data-theme="dark"] #dr-emoji-pop.dr-ms{background:#242526}',
       'html[data-theme="dark"] #dr-emoji-pop.dr-ms .ep-hd,html[data-theme="dark"] #dr-emoji-pop.dr-ms .ep-slots,html[data-theme="dark"] #dr-emoji-pop.dr-ms .ep-ft{background:#3a3b3c;border-color:#4e4f50}',
       'html[data-theme="dark"] #dr-emoji-pop.dr-ms .ep-hd span{color:#b0b3b8}',
-      'html[data-theme="dark"] #dr-emoji-pop.dr-ms .ep-g button:hover{background:rgba(255,255,255,.08)}'
+      'html[data-theme="dark"] #dr-emoji-pop.dr-ms .ep-g button:hover{background:rgba(255,255,255,.08)}',
+      '#dr-chat-panel .mm-menu{min-width:0!important;width:max-content!important;padding:4px!important;border-radius:10px!important;box-shadow:0 8px 24px rgba(0,0,0,.45)!important;white-space:nowrap!important}',
+      '#dr-chat-panel .mm-menu button{font-size:12px!important;line-height:1.2!important;padding:6px 10px!important;border-radius:6px!important;font-weight:500!important;white-space:nowrap!important;font-family:inherit!important}',
+      '#dr-chat-panel .mm-menu button.danger{color:#f87171!important}'
     ].join('');
     document.head.appendChild(s);
   }
@@ -186,10 +189,18 @@
     }
   }
 
+  function compactMenus() {
+    document.querySelectorAll('#dr-chat-panel .mm-menu button').forEach(function (b) {
+      var t = (b.textContent || '').trim();
+      if (t === 'Delete for everyone') b.textContent = 'Delete for all';
+      else if (t === 'Customize reacts') b.textContent = 'Reactions';
+    });
+  }
   function boot() {
     wire();
     setTimeout(wire, 1000);
     setTimeout(wire, 3000);
+    setInterval(compactMenus, 800);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
