@@ -10,7 +10,7 @@
 
   var STYLE = [
     '.attach-panel{margin:1rem 0;padding:1rem 1.15rem;border-radius:12px;border:1px solid var(--border,#2e2e42);background:var(--surface,#1a1a24)}',
-    '.attach-panel h4{margin:0 0 .65rem;font-size:.95rem;color:var(--text,#eeeef6)}',
+    '.attach-panel h4{margin:0 0 .35rem;font-size:.95rem;color:var(--text,#eeeef6)}',
     '.attach-list{display:flex;flex-direction:column;gap:.45rem;margin-bottom:.75rem}',
     '.attach-row{display:flex;align-items:center;justify-content:space-between;gap:.75rem;padding:.45rem .65rem;border-radius:8px;background:rgba(0,0,0,.2);border:1px solid var(--border,#2e2e42);font-size:.88rem}',
     '.attach-row a{color:#a78bfa;text-decoration:none;word-break:break-all}',
@@ -40,7 +40,11 @@
     console.log('[attach]', m);
   }
   function esc(s) {
-    return String(s || '').replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>').replace(/"/g, '"');
+    return String(s || '')
+      .replace(/&/g, '&')
+      .replace(/</g, '<')
+      .replace(/>/g, '>')
+      .replace(/"/g, '"');
   }
 
   var currentId = null;
@@ -55,6 +59,7 @@
     panel.className = 'attach-panel';
     panel.innerHTML =
       '<h4>Attachments</h4>' +
+      '<p class="kb-sub" style="margin:0 0 .5rem">Upload screenshots, PDFs, or logs (max 10 MB)</p>' +
       '<div class="attach-list" id="attach-list"><span class="kb-sub">No files yet</span></div>' +
       '<div class="attach-upload">' +
       '<input type="file" id="attach-file" accept="image/*,.pdf,.txt,.log,.zip,application/pdf" />' +
@@ -79,7 +84,7 @@
         .eq('ticket_id', ticketId)
         .order('created_at', { ascending: false });
       if (r.error) {
-        list.innerHTML = '<span class="kb-sub">Run CSAT + Attachments SQL in Supabase</span>';
+        list.innerHTML = '<span class="kb-sub">Run ticket SQL in Supabase (ticket_attachments)</span>';
         return;
       }
       var rows = r.data || [];
@@ -125,7 +130,7 @@
     toast('Uploading…', 'info');
     var up = await client.storage.from('ticket-files').upload(path, file, { cacheControl: '3600', upsert: false });
     if (up.error) {
-      toast(up.error.message || 'Upload failed — create ticket-files bucket + run SQL', 'error');
+      toast(up.error.message || 'Upload failed — check ticket-files bucket', 'error');
       return;
     }
     var ins = await client.from('ticket_attachments').insert({
@@ -166,12 +171,16 @@
 
   async function syncAgent() {
     var detail = document.getElementById('ticket-detail');
+    var view = document.getElementById('view-detail');
     if (!detail) return;
-    var host = document.getElementById('view-detail') || detail.parentNode;
+    if (!(detail.textContent || '').trim()) return;
+    var host = view || detail.parentNode;
     var comments = (host && host.querySelector('.comments-section')) || detail.querySelector('.comments-section');
     ensurePanel(host || detail, comments);
     var id = await resolveTicketIdFromDom(detail);
     if (id) load(id);
+    var btn = document.getElementById('btn-attach-upload');
+    if (btn) btn.onclick = upload;
   }
 
   async function syncCustomer() {
@@ -182,6 +191,8 @@
     ensurePanel(host || detail, comments);
     var id = await resolveTicketIdFromDom(detail);
     if (id) load(id);
+    var btn = document.getElementById('btn-attach-upload');
+    if (btn) btn.onclick = upload;
   }
 
   function tick() {
