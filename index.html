@@ -112,7 +112,7 @@
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PRESENCE_SHA + '/js/staff-presence.js?v=' + ver);
       var AVATAR_SHA = '7671a3fa3bdb1e3a3ab9e6a79a124661a0bdbf9e';
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + AVATAR_SHA + '/js/avatar-fix.js?v=' + ver);
-      var EMOJI_SHA = '1e9f0fc229b2ca7eaafb573b206a5147f5d436d3';
+      var EMOJI_SHA = 'bee9a6f3d92615ad62861c5b9bbe9e2e52803092';
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + EMOJI_SHA + '/js/emoji-fix.js?v=' + ver);
       setTimeout(function () {
         if (!window.DRTheme) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + JS_SHA + '/js/theme.js?v=' + ver);
@@ -147,6 +147,19 @@
         if (window.DRStatusCard && window.DRStatusCard.refresh) try { window.DRStatusCard.refresh(); } catch (e) {}
         if (window.DRStaffPresence && window.DRStaffPresence.refresh) try { window.DRStaffPresence.refresh(); } catch (e) {}
         if (window.DRAvatarFix && window.DRAvatarFix.sync) try { window.DRAvatarFix.sync(); } catch (e) {}
+        /* Force full width every time */
+        try {
+          var m = document.querySelector('main.main') || document.querySelector('.main');
+          if (m) {
+            m.style.maxWidth = 'none';
+            m.style.width = '100%';
+            m.style.marginLeft = '0';
+            m.style.marginRight = '0';
+            m.style.flex = '1 1 auto';
+          }
+          var p = document.getElementById('portal-agent');
+          if (p) { p.style.width = '100%'; p.style.maxWidth = 'none'; }
+        } catch (e) {}
       }
       applyV8Once();
       setTimeout(applyV8Once, 500);
