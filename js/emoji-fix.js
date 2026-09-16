@@ -53,17 +53,17 @@
       '#dr-chat-panel .mr{max-width:100%!important}',
       '#dr-chat-panel .mr .col{max-width:min(320px,88%)!important}',
       '#dr-chat-panel .bb{min-width:48px;max-width:100%;padding:8px 12px!important;font-size:14px!important;line-height:1.35!important;word-break:normal;overflow-wrap:break-word;white-space:pre-wrap}',
-      'html,body{width:100%!important;max-width:100%!important;overflow-x:hidden}',
+      'html,body{width:100%!important;max-width:100%!important;overflow-x:hidden!important}',
       '.app-shell{width:100%!important;max-width:none!important}',
       '.mode-bar{position:fixed!important;top:0!important;left:0!important;right:0!important;z-index:200!important;height:49px!important}',
-      '#portal-agent.active{display:block!important;width:100%!important;max-width:none!important;padding-top:49px!important;min-height:100vh!important}',
+      '#portal-agent.active{display:block!important;width:100%!important;max-width:none!important;padding-top:49px!important;padding-left:260px!important;min-height:100vh!important;box-sizing:border-box!important}',
       '.sidebar{position:fixed!important;top:49px!important;left:0!important;width:260px!important;height:calc(100vh - 49px)!important;overflow-y:auto!important;z-index:150!important}',
-      'main.main,.main{margin-left:260px!important;width:calc(100% - 260px)!important;max-width:none!important;padding:0 1.75rem 2.5rem!important;box-sizing:border-box!important;flex:none!important}',
-      '.main > *,.main .view,.main .view.active{width:100%!important;max-width:none!important;box-sizing:border-box}',
+      'main.main,.main{margin:0!important;margin-left:0!important;width:100%!important;max-width:none!important;padding:0 1.75rem 2.5rem!important;box-sizing:border-box!important;flex:none!important;position:relative!important;left:0!important}',
+      '.main > *,.main .view,.main .view.active,.main .stats,.main .stats-section{width:100%!important;max-width:none!important;box-sizing:border-box}',
       '.main table,.main .tickets-list,.main .ticket-list,.main .kb-list,.main .data-table{width:100%!important;max-width:none!important}',
       '#search-input{max-width:none!important;flex:1 1 auto!important}',
       '.main .topbar,.main .filters,.main .toolbar{width:100%!important;max-width:none!important}',
-      '@media (max-width:800px){.sidebar{position:relative!important;top:auto!important;width:100%!important;height:auto!important}main.main,.main{margin-left:0!important;width:100%!important}#portal-agent.active{padding-top:0!important;display:flex!important;flex-direction:column!important}}'
+      '@media (max-width:800px){.sidebar{position:relative!important;top:auto!important;width:100%!important;height:auto!important}main.main,.main{margin-left:0!important;width:100%!important}#portal-agent.active{padding-top:0!important;padding-left:0!important;display:flex!important;flex-direction:column!important}}'
     ].join('');
     document.head.appendChild(s);
   }
