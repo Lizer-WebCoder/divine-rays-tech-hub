@@ -22,6 +22,10 @@
       '#portal-agent.active main.main, #portal-agent.active .main, main.main, .main{display:block!important;position:relative!important;margin:0 0 0 260px!important;margin-left:260px!important;left:0!important;right:0!important;width:auto!important;max-width:none!important;min-width:0!important;padding:0.5rem 1.5rem 2rem!important;box-sizing:border-box!important;flex:none!important;transform:none!important}',
       '#portal-agent.active .main .view, #portal-agent.active .main .view.active, .main .stats, .main .stats-section, .main .tickets-list, .main table{width:100%!important;max-width:none!important;box-sizing:border-box!important}',
       '#search-input{max-width:none!important;flex:1 1 auto!important}',
+      '.kb-panel,.kb-manage,#view-kb,.main .kb-panel,.main .kb-manage{max-width:none!important;width:100%!important}',
+      '.kb-manage table,.kb-panel table,.main table{width:100%!important;table-layout:auto}',
+      '.kb-toolbar{width:100%!important}',
+      '.kb-manage-head{width:100%!important}',
       '@media (max-width:800px){',
       '#portal-agent.active{padding:0!important;display:flex!important;flex-direction:column!important}',
       '#portal-agent.active .sidebar,#portal-agent .sidebar{position:relative!important;top:auto!important;width:100%!important;max-width:none!important;height:auto!important}',
@@ -65,6 +69,10 @@
       m.style.setProperty('position', 'relative', 'important');
       m.style.setProperty('transform', 'none', 'important');
     }
+    document.querySelectorAll('.kb-panel, .kb-manage').forEach(function (el) {
+      el.style.setProperty('max-width', 'none', 'important');
+      el.style.setProperty('width', '100%', 'important');
+    });
   }
 
   inject();
