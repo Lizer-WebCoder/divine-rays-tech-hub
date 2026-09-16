@@ -25,21 +25,22 @@
     var s = document.createElement('style');
     s.id = 'dr-emoji-fix-css';
     s.textContent = [
-      '#dr-emoji-pop.dr-ms{display:none;position:absolute;bottom:calc(100% + 8px);left:.35rem;width:min(300px,calc(100% - .7rem));height:280px;background:#f0f2f5;border:none;border-radius:16px;box-shadow:0 8px 28px rgba(0,0,0,.35);z-index:50;flex-direction:column;overflow:hidden}',
+      '#dr-emoji-pop.dr-ms{display:none;position:absolute;bottom:calc(100% + 8px);left:.3rem;right:.3rem;width:auto;max-width:320px;height:290px;background:#f0f2f5;border:none;border-radius:16px;box-shadow:0 8px 28px rgba(0,0,0,.35);z-index:50;flex-direction:column;overflow:hidden;box-sizing:border-box}',
       '#dr-emoji-pop.dr-ms.open{display:flex!important}',
-      '#dr-emoji-pop.dr-ms .ep-hd{padding:10px 12px 6px;background:#fff;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #e4e6eb}',
+      '#dr-emoji-pop.dr-ms *{box-sizing:border-box}',
+      '#dr-emoji-pop.dr-ms .ep-hd{padding:10px 12px 6px;background:#fff;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #e4e6eb;flex-shrink:0}',
       '#dr-emoji-pop.dr-ms .ep-hd span{font-size:12px;font-weight:700;color:#65676b}',
       '#dr-emoji-pop.dr-ms .ep-hd button{background:0;border:0;font-size:18px;color:#65676b;cursor:pointer}',
-      '#dr-emoji-pop.dr-ms .ep-slots{display:flex;gap:6px;padding:8px 12px;background:#fff;border-bottom:1px solid #e4e6eb}',
-      '#dr-emoji-pop.dr-ms .ep-slots .sl{width:28px;height:28px;border-radius:50%;border:2px dashed #ccd0d5;display:grid;place-items:center;background:#f0f2f5;cursor:pointer;padding:0}',
+      '#dr-emoji-pop.dr-ms .ep-slots{display:flex;gap:6px;padding:8px 12px;background:#fff;border-bottom:1px solid #e4e6eb;flex-shrink:0}',
+      '#dr-emoji-pop.dr-ms .ep-slots .sl{width:28px;height:28px;border-radius:50%;border:2px dashed #ccd0d5;display:grid;place-items:center;background:#f0f2f5;cursor:pointer;padding:0;overflow:hidden}',
       '#dr-emoji-pop.dr-ms .ep-slots .sl.on{border-style:solid;border-color:#0866ff}',
       '#dr-emoji-pop.dr-ms .ep-slots img{width:20px;height:20px}',
-      '#dr-emoji-pop.dr-ms .ep-bd{flex:1;overflow-y:auto;padding:8px}',
-      '#dr-emoji-pop.dr-ms .ep-g{display:grid;grid-template-columns:repeat(8,1fr);gap:2px}',
-      '#dr-emoji-pop.dr-ms .ep-g button{background:0;border:0;border-radius:8px;cursor:pointer;padding:4px;display:grid;place-items:center}',
+      '#dr-emoji-pop.dr-ms .ep-bd{flex:1;overflow-x:hidden;overflow-y:auto;padding:6px 8px;min-height:0}',
+      '#dr-emoji-pop.dr-ms .ep-g{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:2px;width:100%}',
+      '#dr-emoji-pop.dr-ms .ep-g button{background:0;border:0;border-radius:8px;cursor:pointer;padding:3px;display:grid;place-items:center;width:100%;aspect-ratio:1;min-width:0}',
       '#dr-emoji-pop.dr-ms .ep-g button:hover{background:rgba(0,0,0,.06)}',
-      '#dr-emoji-pop.dr-ms .ep-g img{width:28px;height:28px;display:block;pointer-events:none}',
-      '#dr-emoji-pop.dr-ms .ep-ft{padding:8px 12px;background:#fff;border-top:1px solid #e4e6eb}',
+      '#dr-emoji-pop.dr-ms .ep-g img{width:26px;height:26px;max-width:100%;display:block;pointer-events:none}',
+      '#dr-emoji-pop.dr-ms .ep-ft{padding:8px 12px;background:#fff;border-top:1px solid #e4e6eb;flex-shrink:0}',
       '#dr-emoji-pop.dr-ms .ep-ft button{width:100%;background:#0866ff;color:#fff;border:0;border-radius:8px;padding:8px;font-weight:700;font-size:13px;cursor:pointer}',
       'html[data-theme="dark"] #dr-emoji-pop.dr-ms{background:#242526}',
       'html[data-theme="dark"] #dr-emoji-pop.dr-ms .ep-hd,html[data-theme="dark"] #dr-emoji-pop.dr-ms .ep-slots,html[data-theme="dark"] #dr-emoji-pop.dr-ms .ep-ft{background:#3a3b3c;border-color:#4e4f50}',
@@ -109,6 +110,34 @@
         setReacts(f);
         if (window.DR && DR.toast) DR.toast('Reactions updated', 'success');
         pop.classList.remove('open');
+        try {
+          document.querySelectorAll('#dr-ch-msgs .react-pop').forEach(function (rp) {
+            var mid = '';
+            var wrap = rp.parentElement;
+            var btn = wrap && wrap.querySelector('.react-btn');
+            if (btn) mid = btn.getAttribute('data-mid') || '';
+            rp.innerHTML = f.map(function (em) {
+              return '<button type="button" data-quick="' + em + '" data-mid="' + mid + '">' + em + '</button>';
+            }).join('');
+            rp.querySelectorAll('button[data-quick]').forEach(function (b) {
+              b.onclick = function (ev) {
+                ev.preventDefault();
+                ev.stopPropagation();
+                try {
+                  var key = 'dr_react_' + b.getAttribute('data-mid');
+                  var map = JSON.parse(localStorage.getItem(key) || '{}') || {};
+                  var em2 = b.getAttribute('data-quick');
+                  var list = Array.isArray(map[em2]) ? map[em2].slice() : [];
+                  var me = (window.DR && DR.getProfile && DR.getProfile() && DR.getProfile().id) || 'me';
+                  var ix = list.indexOf(me);
+                  if (ix >= 0) list.splice(ix, 1); else list.push(me);
+                  if (list.length) map[em2] = list; else delete map[em2];
+                  localStorage.setItem(key, JSON.stringify(map));
+                } catch (ex) {}
+              };
+            });
+          });
+        } catch (ex) {}
       };
     }
   }
@@ -132,25 +161,29 @@
     pop.classList.add('open');
   }
 
+  function onDocClick(e) {
+    var t = e.target;
+    if (!t) return;
+    if (t.getAttribute && t.getAttribute('data-act') === 'cfg-react') {
+      e.preventDefault();
+      e.stopPropagation();
+      openPicker('react-pick');
+    }
+  }
+  var docWired = false;
   function wire() {
     var btn = document.getElementById('dr-ch-emoji');
-    if (btn && !btn.dataset.msWired) {
-      btn.dataset.msWired = '1';
+    if (btn) {
       btn.onclick = function (e) {
         e.preventDefault();
         e.stopPropagation();
         openPicker('insert');
       };
     }
-    document.addEventListener('click', function (e) {
-      var t = e.target;
-      if (!t) return;
-      if (t.getAttribute && t.getAttribute('data-act') === 'cfg-react') {
-        e.preventDefault();
-        e.stopPropagation();
-        openPicker('react-pick');
-      }
-    }, true);
+    if (!docWired) {
+      docWired = true;
+      document.addEventListener('click', onDocClick, true);
+    }
   }
 
   function boot() {
