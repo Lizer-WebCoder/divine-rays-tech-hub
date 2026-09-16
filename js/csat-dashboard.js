@@ -1,5 +1,5 @@
 /**
- * Divine Rays — CSAT on agent dashboard
+ * Divine Rays — CSAT on agent cards + dashboard
  * Credit: Lizzz · All Rights Reserved
  */
 (function () {
@@ -13,9 +13,13 @@
     '#csat-dash-card .csat-big{font-size:1.75rem;font-weight:700;color:#c4b5fd;line-height:1.1}',
     '#csat-dash-card .csat-stars-row{letter-spacing:2px;color:#a78bfa;font-size:1.1rem;margin:.25rem 0}',
     '#csat-dash-card .csat-meta{font-size:.78rem;color:#9494ae}',
-    '#csat-agent-list{margin-top:.75rem;display:flex;flex-direction:column;gap:.4rem}',
-    '#csat-agent-list .csat-agent-row{display:flex;justify-content:space-between;align-items:center;padding:.4rem .65rem;border-radius:8px;background:rgba(0,0,0,.2);border:1px solid #2e2e42;font-size:.85rem}',
-    '#csat-agent-list .csat-agent-row .stars{color:#a78bfa;letter-spacing:1px}'
+    '.team-stat.csat-stat .team-stat-num{color:#c4b5fd;font-size:1rem;letter-spacing:1px}',
+    '.team-stat.csat-stat .team-stat-label{color:#a78bfa}',
+    '.team-card .csat-inline{margin-top:.55rem;padding-top:.5rem;border-top:1px solid rgba(46,46,66,.8);display:flex;align-items:center;justify-content:space-between;gap:.5rem}',
+    '.team-card .csat-inline .stars{color:#a78bfa;letter-spacing:1px;font-size:.95rem}',
+    '.team-card .csat-inline .csat-avg{font-weight:700;color:#c4b5fd;font-size:.95rem}',
+    '.team-card .csat-inline .csat-n{font-size:.75rem;color:#9494ae}',
+    '#csat-agent-list{display:none!important}'
   ].join('');
 
   function css() {
@@ -44,7 +48,6 @@
     if (card) return card;
     var dash = document.getElementById('view-dashboard');
     if (!dash) return null;
-
     var meSection = null;
     dash.querySelectorAll('.stats-section').forEach(function (sec) {
       var h = sec.querySelector('.stats-heading');
@@ -52,7 +55,6 @@
     });
     var stats = (meSection && meSection.querySelector('.stats')) || dash.querySelector('.stats');
     if (!stats) return null;
-
     card = document.createElement('div');
     card.id = 'csat-dash-card';
     card.className = 'stat-card';
@@ -62,90 +64,118 @@
       '<div class="csat-stars-row" id="csat-avg-stars">☆☆☆☆☆</div>' +
       '<div class="csat-meta" id="csat-avg-meta">No ratings yet</div>';
     stats.appendChild(card);
-
-    var team = document.getElementById('agent-perf-list');
-    if (team && !document.getElementById('csat-agent-list')) {
-      var wrap = document.createElement('div');
-      wrap.id = 'csat-agent-list';
-      wrap.innerHTML = '<div class="kb-sub" style="margin-bottom:.35rem">CSAT by agent (from assigned tickets)</div>';
-      team.parentNode.insertBefore(wrap, team.nextSibling);
-    }
     return card;
+  }
+
+  var cache = { byId: {}, byName: {}, avg: 0, n: 0, ts: 0 };
+
+  async function fetchCsat() {
+    var client = sb();
+    if (!client) return cache;
+    if (Date.now() - cache.ts < 5000 && cache.n >= 0) return cache;
+    try {
+      var r = await client.from('tickets')
+        .select('csat_score,assigned_to')
+        .not('csat_score', 'is', null);
+      if (r.error) return cache;
+      var rows = r.data || [];
+      var sum = 0;
+      var byId = {};
+      rows.forEach(function (t) {
+        var sc = Number(t.csat_score) || 0;
+        sum += sc;
+        var aid = t.assigned_to;
+        if (!aid) return;
+        if (!byId[aid]) byId[aid] = { sum: 0, n: 0 };
+        byId[aid].sum += sc;
+        byId[aid].n++;
+      });
+      var names = {};
+      var ids = Object.keys(byId);
+      if (ids.length) {
+        try {
+          var pr = await client.from('profiles')
+            .select('id,full_name,display_name,email,username')
+            .in('id', ids);
+          (pr.data || []).forEach(function (p) {
+            names[p.id] = p.full_name || p.display_name || p.username || p.email || '';
+          });
+        } catch (e) {}
+      }
+      var byName = {};
+      ids.forEach(function (id) {
+        var av = byId[id].sum / byId[id].n;
+        var entry = { avg: av, n: byId[id].n, id: id };
+        byId[id] = entry;
+        var nm = (names[id] || '').trim().toLowerCase();
+        if (nm) byName[nm] = entry;
+        var first = nm.split(/\s+/)[0];
+        if (first) byName[first] = entry;
+      });
+      cache = {
+        byId: byId,
+        byName: byName,
+        avg: rows.length ? sum / rows.length : 0,
+        n: rows.length,
+        ts: Date.now()
+      };
+    } catch (e) {
+      console.warn('[csat-dash]', e);
+    }
+    return cache;
+  }
+
+  function injectIntoTeamCards(data) {
+    var cards = document.querySelectorAll('.team-card');
+    if (!cards.length) return;
+    cards.forEach(function (card) {
+      if (card.querySelector('.csat-inline')) return;
+      var nameEl = card.querySelector('.team-card-name');
+      if (!nameEl) return;
+      var raw = (nameEl.childNodes[0] && nameEl.childNodes[0].textContent) || nameEl.textContent || '';
+      raw = raw.replace(/\s*(YOU|ADMIN|AGENT)\s*/gi, '').trim().toLowerCase();
+      var entry = data.byName[raw] || data.byName[raw.split(/\s+/)[0]];
+      if (!entry) {
+        Object.keys(data.byName).forEach(function (k) {
+          if (entry) return;
+          if (raw.indexOf(k) !== -1 || k.indexOf(raw) !== -1) entry = data.byName[k];
+        });
+      }
+      var stats = card.querySelector('.team-card-stats');
+      var box = document.createElement('div');
+      box.className = 'csat-inline';
+      if (entry && entry.n) {
+        box.innerHTML =
+          '<span class="stars">' + starsStr(entry.avg) + '</span>' +
+          '<span><span class="csat-avg">' + entry.avg.toFixed(1) + '</span> ' +
+          '<span class="csat-n">(' + entry.n + ')</span></span>';
+      } else {
+        box.innerHTML = '<span class="stars">☆☆☆☆☆</span><span class="csat-n">No ratings</span>';
+      }
+      if (stats) stats.parentNode.appendChild(box);
+      else card.appendChild(box);
+    });
   }
 
   async function load() {
     ensureCard();
-    var client = sb();
-    if (!client) return;
-
-    try {
-      var r = await client.from('tickets')
-        .select('csat_score,csat_comment,csat_at,assigned_to,status')
-        .not('csat_score', 'is', null);
-      var rows = r.data || [];
-      if (r.error) {
-        var el = document.getElementById('csat-avg-meta');
-        if (el) el.textContent = 'Run csat.sql in Supabase';
-        return;
-      }
-
-      var sum = 0;
-      rows.forEach(function (t) { sum += Number(t.csat_score) || 0; });
-      var avg = rows.length ? (sum / rows.length) : 0;
-      var num = document.getElementById('csat-avg-num');
-      var st = document.getElementById('csat-avg-stars');
-      var meta = document.getElementById('csat-avg-meta');
-      if (num) num.textContent = rows.length ? avg.toFixed(1) : '—';
-      if (st) st.textContent = rows.length ? starsStr(avg) : '☆☆☆☆☆';
-      if (meta) meta.textContent = rows.length ? (rows.length + ' rating' + (rows.length === 1 ? '' : 's')) : 'No ratings yet';
-
-      var byAgent = {};
-      rows.forEach(function (t) {
-        var aid = t.assigned_to;
-        if (!aid) return;
-        if (!byAgent[aid]) byAgent[aid] = { sum: 0, n: 0 };
-        byAgent[aid].sum += Number(t.csat_score) || 0;
-        byAgent[aid].n++;
-      });
-      var ids = Object.keys(byAgent);
-      var list = document.getElementById('csat-agent-list');
-      if (!list) return;
-      if (!ids.length) {
-        list.innerHTML = '<div class="kb-sub">CSAT by agent — assign tickets then get ratings to see this</div>';
-        return;
-      }
-
-      var names = {};
-      try {
-        var pr = await client.from('profiles').select('id,full_name,display_name,email').in('id', ids);
-        (pr.data || []).forEach(function (p) {
-          names[p.id] = p.full_name || p.display_name || p.email || p.id.slice(0, 8);
-        });
-      } catch (e) {}
-
-      var html = '<div class="kb-sub" style="margin-bottom:.35rem">CSAT by agent</div>';
-      ids.sort(function (a, b) {
-        return (byAgent[b].sum / byAgent[b].n) - (byAgent[a].sum / byAgent[a].n);
-      });
-      ids.forEach(function (id) {
-        var a = byAgent[id];
-        var av = a.sum / a.n;
-        html += '<div class="csat-agent-row"><span>' + (names[id] || id.slice(0, 8)) +
-          '</span><span class="stars">' + starsStr(av) + ' ' + av.toFixed(1) +
-          ' <span class="kb-sub">(' + a.n + ')</span></span></div>';
-      });
-      list.innerHTML = html;
-    } catch (e) {
-      console.warn('[csat-dash]', e);
-    }
+    var data = await fetchCsat();
+    var num = document.getElementById('csat-avg-num');
+    var st = document.getElementById('csat-avg-stars');
+    var meta = document.getElementById('csat-avg-meta');
+    if (num) num.textContent = data.n ? data.avg.toFixed(1) : '—';
+    if (st) st.textContent = data.n ? starsStr(data.avg) : '☆☆☆☆☆';
+    if (meta) meta.textContent = data.n ? (data.n + ' rating' + (data.n === 1 ? '' : 's')) : 'No ratings yet';
+    injectIntoTeamCards(data);
   }
 
   function tick() {
     if (document.getElementById('view-dashboard')) load();
   }
 
-  setInterval(tick, 8000);
-  setTimeout(tick, 1200);
-  setTimeout(tick, 3500);
+  setInterval(tick, 2500);
+  setTimeout(tick, 1000);
+  setTimeout(tick, 3000);
+  setTimeout(tick, 6000);
   window.DRCsatDash = { refresh: load };
 })();
