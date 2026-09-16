@@ -52,7 +52,15 @@
       '#dr-chat-panel{width:min(420px,calc(100vw - 2rem))!important}',
       '#dr-chat-panel .mr{max-width:100%!important}',
       '#dr-chat-panel .mr .col{max-width:min(320px,88%)!important}',
-      '#dr-chat-panel .bb{min-width:48px;max-width:100%;padding:8px 12px!important;font-size:14px!important;line-height:1.35!important;word-break:normal;overflow-wrap:break-word;white-space:pre-wrap}'
+      '#dr-chat-panel .bb{min-width:48px;max-width:100%;padding:8px 12px!important;font-size:14px!important;line-height:1.35!important;word-break:normal;overflow-wrap:break-word;white-space:pre-wrap}',
+      'html,body{width:100%!important;max-width:100%!important;overflow-x:hidden}',
+      '.app-shell{width:100%!important;max-width:none!important}',
+      '#portal-agent,#portal-agent.active{width:100%!important;max-width:none!important;display:flex!important}',
+      'main.main,.main{flex:1 1 auto!important;width:100%!important;max-width:none!important;margin-left:0!important;margin-right:0!important;padding-left:1.5rem!important;padding-right:1.5rem!important;box-sizing:border-box!important}',
+      '.main > *,.main .view,.main .view.active{width:100%!important;max-width:none!important;box-sizing:border-box}',
+      '.main table,.main .tickets-list,.main .ticket-list,.main .kb-list,.main .data-table{width:100%!important;max-width:none!important}',
+      '#search-input{max-width:none!important;flex:1 1 auto!important}',
+      '.main .topbar,.main .filters,.main .toolbar{width:100%!important;max-width:none!important}'
     ].join('');
     document.head.appendChild(s);
   }
@@ -201,6 +209,7 @@
     });
   }
   function boot() {
+    css();
     wire();
     setTimeout(wire, 1000);
     setTimeout(wire, 3000);
