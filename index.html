@@ -95,7 +95,7 @@
           scriptSrcs.push(src);
         }
       });
-      ['js/email-notify.js','js/ticket-plus.js','js/ticket-plus-fix.js','js/status-lock.js','js/csat.js','js/polish-fixes.js','js/saved-views.js'].forEach(function (base) {
+      ['js/email-notify.js','js/ticket-plus.js','js/ticket-plus-fix.js','js/status-lock.js','js/polish-fixes.js','js/saved-views.js'].forEach(function (base) {
         if (!scriptSrcs.some(function (s) { return s.indexOf(base) !== -1; })) {
           scriptSrcs.push('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PIN + '/' + base + '?v=' + ver);
         }
@@ -116,6 +116,10 @@
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + EMOJI_SHA + '/js/emoji-fix.js?v=' + ver);
       var LAYOUT_SHA = '16673767ee0e503ee086d1e35002ac476de22db3';
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LAYOUT_SHA + '/js/layout-fix.js?v=' + ver);
+      var CSAT_SHA = '49062e232bcd560ed8e409f70e7c109d2eb9ae94';
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + CSAT_SHA + '/js/csat.js?v=' + ver);
+      var ATTACH_SHA = 'ed9b204faa3986a548bad9445e0db5619d156494';
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + ATTACH_SHA + '/js/attach-enhance.js?v=' + ver);
       setTimeout(function () {
         if (!window.DRTheme) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + JS_SHA + '/js/theme.js?v=' + ver);
         if (!window.DRClearFilters) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + JS_SHA + '/js/filters.js?v=' + ver);
@@ -124,6 +128,8 @@
         if (!window.DRAvatarFix) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + AVATAR_SHA + '/js/avatar-fix.js?v=' + ver);
         if (!window.DREmojiFix) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + EMOJI_SHA + '/js/emoji-fix.js?v=' + ver);
         if (!window.DRLayoutFix) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + LAYOUT_SHA + '/js/layout-fix.js?v=' + ver);
+        if (!window.DRCsat) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + CSAT_SHA + '/js/csat.js?v=' + ver);
+        if (!window.DRAttach) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + ATTACH_SHA + '/js/attach-enhance.js?v=' + ver);
       }, 600);
       function applyV8Once() {
         document.querySelectorAll('.version').forEach(function (el) {
