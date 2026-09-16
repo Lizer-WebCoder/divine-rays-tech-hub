@@ -48,7 +48,11 @@
       'html[data-theme="dark"] #dr-emoji-pop.dr-ms .ep-g button:hover{background:rgba(255,255,255,.08)}',
       '#dr-chat-panel .mm-menu{min-width:0!important;width:max-content!important;padding:4px!important;border-radius:10px!important;box-shadow:0 8px 24px rgba(0,0,0,.45)!important;white-space:nowrap!important}',
       '#dr-chat-panel .mm-menu button{font-size:12px!important;line-height:1.2!important;padding:6px 10px!important;border-radius:6px!important;font-weight:500!important;white-space:nowrap!important;font-family:inherit!important}',
-      '#dr-chat-panel .mm-menu button.danger{color:#f87171!important}'
+      '#dr-chat-panel .mm-menu button.danger{color:#f87171!important}',
+      '#dr-chat-panel{width:min(420px,calc(100vw - 2rem))!important}',
+      '#dr-chat-panel .mr{max-width:100%!important}',
+      '#dr-chat-panel .mr .col{max-width:min(320px,88%)!important}',
+      '#dr-chat-panel .bb{min-width:48px;max-width:100%;padding:8px 12px!important;font-size:14px!important;line-height:1.35!important;word-break:normal;overflow-wrap:break-word;white-space:pre-wrap}'
     ].join('');
     document.head.appendChild(s);
   }
