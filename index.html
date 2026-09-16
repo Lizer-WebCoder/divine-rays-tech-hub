@@ -101,7 +101,7 @@
         }
       });
       for (var j = 0; j < scriptSrcs.length; j++) await loadScript(scriptSrcs[j]);
-      var OVERLAY_SHA = 'bdfec511b29fdf22afa27c140449170439f7acd6';
+      var OVERLAY_SHA = 'bfc0354abecfecc3850e89df0bff025f18dc40b5';
       var JS_SHA = '8c7414ba0de46bb365414df630f20f6e6481369c';
       loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + OVERLAY_SHA + '/css/v8-overlay.css?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + JS_SHA + '/js/theme.js?v=' + ver);
@@ -147,18 +147,40 @@
         if (window.DRStatusCard && window.DRStatusCard.refresh) try { window.DRStatusCard.refresh(); } catch (e) {}
         if (window.DRStaffPresence && window.DRStaffPresence.refresh) try { window.DRStaffPresence.refresh(); } catch (e) {}
         if (window.DRAvatarFix && window.DRAvatarFix.sync) try { window.DRAvatarFix.sync(); } catch (e) {}
-        /* Force full width every time */
+        /* Fixed sidebar + full-width main */
         try {
+          var side = document.querySelector('.sidebar');
           var m = document.querySelector('main.main') || document.querySelector('.main');
+          var p = document.getElementById('portal-agent');
+          var bar = document.querySelector('.mode-bar');
+          if (bar) {
+            bar.style.position = 'fixed';
+            bar.style.top = '0';
+            bar.style.left = '0';
+            bar.style.right = '0';
+            bar.style.zIndex = '200';
+          }
+          if (side) {
+            side.style.position = 'fixed';
+            side.style.top = '49px';
+            side.style.left = '0';
+            side.style.width = '260px';
+            side.style.height = 'calc(100vh - 49px)';
+            side.style.overflowY = 'auto';
+            side.style.zIndex = '150';
+          }
           if (m) {
             m.style.maxWidth = 'none';
-            m.style.width = '100%';
-            m.style.marginLeft = '0';
+            m.style.width = 'calc(100% - 260px)';
+            m.style.marginLeft = '260px';
             m.style.marginRight = '0';
-            m.style.flex = '1 1 auto';
           }
-          var p = document.getElementById('portal-agent');
-          if (p) { p.style.width = '100%'; p.style.maxWidth = 'none'; }
+          if (p) {
+            p.style.width = '100%';
+            p.style.maxWidth = 'none';
+            p.style.display = 'block';
+            p.style.paddingTop = '49px';
+          }
         } catch (e) {}
       }
       applyV8Once();
