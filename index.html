@@ -124,6 +124,8 @@
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + CSAT_DASH_SHA + '/js/csat-dashboard.js?v=' + ver);
       var LIST_SHA = '875b2f5b1c8293bb219943429c01020f28114d5b';
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LIST_SHA + '/js/ticket-list-fix.js?v=' + ver);
+      var LIVE_SHA = 'a07e0dc0d12313babb83361df4eceba5f2fcef0e';
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LIVE_SHA + '/js/comments-live.js?v=' + ver);
       setTimeout(function () {
         if (!window.DRTheme) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + JS_SHA + '/js/theme.js?v=' + ver);
         if (!window.DRClearFilters) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + JS_SHA + '/js/filters.js?v=' + ver);
@@ -136,6 +138,7 @@
         if (!window.DRAttach) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + ATTACH_SHA + '/js/attach-enhance.js?v=' + ver);
         if (!window.DRCsatDash) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + CSAT_DASH_SHA + '/js/csat-dashboard.js?v=' + ver);
         if (!window.DRTicketListFix) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + LIST_SHA + '/js/ticket-list-fix.js?v=' + ver);
+        if (!window.DRCommentsLive) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + LIVE_SHA + '/js/comments-live.js?v=' + ver);
       }, 600);
       function applyV8Once() {
         document.querySelectorAll('.version').forEach(function (el) {
