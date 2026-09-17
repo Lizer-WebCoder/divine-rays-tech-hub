@@ -1,5 +1,5 @@
 /**
- * Divine Rays — CSAT on agent cards + dashboard
+ * Divine Rays — CSAT on agent cards + dashboard (accurate attribution)
  * Credit: Lizzz · All Rights Reserved
  */
 (function () {
@@ -13,12 +13,12 @@
     '#csat-dash-card .csat-big{font-size:1.75rem;font-weight:700;color:#c4b5fd;line-height:1.1}',
     '#csat-dash-card .csat-stars-row{letter-spacing:2px;color:#a78bfa;font-size:1.1rem;margin:.25rem 0}',
     '#csat-dash-card .csat-meta{font-size:.78rem;color:#9494ae}',
-    '.team-stat.csat-stat .team-stat-num{color:#c4b5fd;font-size:1rem;letter-spacing:1px}',
-    '.team-stat.csat-stat .team-stat-label{color:#a78bfa}',
     '.team-card .csat-inline{margin-top:.55rem;padding-top:.5rem;border-top:1px solid rgba(46,46,66,.8);display:flex;align-items:center;justify-content:space-between;gap:.5rem}',
     '.team-card .csat-inline .stars{color:#a78bfa;letter-spacing:1px;font-size:.95rem}',
     '.team-card .csat-inline .csat-avg{font-weight:700;color:#c4b5fd;font-size:.95rem}',
     '.team-card .csat-inline .csat-n{font-size:.75rem;color:#9494ae}',
+    'html[data-theme="light"] .team-card .csat-inline{border-top-color:rgba(0,0,0,.08)}',
+    'html[data-theme="light"] .team-card .csat-inline .stars,html[data-theme="light"] .team-card .csat-inline .csat-avg{color:#7c6af0}',
     '#csat-agent-list{display:none!important}'
   ].join('');
 
@@ -37,6 +37,8 @@
 
   function starsStr(n) {
     n = Math.round(Number(n) || 0);
+    if (n < 0) n = 0;
+    if (n > 5) n = 5;
     var s = '';
     for (var i = 1; i <= 5; i++) s += i <= n ? '★' : '☆';
     return s;
@@ -67,29 +69,44 @@
     return card;
   }
 
-  var cache = { byId: {}, byName: {}, avg: 0, n: 0, ts: 0 };
+  var cache = { byId: {}, byName: {}, avg: 0, n: 0, unassigned: null, ts: 0 };
+
+  function agentIdOf(t) {
+    return t.assigned_to || t.assignee_id || t.claimed_by || t.agent_id || null;
+  }
 
   async function fetchCsat() {
     var client = sb();
     if (!client) return cache;
-    if (Date.now() - cache.ts < 5000 && cache.n >= 0) return cache;
+    if (Date.now() - cache.ts < 4000 && cache.n >= 0) return cache;
     try {
       var r = await client.from('tickets')
-        .select('csat_score,assigned_to')
+        .select('csat_score,assigned_to,assignee_id,claimed_by')
         .not('csat_score', 'is', null);
+      if (r.error) {
+        r = await client.from('tickets')
+          .select('csat_score,assigned_to')
+          .not('csat_score', 'is', null);
+      }
       if (r.error) return cache;
       var rows = r.data || [];
       var sum = 0;
       var byId = {};
+      var unSum = 0, unN = 0;
       rows.forEach(function (t) {
         var sc = Number(t.csat_score) || 0;
         sum += sc;
-        var aid = t.assigned_to;
-        if (!aid) return;
+        var aid = agentIdOf(t);
+        if (!aid) {
+          unSum += sc;
+          unN++;
+          return;
+        }
         if (!byId[aid]) byId[aid] = { sum: 0, n: 0 };
         byId[aid].sum += sc;
         byId[aid].n++;
       });
+
       var names = {};
       var ids = Object.keys(byId);
       if (ids.length) {
@@ -102,21 +119,41 @@
           });
         } catch (e) {}
       }
+
+      var me = null;
+      try {
+        if (window.DR && window.DR.getProfile) me = window.DR.getProfile();
+      } catch (e) {}
+      if (!me) me = window.__drProfile || null;
+
       var byName = {};
       ids.forEach(function (id) {
         var av = byId[id].sum / byId[id].n;
         var entry = { avg: av, n: byId[id].n, id: id };
         byId[id] = entry;
         var nm = (names[id] || '').trim().toLowerCase();
-        if (nm) byName[nm] = entry;
-        var first = nm.split(/\s+/)[0];
-        if (first) byName[first] = entry;
+        if (nm) {
+          byName[nm] = entry;
+          var first = nm.split(/\s+/)[0];
+          if (first) byName[first] = entry;
+        }
       });
+
+      if (me && me.id && byId[me.id]) {
+        var mn = (me.full_name || me.name || me.display_name || me.username || '').trim().toLowerCase();
+        if (mn) {
+          byName[mn] = byId[me.id];
+          byName[mn.split(/\s+/)[0]] = byId[me.id];
+        }
+      }
+
       cache = {
         byId: byId,
         byName: byName,
         avg: rows.length ? sum / rows.length : 0,
         n: rows.length,
+        unassigned: unN ? { avg: unSum / unN, n: unN } : null,
+        meId: me && me.id,
         ts: Date.now()
       };
     } catch (e) {
@@ -128,19 +165,44 @@
   function injectIntoTeamCards(data) {
     var cards = document.querySelectorAll('.team-card');
     if (!cards.length) return;
+    var onlyOne = cards.length === 1;
+
     cards.forEach(function (card) {
-      if (card.querySelector('.csat-inline')) return;
+      var old = card.querySelector('.csat-inline');
+      if (old) old.remove();
+
       var nameEl = card.querySelector('.team-card-name');
       if (!nameEl) return;
-      var raw = (nameEl.childNodes[0] && nameEl.childNodes[0].textContent) || nameEl.textContent || '';
+      var raw = '';
+      for (var i = 0; i < nameEl.childNodes.length; i++) {
+        if (nameEl.childNodes[i].nodeType === 3) {
+          raw += nameEl.childNodes[i].textContent;
+        }
+      }
+      if (!raw.trim()) raw = nameEl.textContent || '';
       raw = raw.replace(/\s*(YOU|ADMIN|AGENT)\s*/gi, '').trim().toLowerCase();
-      var entry = data.byName[raw] || data.byName[raw.split(/\s+/)[0]];
+
+      var entry = data.byName[raw] || data.byName[raw.split(/\s+/)[0]] || null;
       if (!entry) {
         Object.keys(data.byName).forEach(function (k) {
           if (entry) return;
-          if (raw.indexOf(k) !== -1 || k.indexOf(raw) !== -1) entry = data.byName[k];
+          if (raw && (raw.indexOf(k) !== -1 || k.indexOf(raw) !== -1)) entry = data.byName[k];
         });
       }
+
+      var isYou = card.classList.contains('is-you');
+      if (!entry && isYou && data.meId && data.byId[data.meId]) {
+        entry = data.byId[data.meId];
+      }
+
+      if (!entry && onlyOne && data.n > 0) {
+        entry = { avg: data.avg, n: data.n };
+      }
+
+      if (!entry && isYou && data.unassigned && data.unassigned.n && Object.keys(data.byId).length === 0) {
+        entry = data.unassigned;
+      }
+
       var stats = card.querySelector('.team-card-stats');
       var box = document.createElement('div');
       box.className = 'csat-inline';
@@ -174,8 +236,8 @@
   }
 
   setInterval(tick, 2500);
-  setTimeout(tick, 1000);
-  setTimeout(tick, 3000);
-  setTimeout(tick, 6000);
+  setTimeout(tick, 800);
+  setTimeout(tick, 2000);
+  setTimeout(tick, 5000);
   window.DRCsatDash = { refresh: load };
 })();
