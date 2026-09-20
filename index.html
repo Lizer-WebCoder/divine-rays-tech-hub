@@ -16,6 +16,7 @@
   <script>
   (async function () {
     var PIN = '830dac02096eb08be1b2dc22bdc191a14df91a04';
+    var STABLE = 'fe2be829d8cc69c749860dbfec23f5171d6a7713';
     var urls = [
       'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PIN + '/index.html',
       'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + PIN + '/index.html'
@@ -106,38 +107,23 @@
       loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + OVERLAY_SHA + '/css/v8-overlay.css?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + JS_SHA + '/js/theme.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + JS_SHA + '/js/filters.js?v=' + ver);
-      var STATUS_SHA = '1e6520dca83cccafdc0f0d7d031f3bf6cde80c82';
-      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + STATUS_SHA + '/js/status-card.js?v=' + ver);
-      var PRESENCE_SHA = 'af065832c121e643c6c7e6149a1f0367fdf94920';
-      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PRESENCE_SHA + '/js/staff-presence.js?v=' + ver);
-      var AVATAR_SHA = '7671a3fa3bdb1e3a3ab9e6a79a124661a0bdbf9e';
-      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + AVATAR_SHA + '/js/avatar-fix.js?v=' + ver);
-      var EMOJI_SHA = 'd7d5c09e5d5d6a6289292449d4e532854a3b0e1d';
-      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + EMOJI_SHA + '/js/emoji-fix.js?v=' + ver);
-      var LAYOUT_SHA = '708e78d48b10aaddd022f5403e7750d9ef47f6b8';
-      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LAYOUT_SHA + '/js/layout-fix.js?v=' + ver);
-      var CSAT_SHA = '49062e232bcd560ed8e409f70e7c109d2eb9ae94';
-      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + CSAT_SHA + '/js/csat.js?v=' + ver);
-      var ATTACH_SHA = '480052c8528bffa8e2bf3a0ac1ba0ef7ff1833a1';
-      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + ATTACH_SHA + '/js/attach-enhance.js?v=' + ver);
-      var CSAT_DASH_SHA = '7a09542332b8227930871a5a055162c570a3fdb7';
-      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + CSAT_DASH_SHA + '/js/csat-dashboard.js?v=' + ver);
-      var LIST_SHA = '875b2f5b1c8293bb219943429c01020f28114d5b';
-      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LIST_SHA + '/js/ticket-list-fix.js?v=' + ver);
-      var LIVE_SHA = 'a07e0dc0d12313babb83361df4eceba5f2fcef0e';
-      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LIVE_SHA + '/js/comments-live.js?v=' + ver);
-      var STABLE = '708e78d48b10aaddd022f5403e7750d9ef47f6b8';
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@1e6520dca83cccafdc0f0d7d031f3bf6cde80c82/js/status-card.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@af065832c121e643c6c7e6149a1f0367fdf94920/js/staff-presence.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@7671a3fa3bdb1e3a3ab9e6a79a124661a0bdbf9e/js/avatar-fix.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@d7d5c09e5d5d6a6289292449d4e532854a3b0e1d/js/emoji-fix.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + STABLE + '/js/layout-fix.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@49062e232bcd560ed8e409f70e7c109d2eb9ae94/js/csat.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@480052c8528bffa8e2bf3a0ac1ba0ef7ff1833a1/js/attach-enhance.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@7a09542332b8227930871a5a055162c570a3fdb7/js/csat-dashboard.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@875b2f5b1c8293bb219943429c01020f28114d5b/js/ticket-list-fix.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@a07e0dc0d12313babb83361df4eceba5f2fcef0e/js/comments-live.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + STABLE + '/js/customer-layout.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + STABLE + '/js/customer-ux.js?v=' + ver);
       setTimeout(function () {
-        if (!window.DRLayoutFix) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + LAYOUT_SHA + '/js/layout-fix.js?v=' + ver);
+        if (!window.DRLayoutFix) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + STABLE + '/js/layout-fix.js?v=' + ver);
         if (!window.DRCustLayout) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + STABLE + '/js/customer-layout.js?v=' + ver);
-      }, 400);
-      /* UX loaded after layout so tour guards see portals */
-      var UX_SHA = 'main';
-      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + STABLE + '/js/customer-ux.js?v=' + ver + '&t=' + Date.now());
-      setTimeout(function () {
         if (!window.DRCustomerUx) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + STABLE + '/js/customer-ux.js?v=' + ver);
-      }, 800);
+      }, 500);
       function applyV8Once() {
         document.querySelectorAll('.version').forEach(function (el) {
           if (el.textContent.indexOf('8.0.3') === -1) el.textContent = 'v' + ver;
