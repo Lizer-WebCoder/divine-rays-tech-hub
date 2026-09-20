@@ -1,8 +1,8 @@
 /**
  * Divine Rays — customer UX:
  * - Branch dropdown on profile
- * - Remove center "Edit profile"
- * - Floating notifications button above chat FAB
+ * - Remove center Edit profile + main notifications banner
+ * - Floating notifications button with Delete / Clear all
  * Credit: Lizzz · All Rights Reserved
  */
 (function () {
@@ -35,6 +35,7 @@
     '#btn-cust-profile{display:none!important}',
     '.customer-header a[href*="profile"],.customer-header .edit-profile-link{display:none!important}',
     '#notif-inline,#notifications-panel.inline,.mode-bar .notif-list,#header-notifications-list{display:none!important}',
+    '#cust-notifications,.cust-notifications,.notif-banner{display:none!important;visibility:hidden!important;height:0!important;overflow:hidden!important;margin:0!important;padding:0!important;border:none!important}',
     '#dr-notif-fab{position:fixed;right:1.15rem;bottom:5.1rem;z-index:12005;width:52px;height:52px;border-radius:50%;border:none;cursor:pointer;',
     'background:linear-gradient(135deg,#7c6af0,#9b8afb);color:#fff;box-shadow:0 8px 28px rgba(124,106,240,.45);',
     'display:flex;align-items:center;justify-content:center}',
@@ -56,7 +57,10 @@
     '#dr-notif-panel .row .t{font-size:.88rem;color:var(--text,#eeeef6);margin-bottom:.2rem}',
     '#dr-notif-panel .row .m{font-size:.75rem;color:#9898b0}',
     '#dr-notif-panel .empty{padding:1.25rem;text-align:center;color:#9898b0;font-size:.88rem}',
-    '#pf-branch{width:100%;padding:.55rem .7rem;border-radius:8px;border:1px solid var(--border,#2e2e42);background:var(--bg,#0c0c12);color:var(--text,#eeeef6)}'
+    '#pf-branch{width:100%;padding:.55rem .7rem;border-radius:8px;border:1px solid var(--border,#2e2e42);background:var(--bg,#0c0c12);color:var(--text,#eeeef6)}',
+    '#dr-notif-panel .row-foot{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-top:.35rem}',
+    '#dr-notif-panel .del-btn{background:transparent;border:1px solid rgba(239,68,68,.4);color:#f87171;border-radius:6px;padding:.2rem .55rem;font-size:.75rem;cursor:pointer}',
+    '#dr-notif-panel .del-btn:hover{background:rgba(239,68,68,.15)}'
   ].join('');
 
   function injectCss() {
@@ -73,6 +77,9 @@
     document.querySelectorAll('#portal-customer .customer-header button, #portal-customer .customer-header a').forEach(function (el) {
       var t = (el.textContent || '').trim().toLowerCase();
       if (t === 'edit profile') el.remove();
+    });
+    document.querySelectorAll('#cust-notifications, .cust-notifications, .notif-banner').forEach(function (el) {
+      el.remove();
     });
   }
 
@@ -247,13 +254,15 @@
             '<div class="row' + (n.read ? '' : ' unread') + '" data-id="' + esc(n.id) + '">' +
             '<div class="t">' + esc(title) + '</div>' +
             (msg ? '<div class="m">' + esc(msg) + '</div>' : '') +
-            '<div class="m">' + esc(when) + '</div></div>'
+            '<div class="row-foot"><span class="m">' + esc(when) + '</span>' +
+            '<button type="button" class="del-btn" data-del="' + esc(n.id) + '">Delete</button></div></div>'
           );
         })
         .join('');
 
       body.querySelectorAll('.row').forEach(function (row) {
-        row.onclick = async function () {
+        row.onclick = async function (ev) {
+          if (ev.target && ev.target.classList && ev.target.classList.contains('del-btn')) return;
           var id = row.getAttribute('data-id');
           if (!id) return;
           try {
@@ -263,6 +272,50 @@
           setBadge(body.querySelectorAll('.row.unread').length);
         };
       });
+      body.querySelectorAll('.del-btn').forEach(function (btn) {
+        btn.onclick = async function (ev) {
+          ev.stopPropagation();
+          var id = btn.getAttribute('data-del');
+          var row = btn.closest('.row');
+          if (!id) return;
+          try {
+            var del = await client.from('notifications').delete().eq('id', id);
+            if (del.error) {
+              await client.from('notifications').update({ read: true }).eq('id', id);
+            }
+          } catch (e) {}
+          if (row) row.remove();
+          setBadge(body.querySelectorAll('.row.unread').length);
+          if (!body.querySelector('.row')) {
+            body.innerHTML = '<div class="empty">No notifications yet</div>';
+            setBadge(0);
+          }
+        };
+      });
+      if (!document.getElementById('dr-notif-clear') && rows.length) {
+        var hd = document.querySelector('#dr-notif-panel .hd');
+        if (hd && !hd.querySelector('#dr-notif-clear')) {
+          var clr = document.createElement('button');
+          clr.type = 'button';
+          clr.id = 'dr-notif-clear';
+          clr.textContent = 'Clear all';
+          clr.style.cssText = 'background:0;border:0;color:#a78bfa;cursor:pointer;font-size:.8rem;margin-right:.5rem';
+          clr.onclick = async function () {
+            try {
+              await client.from('notifications').delete().eq('user_id', p.id);
+            } catch (e) {
+              try {
+                await client.from('notifications').update({ read: true }).eq('user_id', p.id);
+              } catch (e2) {}
+            }
+            body.innerHTML = '<div class="empty">No notifications yet</div>';
+            setBadge(0);
+          };
+          var close = document.getElementById('dr-notif-close');
+          if (close) hd.insertBefore(clr, close);
+          else hd.appendChild(clr);
+        }
+      }
     } catch (e) {
       body.innerHTML = '<div class="empty">Could not load notifications</div>';
     }
