@@ -1,0 +1,161 @@
+/* Divine Rays — light mode readability (black text, light inputs, readable tour)
+   Credit: Lizzz · All Rights Reserved */
+
+html[data-theme="light"] {
+  --bg: #f0f1f8 !important;
+  --surface: #ffffff !important;
+  --surface-2: #f7f8fc !important;
+  --text: #1a1a2e !important;
+  --text-muted: #4a4a66 !important;
+}
+
+html[data-theme="light"] .form-group input,
+html[data-theme="light"] .form-group select,
+html[data-theme="light"] .form-group textarea,
+html[data-theme="light"] #customer-form input,
+html[data-theme="light"] #customer-form select,
+html[data-theme="light"] #customer-form textarea,
+html[data-theme="light"] #portal-customer .ticket-form input,
+html[data-theme="light"] #portal-customer .ticket-form select,
+html[data-theme="light"] #portal-customer .ticket-form textarea,
+html[data-theme="light"] #c-priority,
+html[data-theme="light"] #c-category,
+html[data-theme="light"] #search-input,
+html[data-theme="light"] #filter-status,
+html[data-theme="light"] #filter-priority,
+html[data-theme="light"] #filter-sort,
+html[data-theme="light"] #attach-caption,
+html[data-theme="light"] .comment-form textarea,
+html[data-theme="light"] input[type="text"],
+html[data-theme="light"] input[type="search"],
+html[data-theme="light"] input[type="email"],
+html[data-theme="light"] input[type="password"],
+html[data-theme="light"] input[type="url"],
+html[data-theme="light"] input[type="tel"],
+html[data-theme="light"] select,
+html[data-theme="light"] textarea {
+  background: #eef0f7 !important;
+  background-color: #eef0f7 !important;
+  color: #1a1a2e !important;
+  border: 1px solid #c8cad8 !important;
+  caret-color: #1a1a2e !important;
+}
+
+html[data-theme="light"] .form-group input::placeholder,
+html[data-theme="light"] .form-group textarea::placeholder,
+html[data-theme="light"] #customer-form input::placeholder,
+html[data-theme="light"] #customer-form textarea::placeholder,
+html[data-theme="light"] textarea::placeholder,
+html[data-theme="light"] input::placeholder {
+  color: #6b6b86 !important;
+  opacity: 1 !important;
+}
+
+html[data-theme="light"] .form-group input:focus,
+html[data-theme="light"] .form-group select:focus,
+html[data-theme="light"] .form-group textarea:focus,
+html[data-theme="light"] #customer-form input:focus,
+html[data-theme="light"] #customer-form select:focus,
+html[data-theme="light"] #customer-form textarea:focus,
+html[data-theme="light"] select:focus,
+html[data-theme="light"] textarea:focus,
+html[data-theme="light"] input:focus {
+  background: #ffffff !important;
+  border-color: #6d5ef5 !important;
+  box-shadow: 0 0 0 3px rgba(109, 94, 245, 0.2) !important;
+  color: #1a1a2e !important;
+}
+
+html[data-theme="light"] .form-group label,
+html[data-theme="light"] #customer-form label,
+html[data-theme="light"] #portal-customer label,
+html[data-theme="light"] .kb-sub,
+html[data-theme="light"] .customer-header p,
+html[data-theme="light"] body,
+html[data-theme="light"] .ticket-form,
+html[data-theme="light"] .comment-body,
+html[data-theme="light"] .profile-dl-row dd,
+html[data-theme="light"] .profile-dl-row dt {
+  color: #1a1a2e !important;
+}
+
+html[data-theme="light"] .form-group label,
+html[data-theme="light"] #customer-form .form-group label {
+  color: #3d3d55 !important;
+  font-weight: 600 !important;
+}
+
+html[data-theme="light"] #dr-tour-card {
+  background: #ffffff !important;
+  border: 1px solid #d0d2e4 !important;
+  color: #1a1a2e !important;
+  box-shadow: 0 16px 48px rgba(30, 30, 60, 0.18) !important;
+}
+html[data-theme="light"] #dr-tour-card h3 {
+  color: #4c3fd4 !important;
+}
+html[data-theme="light"] #dr-tour-card p {
+  color: #2a2a40 !important;
+}
+html[data-theme="light"] #dr-tour-card .tour-step {
+  color: #5a5a78 !important;
+}
+html[data-theme="light"] #dr-tour-bd {
+  background: rgba(20, 20, 40, 0.35) !important;
+}
+html[data-theme="light"] #dr-tour-help {
+  background: #ffffff !important;
+  color: #4c3fd4 !important;
+  border: 1px solid #c4b5fd !important;
+  box-shadow: 0 4px 16px rgba(109, 94, 245, 0.15);
+}
+
+html[data-theme="light"] .dr-feature-card {
+  background: #ffffff !important;
+  border-color: #d8dae8 !important;
+}
+html[data-theme="light"] .dr-feature-card h4 {
+  color: #1a1a2e !important;
+}
+html[data-theme="light"] .dr-feature-card p {
+  color: #4a4a66 !important;
+}
+
+html[data-theme="light"] #portal-customer .customer-tabs {
+  background: #ffffff !important;
+  border-color: #d8dae8 !important;
+}
+html[data-theme="light"] #portal-customer .ctab {
+  color: #4a4a66 !important;
+}
+html[data-theme="light"] #portal-customer .ctab:hover {
+  color: #1a1a2e !important;
+  background: rgba(109, 94, 245, 0.08) !important;
+}
+
+html[data-theme="light"] #portal-customer .ticket-form,
+html[data-theme="light"] #customer-form.ticket-form {
+  background: #ffffff !important;
+  border-color: #d0d2e4 !important;
+}
+
+html[data-theme="light"] .comment,
+html[data-theme="light"] .comments-section,
+html[data-theme="light"] .attach-panel,
+html[data-theme="light"] .ticket-detail {
+  background: #ffffff !important;
+  color: #1a1a2e !important;
+  border-color: #d8dae8 !important;
+}
+html[data-theme="light"] .comment-body,
+html[data-theme="light"] .comment-header {
+  color: #1a1a2e !important;
+}
+html[data-theme="light"] .comment-header span {
+  color: #4a4a66 !important;
+}
+
+html[data-theme="light"] select option {
+  background: #ffffff;
+  color: #1a1a2e;
+}
