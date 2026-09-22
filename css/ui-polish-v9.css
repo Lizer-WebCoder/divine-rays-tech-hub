@@ -1,0 +1,314 @@
+/* Divine Rays — UI polish v9 (less empty, more depth)
+   Credit: Lizzz · All Rights Reserved */
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 15% -10%, rgba(124, 106, 240, 0.18), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 90% 10%, rgba(56, 189, 248, 0.08), transparent 50%),
+    radial-gradient(ellipse 50% 40% at 70% 100%, rgba(167, 139, 250, 0.07), transparent 50%);
+}
+.app-shell, #portal-customer, #portal-agent, .main, .customer-main {
+  position: relative;
+  z-index: 1;
+}
+
+#portal-customer .customer-header {
+  text-align: center;
+  margin: 0 auto 1.75rem;
+  max-width: 640px;
+  padding: 1.5rem 1rem 0.5rem;
+}
+#portal-customer .customer-header h1 {
+  font-size: clamp(1.65rem, 3.5vw, 2.15rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.4rem;
+  background: linear-gradient(135deg, #eeeef6 0%, #c4b5fd 55%, #a78bfa 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+html[data-theme="light"] #portal-customer .customer-header h1 {
+  background: linear-gradient(135deg, #1a1a2e 0%, #6d5ef5 60%, #5b4ce0 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+#portal-customer .customer-header p {
+  color: var(--text-muted, #9898b0);
+  font-size: 0.98rem;
+  margin: 0;
+}
+
+#portal-customer .customer-tabs {
+  display: flex;
+  gap: 0.35rem;
+  padding: 0.35rem;
+  margin: 0 auto 1.35rem;
+  max-width: 640px;
+  background: rgba(26, 26, 36, 0.85);
+  border: 1px solid rgba(124, 106, 240, 0.2);
+  border-radius: 14px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(12px);
+}
+html[data-theme="light"] #portal-customer .customer-tabs {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: #d8dae8;
+  box-shadow: 0 8px 28px rgba(109, 94, 245, 0.08);
+}
+#portal-customer .ctab {
+  flex: 1;
+  border: none;
+  border-radius: 10px;
+  padding: 0.65rem 0.85rem;
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  background: transparent;
+  color: var(--text-muted, #9898b0);
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+}
+#portal-customer .ctab:hover {
+  color: var(--text, #eeeef6);
+  background: rgba(124, 106, 240, 0.08);
+}
+#portal-customer .ctab.active {
+  background: linear-gradient(135deg, #7c6af0, #9b8afb) !important;
+  color: #fff !important;
+  box-shadow: 0 4px 16px rgba(124, 106, 240, 0.4);
+}
+
+#portal-customer .ticket-form,
+#customer-form.ticket-form {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 1.5rem 1.4rem 1.35rem !important;
+  border-radius: 18px !important;
+  border: 1px solid rgba(124, 106, 240, 0.22) !important;
+  background:
+    linear-gradient(180deg, rgba(124, 106, 240, 0.07) 0%, transparent 40%),
+    rgba(26, 26, 36, 0.92) !important;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+    0 16px 48px rgba(0, 0, 0, 0.35) !important;
+}
+html[data-theme="light"] #portal-customer .ticket-form,
+html[data-theme="light"] #customer-form.ticket-form {
+  background:
+    linear-gradient(180deg, rgba(109, 94, 245, 0.06) 0%, transparent 40%),
+    #fff !important;
+  border-color: #d8dae8 !important;
+  box-shadow: 0 12px 40px rgba(109, 94, 245, 0.1) !important;
+}
+#portal-customer .ticket-form .form-group label,
+#customer-form .form-group label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #b8b8cc;
+  letter-spacing: 0.01em;
+}
+#portal-customer .ticket-form input,
+#portal-customer .ticket-form select,
+#portal-customer .ticket-form textarea,
+#customer-form input,
+#customer-form select,
+#customer-form textarea {
+  border-radius: 10px !important;
+  border: 1px solid rgba(124, 106, 240, 0.18) !important;
+  background: rgba(12, 12, 18, 0.65) !important;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+#portal-customer .ticket-form input:focus,
+#portal-customer .ticket-form select:focus,
+#portal-customer .ticket-form textarea:focus,
+#customer-form input:focus,
+#customer-form select:focus,
+#customer-form textarea:focus {
+  border-color: rgba(124, 106, 240, 0.55) !important;
+  box-shadow: 0 0 0 3px rgba(124, 106, 240, 0.15) !important;
+  outline: none;
+}
+#portal-customer .ticket-form .btn-primary,
+#customer-form .btn-primary,
+#portal-customer button[type="submit"] {
+  border-radius: 12px !important;
+  padding: 0.85rem 1.25rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.01em;
+  background: linear-gradient(135deg, #7c6af0, #9b8afb) !important;
+  border: none !important;
+  box-shadow: 0 8px 24px rgba(124, 106, 240, 0.35);
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+#portal-customer .ticket-form .btn-primary:hover,
+#customer-form .btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 28px rgba(124, 106, 240, 0.45);
+}
+
+#portal-customer .customer-main .dr-feature-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.85rem;
+  max-width: 640px;
+  margin: 1.5rem auto 0;
+}
+@media (max-width: 640px) {
+  #portal-customer .customer-main .dr-feature-strip {
+    grid-template-columns: 1fr;
+  }
+}
+.dr-feature-card {
+  padding: 1rem 1.05rem;
+  border-radius: 14px;
+  border: 1px solid rgba(124, 106, 240, 0.16);
+  background: rgba(26, 26, 36, 0.7);
+  text-align: left;
+}
+html[data-theme="light"] .dr-feature-card {
+  background: #fff;
+  border-color: #d8dae8;
+}
+.dr-feature-card .ico {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 0.55rem;
+  background: rgba(124, 106, 240, 0.15);
+  color: #c4b5fd;
+  font-size: 1.1rem;
+}
+.dr-feature-card h4 {
+  margin: 0 0 0.25rem;
+  font-size: 0.9rem;
+  color: var(--text, #eeeef6);
+}
+.dr-feature-card p {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--text-muted, #9898b0);
+}
+
+#portal-agent .stats {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.85rem !important;
+}
+#portal-agent .stat-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px !important;
+  padding: 1.1rem 1.15rem !important;
+  border: 1px solid rgba(124, 106, 240, 0.15) !important;
+  background:
+    linear-gradient(145deg, rgba(124, 106, 240, 0.1) 0%, transparent 55%),
+    var(--surface, #1a1a24) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  transition: transform 0.15s, border-color 0.15s;
+}
+#portal-agent .stat-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(124, 106, 240, 0.35) !important;
+}
+#portal-agent .stat-card::after {
+  content: '';
+  position: absolute;
+  top: -20px;
+  right: -20px;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(124, 106, 240, 0.12);
+  pointer-events: none;
+}
+#portal-agent .stat-card .stat-value {
+  font-size: 1.65rem !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em;
+  color: #c4b5fd !important;
+}
+#portal-agent .stat-card.critical .stat-value { color: #f87171 !important; }
+#portal-agent .stat-card.high .stat-value { color: #fb923c !important; }
+#portal-agent .stat-card.me .stat-value { color: #34d399 !important; }
+#portal-agent .stat-card .stat-label {
+  font-size: 0.78rem !important;
+  color: var(--text-muted, #9898b0) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+}
+#portal-agent .stats-heading {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text, #eeeef6);
+  margin: 1.35rem 0 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+#portal-agent .stats-heading::before {
+  content: '';
+  width: 4px;
+  height: 1em;
+  border-radius: 2px;
+  background: linear-gradient(180deg, #7c6af0, #9b8afb);
+}
+
+#portal-agent .ticket-card,
+.tickets-list .ticket-card {
+  border-radius: 12px !important;
+  border: 1px solid rgba(124, 106, 240, 0.12) !important;
+  background: rgba(26, 26, 36, 0.85) !important;
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.12s;
+}
+#portal-agent .ticket-card:hover,
+.tickets-list .ticket-card:hover {
+  border-color: rgba(124, 106, 240, 0.35) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  transform: translateY(-1px);
+}
+
+#portal-agent .sidebar {
+  border-right: 1px solid rgba(124, 106, 240, 0.12) !important;
+  background:
+    linear-gradient(180deg, rgba(124, 106, 240, 0.06) 0%, transparent 30%),
+    var(--surface, #1a1a24) !important;
+}
+#portal-agent .nav-btn {
+  border-radius: 10px !important;
+  margin: 0.15rem 0.5rem !important;
+  transition: background 0.12s, color 0.12s;
+}
+#portal-agent .nav-btn.active {
+  background: rgba(124, 106, 240, 0.18) !important;
+  color: #c4b5fd !important;
+  box-shadow: inset 3px 0 0 #7c6af0;
+}
+
+.mode-bar {
+  backdrop-filter: blur(14px);
+  background: rgba(15, 15, 20, 0.88) !important;
+  border-bottom: 1px solid rgba(124, 106, 240, 0.15) !important;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+}
+html[data-theme="light"] .mode-bar {
+  background: rgba(255, 255, 255, 0.92) !important;
+  border-bottom-color: #d8dae8 !important;
+}
+
+.attach-panel,
+.comments-section,
+.ticket-detail,
+.agent-actions {
+  border-radius: 14px !important;
+  border-color: rgba(124, 106, 240, 0.16) !important;
+}
