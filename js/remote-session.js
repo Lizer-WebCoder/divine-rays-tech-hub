@@ -55,10 +55,10 @@
   }
   function esc(s) {
     return String(s || '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
+      .replace(/&/g, '&')
+      .replace(/</g, '<')
+      .replace(/>/g, '>')
+      .replace(/"/g, '"');
   }
   function isStaff() {
     var p = profile();
@@ -114,7 +114,7 @@
     var idEl = root.querySelector('.ticket-id');
     if (idEl) num = (idEl.textContent || '').trim();
     if (!num) {
-      var m = (root.textContent || '').match(/DR-\\d+/);
+      var m = (root.textContent || '').match(new RegExp('DR-\\d+'));
       num = m ? m[0] : '';
     }
     if (!num) return null;
