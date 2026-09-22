@@ -1,20 +1,59 @@
-/* Divine Rays — UI polish v9 (less empty, more depth)
+/* Divine Rays — UI polish v9.1 (visible background + clickable selects)
    Credit: Lizzz · All Rights Reserved */
 
+html, body {
+  background-color: #0c0c14 !important;
+}
+body {
+  background-image:
+    radial-gradient(ellipse 100% 70% at 10% -5%, rgba(124, 106, 240, 0.32), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 95% 5%, rgba(56, 189, 248, 0.14), transparent 50%),
+    radial-gradient(ellipse 60% 45% at 80% 95%, rgba(167, 139, 250, 0.12), transparent 55%),
+    radial-gradient(ellipse 40% 30% at 40% 60%, rgba(124, 106, 240, 0.06), transparent 60%) !important;
+  background-attachment: fixed !important;
+}
 body::before {
   content: '';
   position: fixed;
   inset: 0;
-  pointer-events: none;
+  pointer-events: none !important;
   z-index: 0;
-  background:
-    radial-gradient(ellipse 80% 50% at 15% -10%, rgba(124, 106, 240, 0.18), transparent 55%),
-    radial-gradient(ellipse 60% 40% at 90% 10%, rgba(56, 189, 248, 0.08), transparent 50%),
-    radial-gradient(ellipse 50% 40% at 70% 100%, rgba(167, 139, 250, 0.07), transparent 50%);
+  opacity: 0.4;
+  background-image:
+    radial-gradient(rgba(124, 106, 240, 0.15) 1px, transparent 1px);
+  background-size: 28px 28px;
 }
-.app-shell, #portal-customer, #portal-agent, .main, .customer-main {
+html[data-theme="light"] body {
+  background-color: #f0f1f8 !important;
+  background-image:
+    radial-gradient(ellipse 100% 70% at 10% -5%, rgba(109, 94, 245, 0.18), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 95% 5%, rgba(56, 189, 248, 0.1), transparent 50%) !important;
+}
+.app-shell, #portal-customer, #portal-agent, .main, .customer-main, .login-screen {
   position: relative;
   z-index: 1;
+}
+
+#portal-customer .ticket-form,
+#customer-form.ticket-form,
+#portal-customer .form-row,
+#portal-customer .form-group,
+#portal-customer select,
+#portal-customer input,
+#portal-customer textarea,
+#c-category,
+#c-priority {
+  pointer-events: auto !important;
+  position: relative;
+  z-index: 5;
+}
+#c-category,
+#c-priority,
+#portal-customer select {
+  z-index: 6 !important;
+  cursor: pointer !important;
+  -webkit-appearance: menulist !important;
+  appearance: auto !important;
 }
 
 #portal-customer .customer-header {
@@ -51,16 +90,17 @@ html[data-theme="light"] #portal-customer .customer-header h1 {
   padding: 0.35rem;
   margin: 0 auto 1.35rem;
   max-width: 640px;
-  background: rgba(26, 26, 36, 0.85);
-  border: 1px solid rgba(124, 106, 240, 0.2);
+  background: rgba(26, 26, 40, 0.9);
+  border: 1px solid rgba(124, 106, 240, 0.28);
   border-radius: 14px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(12px);
+  position: relative;
+  z-index: 4;
 }
 html[data-theme="light"] #portal-customer .customer-tabs {
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.95);
   border-color: #d8dae8;
-  box-shadow: 0 8px 28px rgba(109, 94, 245, 0.08);
 }
 #portal-customer .ctab {
   flex: 1;
@@ -76,12 +116,12 @@ html[data-theme="light"] #portal-customer .customer-tabs {
 }
 #portal-customer .ctab:hover {
   color: var(--text, #eeeef6);
-  background: rgba(124, 106, 240, 0.08);
+  background: rgba(124, 106, 240, 0.1);
 }
 #portal-customer .ctab.active {
   background: linear-gradient(135deg, #7c6af0, #9b8afb) !important;
   color: #fff !important;
-  box-shadow: 0 4px 16px rgba(124, 106, 240, 0.4);
+  box-shadow: 0 4px 16px rgba(124, 106, 240, 0.45);
 }
 
 #portal-customer .ticket-form,
@@ -90,28 +130,42 @@ html[data-theme="light"] #portal-customer .customer-tabs {
   margin: 0 auto;
   padding: 1.5rem 1.4rem 1.35rem !important;
   border-radius: 18px !important;
-  border: 1px solid rgba(124, 106, 240, 0.22) !important;
+  border: 1px solid rgba(124, 106, 240, 0.28) !important;
   background:
-    linear-gradient(180deg, rgba(124, 106, 240, 0.07) 0%, transparent 40%),
-    rgba(26, 26, 36, 0.92) !important;
+    linear-gradient(180deg, rgba(124, 106, 240, 0.12) 0%, transparent 45%),
+    rgba(22, 22, 34, 0.95) !important;
   box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.03) inset,
-    0 16px 48px rgba(0, 0, 0, 0.35) !important;
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset,
+    0 16px 48px rgba(0, 0, 0, 0.4) !important;
+  position: relative;
+  z-index: 5;
 }
 html[data-theme="light"] #portal-customer .ticket-form,
 html[data-theme="light"] #customer-form.ticket-form {
   background:
-    linear-gradient(180deg, rgba(109, 94, 245, 0.06) 0%, transparent 40%),
+    linear-gradient(180deg, rgba(109, 94, 245, 0.08) 0%, transparent 40%),
     #fff !important;
-  border-color: #d8dae8 !important;
-  box-shadow: 0 12px 40px rgba(109, 94, 245, 0.1) !important;
+  border-color: #d0d2e4 !important;
+  box-shadow: 0 12px 40px rgba(109, 94, 245, 0.12) !important;
+}
+
+#portal-customer .form-row {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 0.85rem !important;
+  position: relative;
+  z-index: 6;
+}
+#portal-customer .form-group {
+  min-width: 0;
+  position: relative;
+  z-index: 6;
 }
 #portal-customer .ticket-form .form-group label,
 #customer-form .form-group label {
   font-size: 0.82rem;
   font-weight: 600;
   color: #b8b8cc;
-  letter-spacing: 0.01em;
 }
 #portal-customer .ticket-form input,
 #portal-customer .ticket-form select,
@@ -120,18 +174,17 @@ html[data-theme="light"] #customer-form.ticket-form {
 #customer-form select,
 #customer-form textarea {
   border-radius: 10px !important;
-  border: 1px solid rgba(124, 106, 240, 0.18) !important;
-  background: rgba(12, 12, 18, 0.65) !important;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  border: 1px solid rgba(124, 106, 240, 0.25) !important;
+  background: rgba(10, 10, 16, 0.75) !important;
+  color: var(--text, #eeeef6) !important;
+  width: 100% !important;
+  pointer-events: auto !important;
 }
 #portal-customer .ticket-form input:focus,
 #portal-customer .ticket-form select:focus,
-#portal-customer .ticket-form textarea:focus,
-#customer-form input:focus,
-#customer-form select:focus,
-#customer-form textarea:focus {
-  border-color: rgba(124, 106, 240, 0.55) !important;
-  box-shadow: 0 0 0 3px rgba(124, 106, 240, 0.15) !important;
+#portal-customer .ticket-form textarea:focus {
+  border-color: rgba(124, 106, 240, 0.65) !important;
+  box-shadow: 0 0 0 3px rgba(124, 106, 240, 0.2) !important;
   outline: none;
 }
 #portal-customer .ticket-form .btn-primary,
@@ -140,16 +193,11 @@ html[data-theme="light"] #customer-form.ticket-form {
   border-radius: 12px !important;
   padding: 0.85rem 1.25rem !important;
   font-weight: 700 !important;
-  letter-spacing: 0.01em;
   background: linear-gradient(135deg, #7c6af0, #9b8afb) !important;
   border: none !important;
-  box-shadow: 0 8px 24px rgba(124, 106, 240, 0.35);
-  transition: transform 0.12s, box-shadow 0.12s;
-}
-#portal-customer .ticket-form .btn-primary:hover,
-#customer-form .btn-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 28px rgba(124, 106, 240, 0.45);
+  box-shadow: 0 8px 24px rgba(124, 106, 240, 0.4);
+  pointer-events: auto !important;
+  cursor: pointer !important;
 }
 
 #portal-customer .customer-main .dr-feature-strip {
@@ -158,17 +206,22 @@ html[data-theme="light"] #customer-form.ticket-form {
   gap: 0.85rem;
   max-width: 640px;
   margin: 1.5rem auto 0;
+  position: relative;
+  z-index: 3;
 }
 @media (max-width: 640px) {
   #portal-customer .customer-main .dr-feature-strip {
     grid-template-columns: 1fr;
   }
+  #portal-customer .form-row {
+    grid-template-columns: 1fr !important;
+  }
 }
 .dr-feature-card {
   padding: 1rem 1.05rem;
   border-radius: 14px;
-  border: 1px solid rgba(124, 106, 240, 0.16);
-  background: rgba(26, 26, 36, 0.7);
+  border: 1px solid rgba(124, 106, 240, 0.22);
+  background: rgba(26, 26, 40, 0.85);
   text-align: left;
 }
 html[data-theme="light"] .dr-feature-card {
@@ -182,8 +235,7 @@ html[data-theme="light"] .dr-feature-card {
   display: grid;
   place-items: center;
   margin-bottom: 0.55rem;
-  background: rgba(124, 106, 240, 0.15);
-  color: #c4b5fd;
+  background: rgba(124, 106, 240, 0.18);
   font-size: 1.1rem;
 }
 .dr-feature-card h4 {
@@ -208,16 +260,16 @@ html[data-theme="light"] .dr-feature-card {
   overflow: hidden;
   border-radius: 14px !important;
   padding: 1.1rem 1.15rem !important;
-  border: 1px solid rgba(124, 106, 240, 0.15) !important;
+  border: 1px solid rgba(124, 106, 240, 0.2) !important;
   background:
-    linear-gradient(145deg, rgba(124, 106, 240, 0.1) 0%, transparent 55%),
-    var(--surface, #1a1a24) !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    linear-gradient(145deg, rgba(124, 106, 240, 0.14) 0%, transparent 55%),
+    rgba(22, 22, 34, 0.95) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
   transition: transform 0.15s, border-color 0.15s;
 }
 #portal-agent .stat-card:hover {
   transform: translateY(-2px);
-  border-color: rgba(124, 106, 240, 0.35) !important;
+  border-color: rgba(124, 106, 240, 0.4) !important;
 }
 #portal-agent .stat-card::after {
   content: '';
@@ -227,13 +279,12 @@ html[data-theme="light"] .dr-feature-card {
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: rgba(124, 106, 240, 0.12);
+  background: rgba(124, 106, 240, 0.14);
   pointer-events: none;
 }
 #portal-agent .stat-card .stat-value {
   font-size: 1.65rem !important;
   font-weight: 700 !important;
-  letter-spacing: -0.02em;
   color: #c4b5fd !important;
 }
 #portal-agent .stat-card.critical .stat-value { color: #f87171 !important; }
@@ -249,7 +300,6 @@ html[data-theme="light"] .dr-feature-card {
 #portal-agent .stats-heading {
   font-size: 0.95rem;
   font-weight: 700;
-  color: var(--text, #eeeef6);
   margin: 1.35rem 0 0.75rem;
   display: flex;
   align-items: center;
@@ -266,42 +316,41 @@ html[data-theme="light"] .dr-feature-card {
 #portal-agent .ticket-card,
 .tickets-list .ticket-card {
   border-radius: 12px !important;
-  border: 1px solid rgba(124, 106, 240, 0.12) !important;
-  background: rgba(26, 26, 36, 0.85) !important;
+  border: 1px solid rgba(124, 106, 240, 0.15) !important;
+  background: rgba(22, 22, 34, 0.9) !important;
   transition: border-color 0.15s, box-shadow 0.15s, transform 0.12s;
 }
 #portal-agent .ticket-card:hover,
 .tickets-list .ticket-card:hover {
-  border-color: rgba(124, 106, 240, 0.35) !important;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  border-color: rgba(124, 106, 240, 0.4) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
   transform: translateY(-1px);
 }
 
 #portal-agent .sidebar {
-  border-right: 1px solid rgba(124, 106, 240, 0.12) !important;
+  border-right: 1px solid rgba(124, 106, 240, 0.15) !important;
   background:
-    linear-gradient(180deg, rgba(124, 106, 240, 0.06) 0%, transparent 30%),
-    var(--surface, #1a1a24) !important;
+    linear-gradient(180deg, rgba(124, 106, 240, 0.08) 0%, transparent 30%),
+    rgba(18, 18, 28, 0.98) !important;
 }
 #portal-agent .nav-btn {
   border-radius: 10px !important;
   margin: 0.15rem 0.5rem !important;
-  transition: background 0.12s, color 0.12s;
 }
 #portal-agent .nav-btn.active {
-  background: rgba(124, 106, 240, 0.18) !important;
+  background: rgba(124, 106, 240, 0.2) !important;
   color: #c4b5fd !important;
   box-shadow: inset 3px 0 0 #7c6af0;
 }
 
 .mode-bar {
   backdrop-filter: blur(14px);
-  background: rgba(15, 15, 20, 0.88) !important;
-  border-bottom: 1px solid rgba(124, 106, 240, 0.15) !important;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+  background: rgba(12, 12, 20, 0.9) !important;
+  border-bottom: 1px solid rgba(124, 106, 240, 0.2) !important;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
 }
 html[data-theme="light"] .mode-bar {
-  background: rgba(255, 255, 255, 0.92) !important;
+  background: rgba(255, 255, 255, 0.95) !important;
   border-bottom-color: #d8dae8 !important;
 }
 
@@ -310,5 +359,16 @@ html[data-theme="light"] .mode-bar {
 .ticket-detail,
 .agent-actions {
   border-radius: 14px !important;
-  border-color: rgba(124, 106, 240, 0.16) !important;
+  border-color: rgba(124, 106, 240, 0.2) !important;
+}
+
+.dr-tour-hl {
+  outline: 2px solid #a78bfa !important;
+  outline-offset: 3px;
+  pointer-events: auto !important;
+}
+#dr-tour-bd:not(.open),
+#dr-notif-panel-bd:not(.open) {
+  pointer-events: none !important;
+  opacity: 0 !important;
 }

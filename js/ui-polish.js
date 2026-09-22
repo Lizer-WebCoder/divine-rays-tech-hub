@@ -1,11 +1,34 @@
 /**
- * Divine Rays — inject design accents (feature cards on customer home)
+ * Divine Rays — design accents + ensure form selects clickable
  * Credit: Lizzz · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_UI_POLISH) return;
+  if (window.__DR_UI_POLISH_V2) return;
+  window.__DR_UI_POLISH_V2 = 1;
   window.__DR_UI_POLISH = 1;
+
+  function clearBlockers() {
+    ['dr-tour-bd', 'dr-notif-panel-bd'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      if (!el.classList.contains('open')) {
+        el.style.pointerEvents = 'none';
+        el.style.opacity = '0';
+      }
+    });
+    ['c-category', 'c-priority'].forEach(function (id) {
+      var s = document.getElementById(id);
+      if (!s) return;
+      s.style.pointerEvents = 'auto';
+      s.style.zIndex = '20';
+      s.style.position = 'relative';
+      s.disabled = false;
+      Array.prototype.forEach.call(s.options, function (opt) {
+        if (!opt.value && opt.text) opt.value = opt.text;
+      });
+    });
+  }
 
   function ensureFeatures() {
     var pc = document.getElementById('portal-customer');
@@ -26,9 +49,14 @@
   }
 
   function tick() {
+    clearBlockers();
     ensureFeatures();
   }
-  setTimeout(tick, 600);
-  setInterval(tick, 3000);
+
+  document.addEventListener('mousedown', function () { clearBlockers(); }, true);
+
+  setTimeout(tick, 400);
+  setTimeout(tick, 1200);
+  setInterval(tick, 2500);
   window.DRUiPolish = { refresh: tick };
 })();
