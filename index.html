@@ -26,6 +26,7 @@
     var LIGHT_SHA = '9f4e700974aa62dc462012eb92140adb24c459e1';
     var KB_SHA = 'b489412bc7bee9f444f199c65f9f90ac2fc1ef6a';
     var AGENT_LIGHT = 'eb1cb3fce7ee8b83ef7cf9a75288ac1bfc6e2ab3';
+    var CSAT_AV = 'b4f174684b60115870c6eac39a45fd4d7024fda3';
     var urls = [
       'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PIN + '/index.html',
       'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + PIN + '/index.html'
@@ -136,6 +137,7 @@
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + POLISH_SHA + '/js/ui-polish.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + BRANCH_SHA + '/js/branch-ui.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + KB_SHA + '/js/kb-avatar-fix.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + CSAT_AV + '/js/csat-avatar-light.js?v=' + ver);
       setTimeout(function () {
         if (!window.DRPortalGuard) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + STABLE + '/js/portal-guard.js?v=' + ver);
         if (!window.DRLayoutFix) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + STABLE + '/js/layout-fix.js?v=' + ver);
@@ -147,6 +149,7 @@
         if (!window.DRUiPolish) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + POLISH_SHA + '/js/ui-polish.js?v=' + ver);
         if (!window.DRBranchUi) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + BRANCH_SHA + '/js/branch-ui.js?v=' + ver);
         if (!window.DRKbAvatarFix) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + KB_SHA + '/js/kb-avatar-fix.js?v=' + ver);
+        if (!window.DRCsatAvLight) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + CSAT_AV + '/js/csat-avatar-light.js?v=' + ver);
         if (window.DRPortalGuard && window.DRPortalGuard.sync) try { window.DRPortalGuard.sync(); } catch (e) {}
         if (window.DRUiPolish && window.DRUiPolish.refresh) try { window.DRUiPolish.refresh(); } catch (e) {}
       }, 500);
@@ -176,6 +179,7 @@
         if (window.DRLayoutFix && window.DRLayoutFix.force) try { window.DRLayoutFix.force(); } catch (e) {}
         if (window.DRUiPolish && window.DRUiPolish.refresh) try { window.DRUiPolish.refresh(); } catch (e) {}
         if (window.DRKbAvatarFix && window.DRKbAvatarFix.refresh) try { window.DRKbAvatarFix.refresh(); } catch (e) {}
+        if (window.DRCsatAvLight && window.DRCsatAvLight.refresh) try { window.DRCsatAvLight.refresh(); } catch (e) {}
       }
       applyV8Once();
       setTimeout(applyV8Once, 500);
