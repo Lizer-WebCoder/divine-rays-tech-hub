@@ -27,6 +27,7 @@
     var KB_SHA = 'b489412bc7bee9f444f199c65f9f90ac2fc1ef6a';
     var AGENT_LIGHT = 'eb1cb3fce7ee8b83ef7cf9a75288ac1bfc6e2ab3';
     var CSAT_AV = 'b4f174684b60115870c6eac39a45fd4d7024fda3';
+    var LOGIN_SHA = '2df9dd3f45cb841a1a5a98888f87bf5401ba5e02';
     var urls = [
       'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PIN + '/index.html',
       'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + PIN + '/index.html'
@@ -96,6 +97,8 @@
       document.body.innerHTML = bodyHtml;
       document.querySelectorAll('.version').forEach(function (el) { el.textContent = 'v' + ver; });
       wireTabs();
+      // Theme toggle early for login
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LOGIN_SHA + '/js/login-theme.js?v=' + ver);
       var scriptSrcs = [];
       doc.querySelectorAll('script[src]').forEach(function (sc) {
         var src = (sc.getAttribute('src') || '').replace(/\?v=[^&"]+/g, '?v=' + ver);
@@ -139,6 +142,7 @@
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + KB_SHA + '/js/kb-avatar-fix.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + CSAT_AV + '/js/csat-avatar-light.js?v=' + ver);
       setTimeout(function () {
+        if (!window.DRLoginTheme) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + LOGIN_SHA + '/js/login-theme.js?v=' + ver);
         if (!window.DRPortalGuard) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + STABLE + '/js/portal-guard.js?v=' + ver);
         if (!window.DRLayoutFix) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + STABLE + '/js/layout-fix.js?v=' + ver);
         if (!window.DRCustLayout) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + STABLE + '/js/customer-layout.js?v=' + ver);
@@ -152,6 +156,7 @@
         if (!window.DRCsatAvLight) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + CSAT_AV + '/js/csat-avatar-light.js?v=' + ver);
         if (window.DRPortalGuard && window.DRPortalGuard.sync) try { window.DRPortalGuard.sync(); } catch (e) {}
         if (window.DRUiPolish && window.DRUiPolish.refresh) try { window.DRUiPolish.refresh(); } catch (e) {}
+        if (window.DRLoginTheme && window.DRLoginTheme.refresh) try { window.DRLoginTheme.refresh(); } catch (e) {}
       }, 500);
       function applyV8Once() {
         document.querySelectorAll('.version').forEach(function (el) {
@@ -180,6 +185,7 @@
         if (window.DRUiPolish && window.DRUiPolish.refresh) try { window.DRUiPolish.refresh(); } catch (e) {}
         if (window.DRKbAvatarFix && window.DRKbAvatarFix.refresh) try { window.DRKbAvatarFix.refresh(); } catch (e) {}
         if (window.DRCsatAvLight && window.DRCsatAvLight.refresh) try { window.DRCsatAvLight.refresh(); } catch (e) {}
+        if (window.DRLoginTheme && window.DRLoginTheme.refresh) try { window.DRLoginTheme.refresh(); } catch (e) {}
       }
       applyV8Once();
       setTimeout(applyV8Once, 500);
