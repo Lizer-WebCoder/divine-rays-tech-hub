@@ -20,6 +20,7 @@
     var UX_SHA = 'fe2be829d8cc69c749860dbfec23f5171d6a7713';
     var REMOTE_SHA = '14138a207b20fea5f32019529442c0e4e2ff130f';
     var LIVE_SHA = 'd2d98ad0185806eec4f642850662f3d790c89338';
+    var ATTACH_SHA = '26f81d38b7006bebc767ec76c9efc0bb23c7bca0';
     var urls = [
       'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PIN + '/index.html',
       'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + PIN + '/index.html'
@@ -117,7 +118,7 @@
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@d7d5c09e5d5d6a6289292449d4e532854a3b0e1d/js/emoji-fix.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + STABLE + '/js/layout-fix.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@49062e232bcd560ed8e409f70e7c109d2eb9ae94/js/csat.js?v=' + ver);
-      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@480052c8528bffa8e2bf3a0ac1ba0ef7ff1833a1/js/attach-enhance.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + ATTACH_SHA + '/js/attach-enhance.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@7a09542332b8227930871a5a055162c570a3fdb7/js/csat-dashboard.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@875b2f5b1c8293bb219943429c01020f28114d5b/js/ticket-list-fix.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LIVE_SHA + '/js/comments-live.js?v=' + ver);
@@ -131,6 +132,7 @@
         if (!window.DRCustomerUx) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + UX_SHA + '/js/customer-ux.js?v=' + ver);
         if (!window.DRRemoteSession) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + REMOTE_SHA + '/js/remote-session.js?v=' + ver);
         if (!window.DRCommentsLive) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + LIVE_SHA + '/js/comments-live.js?v=' + ver);
+        if (!window.DRAttach) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + ATTACH_SHA + '/js/attach-enhance.js?v=' + ver);
         if (window.DRPortalGuard && window.DRPortalGuard.sync) try { window.DRPortalGuard.sync(); } catch (e) {}
       }, 500);
       function applyV8Once() {
