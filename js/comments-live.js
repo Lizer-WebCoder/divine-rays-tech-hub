@@ -1,26 +1,32 @@
 /**
- * Divine Rays — live ticket conversation (no refresh needed)
- * Uses Supabase Realtime + short poll fallback
+ * Divine Rays — live ticket conversation + delete own notes
  * Credit: Lizzz · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_COMMENTS_LIVE) return;
+  if (window.__DR_COMMENTS_LIVE_V2) return;
+  window.__DR_COMMENTS_LIVE_V2 = 1;
   window.__DR_COMMENTS_LIVE = 1;
+
+  var channel = null;
+  var activeTicketId = null;
+  var lastSig = '';
 
   function sb() {
     try { if (window.DR && window.DR.sb) return window.DR.sb(); } catch (e) {}
     return window.__drSb || null;
   }
-
+  function profile() {
+    try { if (window.DR && window.DR.getProfile) return window.DR.getProfile(); } catch (e) {}
+    return window.__drProfile || null;
+  }
   function esc(s) {
     return String(s || '')
-      .replace(/&/g, '&')
-      .replace(/</g, '<')
-      .replace(/>/g, '>')
-      .replace(/"/g, '"');
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
   }
-
   function formatDate(iso) {
     if (window.DR && typeof window.DR.formatDate === 'function') {
       try { return window.DR.formatDate(iso); } catch (e) {}
@@ -33,6 +39,27 @@
     } catch (e) {
       return '';
     }
+  }
+  function isStaff() {
+    var p = profile();
+    return !!(p && (p.role === 'agent' || p.role === 'admin'));
+  }
+  function myId() {
+    var p = profile();
+    return (p && p.id) || null;
+  }
+
+  function injectCss() {
+    if (document.getElementById('dr-comments-del-css')) return;
+    var s = document.createElement('style');
+    s.id = 'dr-comments-del-css';
+    s.textContent = [
+      '.comment{position:relative}',
+      '.comment .dr-cdel{position:absolute;top:.55rem;right:.55rem;background:transparent;border:1px solid rgba(239,68,68,.35);color:#f87171;border-radius:6px;padding:.15rem .45rem;font-size:.72rem;cursor:pointer;opacity:.85}',
+      '.comment .dr-cdel:hover{background:rgba(239,68,68,.15);opacity:1}',
+      '.comment .comment-header{padding-right:4.5rem}'
+    ].join('');
+    document.head.appendChild(s);
   }
 
   function currentTicketId() {
@@ -53,7 +80,7 @@
     var idEl = root.querySelector('.ticket-id');
     var num = idEl ? idEl.textContent.trim() : '';
     if (!num) {
-      var m = (root.textContent || '').match(/DR-\d+/);
+      var m = (root.textContent || '').match(new RegExp('DR-\\d+'));
       num = m ? m[0] : '';
     }
     if (!num) return null;
@@ -75,6 +102,15 @@
     return (window.DR && window.DR.nameCache) || window.__drNameCache || {};
   }
 
+  function canDelete(c) {
+    var uid = myId();
+    if (!uid) return false;
+    if (c.author_id && c.author_id === uid) return true;
+    if (c.user_id && c.user_id === uid) return true;
+    if (isStaff()) return true;
+    return false;
+  }
+
   function renderComment(c, forCustomer) {
     if (forCustomer && c.is_internal) return '';
     var cache = nameCache();
@@ -86,8 +122,12 @@
     var internal = c.is_internal ? ' internal' : '';
     var tag = c.is_internal ? ' · Internal' : '';
     var status = c.status_change ? ' · → ' + esc(c.status_change) : '';
+    var delBtn = canDelete(c)
+      ? '<button type="button" class="dr-cdel" data-del-cid="' + esc(c.id) + '" title="Delete this note">Delete</button>'
+      : '';
     return (
-      '<div class="comment' + internal + '" data-cid="' + esc(c.id) + '">' +
+      '<div class="comment' + internal + '" data-cid="' + esc(c.id) + '" data-author="' + esc(c.author_id || '') + '">' +
+      delBtn +
       '<div class="comment-header"><span>' + esc(author) + tag + '</span>' +
       '<span>' + esc(formatDate(c.created_at)) + status + '</span></div>' +
       '<div class="comment-body">' + esc(c.body) + '</div></div>'
@@ -120,19 +160,50 @@
   function listEl() {
     return (
       document.getElementById('comments-list') ||
-      document.getElementById('cust-comments-list')
+      document.getElementById('cust-comments-list') ||
+      document.querySelector('#ticket-detail .comments-list') ||
+      document.querySelector('#cust-ticket-detail .comments-list')
     );
   }
 
   function isCustomerView() {
-    return !!(document.getElementById('cust-comments-list') && document.getElementById('cust-comments-list').offsetParent !== null);
+    var pc = document.getElementById('portal-customer');
+    return !!(pc && pc.classList.contains('active'));
   }
 
-  var lastSig = '';
-  var activeTicketId = null;
-  var channel = null;
+  function bindDeleteButtons(list) {
+    if (!list) return;
+    list.querySelectorAll('.dr-cdel').forEach(function (btn) {
+      if (btn._drBound) return;
+      btn._drBound = true;
+      btn.addEventListener('click', async function (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        var id = btn.getAttribute('data-del-cid');
+        if (!id) return;
+        if (!window.confirm('Delete this note? This cannot be undone.')) return;
+        var client = sb();
+        if (!client) return;
+        btn.disabled = true;
+        btn.textContent = '…';
+        try {
+          var r = await client.from('comments').delete().eq('id', id);
+          if (r.error) throw r.error;
+          var card = btn.closest('.comment');
+          if (card) card.remove();
+          lastSig = '';
+          await refreshList(true);
+        } catch (e) {
+          btn.disabled = false;
+          btn.textContent = 'Delete';
+          alert((e && e.message) || 'Could not delete. Run comments-delete.sql in Supabase if you have not yet.');
+        }
+      });
+    });
+  }
 
   async function refreshList(force) {
+    injectCss();
     var list = listEl();
     if (!list) return;
     var tid = activeTicketId || currentTicketId() || (await resolveTicketIdFromDom());
@@ -148,14 +219,13 @@
     lastSig = sig;
 
     if (!visible.length) {
-      if (!list.querySelector('.comment')) {
-        list.innerHTML = '<p class="kb-sub" style="margin:0">No updates yet.</p>';
-      }
+      list.innerHTML = '<p class="kb-sub" style="margin:0">No updates yet.</p>';
       return;
     }
 
     var ordered = cust ? visible : visible.slice().reverse();
     list.innerHTML = ordered.map(function (c) { return renderComment(c, cust); }).join('');
+    bindDeleteButtons(list);
   }
 
   function unsub() {
@@ -225,6 +295,7 @@
     true
   );
 
+  injectCss();
   setInterval(sync, 2500);
   setTimeout(sync, 800);
   setTimeout(sync, 2000);
