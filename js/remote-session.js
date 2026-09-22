@@ -1,12 +1,12 @@
 /**
  * Divine Rays — Request remote session (AnyDesk / TeamViewer / Chrome RD)
- * Agent/admin posts a clear public request into ticket Activity.
- * Customer sees highlighted card with reply guidance.
+ * No flicker: single comment node, enhance once per render
  * Credit: Lizzz · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_REMOTE_SESSION) return;
+  if (window.__DR_REMOTE_SESSION_V2) return;
+  window.__DR_REMOTE_SESSION_V2 = 1;
   window.__DR_REMOTE_SESSION = 1;
 
   var TOOLS = [
@@ -79,7 +79,7 @@
     '#dr-remote-modal textarea{min-height:72px;resize:vertical}',
     '#dr-remote-modal .actions{display:flex;gap:.5rem;justify-content:flex-end;margin-top:1rem;flex-wrap:wrap}',
     '#dr-remote-modal .err{color:#f87171;font-size:.82rem;margin-top:.5rem;display:none}',
-    '.dr-remote-card{border:1px solid rgba(124,106,240,.4)!important;background:rgba(124,106,240,.1)!important;border-radius:12px;padding:.85rem 1rem;margin:.5rem 0}',
+    '.dr-remote-card{border:1px solid rgba(124,106,240,.4)!important;background:rgba(124,106,240,.1)!important;border-radius:12px;padding:.85rem 1rem;margin:.5rem 0;transition:none!important}',
     '.dr-remote-card .dr-remote-title{font-weight:600;color:#c4b5fd;margin-bottom:.35rem;font-size:.92rem}',
     '.dr-remote-card .dr-remote-body{white-space:pre-wrap;font-size:.88rem;line-height:1.45;color:var(--text,#eeeef6)}',
     '.dr-remote-card .dr-remote-tag{display:inline-block;font-size:.7rem;padding:.15rem .45rem;border-radius:6px;background:rgba(124,106,240,.25);color:#c4b5fd;margin-bottom:.4rem}'
@@ -234,19 +234,12 @@
       if (r.error) throw r.error;
       closeModal();
       try {
-        if (window.DRCommentsLive && window.DRCommentsLive.refresh) window.DRCommentsLive.refresh();
+        if (window.DRCommentsLive && window.DRCommentsLive.refresh) {
+          window.DRCommentsLive.refresh();
+        }
       } catch (e) {}
-      var list = document.getElementById('comments-list');
-      if (list) {
-        var card = document.createElement('div');
-        card.className = 'comment dr-remote-card';
-        card.innerHTML =
-          '<span class="dr-remote-tag">Remote session</span>' +
-          '<div class="dr-remote-title">Request sent</div>' +
-          '<div class="dr-remote-body">' + esc(body) + '</div>';
-        list.appendChild(card);
-        try { card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch (e) {}
-      }
+      setTimeout(enhanceCommentCards, 300);
+      setTimeout(enhanceCommentCards, 1000);
     } catch (e) {
       errEl.textContent = (e && e.message) || 'Could not post request.';
       errEl.style.display = 'block';
@@ -283,23 +276,18 @@
     ];
     roots.forEach(function (list) {
       if (!list) return;
-      list.querySelectorAll('.comment, .comment-body').forEach(function (el) {
-        var text = el.textContent || '';
+      Array.prototype.forEach.call(list.children, function (child) {
+        if (child.getAttribute('data-dr-remote') === '1') return;
+        var text = child.textContent || '';
         if (text.indexOf('REMOTE SUPPORT REQUEST') === -1) return;
-        var card = el.closest('.comment') || el;
-        if (card.classList.contains('dr-remote-card')) return;
-        card.classList.add('dr-remote-card');
-        if (!card.querySelector('.dr-remote-tag')) {
+        child.setAttribute('data-dr-remote', '1');
+        child.classList.add('dr-remote-card');
+        if (!child.querySelector('.dr-remote-tag')) {
           var tag = document.createElement('span');
           tag.className = 'dr-remote-tag';
           tag.textContent = 'Remote session';
-          card.insertBefore(tag, card.firstChild);
-        }
-      });
-      Array.prototype.forEach.call(list.children, function (child) {
-        var t = child.textContent || '';
-        if (t.indexOf('REMOTE SUPPORT REQUEST') !== -1) {
-          child.classList.add('dr-remote-card');
+          tag.setAttribute('data-dr-remote-tag', '1');
+          child.insertBefore(tag, child.firstChild);
         }
       });
     });
@@ -308,11 +296,29 @@
   function tick() {
     injectCss();
     ensureAgentButton();
-    enhanceCommentCards();
   }
 
   injectCss();
   tick();
-  setInterval(tick, 2000);
-  window.DRRemoteSession = { open: openModal, refresh: tick };
+  setInterval(tick, 3000);
+  try {
+    var obs = new MutationObserver(function () {
+      enhanceCommentCards();
+    });
+    function watchLists() {
+      ['comments-list', 'cust-comments-list'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el && !el._drRemoteObs) {
+          el._drRemoteObs = true;
+          obs.observe(el, { childList: true });
+        }
+      });
+      enhanceCommentCards();
+    }
+    watchLists();
+    setInterval(watchLists, 4000);
+  } catch (e) {
+    setInterval(enhanceCommentCards, 5000);
+  }
+  window.DRRemoteSession = { open: openModal, refresh: function () { tick(); enhanceCommentCards(); } };
 })();
