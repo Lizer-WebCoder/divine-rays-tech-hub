@@ -18,6 +18,7 @@
     var PIN = '830dac02096eb08be1b2dc22bdc191a14df91a04';
     var STABLE = 'bd4e6cf77fb157a42f39f763f178634835b41e66';
     var UX_SHA = 'fe2be829d8cc69c749860dbfec23f5171d6a7713';
+    var REMOTE_SHA = 'de1cb541f0035dbbb1e9ee2a2d53dd75ac338433';
     var urls = [
       'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PIN + '/index.html',
       'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + PIN + '/index.html'
@@ -108,7 +109,6 @@
       loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + OVERLAY_SHA + '/css/v8-overlay.css?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + JS_SHA + '/js/theme.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + JS_SHA + '/js/filters.js?v=' + ver);
-      /* Portal guard FIRST so customer form cannot show on admin */
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + STABLE + '/js/portal-guard.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@1e6520dca83cccafdc0f0d7d031f3bf6cde80c82/js/status-card.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@af065832c121e643c6c7e6149a1f0367fdf94920/js/staff-presence.js?v=' + ver);
@@ -120,6 +120,7 @@
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@7a09542332b8227930871a5a055162c570a3fdb7/js/csat-dashboard.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@875b2f5b1c8293bb219943429c01020f28114d5b/js/ticket-list-fix.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@a07e0dc0d12313babb83361df4eceba5f2fcef0e/js/comments-live.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + REMOTE_SHA + '/js/remote-session.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + STABLE + '/js/customer-layout.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + UX_SHA + '/js/customer-ux.js?v=' + ver);
       setTimeout(function () {
@@ -127,6 +128,7 @@
         if (!window.DRLayoutFix) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + STABLE + '/js/layout-fix.js?v=' + ver);
         if (!window.DRCustLayout) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + STABLE + '/js/customer-layout.js?v=' + ver);
         if (!window.DRCustomerUx) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + UX_SHA + '/js/customer-ux.js?v=' + ver);
+        if (!window.DRRemoteSession) loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + REMOTE_SHA + '/js/remote-session.js?v=' + ver);
         if (window.DRPortalGuard && window.DRPortalGuard.sync) try { window.DRPortalGuard.sync(); } catch (e) {}
       }, 500);
       function applyV8Once() {
