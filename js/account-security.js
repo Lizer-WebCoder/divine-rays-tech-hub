@@ -1,6 +1,6 @@
 /**
  * Divine Rays — change username + password (admin/agent/customer)
- * Hooks into existing Profile editor; uses Supabase auth.updateUser for password
+ * Role-aware copy; Supabase auth.updateUser for password
  * Credit: Lizzz · All Rights Reserved
  */
 (function () {
@@ -37,6 +37,36 @@
     return window.__drSb || null;
   }
 
+  function myRole() {
+    try {
+      if (window.DR && window.DR.profile) {
+        var p = window.DR.profile();
+        if (p && p.role) return String(p.role).toLowerCase();
+      }
+    } catch (e) {}
+    try {
+      var me = window.currentProfile || window.__drProfile;
+      if (me && me.role) return String(me.role).toLowerCase();
+    } catch (e) {}
+    var pa = document.getElementById('portal-agent');
+    var pc = document.getElementById('portal-customer');
+    if (pc && pc.classList.contains('active')) return 'customer';
+    if (pa && pa.classList.contains('active')) return 'agent';
+    return 'customer';
+  }
+
+  function isStaff() {
+    var r = myRole();
+    return r === 'admin' || r === 'agent';
+  }
+
+  function hintText() {
+    if (isStaff()) {
+      return 'Username is used when you sign in as agent/admin (Email or Username field). Password change applies to your login immediately. Leave password fields blank to keep the current password.';
+    }
+    return 'You can set an optional username for your account and change your login password here. Leave password fields blank to keep the current password. Customers still sign in with email + password.';
+  }
+
   function toast(msg, type) {
     try {
       if (window.DR && window.DR.toast) return window.DR.toast(msg, type);
@@ -54,16 +84,26 @@
     var body = document.getElementById('profile-body');
     if (!body) return;
     if (!document.getElementById('pf-save')) return;
-    if (document.getElementById('dr-acct-sec')) return;
+
+    var existing = document.getElementById('dr-acct-sec');
+    if (existing) {
+      var hint = existing.querySelector('p.hint');
+      if (hint) hint.textContent = hintText();
+      return;
+    }
 
     var actions = body.querySelector('.profile-actions');
     var box = document.createElement('div');
     box.id = 'dr-acct-sec';
     box.innerHTML =
       '<h4>Account security</h4>' +
-      '<p class="hint">Username is used for agent/admin login. Password change applies to your login immediately. Leave password fields blank to keep the current password.</p>' +
-      '<div class="form-group"><label for="dr-pf-username">Username</label>' +
-      '<input type="text" id="dr-pf-username" autocomplete="username" placeholder="e.g. lizer.james" /></div>' +
+      '<p class="hint">' + hintText() + '</p>' +
+      '<div class="form-group"><label for="dr-pf-username">Username' +
+      (isStaff() ? '' : ' <span style="opacity:.7;font-weight:400">(optional)</span>') +
+      '</label>' +
+      '<input type="text" id="dr-pf-username" autocomplete="username" placeholder="' +
+      (isStaff() ? 'e.g. lizer.james' : 'Optional display username') +
+      '" /></div>' +
       '<div class="form-row">' +
       '<div class="form-group"><label for="dr-pf-pass1">New password</label>' +
       '<input type="password" id="dr-pf-pass1" autocomplete="new-password" placeholder="Min 6 characters" /></div>' +
@@ -187,11 +227,15 @@
     var save = document.getElementById('pf-save');
     if (!save || save.getAttribute('data-dr-acct') === '1') return;
     save.setAttribute('data-dr-acct', '1');
-    save.addEventListener('click', function () {
-      var dr = document.getElementById('dr-pf-username');
-      var pf = document.getElementById('pf-username');
-      if (dr && pf && dr.value.trim()) pf.value = dr.value.trim();
-    }, true);
+    save.addEventListener(
+      'click',
+      function () {
+        var dr = document.getElementById('dr-pf-username');
+        var pf = document.getElementById('pf-username');
+        if (dr && pf && dr.value.trim()) pf.value = dr.value.trim();
+      },
+      true
+    );
   }
 
   function tick() {
