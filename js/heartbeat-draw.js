@@ -1,5 +1,5 @@
 /**
- * Divine Rays — single center ECG monitor lifeline (continuous draw, no blink)
+ * Divine Rays — full-width ECG monitor background
  * Credit: Lizzz · All Rights Reserved
  */
 (function () {
@@ -13,19 +13,44 @@
   var LINE_ID = 'dr-lifeline';
 
   var PATH =
-    'M0 50 H40 L48 50 L54 42 L60 50 H90 L96 50 L102 18 L108 82 L114 38 L120 50 ' +
-    'H160 L166 50 L172 44 L178 50 H210 L216 50 L222 20 L228 80 L234 40 L240 50 ' +
-    'H280 L286 50 L292 45 L298 50 H330 L336 50 L342 16 L348 84 L354 36 L360 50 ' +
-    'H400 L406 50 L412 43 L418 50 H450 L456 50 L462 22 L468 78 L474 42 L480 50 H520';
+    'M0 50 ' +
+    'H30 L42 50 L55 12 L68 88 L78 50 H120 ' +
+    'L132 50 L145 18 L158 82 L168 50 H210 ' +
+    'L222 50 L235 10 L248 90 L258 50 H300 ' +
+    'L312 50 L325 20 L338 80 L348 50 H390 ' +
+    'L402 50 L415 14 L428 86 L438 50 H480 ' +
+    'L492 50 L505 22 L518 78 L528 50 H560 ' +
+    'L572 50 L585 16 L598 84 L608 50 H640 ' +
+    'L652 50 L665 12 L678 88 L688 50 H720';
 
-  function svgMarkup(stroke) {
+  function colors() {
+    var light = false;
+    try {
+      light =
+        document.documentElement.getAttribute('data-theme') === 'light' ||
+        localStorage.getItem('dr_theme') === 'light';
+    } catch (e) {
+      light = document.documentElement.getAttribute('data-theme') === 'light';
+    }
+    if (light) {
+      return { base: 'rgba(91,76,224,0.28)', bright: 'rgba(91,76,224,0.7)' };
+    }
+    return { base: 'rgba(110,220,160,0.22)', bright: 'rgba(130,235,180,0.65)' };
+  }
+
+  function svgMarkup() {
+    var c = colors();
     return (
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 100" preserveAspectRatio="none" ' +
-      'width="100%" height="100%" style="display:block">' +
-      '<path class="dr-ecg-path" fill="none" stroke="' +
-      stroke +
-      '" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" ' +
-      'd="' +
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 100" preserveAspectRatio="none" ' +
+      'width="100%" height="100%" style="display:block;overflow:visible">' +
+      '<path class="dr-ecg-base" fill="none" stroke="' +
+      c.base +
+      '" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="' +
+      PATH +
+      '"/>' +
+      '<path class="dr-ecg-draw" fill="none" stroke="' +
+      c.bright +
+      '" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="' +
       PATH +
       '"/>' +
       '</svg>'
@@ -35,26 +60,23 @@
   var CSS = [
     '#dr-lifeline{',
     'display:block!important;position:fixed!important;',
-    'left:4%!important;right:4%!important;width:92%!important;',
-    'top:50%!important;height:140px!important;margin-top:-70px!important;',
-    'z-index:0!important;pointer-events:none!important;overflow:visible!important}',
+    'left:0!important;right:0!important;width:100%!important;',
+    'top:42%!important;height:160px!important;margin-top:-80px!important;',
+    'z-index:0!important;pointer-events:none!important;overflow:hidden!important}',
     '#dr-lifeline,#dr-lifeline *{pointer-events:none!important}',
     '#dr-lifeline svg{width:100%;height:100%;display:block}',
-    '#dr-lifeline .dr-ecg-path{',
-    'stroke-dasharray:900;',
-    'stroke-dashoffset:900;',
-    'animation:drEcgSweep 4.5s linear infinite}',
-    'html[data-theme="light"] #dr-lifeline .dr-ecg-path{',
-    'filter:drop-shadow(0 0 4px rgba(91,76,224,0.55))}',
-    'html[data-theme="dark"] #dr-lifeline .dr-ecg-path,',
-    'html:not([data-theme="light"]) #dr-lifeline .dr-ecg-path{',
-    'filter:drop-shadow(0 0 6px rgba(167,139,250,0.65))}',
-    '@keyframes drEcgSweep{',
-    '0%{stroke-dashoffset:900}',
+    '#dr-lifeline .dr-ecg-base{opacity:1}',
+    '#dr-lifeline .dr-ecg-draw{',
+    'stroke-dasharray:1200;',
+    'stroke-dashoffset:1200;',
+    'animation:drEcgMonitor 5s linear infinite;',
+    'filter:drop-shadow(0 0 6px currentColor)}',
+    '@keyframes drEcgMonitor{',
+    '0%{stroke-dashoffset:1200}',
     '100%{stroke-dashoffset:0}',
     '}',
     '@media (prefers-reduced-motion:reduce){',
-    '#dr-lifeline .dr-ecg-path{animation:none!important;stroke-dashoffset:0!important;opacity:0.4}',
+    '#dr-lifeline .dr-ecg-draw{animation:none!important;stroke-dashoffset:0!important;opacity:0.5}',
     '}'
   ].join('');
 
@@ -69,19 +91,6 @@
     document.head.appendChild(el);
   }
 
-  function strokeColor() {
-    var light =
-      document.documentElement.getAttribute('data-theme') === 'light' ||
-      (function () {
-        try {
-          return localStorage.getItem('dr_theme') === 'light';
-        } catch (e) {
-          return false;
-        }
-      })();
-    return light ? '#5b4ce0' : '#c4b5fd';
-  }
-
   function ensureLine() {
     var box = document.getElementById(LINE_ID);
     if (!box) {
@@ -90,7 +99,7 @@
       box.setAttribute('aria-hidden', 'true');
       document.body.insertBefore(box, document.body.firstChild);
     }
-    box.innerHTML = svgMarkup(strokeColor());
+    box.innerHTML = svgMarkup();
   }
 
   function tick() {
@@ -99,22 +108,14 @@
   }
 
   tick();
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', tick);
-  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', tick);
   setTimeout(tick, 400);
   setTimeout(tick, 1500);
 
-  document.addEventListener(
-    'click',
-    function (e) {
-      var t = e.target;
-      if (t && (t.id === 'btn-theme' || (t.classList && t.classList.contains('btn-theme')))) {
-        setTimeout(tick, 40);
-      }
-    },
-    true
-  );
+  document.addEventListener('click', function (e) {
+    var t = e.target;
+    if (t && (t.id === 'btn-theme' || (t.classList && t.classList.contains('btn-theme')))) setTimeout(tick, 40);
+  }, true);
 
   window.DRHeartbeatDraw = { refresh: tick };
 })();
