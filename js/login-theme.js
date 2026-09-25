@@ -1,35 +1,18 @@
 /**
- * Divine Rays — login light mode + theme toggle + glass card (crash-safe)
- * Credit: Boyz at the Back · All Rights Reserved
+ * Divine Rays — login light mode + theme toggle (removed after login)
+ * Credit: Lizzz · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_LOGIN_THEME) return;
+  if (window.__DR_LOGIN_THEME) {
+    try { delete window.__DR_LOGIN_THEME; } catch (e) {}
+  }
   window.__DR_LOGIN_THEME = 1;
 
   var CSS = [
-    /* Glass login card — dark */
     '.login-card,#login-screen .login-card{',
     'background:rgba(26,22,40,0.45)!important;',
-    'backdrop-filter:blur(20px) saturate(160%)!important;',
-    '-webkit-backdrop-filter:blur(20px) saturate(160%)!important;',
-    'border:1px solid rgba(196,181,253,0.25)!important;',
-    'box-shadow:0 8px 32px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.08)!important;',
-    'border-radius:18px!important}',
-    '.login-card .form-group input,.login-card input[type="text"],.login-card input[type="email"],.login-card input[type="password"]{',
-    'background:rgba(15,12,26,0.5)!important;',
-    'backdrop-filter:blur(8px)!important;',
-    'border:1px solid rgba(196,181,253,0.2)!important}',
-    '.login-tabs{background:rgba(15,12,26,0.4)!important;border:1px solid rgba(196,181,253,0.15)!important}',
-    /* Glass login card — light */
-    'html[data-theme="light"] .login-card,html[data-theme="light"] #login-screen .login-card{',
-    'background:rgba(255,255,255,0.55)!important;',
-    'backdrop-filter:blur(20px) saturate(160%)!important;',
-    '-webkit-backdrop-filter:blur(20px) saturate(160%)!important;',
-    'border:1px solid rgba(124,106,240,0.22)!important;',
-    'box-shadow:0 8px 32px rgba(30,30,60,0.12),inset 0 1px 0 rgba(255,255,255,0.6)!important}',
-    'html[data-theme="light"] .login-card .form-group input,html[data-theme="light"] .login-card input{',
-    'background:rgba(255,255,255,0.65)!important;',
+    'backdrop-filter:blur(16px)!important;-webkit-backdrop-filter:blur(16px)!important;',
     'border:1px solid rgba(124,106,240,0.2)!important}',
     'html[data-theme="light"] .login-tabs{background:rgba(240,235,255,0.5)!important;border:1px solid rgba(124,106,240,0.15)!important}',
     'html[data-theme="light"] .login-screen,html[data-theme="light"] #login-screen{',
@@ -49,7 +32,10 @@
     'background:rgba(26,26,36,.9);color:#c4b5fd;border-radius:999px;padding:.5rem 1rem;font-size:.85rem;',
     'font-weight:600;cursor:pointer;font-family:inherit;box-shadow:0 4px 16px rgba(0,0,0,.25)}',
     'html[data-theme="light"] #dr-login-theme{background:#fff;color:#4c3fd4;border-color:#c4b5fd;',
-    'box-shadow:0 4px 16px rgba(30,30,60,.12)}'
+    'box-shadow:0 4px 16px rgba(30,30,60,.12)}',
+    '.mode-bar .user-info{display:flex!important;align-items:center!important;flex-wrap:wrap!important;gap:0.5rem!important;position:relative!important;z-index:5!important}',
+    '.mode-bar #btn-logout{position:relative!important;z-index:6!important;margin-left:0.25rem!important}',
+    '.mode-bar #btn-theme{position:relative!important;z-index:5!important;flex-shrink:0!important}'
   ].join('');
 
   function injectCss() {
@@ -62,25 +48,51 @@
     el.textContent = CSS;
   }
 
+  function isLoginVisible() {
+    var login = document.getElementById('login-screen') || document.querySelector('.login-screen');
+    if (!login) return false;
+    if (login.hidden || login.classList.contains('is-hidden')) return false;
+    var st = window.getComputedStyle(login);
+    if (st.display === 'none' || st.visibility === 'hidden' || st.opacity === '0') return false;
+    var pa = document.getElementById('portal-agent');
+    var pc = document.getElementById('portal-customer');
+    if (pa && pa.classList.contains('active')) return false;
+    if (pc && pc.classList.contains('active')) return false;
+    return true;
+  }
+
+  function removeLoginToggle() {
+    var b = document.getElementById('dr-login-theme');
+    if (b && b.parentNode) b.parentNode.removeChild(b);
+  }
+
   function setTheme(t) {
     t = t === 'light' ? 'light' : 'dark';
     document.documentElement.setAttribute('data-theme', t);
     try { localStorage.setItem('dr_theme', t); } catch (e) {}
     var b = document.getElementById('dr-login-theme');
     if (b) b.textContent = t === 'light' ? 'Dark' : 'Light';
+    document.querySelectorAll('#btn-theme').forEach(function (btn) {
+      btn.textContent = t === 'light' ? 'Dark' : 'Light';
+    });
     if (window.DRForceLightBg && window.DRForceLightBg.refresh) try { window.DRForceLightBg.refresh(); } catch (e) {}
     if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.refresh) try { window.DRHeartbeatDraw.refresh(); } catch (e) {}
+    if (window.DRTheme && window.DRTheme.apply) try { window.DRTheme.apply(t); } catch (e) {}
   }
 
   function ensureToggle() {
+    if (!isLoginVisible()) {
+      removeLoginToggle();
+      return;
+    }
     if (document.getElementById('dr-login-theme')) return;
-    var login = document.getElementById('login-screen') || document.querySelector('.login-screen');
-    if (!login || login.hidden || login.classList.contains('is-hidden')) return;
     var b = document.createElement('button');
     b.type = 'button';
     b.id = 'dr-login-theme';
     var cur = 'dark';
-    try { cur = localStorage.getItem('dr_theme') || document.documentElement.getAttribute('data-theme') || 'dark'; } catch (e) {}
+    try {
+      cur = localStorage.getItem('dr_theme') || document.documentElement.getAttribute('data-theme') || 'dark';
+    } catch (e) {}
     b.textContent = cur === 'light' ? 'Dark' : 'Light';
     b.addEventListener('click', function () {
       var cur2 = document.documentElement.getAttribute('data-theme') || 'dark';
@@ -96,7 +108,7 @@
       timer = null;
       injectCss();
       ensureToggle();
-    }, 300);
+    }, 200);
   }
 
   injectCss();
@@ -104,9 +116,13 @@
     document.documentElement.setAttribute('data-theme', localStorage.getItem('dr_theme') || 'dark');
   } catch (e) {}
 
+  ensureToggle();
   setTimeout(schedule, 200);
   setTimeout(schedule, 1000);
-  setInterval(schedule, 5000);
+  setInterval(function () {
+    injectCss();
+    ensureToggle();
+  }, 2000);
 
-  window.DRLoginTheme = { refresh: schedule, setTheme: setTheme };
+  window.DRLoginTheme = { refresh: schedule, setTheme: setTheme, removeLoginToggle: removeLoginToggle };
 })();
