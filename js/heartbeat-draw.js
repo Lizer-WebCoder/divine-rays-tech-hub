@@ -1,5 +1,5 @@
 /**
- * Divine Rays — ECG: draw L→R, then fade, then restart
+ * Divine Rays — same ECG in light + dark (draw L→R, fade, restart)
  * Credit: Lizzz · All Rights Reserved
  */
 (function () {
@@ -23,28 +23,14 @@
     'L572 50 L585 16 L598 84 L608 50 H640 ' +
     'L652 50 L665 12 L678 88 L688 50 H720';
 
-  function colors() {
-    var light = false;
-    try {
-      light =
-        document.documentElement.getAttribute('data-theme') === 'light' ||
-        localStorage.getItem('dr_theme') === 'light';
-    } catch (e) {
-      light = document.documentElement.getAttribute('data-theme') === 'light';
-    }
-    if (light) {
-      return { stroke: 'rgba(91,76,224,0.75)' };
-    }
-    return { stroke: 'rgba(130,235,180,0.75)' };
-  }
+  var STROKE = 'rgba(130,235,180,0.8)';
 
   function svgMarkup() {
-    var c = colors();
     return (
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 100" preserveAspectRatio="none" ' +
       'width="100%" height="100%" style="display:block;overflow:visible">' +
       '<path class="dr-ecg-draw" fill="none" stroke="' +
-      c.stroke +
+      STROKE +
       '" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="' +
       PATH +
       '"/>' +
@@ -64,9 +50,7 @@
     'stroke-dasharray:1200;',
     'stroke-dashoffset:1200;',
     'animation:drEcgDrawFade 6s ease-in-out infinite;',
-    'filter:drop-shadow(0 0 5px rgba(130,235,180,0.4))}',
-    'html[data-theme="light"] #dr-lifeline .dr-ecg-draw{',
-    'filter:drop-shadow(0 0 5px rgba(91,76,224,0.4))}',
+    'filter:drop-shadow(0 0 6px rgba(130,235,180,0.45))}',
     '@keyframes drEcgDrawFade{',
     '0%{stroke-dashoffset:1200;opacity:0.15}',
     '8%{opacity:0.85}',

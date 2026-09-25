@@ -1,18 +1,12 @@
-/* Divine Rays — light mode: gray-purple gradient ONLY
-   Credit: Lizzz · All Rights Reserved */
-
+/* Unified teal field for light (matches dark family) */
 html[data-theme="light"],
 html[data-theme="light"] body {
-  background-color: #c8c4d8 !important;
-  background-image: linear-gradient(
-    165deg,
-    #d8d4e8 0%,
-    #c4bfd8 35%,
-    #b0a8cc 65%,
-    #9e96be 100%
-  ) !important;
+  background-color: #dce8e2 !important;
+  background-image:
+    radial-gradient(ellipse 90% 60% at 50% -10%, rgba(40, 90, 70, 0.2), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 100% 100%, rgba(30, 70, 55, 0.12), transparent 50%),
+    linear-gradient(165deg, #e8f0ec 0%, #dce8e2 40%, #d0ddd6 100%) !important;
   background-attachment: fixed !important;
-  background-repeat: no-repeat !important;
   background-size: cover !important;
   color: #1a1a2e !important;
 }
@@ -31,6 +25,12 @@ html[data-theme="light"] #portal-customer .main {
 
 html[data-theme="light"] #portal-agent .sidebar,
 html[data-theme="light"] .mode-bar {
-  background-color: rgba(255, 255, 255, 0.92) !important;
+  background-color: rgba(255, 255, 255, 0.9) !important;
   background-image: none !important;
+}
+
+html[data-theme="light"] body::before,
+html[data-theme="light"] body::after {
+  opacity: 0 !important;
+  display: none !important;
 }
