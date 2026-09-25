@@ -33,7 +33,6 @@
     var TICKET_AV = 'cf9f7468e03f64f3cf44cac7de5e7262056d094e';
     var ACCT_SHA = '3e823d24458da24dbe01ee176f6c7ef0b45d77d8';
     var LF_SHA = '7d389b7ab971b4ae066af1fb54f9c3b410a56785';
-    var SR_SHA = '2d8ad8c8495e77deb1fde8396f58211a495d597a';
     var TECH_BG_SHA = '0ceb77441dbf7479a6398f4b41d418c1f1298754';
     var FORCE_BG_SHA = '0ceb77441dbf7479a6398f4b41d418c1f1298754';
     var urls = [
@@ -105,7 +104,6 @@
       document.body.innerHTML = bodyHtml;
       document.querySelectorAll('.version').forEach(function (el) { el.textContent = 'v' + ver; });
       wireTabs();
-      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + SR_SHA + '/js/smooth-refresh.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LOGIN_SHA + '/js/login-theme.js?v=' + ver);
       var scriptSrcs = [];
       doc.querySelectorAll('script[src]').forEach(function (sc) {
@@ -163,7 +161,6 @@
         if (window.DRTicketAvatars && window.DRTicketAvatars.refresh) try { window.DRTicketAvatars.refresh(); } catch (e) {}
         if (window.DRAccountSecurity && window.DRAccountSecurity.refresh) try { window.DRAccountSecurity.refresh(); } catch (e) {}
         if (window.DRLightForce && window.DRLightForce.refresh) try { window.DRLightForce.refresh(); } catch (e) {}
-        if (window.DRSmoothRefresh && window.DRSmoothRefresh.tick) try { window.DRSmoothRefresh.tick(); } catch (e) {}
         if (window.DRForceLightBg && window.DRForceLightBg.refresh) try { window.DRForceLightBg.refresh(); } catch (e) {}
       }, 500);
       function applyV8Once() {
