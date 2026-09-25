@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Divine Rays Tech Hub — Support</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.0.3" />
+  <style>
+    html,body{margin:0;background:#0c0c14;color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
+    #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae}
+  </style>
+  <script>(function(){try{var t=localStorage.getItem('dr_theme')||'dark';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+</head>
+<body>
+  <div id="boot">Loading Divine Rays Tech Hub…</div>
+  <script>
+  (async function () {
+    var PIN = '830dac02096eb08be1b2dc22bdc191a14df91a04';
+    var STABLE = 'bd4e6cf77fb157a42f39f763f178634835b41e66';
+    var UX_SHA = 'fe2be829d8cc69c749860dbfec23f5171d6a7713';
+    var REMOTE_SHA = '14138a207b20fea5f32019529442c0e4e2ff130f';
+    var LIVE_SHA = 'd2d98ad0185806eec4f642850662f3d790c89338';
+    var ATTACH_SHA = '26f81d38b7006bebc767ec76c9efc0bb23c7bca0';
+    var POLISH_SHA = '0374063136bf15df86745b02a2bb1d5b668dd3e0';
+    var BRANCH_SHA = 'cc1a854e40366817cba63d3671587f9f21b30aa2';
+    var LIGHT_SHA = '9f4e700974aa62dc462012eb92140adb24c459e1';
+    var SAFE = 'dcd63cf56e9b65313cdfc16b0edcee99168b3f2b';
+    var KB_SHA = SAFE;
+    var AGENT_LIGHT = 'eb1cb3fce7ee8b83ef7cf9a75288ac1bfc6e2ab3';
+    var LIGHT_V2 = '487c88a3c4f5b8bfb3a521fb2f68d8b678f41567';
+    var CSAT_AV = SAFE;
+    var LOGIN_SHA = 'main';
+    var TICKET_AV = 'cf9f7468e03f64f3cf44cac7de5e7262056d094e';
+    var ACCT_SHA = '3e823d24458da24dbe01ee176f6c7ef0b45d77d8';
+    var LF_SHA = '7d389b7ab971b4ae066af1fb54f9c3b410a56785';
+    var TECH_BG_SHA = 'main';
+    var FORCE_BG_SHA = 'main';
+    var HB_SHA = 'main';
+    var urls = [
+      'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PIN + '/index.html',
+      'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + PIN + '/index.html'
+    ];
+    var ver = '8.0.3';
+    function loadScript(src) {
+      return new Promise(function (resolve) {
+        var s = document.createElement('script');
+        s.src = src; s.async = false;
+        s.onload = function () { resolve(src); };
+        s.onerror = function () { console.warn('script fail', src); resolve(src); };
+        document.body.appendChild(s);
+      });
+    }
+    function loadCss(href) {
+      var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = href; document.head.appendChild(l);
+    }
+    function switchLoginTab(tab) {
+      tab = tab === 'agent' ? 'agent' : 'customer';
+      document.querySelectorAll('.ltab').forEach(function (b) { b.classList.toggle('active', b.getAttribute('data-ltab') === tab); });
+      document.querySelectorAll('form.login-form').forEach(function (f) { f.classList.remove('active'); });
+      var f = document.getElementById(tab === 'agent' ? 'login-agent' : 'login-customer');
+      if (f) f.classList.add('active');
+    }
+    function showForm(id) {
+      document.querySelectorAll('form.login-form').forEach(function (f) { f.classList.remove('active'); });
+      var f = document.getElementById(id); if (f) f.classList.add('active');
+      var tab = (id || '').indexOf('agent') !== -1 ? 'agent' : 'customer';
+      document.querySelectorAll('.ltab').forEach(function (b) { b.classList.toggle('active', b.getAttribute('data-ltab') === tab); });
+    }
+    window.switchLoginTab = switchLoginTab; window.showForm = showForm;
+    function wireTabs() {
+      document.querySelectorAll('.ltab').forEach(function (btn) {
+        btn.onclick = function (e) { e.preventDefault(); switchLoginTab(btn.getAttribute('data-ltab')); };
+      });
+    }
+    try {
+      var html = null;
+      for (var i = 0; i < urls.length; i++) {
+        try {
+          var r = await fetch(urls[i] + (urls[i].indexOf('?') === -1 ? '?t=' : '&t=') + Date.now());
+          if (r.ok) { html = await r.text(); break; }
+        } catch (e) {}
+      }
+      if (!html) throw new Error('Could not load app shell');
+      var parser = new DOMParser();
+      var doc = parser.parseFromString(html, 'text/html');
+      doc.querySelectorAll('link[rel="stylesheet"]').forEach(function (link) {
+        var href = link.getAttribute('href') || '';
+        if (!href) return;
+        href = href.replace(/\?v=[^&"]+/g, '?v=' + ver);
+        if (href.indexOf('http') !== 0 && href.indexOf('//') !== 0) {
+          href = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PIN + '/' + href.replace(/^\.\//, '');
+        }
+        loadCss(href);
+      });
+      doc.querySelectorAll('head style').forEach(function (st) {
+        var n = document.createElement('style'); n.textContent = st.textContent; document.head.appendChild(n);
+      });
+      var bodyHtml = '';
+      Array.prototype.forEach.call(doc.body.childNodes, function (node) {
+        if (node.nodeName === 'SCRIPT') return;
+        if (node.nodeType === 1) bodyHtml += node.outerHTML;
+        else if (node.nodeType === 3) bodyHtml += node.textContent;
+      });
+      bodyHtml = bodyHtml.replace(/>v7\.[0-9.]+</g, '>v' + ver + '<').replace(/v7\.6\.7/g, 'v' + ver);
+      bodyHtml = bodyHtml.replace(/Lizzz · All Rights Reserved/g, 'Boyz at the Back · All Rights Reserved');
+      document.body.innerHTML = bodyHtml;
+      document.querySelectorAll('.version').forEach(function (el) { el.textContent = 'v' + ver; });
+      wireTabs();
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LOGIN_SHA + '/js/login-theme.js?v=' + ver);
+      var scriptSrcs = [];
+      doc.querySelectorAll('script[src]').forEach(function (sc) {
+        var src = (sc.getAttribute('src') || '').replace(/\?v=[^&"]+/g, '?v=' + ver);
+        if (src) {
+          if (src.indexOf('http') !== 0 && src.indexOf('//') !== 0) {
+            src = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PIN + '/' + src.replace(/^\.\//, '');
+          }
+          scriptSrcs.push(src);
+        }
+      });
+      ['js/email-notify.js','js/ticket-plus.js','js/ticket-plus-fix.js','js/status-lock.js','js/polish-fixes.js','js/saved-views.js'].forEach(function (base) {
+        if (!scriptSrcs.some(function (s) { return s.indexOf(base) !== -1; })) {
+          scriptSrcs.push('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PIN + '/' + base + '?v=' + ver);
+        }
+      });
+      for (var j = 0; j < scriptSrcs.length; j++) await loadScript(scriptSrcs[j]);
+      var OVERLAY_SHA = 'b1c9c88a081d448fb0b0a9388b02a37c156a2421';
+      var JS_SHA = '8c7414ba0de46bb365414df630f20f6e6481369c';
+      loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + OVERLAY_SHA + '/css/v8-overlay.css?v=' + ver);
+      loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + POLISH_SHA + '/css/ui-polish-v9.css?v=' + ver);
+      loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LIGHT_SHA + '/css/light-fix.css?v=' + ver);
+      loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + AGENT_LIGHT + '/css/agent-light.css?v=' + ver);
+      loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LIGHT_V2 + '/css/light-mode-v2.css?v=' + ver);
+      loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + TECH_BG_SHA + '/css/light-tech-bg.css?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + JS_SHA + '/js/theme.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + JS_SHA + '/js/filters.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + STABLE + '/js/portal-guard.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@main/js/status-card.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@af065832c121e643c6c7e6149a1f0367fdf94920/js/staff-presence.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@7671a3fa3bdb1e3a3ab9e6a79a124661a0bdbf9e/js/avatar-fix.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@d7d5c09e5d5d6a6289292449d4e532854a3b0e1d/js/emoji-fix.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + STABLE + '/js/layout-fix.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@49062e232bcd560ed8e409f70e7c109d2eb9ae94/js/csat.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + ATTACH_SHA + '/js/attach-enhance.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@7a09542332b8227930871a5a055162c570a3fdb7/js/csat-dashboard.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@875b2f5b1c8293bb219943429c01020f28114d5b/js/ticket-list-fix.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LIVE_SHA + '/js/comments-live.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + REMOTE_SHA + '/js/remote-session.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + STABLE + '/js/customer-layout.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + UX_SHA + '/js/customer-ux.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + POLISH_SHA + '/js/ui-polish.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + BRANCH_SHA + '/js/branch-ui.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + KB_SHA + '/js/kb-avatar-fix.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + CSAT_AV + '/js/csat-avatar-light.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + TICKET_AV + '/js/ticket-avatars.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + ACCT_SHA + '/js/account-security.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LF_SHA + '/js/light-force.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + FORCE_BG_SHA + '/js/force-light-bg.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + HB_SHA + '/js/heartbeat-draw.js?v=' + ver);
+      loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + TECH_BG_SHA + '/css/light-tech-bg.css?v=' + ver + '&t=' + Date.now());
+      setTimeout(function () {
+        if (window.DRPortalGuard && window.DRPortalGuard.sync) try { window.DRPortalGuard.sync(); } catch (e) {}
+        if (window.DRUiPolish && window.DRUiPolish.refresh) try { window.DRUiPolish.refresh(); } catch (e) {}
+        if (window.DRLoginTheme && window.DRLoginTheme.refresh) try { window.DRLoginTheme.refresh(); } catch (e) {}
+        if (window.DRTicketAvatars && window.DRTicketAvatars.refresh) try { window.DRTicketAvatars.refresh(); } catch (e) {}
+        if (window.DRAccountSecurity && window.DRAccountSecurity.refresh) try { window.DRAccountSecurity.refresh(); } catch (e) {}
+        if (window.DRLightForce && window.DRLightForce.refresh) try { window.DRLightForce.refresh(); } catch (e) {}
+        if (window.DRForceLightBg && window.DRForceLightBg.refresh) try { window.DRForceLightBg.refresh(); } catch (e) {}
+        if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.refresh) try { window.DRHeartbeatDraw.refresh(); } catch (e) {}
+      }, 500);
+      function applyV8Once() {
+        document.querySelectorAll('.version').forEach(function (el) {
+          if (el.textContent.indexOf('8.0.3') === -1) el.textContent = 'v' + ver;
+        });
+        var info = document.querySelector('.mode-bar .user-info') || document.querySelector('.user-info');
+        if (info && !document.getElementById('btn-theme')) {
+          var b = document.createElement('button');
+          b.type = 'button'; b.id = 'btn-theme'; b.className = 'btn btn-ghost btn-sm btn-theme';
+          var cur0 = document.documentElement.getAttribute('data-theme') || 'dark';
+          try { cur0 = localStorage.getItem('dr_theme') || cur0; } catch (e) {}
+          document.documentElement.setAttribute('data-theme', cur0);
+          b.textContent = cur0 === 'light' ? 'Dark' : 'Light';
+          b.addEventListener('click', function () {
+            var cur = document.documentElement.getAttribute('data-theme') || 'dark';
+            var next = cur === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            try { localStorage.setItem('dr_theme', next); } catch (e) {}
+            b.textContent = next === 'light' ? 'Dark' : 'Light';
+            if (window.DRForceLightBg && window.DRForceLightBg.refresh) try { window.DRForceLightBg.refresh(); } catch (e) {}
+            if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.refresh) try { window.DRHeartbeatDraw.refresh(); } catch (e) {}
+          });
+          info.insertBefore(b, info.firstChild);
+        }
+        if (window.DRTheme && window.DRTheme.ensure) try { window.DRTheme.ensure(); } catch (e) {}
+        if (window.DRPortalGuard && window.DRPortalGuard.sync) try { window.DRPortalGuard.sync(); } catch (e) {}
+        if (window.DRLayoutFix && window.DRLayoutFix.force) try { window.DRLayoutFix.force(); } catch (e) {}
+        if (window.DRForceLightBg && window.DRForceLightBg.refresh) try { window.DRForceLightBg.refresh(); } catch (e) {}
+        if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.refresh) try { window.DRHeartbeatDraw.refresh(); } catch (e) {}
+        document.querySelectorAll('.credit, .credit-footer, .credit-side').forEach(function (el) {
+          if (el.textContent && el.textContent.indexOf('Lizzz') !== -1) {
+            el.textContent = 'Boyz at the Back · All Rights Reserved';
+          }
+          el.style.textAlign = 'center';
+        });
+        if (!document.getElementById('dr-credit-center')) {
+          var cs = document.createElement('style');
+          cs.id = 'dr-credit-center';
+          cs.textContent = '.credit,.credit-footer,.credit-side{text-align:center!important}#portal-agent .sidebar-footer{text-align:center!important}';
+          document.head.appendChild(cs);
+        }
+      }
+      applyV8Once();
+      setTimeout(applyV8Once, 800);
+      setTimeout(applyV8Once, 2500);
+      window.switchLoginTab = switchLoginTab; window.showForm = showForm; wireTabs();
+    } catch (err) {
+      console.error(err);
+      if (document.getElementById('boot')) document.getElementById('boot').textContent = 'Load error: ' + (err.message || err);
+    }
+  })();
+  </script>
+</body>
+</html>
