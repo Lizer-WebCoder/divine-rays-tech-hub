@@ -1,6 +1,6 @@
 /**
  * Divine Rays — compact sidebar + status card (no scroll)
- * Credit: Lizzz · All Rights Reserved
+ * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
@@ -95,7 +95,7 @@
     if (!footer.querySelector('.credit-side')) {
       var c = document.createElement('p');
       c.className = 'credit-side';
-      c.textContent = 'Lizzz \u00b7 All Rights Reserved';
+      c.textContent = 'Boyz at the Back · All Rights Reserved';
       footer.appendChild(c);
     }
   }

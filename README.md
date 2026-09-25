@@ -25,4 +25,4 @@ No demo accounts. Everything you create is stored in your browser (localStorage)
 
 ---
 
-**Lizzz · All Rights Reserved**
+**Boyz at the Back · All Rights Reserved**

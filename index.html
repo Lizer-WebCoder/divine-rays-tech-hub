@@ -102,6 +102,7 @@
         else if (node.nodeType === 3) bodyHtml += node.textContent;
       });
       bodyHtml = bodyHtml.replace(/>v7\.[0-9.]+</g, '>v' + ver + '<').replace(/v7\.6\.7/g, 'v' + ver);
+      bodyHtml = bodyHtml.replace(/Lizzz · All Rights Reserved/g, 'Boyz at the Back · All Rights Reserved');
       document.body.innerHTML = bodyHtml;
       document.querySelectorAll('.version').forEach(function (el) { el.textContent = 'v' + ver; });
       wireTabs();
@@ -133,7 +134,7 @@
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + JS_SHA + '/js/theme.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + JS_SHA + '/js/filters.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + STABLE + '/js/portal-guard.js?v=' + ver);
-      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@1e6520dca83cccafdc0f0d7d031f3bf6cde80c82/js/status-card.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@main/js/status-card.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@af065832c121e643c6c7e6149a1f0367fdf94920/js/staff-presence.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@7671a3fa3bdb1e3a3ab9e6a79a124661a0bdbf9e/js/avatar-fix.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@d7d5c09e5d5d6a6289292449d4e532854a3b0e1d/js/emoji-fix.js?v=' + ver);
@@ -194,9 +195,15 @@
         if (window.DRLayoutFix && window.DRLayoutFix.force) try { window.DRLayoutFix.force(); } catch (e) {}
         if (window.DRForceLightBg && window.DRForceLightBg.refresh) try { window.DRForceLightBg.refresh(); } catch (e) {}
         if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.refresh) try { window.DRHeartbeatDraw.refresh(); } catch (e) {}
+        document.querySelectorAll('.credit, .credit-footer, .credit-side').forEach(function (el) {
+          if (el.textContent && el.textContent.indexOf('Lizzz') !== -1) {
+            el.textContent = 'Boyz at the Back · All Rights Reserved';
+          }
+        });
       }
       applyV8Once();
       setTimeout(applyV8Once, 800);
+      setTimeout(applyV8Once, 2500);
       window.switchLoginTab = switchLoginTab; window.showForm = showForm; wireTabs();
     } catch (err) {
       console.error(err);
