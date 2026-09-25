@@ -51,16 +51,39 @@
     'L578 40 L588 50 L596 30 L608 50 L620 8 L635 50 L645 25 L658 94 L675 50 L688 38 L700 50 H720'
   ];
 
-  var STROKE = '#e9d5ff';
+  var STROKE_DARK = '#e9d5ff';
+  var STROKE_LIGHT = '#5b21b6';
   var patternIndex = 0;
   var animating = false;
   var cycleTimer = null;
 
-  function svgMarkup(pathD) {
+  function isLight() {
+    try {
+      return (
+        document.documentElement.getAttribute('data-theme') === 'light' ||
+        localStorage.getItem('dr_theme') === 'light'
+      );
+    } catch (e) {
+      return document.documentElement.getAttribute('data-theme') === 'light';
+    }
+  }
+
+  function currentStroke() {
+    return isLight() ? STROKE_LIGHT : STROKE_DARK;
+  }
+
+  function currentGlow() {
+    if (isLight()) {
+      return 'drop-shadow(0 0 3px #7c3aed) drop-shadow(0 0 10px rgba(109,40,217,0.65)) drop-shadow(0 0 20px rgba(91,33,182,0.4))';
+    }
+    return 'drop-shadow(0 0 4px #e9d5ff) drop-shadow(0 0 14px #c4b5fd) drop-shadow(0 0 28px rgba(167,139,250,0.9)) drop-shadow(0 0 48px rgba(124,106,240,0.55))';
+  }
+
+  function svgMarkup(pathD, stroke) {
     return (
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 100" preserveAspectRatio="none" ' +
       'width="100%" height="100%" style="display:block;overflow:visible">' +
-      '<path class="dr-ecg-draw" fill="none" stroke="' + STROKE + '" stroke-width="4" ' +
+      '<path class="dr-ecg-draw" fill="none" stroke="' + stroke + '" stroke-width="4" ' +
       'stroke-linecap="round" stroke-linejoin="round" d="' + pathD + '"/>' +
       '</svg>'
     );
@@ -78,11 +101,11 @@
     '#' + LINE_ID + ' svg{width:100%!important;height:100%!important;display:block!important;overflow:visible!important}',
     '#' + LINE_ID + ' .dr-ecg-draw{',
     'animation:none;',
-    'filter:drop-shadow(0 0 4px #e9d5ff) drop-shadow(0 0 14px #c4b5fd) drop-shadow(0 0 28px rgba(167,139,250,0.9)) drop-shadow(0 0 48px rgba(124,106,240,0.55))!important}',
+    'will-change:stroke-dashoffset,opacity}',
     '@keyframes drEcgDraw{',
     '0%{stroke-dashoffset:var(--dr-len);opacity:0}',
-    '4%{opacity:1}',
-    '85%{stroke-dashoffset:0;opacity:1}',
+    '3%{opacity:1}',
+    '88%{stroke-dashoffset:0;opacity:1}',
     '100%{stroke-dashoffset:0;opacity:0}',
     '}',
     '@media (prefers-reduced-motion:reduce){',
@@ -149,7 +172,7 @@
     }
 
     var pathD = PATTERNS[patternIndex % PATTERNS.length];
-    box.innerHTML = svgMarkup(pathD);
+    box.innerHTML = svgMarkup(pathD, currentStroke());
 
     var path = box.querySelector('.dr-ecg-draw');
     if (!path) {
@@ -171,7 +194,8 @@
 
     path.style.animation = 'none';
     void path.getBoundingClientRect();
-    path.style.animation = 'drEcgDraw ' + (DURATION_MS / 1000) + 's cubic-bezier(0.4, 0, 0.2, 1) forwards';
+    path.style.filter = currentGlow();
+    path.style.animation = 'drEcgDraw ' + (DURATION_MS / 1000) + 's linear forwards';
 
     if (cycleTimer) clearTimeout(cycleTimer);
     cycleTimer = setTimeout(function () {
@@ -200,8 +224,13 @@
 
   document.addEventListener('click', function (e) {
     var t = e.target;
-    if (t && (t.id === 'btn-theme' || (t.classList && t.classList.contains('btn-theme')))) {
-      setTimeout(function () { injectCss(); }, 40);
+    if (t && (t.id === 'btn-theme' || t.id === 'dr-login-theme' || (t.classList && t.classList.contains('btn-theme')))) {
+      setTimeout(function () {
+        injectCss();
+        animating = false;
+        if (cycleTimer) clearTimeout(cycleTimer);
+        runCycle();
+      }, 60);
     }
   }, true);
 
