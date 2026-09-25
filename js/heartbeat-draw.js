@@ -79,6 +79,15 @@
     return 'drop-shadow(0 0 4px #e9d5ff) drop-shadow(0 0 14px #c4b5fd) drop-shadow(0 0 28px rgba(167,139,250,0.9)) drop-shadow(0 0 48px rgba(124,106,240,0.55))';
   }
 
+  function applyThemeToPath() {
+    var box = document.getElementById(LINE_ID);
+    if (!box) return;
+    var path = box.querySelector('.dr-ecg-draw');
+    if (!path) return;
+    path.setAttribute('stroke', currentStroke());
+    path.style.filter = currentGlow();
+  }
+
   function svgMarkup(pathD, stroke) {
     return (
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 100" preserveAspectRatio="none" ' +
@@ -101,7 +110,8 @@
     '#' + LINE_ID + ' svg{width:100%!important;height:100%!important;display:block!important;overflow:visible!important}',
     '#' + LINE_ID + ' .dr-ecg-draw{',
     'animation:none;',
-    'will-change:stroke-dashoffset,opacity}',
+    'will-change:stroke-dashoffset,opacity;',
+    'transition:filter 0.35s ease, stroke 0.35s ease}',
     '@keyframes drEcgDraw{',
     '0%{stroke-dashoffset:var(--dr-len);opacity:0}',
     '3%{opacity:1}',
@@ -225,17 +235,28 @@
   document.addEventListener('click', function (e) {
     var t = e.target;
     if (t && (t.id === 'btn-theme' || t.id === 'dr-login-theme' || (t.classList && t.classList.contains('btn-theme')))) {
-      setTimeout(function () {
-        injectCss();
-        animating = false;
-        if (cycleTimer) clearTimeout(cycleTimer);
-        runCycle();
-      }, 60);
+      setTimeout(applyThemeToPath, 30);
+      setTimeout(applyThemeToPath, 120);
     }
   }, true);
 
+  try {
+    var themeObs = new MutationObserver(function () {
+      applyThemeToPath();
+    });
+    themeObs.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme']
+    });
+  } catch (e) {}
+
+  window.addEventListener('storage', function (e) {
+    if (e && e.key === 'dr_theme') applyThemeToPath();
+  });
+
   window.DRHeartbeatDraw = {
     refresh: tick,
+    applyTheme: applyThemeToPath,
     next: function () {
       patternIndex = (patternIndex + 1) % PATTERNS.length;
       animating = false;
