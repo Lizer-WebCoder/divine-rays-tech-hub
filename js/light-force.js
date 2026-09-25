@@ -1,5 +1,5 @@
 /**
- * Divine Rays — transparent admin bubbles + realistic single-line heartbeat
+ * Divine Rays — light admin tech bg + centered heartbeat (pulse, not slide)
  * Credit: Lizzz · All Rights Reserved
  */
 (function () {
@@ -13,26 +13,38 @@
   var LINE_ID = 'dr-lifeline';
 
   var HB =
-    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='120' viewBox='0 0 400 120'%3E%3Cpath fill='none' stroke='%23COL%23' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' d='M0 60 H55 L62 60 L68 48 L74 60 H95 L100 60 L106 18 L112 102 L118 52 L124 60 H155 L162 60 L168 50 L174 60 H200 L206 60 L212 42 L218 60 H245 L250 60 L256 22 L262 98 L268 54 L274 60 H310 L316 60 L322 46 L328 60 H360 L366 60 L372 52 L378 60 H400'/%3E%3C/svg%3E";
+    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='480' height='100' viewBox='0 0 480 100'%3E%3Cpath fill='none' stroke='%23COL%23' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round' d='M0 50 H80 L88 50 L96 38 L104 50 H140 L148 50 L156 12 L164 88 L172 44 L180 50 H240 L248 50 L256 36 L264 50 H300 L308 50 L316 16 L324 84 L332 46 L340 50 H400 L408 50 L416 40 L424 50 H480'/%3E%3C/svg%3E";
 
   var lightCol = HB.replace('%23COL%23', '%235b4ce0');
   var darkCol = HB.replace('%23COL%23', '%23a78bfa');
 
+  var TECH_BG =
+    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Ccircle cx='20' cy='20' r='1.5' fill='%237c6af0' opacity='0.18'/%3E%3Ccircle cx='60' cy='40' r='1.2' fill='%237c6af0' opacity='0.14'/%3E%3Ccircle cx='100' cy='25' r='1.5' fill='%237c6af0' opacity='0.16'/%3E%3Ccircle cx='40' cy='80' r='1.2' fill='%237c6af0' opacity='0.12'/%3E%3Ccircle cx='90' cy='90' r='1.5' fill='%237c6af0' opacity='0.15'/%3E%3Cpath d='M20 20h18M60 40h22M40 80h20' stroke='%237c6af0' stroke-width='0.6' opacity='0.1'/%3E%3C/svg%3E";
+
   var CSS = [
     'html[data-theme="light"]{color-scheme:light!important}',
     'html[data-theme="light"],html[data-theme="light"] body{',
-    'background:#ffffff!important;background-color:#ffffff!important;',
-    'background-image:radial-gradient(ellipse 90% 55% at 50% -12%,rgba(109,94,245,.28),transparent 58%),',
-    'radial-gradient(ellipse 55% 45% at 100% 100%,rgba(167,139,250,.14),transparent 50%)!important;',
+    'background:#f6f5fc!important;background-color:#f6f5fc!important;',
+    'background-image:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(109,94,245,.22),transparent 55%),',
+    'radial-gradient(ellipse 40% 35% at 100% 100%,rgba(167,139,250,.1),transparent 50%)!important;',
     'color:#1a1a2e!important}',
-    'html[data-theme="light"] #portal-agent,html[data-theme="light"] #portal-agent.active,',
+    'html[data-theme="light"] #portal-agent,html[data-theme="light"] #portal-agent.active{',
+    'background-color:#f4f2fb!important;',
+    'background-image:',
+    'radial-gradient(ellipse 70% 45% at 15% 10%,rgba(124,106,240,.16),transparent 50%),',
+    'radial-gradient(ellipse 50% 40% at 90% 80%,rgba(91,76,224,.1),transparent 45%),',
+    'linear-gradient(180deg,rgba(255,255,255,.5),rgba(246,245,252,.85)),',
+    'url("' + TECH_BG + '")!important;',
+    'background-size:auto,auto,auto,120px 120px!important;',
+    'background-repeat:no-repeat,no-repeat,no-repeat,repeat!important;',
+    'color:#1a1a2e!important}',
+    'html[data-theme="light"] #portal-agent .main,html[data-theme="light"] #portal-agent main.main{background:transparent!important}',
     'html[data-theme="light"] #portal-customer,html[data-theme="light"] #portal-customer.active,',
-    'html[data-theme="light"] #portal-agent .main,html[data-theme="light"] #portal-agent main.main,',
     'html[data-theme="light"] #portal-customer .main,html[data-theme="light"] .app-shell,',
     'html[data-theme="light"] .login-screen,html[data-theme="light"] #login-screen{',
-    'background:transparent!important;background-color:transparent!important;background-image:none!important;color:#1a1a2e!important}',
-    'html[data-theme="light"] #portal-agent .sidebar{background:rgba(255,255,255,.88)!important;border-right:1px solid #e2e0f0!important;color:#1a1a2e!important}',
-    'html[data-theme="light"] .mode-bar{background:rgba(255,255,255,.88)!important;border-bottom:1px solid #e2e0f0!important;color:#1a1a2e!important}',
+    'background:transparent!important;background-color:transparent!important;color:#1a1a2e!important}',
+    'html[data-theme="light"] #portal-agent .sidebar{background:rgba(255,255,255,.82)!important;border-right:1px solid #e2e0f0!important;color:#1a1a2e!important}',
+    'html[data-theme="light"] .mode-bar{background:rgba(255,255,255,.9)!important;border-bottom:1px solid #e2e0f0!important;color:#1a1a2e!important}',
     'html[data-theme="light"] h1,html[data-theme="light"] h2,html[data-theme="light"] h3,html[data-theme="light"] h4,',
     'html[data-theme="light"] .page-title,html[data-theme="light"] .ticket-card h4,html[data-theme="light"] .ticket-meta,',
     'html[data-theme="light"] .nav-btn,html[data-theme="light"] label,html[data-theme="light"] #logged-user-label,',
@@ -40,11 +52,7 @@
     'html[data-theme="light"] .stat-value{color:#4c3fd4!important}',
     'html[data-theme="light"] .nav-btn.active{color:#4c3fd4!important;background:rgba(109,94,245,.12)!important}',
     'html[data-theme="light"] input,html[data-theme="light"] select,html[data-theme="light"] textarea{',
-    'background:rgba(247,246,252,.9)!important;color:#1a1a2e!important;border:1px solid #d8d4ec!important}',
-    'html[data-theme="light"] #portal-customer .ticket-form,html[data-theme="light"] #customer-form.ticket-form,',
-    'html[data-theme="light"] #portal-customer .customer-tabs,html[data-theme="light"] .comment,',
-    'html[data-theme="light"] #csat-panel,html[data-theme="light"] .login-card,html[data-theme="light"] .modal-card{',
-    'background:rgba(255,255,255,.9)!important;border-color:#e2e0f0!important;color:#1a1a2e!important}',
+    'background:rgba(255,255,255,.9)!important;color:#1a1a2e!important;border:1px solid #d8d4ec!important}',
     '#portal-agent .stat-card,#portal-agent .ticket-card,#portal-agent .agent-badge,',
     '#portal-agent .sidebar-user-card,#portal-agent #dr-status-card,#portal-agent .dr-status-card,',
     '#portal-agent .ticket-detail,#portal-agent .comments-section,#portal-agent .agent-actions,',
@@ -60,14 +68,14 @@
     'html[data-theme="light"] #portal-agent .agent-perf,html[data-theme="light"] #portal-agent .kb-manage,',
     'html[data-theme="light"] #portal-agent .comment,html[data-theme="light"] #portal-agent .modal-card,',
     'html[data-theme="light"] #portal-agent .filters-bar,html[data-theme="light"] #portal-agent .filter-bar{',
-    'background:rgba(255,255,255,.55)!important;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);',
-    'border:1px solid rgba(109,94,245,.18)!important;box-shadow:0 2px 14px rgba(91,76,224,.06)!important;color:#1a1a2e!important}',
-    '#dr-lifeline{display:block;position:fixed;left:0;right:0;bottom:12%;height:120px;z-index:0;pointer-events:none;overflow:hidden}',
-    '#dr-lifeline .dr-line{position:absolute;left:0;top:0;height:120px;width:200%;background-repeat:repeat-x;background-size:400px 120px;background-position:0 50%;opacity:.7;will-change:background-position}',
-    'html[data-theme="light"] #dr-lifeline .dr-line{background-image:url("' + lightCol + '");animation:drHbScroll 8s linear infinite;opacity:.65}',
-    'html[data-theme="dark"] #dr-lifeline .dr-line,html:not([data-theme="light"]) #dr-lifeline .dr-line{background-image:url("' + darkCol + '");animation:drHbScroll 8s linear infinite;opacity:.55}',
-    '@keyframes drHbScroll{0%{background-position:0 50%}100%{background-position:-400px 50%}}',
-    '@media (prefers-reduced-motion:reduce){#dr-lifeline .dr-line{animation:none!important}}',
+    'background:rgba(255,255,255,.58)!important;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);',
+    'border:1px solid rgba(109,94,245,.16)!important;box-shadow:0 2px 14px rgba(91,76,224,.06)!important;color:#1a1a2e!important}',
+    '#dr-lifeline{display:block;position:fixed;left:0;right:0;top:50%;height:100px;margin-top:-50px;z-index:0;pointer-events:none;overflow:hidden}',
+    '#dr-lifeline .dr-line{position:absolute;left:0;top:0;width:100%;height:100px;background-repeat:repeat-x;background-size:480px 100px;background-position:center center;opacity:.5;transform-origin:center center;will-change:opacity,filter}',
+    'html[data-theme="light"] #dr-lifeline .dr-line{background-image:url("' + lightCol + '");animation:drHbPulse 2.4s ease-in-out infinite}',
+    'html[data-theme="dark"] #dr-lifeline .dr-line,html:not([data-theme="light"]) #dr-lifeline .dr-line{background-image:url("' + darkCol + '");animation:drHbPulse 2.4s ease-in-out infinite}',
+    '@keyframes drHbPulse{0%,100%{opacity:.28;filter:drop-shadow(0 0 0 transparent)}12%{opacity:.75;filter:drop-shadow(0 0 6px rgba(109,94,245,.55))}24%{opacity:.4;filter:drop-shadow(0 0 2px rgba(109,94,245,.25))}36%{opacity:.7;filter:drop-shadow(0 0 5px rgba(109,94,245,.45))}50%{opacity:.32}}',
+    '@media (prefers-reduced-motion:reduce){#dr-lifeline .dr-line{animation:none!important;opacity:.35}}',
     '#portal-agent,#portal-customer,#login-screen,.mode-bar,.app-shell{position:relative;z-index:1}'
   ].join('');
 
@@ -104,7 +112,7 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', tick);
   setTimeout(tick, 300);
   setTimeout(tick, 1200);
-  setTimeout(tick, 2800);
+  setTimeout(tick, 2500);
   setInterval(function () { injectCss(); }, 6000);
 
   document.addEventListener('click', function (e) {
