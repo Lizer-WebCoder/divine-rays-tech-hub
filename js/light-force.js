@@ -1,11 +1,12 @@
 /**
- * Divine Rays — force light mode (white + purple glow + ECG lifeline)
- * Injects CSS + DOM layer last so polish cannot override
+ * Divine Rays — force light mode (white + purple glow + 1 ECG lifeline, 5s L→R)
  * Credit: Lizzz · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_LIGHT_FORCE) return;
+  if (window.__DR_LIGHT_FORCE) {
+    try { delete window.__DR_LIGHT_FORCE; } catch (e) {}
+  }
   window.__DR_LIGHT_FORCE = 1;
 
   var CSS_ID = 'dr-light-force-css';
@@ -65,11 +66,15 @@
     'html[data-theme="light"] .badge-critical,html[data-theme="light"] .badge-high{background:#fee2e2!important;color:#b91c1c!important}',
     '#dr-lifeline{display:none;position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}',
     'html[data-theme="light"] #dr-lifeline{display:block}',
-    '#dr-lifeline .dr-line{position:absolute;left:0;right:0;height:120px;opacity:.5;background-repeat:repeat-x;background-size:480px 120px}',
-    '#dr-lifeline .dr-line-a{top:68%;opacity:.55;background-image:url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'480\' height=\'120\' viewBox=\'0 0 480 120\'%3E%3Cpath fill=\'none\' stroke=\'%236d5ef5\' stroke-width=\'2.4\' stroke-linecap=\'round\' stroke-linejoin=\'round\' d=\'M0 60 H40 L52 60 L64 18 L76 102 L88 36 L100 60 H160 L172 60 L184 24 L196 96 L208 44 L220 60 H300 L312 60 L324 14 L336 106 L348 32 L360 60 H420 L432 60 L444 28 L456 92 L468 48 L480 60\'/%3E%3C/svg%3E");animation:drLfA 16s linear infinite}',
-    '#dr-lifeline .dr-line-b{top:22%;opacity:.28;height:100px;background-size:560px 100px;background-image:url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'560\' height=\'100\' viewBox=\'0 0 560 100\'%3E%3Cpath fill=\'none\' stroke=\'%239b8afb\' stroke-width=\'1.8\' stroke-linecap=\'round\' stroke-linejoin=\'round\' d=\'M0 50 H60 L74 50 L88 12 L102 88 L116 28 L130 50 H240 L254 50 L268 16 L282 84 L296 34 L310 50 H420 L434 50 L448 10 L462 90 L476 26 L490 50 H560\'/%3E%3C/svg%3E");animation:drLfB 22s linear infinite}',
-    '@keyframes drLfA{from{background-position:0 0}to{background-position:-480px 0}}',
-    '@keyframes drLfB{from{background-position:0 0}to{background-position:560px 0}}',
+    '#dr-lifeline .dr-line{',
+    'position:absolute;left:0;width:200%;height:140px;top:58%;',
+    'opacity:.55;background-repeat:repeat-x;background-size:480px 140px;',
+    "background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='480' height='140' viewBox='0 0 480 140'%3E%3Cpath fill='none' stroke='%236d5ef5' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round' d='M0 70 H40 L52 70 L64 22 L76 118 L88 42 L100 70 H160 L172 70 L184 28 L196 112 L208 50 L220 70 H300 L312 70 L324 18 L336 122 L348 38 L360 70 H420 L432 70 L444 32 L456 108 L468 54 L480 70'/%3E%3C/svg%3E\");",
+    'animation:drLfOnce 5s linear infinite}',
+    '@keyframes drLfOnce{',
+    '0%{transform:translateX(-50%)}',
+    '100%{transform:translateX(0)}',
+    '}',
     '@media (prefers-reduced-motion:reduce){#dr-lifeline .dr-line{animation:none!important}}',
     'html[data-theme="light"] #portal-agent,html[data-theme="light"] #portal-customer,html[data-theme="light"] #login-screen,html[data-theme="light"] .mode-bar{position:relative;z-index:1}'
   ].join('');
@@ -91,8 +96,10 @@
       box = document.createElement('div');
       box.id = LINE_ID;
       box.setAttribute('aria-hidden', 'true');
-      box.innerHTML = '<div class="dr-line dr-line-a"></div><div class="dr-line dr-line-b"></div>';
+      box.innerHTML = '<div class="dr-line"></div>';
       document.body.insertBefore(box, document.body.firstChild);
+    } else {
+      box.innerHTML = '<div class="dr-line"></div>';
     }
   }
 
@@ -108,7 +115,7 @@
   setTimeout(tick, 300);
   setTimeout(tick, 1000);
   setTimeout(tick, 2500);
-  setInterval(function () { injectCss(); }, 4000);
+  setInterval(function () { injectCss(); }, 5000);
 
   document.addEventListener(
     'click',
