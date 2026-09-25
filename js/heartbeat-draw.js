@@ -1,5 +1,5 @@
 /**
- * Divine Rays — full-width ECG monitor background
+ * Divine Rays — ECG: draw L→R, then fade, then restart
  * Credit: Lizzz · All Rights Reserved
  */
 (function () {
@@ -33,9 +33,9 @@
       light = document.documentElement.getAttribute('data-theme') === 'light';
     }
     if (light) {
-      return { base: 'rgba(91,76,224,0.28)', bright: 'rgba(91,76,224,0.7)' };
+      return { stroke: 'rgba(91,76,224,0.75)' };
     }
-    return { base: 'rgba(110,220,160,0.22)', bright: 'rgba(130,235,180,0.65)' };
+    return { stroke: 'rgba(130,235,180,0.75)' };
   }
 
   function svgMarkup() {
@@ -43,13 +43,8 @@
     return (
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 100" preserveAspectRatio="none" ' +
       'width="100%" height="100%" style="display:block;overflow:visible">' +
-      '<path class="dr-ecg-base" fill="none" stroke="' +
-      c.base +
-      '" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="' +
-      PATH +
-      '"/>' +
       '<path class="dr-ecg-draw" fill="none" stroke="' +
-      c.bright +
+      c.stroke +
       '" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="' +
       PATH +
       '"/>' +
@@ -65,18 +60,23 @@
     'z-index:0!important;pointer-events:none!important;overflow:hidden!important}',
     '#dr-lifeline,#dr-lifeline *{pointer-events:none!important}',
     '#dr-lifeline svg{width:100%;height:100%;display:block}',
-    '#dr-lifeline .dr-ecg-base{opacity:1}',
     '#dr-lifeline .dr-ecg-draw{',
     'stroke-dasharray:1200;',
     'stroke-dashoffset:1200;',
-    'animation:drEcgMonitor 5s linear infinite;',
-    'filter:drop-shadow(0 0 6px currentColor)}',
-    '@keyframes drEcgMonitor{',
-    '0%{stroke-dashoffset:1200}',
-    '100%{stroke-dashoffset:0}',
+    'animation:drEcgDrawFade 6s ease-in-out infinite;',
+    'filter:drop-shadow(0 0 5px rgba(130,235,180,0.4))}',
+    'html[data-theme="light"] #dr-lifeline .dr-ecg-draw{',
+    'filter:drop-shadow(0 0 5px rgba(91,76,224,0.4))}',
+    '@keyframes drEcgDrawFade{',
+    '0%{stroke-dashoffset:1200;opacity:0.15}',
+    '8%{opacity:0.85}',
+    '55%{stroke-dashoffset:0;opacity:0.9}',
+    '70%{stroke-dashoffset:0;opacity:0.85}',
+    '88%{stroke-dashoffset:0;opacity:0}',
+    '100%{stroke-dashoffset:1200;opacity:0}',
     '}',
     '@media (prefers-reduced-motion:reduce){',
-    '#dr-lifeline .dr-ecg-draw{animation:none!important;stroke-dashoffset:0!important;opacity:0.5}',
+    '#dr-lifeline .dr-ecg-draw{animation:none!important;stroke-dashoffset:0!important;opacity:0.4}',
     '}'
   ].join('');
 
