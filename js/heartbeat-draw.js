@@ -58,7 +58,6 @@
     return (
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 100" preserveAspectRatio="none" ' +
       'width="100%" height="100%" style="display:block;overflow:visible">' +
-      '<path fill="none" stroke="rgba(167,139,250,0.5)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" d="' + pathD + '"/>' +
       '<path class="dr-ecg-draw" fill="none" stroke="' + STROKE + '" stroke-width="4" ' +
       'stroke-linecap="round" stroke-linejoin="round" d="' + pathD + '"/>' +
       '</svg>'
@@ -81,10 +80,10 @@
     'animation:none;',
     'filter:drop-shadow(0 0 4px #e9d5ff) drop-shadow(0 0 14px #c4b5fd) drop-shadow(0 0 28px rgba(167,139,250,0.9)) drop-shadow(0 0 48px rgba(124,106,240,0.55))!important}',
     '@keyframes drEcgDraw{',
-    '0%{stroke-dashoffset:1600;opacity:0.2}',
-    '5%{opacity:1}',
-    '68%{stroke-dashoffset:0;opacity:1}',
-    '80%{stroke-dashoffset:0;opacity:0.9}',
+    '0%{stroke-dashoffset:1600;opacity:0}',
+    '3%{opacity:1}',
+    '78%{stroke-dashoffset:0;opacity:1}',
+    '88%{stroke-dashoffset:0;opacity:0.5}',
     '100%{stroke-dashoffset:0;opacity:0}',
     '}',
     '@media (prefers-reduced-motion:reduce){',
@@ -161,13 +160,13 @@
 
     path.style.animation = 'none';
     void path.getBoundingClientRect();
-    path.style.animation = 'drEcgDraw 9s cubic-bezier(0.4, 0, 0.2, 1) forwards';
+    path.style.animation = 'drEcgDraw 17s cubic-bezier(0.4, 0, 0.2, 1) forwards';
 
     setTimeout(function () {
       patternIndex = (patternIndex + 1) % PATTERNS.length;
       animating = false;
       runCycle();
-    }, 9100);
+    }, 17100);
   }
 
   function tick() {
