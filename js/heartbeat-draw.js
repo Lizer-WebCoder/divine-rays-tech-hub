@@ -1,5 +1,5 @@
 /**
- * Divine Rays — purple ECG life line (behind login, slow smooth cycle)
+ * Divine Rays — purple ECG life line (visible, behind login, slow cycle)
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
@@ -50,7 +50,7 @@
     'L578 40 L588 50 L596 30 L608 50 L620 8 L635 50 L645 25 L658 94 L675 50 L688 38 L700 50 H720'
   ];
 
-  var STROKE = '#c4b5fd';
+  var STROKE = '#e9d5ff';
   var patternIndex = 0;
   var animating = false;
 
@@ -58,8 +58,8 @@
     return (
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 100" preserveAspectRatio="none" ' +
       'width="100%" height="100%" style="display:block;overflow:visible">' +
-      '<path fill="none" stroke="rgba(124,106,240,0.28)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" d="' + pathD + '"/>' +
-      '<path class="dr-ecg-draw" fill="none" stroke="' + STROKE + '" stroke-width="3.2" ' +
+      '<path fill="none" stroke="rgba(167,139,250,0.45)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" d="' + pathD + '"/>' +
+      '<path class="dr-ecg-draw" fill="none" stroke="' + STROKE + '" stroke-width="4" ' +
       'stroke-linecap="round" stroke-linejoin="round" d="' + pathD + '"/>' +
       '</svg>'
     );
@@ -69,8 +69,8 @@
     '#' + LINE_ID + '{',
     'display:block!important;position:fixed!important;',
     'left:0!important;right:0!important;width:100vw!important;',
-    'top:50%!important;height:140px!important;margin-top:-70px!important;',
-    'z-index:0!important;pointer-events:none!important;',
+    'top:50%!important;height:200px!important;margin-top:-100px!important;',
+    'z-index:1!important;pointer-events:none!important;',
     'overflow:visible!important;opacity:1!important;visibility:visible!important}',
     '#' + LINE_ID + ',#' + LINE_ID + ' *{pointer-events:none!important}',
     '#' + LINE_ID + ' svg{width:100%!important;height:100%!important;display:block!important;overflow:visible!important}',
@@ -78,16 +78,16 @@
     'stroke-dasharray:1600;',
     'stroke-dashoffset:1600;',
     'animation:none;',
-    'filter:drop-shadow(0 0 3px #c4b5fd) drop-shadow(0 0 10px rgba(167,139,250,0.7)) drop-shadow(0 0 22px rgba(124,106,240,0.4))!important}',
+    'filter:drop-shadow(0 0 4px #e9d5ff) drop-shadow(0 0 12px #c4b5fd) drop-shadow(0 0 24px rgba(167,139,250,0.85)) drop-shadow(0 0 40px rgba(124,106,240,0.5))!important}',
     '@keyframes drEcgDraw{',
-    '0%{stroke-dashoffset:1600;opacity:0.15}',
-    '4%{opacity:0.95}',
-    '70%{stroke-dashoffset:0;opacity:1}',
-    '82%{stroke-dashoffset:0;opacity:0.85}',
+    '0%{stroke-dashoffset:1600;opacity:0.2}',
+    '5%{opacity:1}',
+    '68%{stroke-dashoffset:0;opacity:1}',
+    '80%{stroke-dashoffset:0;opacity:0.9}',
     '100%{stroke-dashoffset:0;opacity:0}',
     '}',
     '@media (prefers-reduced-motion:reduce){',
-    '#' + LINE_ID + ' .dr-ecg-draw{animation:none!important;stroke-dashoffset:0!important;opacity:0.55}',
+    '#' + LINE_ID + ' .dr-ecg-draw{animation:none!important;stroke-dashoffset:0!important;opacity:0.65}',
     '}',
     '#login-screen{position:relative;z-index:5!important}',
     '#login-screen .login-card{position:relative;z-index:6!important}',
@@ -161,9 +161,12 @@
     }
   }, true);
 
-  window.DRHeartbeatDraw = { refresh: tick, next: function () {
-    patternIndex = (patternIndex + 1) % PATTERNS.length;
-    animating = false;
-    runCycle();
-  }};
+  window.DRHeartbeatDraw = {
+    refresh: tick,
+    next: function () {
+      patternIndex = (patternIndex + 1) % PATTERNS.length;
+      animating = false;
+      runCycle();
+    }
+  };
 })();
