@@ -65,6 +65,19 @@
 
   function clearSmooth() {
     document.documentElement.classList.remove('dr-smooth');
+    var login = document.getElementById('login-screen');
+    var pa = document.getElementById('portal-agent');
+    var pc = document.getElementById('portal-customer');
+    var active = (pa && pa.classList.contains('active')) || (pc && pc.classList.contains('active'));
+    if (active && login) {
+      login.hidden = true;
+      login.classList.add('is-hidden');
+      try {
+        login.style.setProperty('display', 'none', 'important');
+        login.style.setProperty('pointer-events', 'none', 'important');
+        login.style.setProperty('z-index', '-1', 'important');
+      } catch (e) {}
+    }
   }
 
   function trackRole() {
