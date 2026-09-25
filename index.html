@@ -35,7 +35,7 @@
     var LF_SHA = '38c9ad39099d78a91db4fde14fbe55bda158008a';
     var SR_SHA = '2d8ad8c8495e77deb1fde8396f58211a495d597a';
     var AC_SHA = 'daa14c2aed76f536d6bfdf030ec5e6017fbc6b72';
-    var CARD_SHA = 'd28b4b48f6b0982c1869a151022443baddda30d4';
+    var BUBBLE_SHA = '4cc566acc90e766a67c0b5097764b083e349e7a2';
     var urls = [
       'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PIN + '/index.html',
       'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + PIN + '/index.html'
@@ -154,7 +154,7 @@
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + ACCT_SHA + '/js/account-security.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LF_SHA + '/js/light-force.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + AC_SHA + '/js/admin-click-fix.js?v=' + ver);
-      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + CARD_SHA + '/js/card-opacity.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + BUBBLE_SHA + '/js/bubble-safe.js?v=' + ver);
       setTimeout(function () {
         if (window.DRPortalGuard && window.DRPortalGuard.sync) try { window.DRPortalGuard.sync(); } catch (e) {}
         if (window.DRUiPolish && window.DRUiPolish.refresh) try { window.DRUiPolish.refresh(); } catch (e) {}
@@ -164,7 +164,6 @@
         if (window.DRLightForce && window.DRLightForce.refresh) try { window.DRLightForce.refresh(); } catch (e) {}
         if (window.DRSmoothRefresh && window.DRSmoothRefresh.tick) try { window.DRSmoothRefresh.tick(); } catch (e) {}
         if (window.DRAdminClickFix && window.DRAdminClickFix.refresh) try { window.DRAdminClickFix.refresh(); } catch (e) {}
-        if (window.DRCardOpacity && window.DRCardOpacity.refresh) try { window.DRCardOpacity.refresh(); } catch (e) {}
       }, 500);
       function applyV8Once() {
         document.querySelectorAll('.version').forEach(function (el) {
