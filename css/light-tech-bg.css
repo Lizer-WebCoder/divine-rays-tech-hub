@@ -1,0 +1,36 @@
+/* Unified purple field for light (matches dark family) */
+html[data-theme="light"],
+html[data-theme="light"] body {
+  background-color: #ebe6f8 !important;
+  background-image:
+    radial-gradient(ellipse 90% 60% at 50% -10%, rgba(124, 106, 240, 0.22), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 100% 100%, rgba(167, 139, 250, 0.15), transparent 50%),
+    linear-gradient(165deg, #f0ebff 0%, #ebe6f8 40%, #e4dff2 100%) !important;
+  background-attachment: fixed !important;
+  background-size: cover !important;
+  color: #1a1a2e !important;
+}
+
+html[data-theme="light"] .app-shell,
+html[data-theme="light"] #portal-agent,
+html[data-theme="light"] #portal-agent.active,
+html[data-theme="light"] #portal-customer,
+html[data-theme="light"] #portal-customer.active,
+html[data-theme="light"] #portal-agent .main,
+html[data-theme="light"] #portal-agent main.main,
+html[data-theme="light"] #portal-customer .main {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+html[data-theme="light"] #portal-agent .sidebar,
+html[data-theme="light"] .mode-bar {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  background-image: none !important;
+}
+
+html[data-theme="light"] body::before,
+html[data-theme="light"] body::after {
+  opacity: 0 !important;
+  display: none !important;
+}
