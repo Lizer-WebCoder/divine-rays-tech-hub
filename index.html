@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.0.5" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.0.6" />
   <style>
     html,body{margin:0;background:#0c0c14;color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
     #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae}
@@ -29,7 +29,7 @@
     var AGENT_LIGHT = 'eb1cb3fce7ee8b83ef7cf9a75288ac1bfc6e2ab3';
     var LIGHT_V2 = '487c88a3c4f5b8bfb3a521fb2f68d8b678f41567';
     var CSAT_AV = SAFE;
-    var LOGIN_SHA = 'd800a6bc7e3ec6e7ee43abc9cf0eab68d23a3b70';
+    var LOGIN_SHA = '41bb5493066ecee85264bd5cdf16392ba4032047';
     var TICKET_AV = 'cf9f7468e03f64f3cf44cac7de5e7262056d094e';
     var ACCT_SHA = '3e823d24458da24dbe01ee176f6c7ef0b45d77d8';
     var LF_SHA = '7d389b7ab971b4ae066af1fb54f9c3b410a56785';
@@ -40,7 +40,7 @@
       'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PIN + '/index.html',
       'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + PIN + '/index.html'
     ];
-    var ver = '8.0.5';
+    var ver = '8.0.6';
     function loadScript(src) {
       return new Promise(function (resolve) {
         var s = document.createElement('script');
@@ -169,7 +169,7 @@
       }, 500);
       function applyV8Once() {
         document.querySelectorAll('.version').forEach(function (el) {
-          if (el.textContent.indexOf('8.0.5') === -1) el.textContent = 'v' + ver;
+          if (el.textContent.indexOf('8.0.6') === -1) el.textContent = 'v' + ver;
         });
         var info = document.querySelector('.mode-bar .user-info') || document.querySelector('.user-info');
         if (info && !document.getElementById('btn-theme')) {
