@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.1.4" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.0.3" />
   <style>
     html,body{margin:0;background:#0c0c14;color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
     #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae}
@@ -29,18 +29,18 @@
     var AGENT_LIGHT = 'eb1cb3fce7ee8b83ef7cf9a75288ac1bfc6e2ab3';
     var LIGHT_V2 = '487c88a3c4f5b8bfb3a521fb2f68d8b678f41567';
     var CSAT_AV = SAFE;
-    var LOGIN_SHA = '41bb5493066ecee85264bd5cdf16392ba4032047';
+    var LOGIN_SHA = '9bacf8a4e1ffcce4f506cfc609a6a3574fdb1835';
     var TICKET_AV = 'cf9f7468e03f64f3cf44cac7de5e7262056d094e';
     var ACCT_SHA = '3e823d24458da24dbe01ee176f6c7ef0b45d77d8';
     var LF_SHA = '7d389b7ab971b4ae066af1fb54f9c3b410a56785';
-    var TECH_BG_SHA = 'd800a6bc7e3ec6e7ee43abc9cf0eab68d23a3b70';
-    var FORCE_BG_SHA = 'd800a6bc7e3ec6e7ee43abc9cf0eab68d23a3b70';
-    var HB_SHA = '8fb24d89dcfeb6b145577f2678e51d336a498ed2';
+    var TECH_BG_SHA = '4ff8b30abb5d8e9bf885d97530b99ddd413240fa';
+    var FORCE_BG_SHA = '4ff8b30abb5d8e9bf885d97530b99ddd413240fa';
+    var HB_SHA = '4ff8b30abb5d8e9bf885d97530b99ddd413240fa';
     var urls = [
       'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PIN + '/index.html',
       'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + PIN + '/index.html'
     ];
-    var ver = '8.1.4';
+    var ver = '8.0.3';
     function loadScript(src) {
       return new Promise(function (resolve) {
         var s = document.createElement('script');
@@ -102,7 +102,6 @@
         else if (node.nodeType === 3) bodyHtml += node.textContent;
       });
       bodyHtml = bodyHtml.replace(/>v7\.[0-9.]+</g, '>v' + ver + '<').replace(/v7\.6\.7/g, 'v' + ver);
-      bodyHtml = bodyHtml.replace(/Lizzz · All Rights Reserved/g, 'Boyz at the Back · All Rights Reserved');
       document.body.innerHTML = bodyHtml;
       document.querySelectorAll('.version').forEach(function (el) { el.textContent = 'v' + ver; });
       wireTabs();
@@ -125,16 +124,17 @@
       for (var j = 0; j < scriptSrcs.length; j++) await loadScript(scriptSrcs[j]);
       var OVERLAY_SHA = 'b1c9c88a081d448fb0b0a9388b02a37c156a2421';
       var JS_SHA = '8c7414ba0de46bb365414df630f20f6e6481369c';
+      var THEME_SHA = '9bacf8a4e1ffcce4f506cfc609a6a3574fdb1835';
       loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + OVERLAY_SHA + '/css/v8-overlay.css?v=' + ver);
       loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + POLISH_SHA + '/css/ui-polish-v9.css?v=' + ver);
       loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LIGHT_SHA + '/css/light-fix.css?v=' + ver);
       loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + AGENT_LIGHT + '/css/agent-light.css?v=' + ver);
       loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LIGHT_V2 + '/css/light-mode-v2.css?v=' + ver);
       loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + TECH_BG_SHA + '/css/light-tech-bg.css?v=' + ver);
-      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + JS_SHA + '/js/theme.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + THEME_SHA + '/js/theme.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + JS_SHA + '/js/filters.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + STABLE + '/js/portal-guard.js?v=' + ver);
-      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@d800a6bc7e3ec6e7ee43abc9cf0eab68d23a3b70/js/status-card.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@1e6520dca83cccafdc0f0d7d031f3bf6cde80c82/js/status-card.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@af065832c121e643c6c7e6149a1f0367fdf94920/js/staff-presence.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@7671a3fa3bdb1e3a3ab9e6a79a124661a0bdbf9e/js/avatar-fix.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@d7d5c09e5d5d6a6289292449d4e532854a3b0e1d/js/emoji-fix.js?v=' + ver);
@@ -161,53 +161,26 @@
         if (window.DRPortalGuard && window.DRPortalGuard.sync) try { window.DRPortalGuard.sync(); } catch (e) {}
         if (window.DRUiPolish && window.DRUiPolish.refresh) try { window.DRUiPolish.refresh(); } catch (e) {}
         if (window.DRLoginTheme && window.DRLoginTheme.refresh) try { window.DRLoginTheme.refresh(); } catch (e) {}
+        if (window.DRLoginTheme && window.DRLoginTheme.removeLoginToggle) try { window.DRLoginTheme.removeLoginToggle(); } catch (e) {}
         if (window.DRTicketAvatars && window.DRTicketAvatars.refresh) try { window.DRTicketAvatars.refresh(); } catch (e) {}
         if (window.DRAccountSecurity && window.DRAccountSecurity.refresh) try { window.DRAccountSecurity.refresh(); } catch (e) {}
         if (window.DRLightForce && window.DRLightForce.refresh) try { window.DRLightForce.refresh(); } catch (e) {}
         if (window.DRForceLightBg && window.DRForceLightBg.refresh) try { window.DRForceLightBg.refresh(); } catch (e) {}
         if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.refresh) try { window.DRHeartbeatDraw.refresh(); } catch (e) {}
+        if (window.DRTheme && window.DRTheme.ensure) try { window.DRTheme.ensure(); } catch (e) {}
       }, 500);
       function applyV8Once() {
         document.querySelectorAll('.version').forEach(function (el) {
-          if (el.textContent.indexOf('8.1.4') === -1) el.textContent = 'v' + ver;
+          if (el.textContent.indexOf('8.0.3') === -1) el.textContent = 'v' + ver;
         });
-        var info = document.querySelector('.mode-bar .user-info') || document.querySelector('.user-info');
-        if (info && !document.getElementById('btn-theme')) {
-          var b = document.createElement('button');
-          b.type = 'button'; b.id = 'btn-theme'; b.className = 'btn btn-ghost btn-sm btn-theme';
-          var cur0 = document.documentElement.getAttribute('data-theme') || 'dark';
-          try { cur0 = localStorage.getItem('dr_theme') || cur0; } catch (e) {}
-          document.documentElement.setAttribute('data-theme', cur0);
-          b.textContent = cur0 === 'light' ? 'Dark' : 'Light';
-          b.addEventListener('click', function () {
-            var cur = document.documentElement.getAttribute('data-theme') || 'dark';
-            var next = cur === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', next);
-            try { localStorage.setItem('dr_theme', next); } catch (e) {}
-            b.textContent = next === 'light' ? 'Dark' : 'Light';
-            if (window.DRForceLightBg && window.DRForceLightBg.refresh) try { window.DRForceLightBg.refresh(); } catch (e) {}
-            if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.applyTheme) try { window.DRHeartbeatDraw.applyTheme(); } catch (e) {}
-            else if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.refresh) try { window.DRHeartbeatDraw.refresh(); } catch (e) {}
-          });
-          info.insertBefore(b, info.firstChild);
-        }
+        var lt = document.getElementById('dr-login-theme');
+        if (lt && lt.parentNode) lt.parentNode.removeChild(lt);
+        if (window.DRLoginTheme && window.DRLoginTheme.removeLoginToggle) try { window.DRLoginTheme.removeLoginToggle(); } catch (e) {}
         if (window.DRTheme && window.DRTheme.ensure) try { window.DRTheme.ensure(); } catch (e) {}
         if (window.DRPortalGuard && window.DRPortalGuard.sync) try { window.DRPortalGuard.sync(); } catch (e) {}
         if (window.DRLayoutFix && window.DRLayoutFix.force) try { window.DRLayoutFix.force(); } catch (e) {}
         if (window.DRForceLightBg && window.DRForceLightBg.refresh) try { window.DRForceLightBg.refresh(); } catch (e) {}
         if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.refresh) try { window.DRHeartbeatDraw.refresh(); } catch (e) {}
-        document.querySelectorAll('.credit, .credit-footer, .credit-side').forEach(function (el) {
-          if (el.textContent && el.textContent.indexOf('Lizzz') !== -1) {
-            el.textContent = 'Boyz at the Back · All Rights Reserved';
-          }
-          el.style.textAlign = 'center';
-        });
-        if (!document.getElementById('dr-credit-center')) {
-          var cs = document.createElement('style');
-          cs.id = 'dr-credit-center';
-          cs.textContent = '.credit,.credit-footer,.credit-side{text-align:center!important}#portal-agent .sidebar-footer{text-align:center!important}';
-          document.head.appendChild(cs);
-        }
       }
       applyV8Once();
       setTimeout(applyV8Once, 800);
