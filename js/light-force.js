@@ -1,5 +1,5 @@
 /**
- * Divine Rays — light/dark: single heartbeat pulse (6s L→R, fade, reset)
+ * Divine Rays — transparent admin bubbles + realistic single-line heartbeat
  * Credit: Lizzz · All Rights Reserved
  */
 (function () {
@@ -12,19 +12,18 @@
   var CSS_ID = 'dr-light-force-css';
   var LINE_ID = 'dr-lifeline';
 
-  var HB_SVG =
-    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='100' viewBox='0 0 320 100'%3E%3Cpath fill='none' stroke='%23PURPLE%23' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' d='M0 50 H70 C78 50 82 50 88 42 C94 34 98 22 104 22 C110 22 114 34 120 42 C126 50 130 50 138 50 H160 C168 50 172 50 178 38 C184 26 188 12 194 12 C200 12 204 26 210 38 C216 50 220 50 228 50 H320'/%3E%3C/svg%3E";
+  var HB =
+    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='120' viewBox='0 0 400 120'%3E%3Cpath fill='none' stroke='%23COL%23' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' d='M0 60 H55 L62 60 L68 48 L74 60 H95 L100 60 L106 18 L112 102 L118 52 L124 60 H155 L162 60 L168 50 L174 60 H200 L206 60 L212 42 L218 60 H245 L250 60 L256 22 L262 98 L268 54 L274 60 H310 L316 60 L322 46 L328 60 H360 L366 60 L372 52 L378 60 H400'/%3E%3C/svg%3E";
 
-  var lightStroke = HB_SVG.replace('%23PURPLE%23', '%236d5ef5');
-  var darkStroke = HB_SVG.replace('%23PURPLE%23', '%23a78bfa');
+  var lightCol = HB.replace('%23COL%23', '%235b4ce0');
+  var darkCol = HB.replace('%23COL%23', '%23a78bfa');
 
   var CSS = [
     'html[data-theme="light"]{color-scheme:light!important}',
     'html[data-theme="light"],html[data-theme="light"] body{',
     'background:#ffffff!important;background-color:#ffffff!important;',
-    'background-image:radial-gradient(ellipse 90% 55% at 50% -12%,rgba(109,94,245,.32),transparent 58%),',
-    'radial-gradient(ellipse 55% 45% at 100% 100%,rgba(167,139,250,.16),transparent 50%),',
-    'radial-gradient(ellipse 45% 40% at 0% 85%,rgba(124,106,240,.12),transparent 48%)!important;',
+    'background-image:radial-gradient(ellipse 90% 55% at 50% -12%,rgba(109,94,245,.28),transparent 58%),',
+    'radial-gradient(ellipse 55% 45% at 100% 100%,rgba(167,139,250,.14),transparent 50%)!important;',
     'color:#1a1a2e!important}',
     'html[data-theme="light"] #portal-agent,html[data-theme="light"] #portal-agent.active,',
     'html[data-theme="light"] #portal-customer,html[data-theme="light"] #portal-customer.active,',
@@ -32,13 +31,8 @@
     'html[data-theme="light"] #portal-customer .main,html[data-theme="light"] .app-shell,',
     'html[data-theme="light"] .login-screen,html[data-theme="light"] #login-screen{',
     'background:transparent!important;background-color:transparent!important;background-image:none!important;color:#1a1a2e!important}',
-    'html[data-theme="light"] #portal-agent .sidebar{background:rgba(255,255,255,.94)!important;border-right:1px solid #e2e0f0!important;color:#1a1a2e!important}',
-    'html[data-theme="light"] .mode-bar{background:rgba(255,255,255,.92)!important;border-bottom:1px solid #e2e0f0!important;color:#1a1a2e!important}',
-    'html[data-theme="light"] .stat-card,html[data-theme="light"] #portal-agent .stat-card,',
-    'html[data-theme="light"] .ticket-card,html[data-theme="light"] #portal-agent .ticket-card,',
-    'html[data-theme="light"] #portal-customer .ticket-card{',
-    'background:rgba(255,255,255,.95)!important;border:1px solid #e2e0f0!important;color:#1a1a2e!important;',
-    'box-shadow:0 2px 12px rgba(91,76,224,.08)!important}',
+    'html[data-theme="light"] #portal-agent .sidebar{background:rgba(255,255,255,.88)!important;border-right:1px solid #e2e0f0!important;color:#1a1a2e!important}',
+    'html[data-theme="light"] .mode-bar{background:rgba(255,255,255,.88)!important;border-bottom:1px solid #e2e0f0!important;color:#1a1a2e!important}',
     'html[data-theme="light"] h1,html[data-theme="light"] h2,html[data-theme="light"] h3,html[data-theme="light"] h4,',
     'html[data-theme="light"] .page-title,html[data-theme="light"] .ticket-card h4,html[data-theme="light"] .ticket-meta,',
     'html[data-theme="light"] .nav-btn,html[data-theme="light"] label,html[data-theme="light"] #logged-user-label,',
@@ -46,36 +40,34 @@
     'html[data-theme="light"] .stat-value{color:#4c3fd4!important}',
     'html[data-theme="light"] .nav-btn.active{color:#4c3fd4!important;background:rgba(109,94,245,.12)!important}',
     'html[data-theme="light"] input,html[data-theme="light"] select,html[data-theme="light"] textarea{',
-    'background:#f7f6fc!important;color:#1a1a2e!important;border:1px solid #d8d4ec!important}',
+    'background:rgba(247,246,252,.9)!important;color:#1a1a2e!important;border:1px solid #d8d4ec!important}',
     'html[data-theme="light"] #portal-customer .ticket-form,html[data-theme="light"] #customer-form.ticket-form,',
     'html[data-theme="light"] #portal-customer .customer-tabs,html[data-theme="light"] .comment,',
     'html[data-theme="light"] #csat-panel,html[data-theme="light"] .login-card,html[data-theme="light"] .modal-card{',
-    'background:rgba(255,255,255,.96)!important;border-color:#e2e0f0!important;color:#1a1a2e!important}',
-    'html[data-theme="light"] .badge-open{background:#dbeafe!important;color:#1d4ed8!important}',
-    'html[data-theme="light"] .badge-resolved{background:#d1fae5!important;color:#047857!important}',
-    'html[data-theme="light"] .badge-medium{background:#fef3c7!important;color:#a16207!important}',
-    'html[data-theme="light"] .badge-closed{background:#e5e7eb!important;color:#374151!important}',
-    'html[data-theme="light"] .badge-critical,html[data-theme="light"] .badge-high{background:#fee2e2!important;color:#b91c1c!important}',
-    '#dr-lifeline{display:block;position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}',
-    '#dr-lifeline .dr-line{',
-    'position:absolute;left:0;width:100%;height:100px;top:55%;',
-    'background-repeat:no-repeat;background-position:left center;background-size:320px 100px;',
-    'opacity:0;will-change:transform,opacity}',
-    'html[data-theme="light"] #dr-lifeline .dr-line{',
-    'background-image:url("' + lightStroke + '");',
-    'animation:drHbMove 6s ease-in-out infinite}',
-    'html[data-theme="dark"] #dr-lifeline .dr-line,',
-    'html:not([data-theme="light"]) #dr-lifeline .dr-line{',
-    'background-image:url("' + darkStroke + '");',
-    'animation:drHbMove 6s ease-in-out infinite}',
-    '@keyframes drHbMove{',
-    '0%{transform:translateX(-15%);opacity:0}',
-    '8%{opacity:.55}',
-    '70%{opacity:.45}',
-    '88%{transform:translateX(85%);opacity:.15}',
-    '100%{transform:translateX(100%);opacity:0}',
-    '}',
-    '@media (prefers-reduced-motion:reduce){#dr-lifeline .dr-line{animation:none!important;opacity:.25;transform:none}}',
+    'background:rgba(255,255,255,.9)!important;border-color:#e2e0f0!important;color:#1a1a2e!important}',
+    '#portal-agent .stat-card,#portal-agent .ticket-card,#portal-agent .agent-badge,',
+    '#portal-agent .sidebar-user-card,#portal-agent #dr-status-card,#portal-agent .dr-status-card,',
+    '#portal-agent .ticket-detail,#portal-agent .comments-section,#portal-agent .agent-actions,',
+    '#portal-agent .attach-panel,#portal-agent .agent-perf,#portal-agent .kb-manage,',
+    '#portal-agent .comment,#portal-agent .modal-card,#portal-agent .filters-bar,#portal-agent .filter-bar{',
+    'background:rgba(22,22,36,.45)!important;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);',
+    'border-color:rgba(167,139,250,.22)!important}',
+    'html[data-theme="light"] #portal-agent .stat-card,html[data-theme="light"] #portal-agent .ticket-card,',
+    'html[data-theme="light"] #portal-agent .agent-badge,html[data-theme="light"] #portal-agent .sidebar-user-card,',
+    'html[data-theme="light"] #portal-agent #dr-status-card,html[data-theme="light"] #portal-agent .dr-status-card,',
+    'html[data-theme="light"] #portal-agent .ticket-detail,html[data-theme="light"] #portal-agent .comments-section,',
+    'html[data-theme="light"] #portal-agent .agent-actions,html[data-theme="light"] #portal-agent .attach-panel,',
+    'html[data-theme="light"] #portal-agent .agent-perf,html[data-theme="light"] #portal-agent .kb-manage,',
+    'html[data-theme="light"] #portal-agent .comment,html[data-theme="light"] #portal-agent .modal-card,',
+    'html[data-theme="light"] #portal-agent .filters-bar,html[data-theme="light"] #portal-agent .filter-bar{',
+    'background:rgba(255,255,255,.55)!important;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);',
+    'border:1px solid rgba(109,94,245,.18)!important;box-shadow:0 2px 14px rgba(91,76,224,.06)!important;color:#1a1a2e!important}',
+    '#dr-lifeline{display:block;position:fixed;left:0;right:0;bottom:12%;height:120px;z-index:0;pointer-events:none;overflow:hidden}',
+    '#dr-lifeline .dr-line{position:absolute;left:0;top:0;height:120px;width:200%;background-repeat:repeat-x;background-size:400px 120px;background-position:0 50%;opacity:.7;will-change:background-position}',
+    'html[data-theme="light"] #dr-lifeline .dr-line{background-image:url("' + lightCol + '");animation:drHbScroll 8s linear infinite;opacity:.65}',
+    'html[data-theme="dark"] #dr-lifeline .dr-line,html:not([data-theme="light"]) #dr-lifeline .dr-line{background-image:url("' + darkCol + '");animation:drHbScroll 8s linear infinite;opacity:.55}',
+    '@keyframes drHbScroll{0%{background-position:0 50%}100%{background-position:-400px 50%}}',
+    '@media (prefers-reduced-motion:reduce){#dr-lifeline .dr-line{animation:none!important}}',
     '#portal-agent,#portal-customer,#login-screen,.mode-bar,.app-shell{position:relative;z-index:1}'
   ].join('');
 
@@ -98,7 +90,7 @@
       box.setAttribute('aria-hidden', 'true');
       box.innerHTML = '<div class="dr-line"></div>';
       document.body.insertBefore(box, document.body.firstChild);
-    } else if (!box.querySelector('.dr-line') || box.querySelectorAll('.dr-line').length !== 1) {
+    } else {
       box.innerHTML = '<div class="dr-line"></div>';
     }
   }
@@ -109,24 +101,16 @@
   }
 
   tick();
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', tick);
-  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', tick);
   setTimeout(tick, 300);
-  setTimeout(tick, 1000);
-  setTimeout(tick, 2500);
+  setTimeout(tick, 1200);
+  setTimeout(tick, 2800);
   setInterval(function () { injectCss(); }, 6000);
 
-  document.addEventListener(
-    'click',
-    function (e) {
-      var t = e.target;
-      if (t && (t.id === 'btn-theme' || (t.classList && t.classList.contains('btn-theme')))) {
-        setTimeout(tick, 50);
-      }
-    },
-    true
-  );
+  document.addEventListener('click', function (e) {
+    var t = e.target;
+    if (t && (t.id === 'btn-theme' || (t.classList && t.classList.contains('btn-theme')))) setTimeout(tick, 50);
+  }, true);
 
   window.DRLightForce = { refresh: tick };
 })();
