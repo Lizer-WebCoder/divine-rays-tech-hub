@@ -1,5 +1,5 @@
 /**
- * Divine Rays — purple ECG life line (visible, behind login, slow cycle)
+ * Divine Rays — purple ECG on login page (inside login-screen, behind card)
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
@@ -58,7 +58,7 @@
     return (
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 100" preserveAspectRatio="none" ' +
       'width="100%" height="100%" style="display:block;overflow:visible">' +
-      '<path fill="none" stroke="rgba(167,139,250,0.45)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" d="' + pathD + '"/>' +
+      '<path fill="none" stroke="rgba(167,139,250,0.5)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" d="' + pathD + '"/>' +
       '<path class="dr-ecg-draw" fill="none" stroke="' + STROKE + '" stroke-width="4" ' +
       'stroke-linecap="round" stroke-linejoin="round" d="' + pathD + '"/>' +
       '</svg>'
@@ -66,10 +66,11 @@
   }
 
   var CSS = [
+    '#login-screen, .login-screen{position:relative!important;overflow:hidden!important}',
     '#' + LINE_ID + '{',
-    'display:block!important;position:fixed!important;',
-    'left:0!important;right:0!important;width:100vw!important;',
-    'top:50%!important;height:200px!important;margin-top:-100px!important;',
+    'display:block!important;position:absolute!important;',
+    'left:0!important;right:0!important;width:100%!important;',
+    'top:50%!important;height:220px!important;margin-top:-110px!important;',
     'z-index:1!important;pointer-events:none!important;',
     'overflow:visible!important;opacity:1!important;visibility:visible!important}',
     '#' + LINE_ID + ',#' + LINE_ID + ' *{pointer-events:none!important}',
@@ -78,7 +79,7 @@
     'stroke-dasharray:1600;',
     'stroke-dashoffset:1600;',
     'animation:none;',
-    'filter:drop-shadow(0 0 4px #e9d5ff) drop-shadow(0 0 12px #c4b5fd) drop-shadow(0 0 24px rgba(167,139,250,0.85)) drop-shadow(0 0 40px rgba(124,106,240,0.5))!important}',
+    'filter:drop-shadow(0 0 4px #e9d5ff) drop-shadow(0 0 14px #c4b5fd) drop-shadow(0 0 28px rgba(167,139,250,0.9)) drop-shadow(0 0 48px rgba(124,106,240,0.55))!important}',
     '@keyframes drEcgDraw{',
     '0%{stroke-dashoffset:1600;opacity:0.2}',
     '5%{opacity:1}',
@@ -87,10 +88,9 @@
     '100%{stroke-dashoffset:0;opacity:0}',
     '}',
     '@media (prefers-reduced-motion:reduce){',
-    '#' + LINE_ID + ' .dr-ecg-draw{animation:none!important;stroke-dashoffset:0!important;opacity:0.65}',
+    '#' + LINE_ID + ' .dr-ecg-draw{animation:none!important;stroke-dashoffset:0!important;opacity:0.7}',
     '}',
-    '#login-screen{position:relative;z-index:5!important}',
-    '#login-screen .login-card{position:relative;z-index:6!important}',
+    '#login-screen .login-card, .login-screen .login-card{position:relative!important;z-index:5!important}',
     '#dr-login-theme{z-index:10050!important}',
     '#dr-lifeline{opacity:0!important;visibility:hidden!important;height:0!important;overflow:hidden!important}'
   ].join('');
@@ -105,22 +105,51 @@
     el.textContent = CSS;
   }
 
+  function loginVisible() {
+    var login = document.getElementById('login-screen') || document.querySelector('.login-screen');
+    if (!login) return false;
+    if (login.hidden || login.classList.contains('is-hidden')) return false;
+    var st = window.getComputedStyle(login);
+    if (st.display === 'none' || st.visibility === 'hidden') return false;
+    return true;
+  }
+
   function ensureBox() {
+    var login = document.getElementById('login-screen') || document.querySelector('.login-screen');
     var box = document.getElementById(LINE_ID);
+
+    if (!loginVisible()) {
+      if (box) box.style.display = 'none';
+      return null;
+    }
+
     if (!box) {
       box = document.createElement('div');
       box.id = LINE_ID;
       box.setAttribute('aria-hidden', 'true');
-      document.body.insertBefore(box, document.body.firstChild);
     }
+
+    if (box.parentNode !== login) {
+      login.insertBefore(box, login.firstChild);
+    }
+    box.style.display = 'block';
     return box;
   }
 
   function runCycle() {
     if (animating) return;
+    if (!loginVisible()) {
+      animating = false;
+      return;
+    }
     animating = true;
     injectCss();
     var box = ensureBox();
+    if (!box) {
+      animating = false;
+      return;
+    }
+
     var pathD = PATTERNS[patternIndex % PATTERNS.length];
     box.innerHTML = svgMarkup(pathD);
 
@@ -144,15 +173,19 @@
   function tick() {
     injectCss();
     ensureBox();
-    if (!animating) runCycle();
+    if (!animating && loginVisible()) runCycle();
   }
 
   tick();
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', tick);
   }
-  setTimeout(tick, 400);
-  setTimeout(tick, 1200);
+  setTimeout(tick, 300);
+  setTimeout(tick, 800);
+  setTimeout(tick, 1500);
+  setInterval(function () {
+    if (!animating && loginVisible()) runCycle();
+  }, 2000);
 
   document.addEventListener('click', function (e) {
     var t = e.target;
