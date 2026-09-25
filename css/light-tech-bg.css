@@ -24,9 +24,7 @@ html[data-theme="light"] #portal-customer,
 html[data-theme="light"] #portal-customer.active,
 html[data-theme="light"] #portal-agent .main,
 html[data-theme="light"] #portal-agent main.main,
-html[data-theme="light"] #portal-customer .main,
-html[data-theme="light"] #view-dashboard,
-html[data-theme="light"] #view-dashboard.active {
+html[data-theme="light"] #portal-customer .main {
   background-color: transparent !important;
   background-image: none !important;
 }
@@ -35,22 +33,4 @@ html[data-theme="light"] #portal-agent .sidebar,
 html[data-theme="light"] .mode-bar {
   background-color: rgba(255, 255, 255, 0.92) !important;
   background-image: none !important;
-}
-
-html[data-theme="light"] body::before,
-html[data-theme="light"] body::after {
-  opacity: 0.08 !important;
-  pointer-events: none !important;
-  z-index: 0 !important;
-}
-
-#portal-agent #view-dashboard,
-#portal-agent #view-dashboard.active,
-#portal-agent .tickets-list,
-#portal-agent .ticket-list,
-#portal-agent #tickets-list,
-#portal-agent .ticket-card,
-#portal-agent .stat-card {
-  visibility: visible !important;
-  opacity: 1 !important;
 }
