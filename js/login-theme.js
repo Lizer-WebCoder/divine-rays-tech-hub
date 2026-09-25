@@ -1,0 +1,80 @@
+/**
+ * Divine Rays — login light mode + theme toggle (crash-safe)
+ * Credit: Boyz at the Back · All Rights Reserved
+ */
+(function () {
+  'use strict';
+  if (window.__DR_LOGIN_THEME) return;
+  window.__DR_LOGIN_THEME = 1;
+
+  var CSS = [
+    'html[data-theme="light"] .login-screen,html[data-theme="light"] #login-screen{',
+    'background:radial-gradient(ellipse at top,#e8e0ff 0%,#ebe6f8 50%,#e0daf5 100%)!important}',
+    'html[data-theme="light"] .login-card{background:#fff!important;border:1px solid #d0d3e4!important;',
+    'box-shadow:0 12px 40px rgba(30,30,60,.1)!important;color:#1a1a2e!important}',
+    'html[data-theme="light"] .login-brand h1{color:#1a1a2e!important}',
+    'html[data-theme="light"] .login-brand p{color:#4a4a66!important}',
+    'html[data-theme="light"] .login-tabs{background:#eef0f7!important;border:1px solid #d0d3e4!important}',
+    'html[data-theme="light"] .ltab{color:#4a4a66!important;background:transparent!important}',
+    'html[data-theme="light"] .ltab.active{background:#6d5ef5!important;color:#fff!important}',
+    'html[data-theme="light"] .login-form label,html[data-theme="light"] #login-screen .form-group label{color:#3d3d55!important;font-weight:600!important}',
+    'html[data-theme="light"] .login-form input,html[data-theme="light"] #login-screen input[type="text"],',
+    'html[data-theme="light"] #login-screen input[type="email"],html[data-theme="light"] #login-screen input[type="password"]{',
+    'background:#eef0f7!important;color:#1a1a2e!important;border:1px solid #c8cad8!important}',
+    'html[data-theme="light"] .login-form input::placeholder,html[data-theme="light"] #login-screen input::placeholder{color:#6b6b86!important}',
+    'html[data-theme="light"] .login-form input:focus,html[data-theme="light"] #login-screen input:focus{',
+    'background:#fff!important;border-color:#6d5ef5!important;box-shadow:0 0 0 3px rgba(109,94,245,.2)!important}',
+    'html[data-theme="light"] .login-switch{color:#4a4a66!important}',
+    'html[data-theme="light"] .login-switch a{color:#5b4ce0!important}',
+    'html[data-theme="light"] .login-error{background:#fef2f2!important;border-color:#fecaca!important;color:#b91c1c!important}',
+    '#dr-login-theme{position:fixed;top:1rem;right:1rem;z-index:10050;border:1px solid rgba(124,106,240,.4);',
+    'background:rgba(26,26,36,.9);color:#c4b5fd;border-radius:999px;padding:.5rem 1rem;font-size:.85rem;',
+    'font-weight:600;cursor:pointer;font-family:inherit;box-shadow:0 4px 16px rgba(0,0,0,.25)}',
+    'html[data-theme="light"] #dr-login-theme{background:#fff;color:#4c3fd4;border-color:#c4b5fd;',
+    'box-shadow:0 4px 16px rgba(30,30,60,.12)}'
+  ].join('');
+
+  function inject() {
+    var el = document.getElementById('dr-login-theme-css');
+    if (!el) {
+      el = document.createElement('style');
+      el.id = 'dr-login-theme-css';
+      document.head.appendChild(el);
+    }
+    el.textContent = CSS;
+  }
+
+  function ensureToggle() {
+    if (document.getElementById('dr-login-theme')) return;
+    var login = document.getElementById('login-screen') || document.querySelector('.login-screen');
+    if (!login || login.hidden || login.classList.contains('is-hidden')) return;
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.id = 'dr-login-theme';
+    var cur = document.documentElement.getAttribute('data-theme') || 'dark';
+    try { cur = localStorage.getItem('dr_theme') || cur; } catch (e) {}
+    b.textContent = cur === 'light' ? 'Dark' : 'Light';
+    b.addEventListener('click', function () {
+      var cur2 = document.documentElement.getAttribute('data-theme') || 'dark';
+      var next = cur2 === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      try { localStorage.setItem('dr_theme', next); } catch (e) {}
+      b.textContent = next === 'light' ? 'Dark' : 'Light';
+      if (window.DRForceLightBg && window.DRForceLightBg.refresh) try { window.DRForceLightBg.refresh(); } catch (e) {}
+      if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.refresh) try { window.DRHeartbeatDraw.refresh(); } catch (e) {}
+    });
+    document.body.appendChild(b);
+  }
+
+  function tick() {
+    inject();
+    ensureToggle();
+  }
+
+  tick();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', tick);
+  setTimeout(tick, 300);
+  setTimeout(tick, 1200);
+
+  window.DRLoginTheme = { refresh: tick };
+})();
