@@ -1,15 +1,15 @@
-/* Divine Rays — unified light mode v2 (customer + agent/admin)
-   Loads last; overrides dark polish. Credit: Lizzz · All Rights Reserved */
+/* Divine Rays — light mode v3: white + purple glow + animated lifeline
+   Credit: Lizzz · All Rights Reserved */
 
 html[data-theme="light"] {
-  --bg: #eef0f7 !important;
+  --bg: #ffffff !important;
   --surface: #ffffff !important;
-  --surface-2: #f5f6fb !important;
-  --border: #d0d3e4 !important;
+  --surface-2: #f7f6fc !important;
+  --border: #e2e0f0 !important;
   --text: #1a1a2e !important;
   --text-muted: #4a4a66 !important;
   --primary: #5b4ce0 !important;
-  --accent: #5b4ce0 !important;
+  --accent: #6d5ef5 !important;
   color-scheme: light;
 }
 
@@ -21,25 +21,77 @@ html[data-theme="light"] #portal-customer,
 html[data-theme="light"] #portal-customer.active,
 html[data-theme="light"] #portal-agent .main,
 html[data-theme="light"] #portal-agent main.main,
-html[data-theme="light"] #portal-customer .main {
-  background: #eef0f7 !important;
-  background-color: #eef0f7 !important;
-  background-image: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(109, 94, 245, 0.12), transparent 55%) !important;
+html[data-theme="light"] #portal-customer .main,
+html[data-theme="light"] .login-screen,
+html[data-theme="light"] #login-screen {
+  background-color: #ffffff !important;
+  background-image:
+    radial-gradient(ellipse 90% 55% at 50% -15%, rgba(109, 94, 245, 0.28), transparent 58%),
+    radial-gradient(ellipse 50% 40% at 100% 100%, rgba(167, 139, 250, 0.14), transparent 50%),
+    radial-gradient(ellipse 40% 35% at 0% 80%, rgba(124, 106, 240, 0.1), transparent 45%) !important;
+  background-attachment: fixed !important;
   color: #1a1a2e !important;
 }
 
+html[data-theme="light"] body::before {
+  content: "" !important;
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 0 !important;
+  pointer-events: none !important;
+  opacity: 0.45 !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='480' height='120' viewBox='0 0 480 120'%3E%3Cpath fill='none' stroke='%236d5ef5' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round' d='M0 60 H48 L58 60 L68 22 L78 98 L88 40 L98 60 H160 L170 60 L180 28 L190 92 L200 48 L210 60 H280 L290 60 L300 18 L310 102 L320 36 L330 60 H400 L410 60 L420 30 L430 90 L440 50 L450 60 H480'/%3E%3C/svg%3E") !important;
+  background-repeat: repeat-x !important;
+  background-size: 480px 120px !important;
+  background-position: 0 72% !important;
+  animation: dr-lifeline 18s linear infinite !important;
+}
+
+html[data-theme="light"] body::after {
+  content: "" !important;
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 0 !important;
+  pointer-events: none !important;
+  opacity: 0.22 !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='560' height='100' viewBox='0 0 560 100'%3E%3Cpath fill='none' stroke='%239b8afb' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round' d='M0 50 H70 L82 50 L94 16 L106 84 L118 32 L130 50 H220 L232 50 L244 20 L256 80 L268 38 L280 50 H380 L392 50 L404 14 L416 86 L428 28 L440 50 H560'/%3E%3C/svg%3E") !important;
+  background-repeat: repeat-x !important;
+  background-size: 560px 100px !important;
+  background-position: 0 28% !important;
+  animation: dr-lifeline-rev 26s linear infinite !important;
+}
+
+@keyframes dr-lifeline {
+  from { background-position: 0 72%; }
+  to   { background-position: -480px 72%; }
+}
+@keyframes dr-lifeline-rev {
+  from { background-position: 0 28%; }
+  to   { background-position: 560px 28%; }
+}
+
+html[data-theme="light"] #portal-agent,
+html[data-theme="light"] #portal-customer,
+html[data-theme="light"] #login-screen,
+html[data-theme="light"] .mode-bar,
+html[data-theme="light"] .app-shell {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
 html[data-theme="light"] #portal-agent .sidebar {
-  background: #ffffff !important;
-  border-right: 1px solid #d0d3e4 !important;
+  background: rgba(255, 255, 255, 0.92) !important;
+  backdrop-filter: blur(10px);
+  border-right: 1px solid #e2e0f0 !important;
   color: #1a1a2e !important;
 }
 html[data-theme="light"] #portal-agent .nav-btn { color: #3d3d55 !important; }
 html[data-theme="light"] #portal-agent .nav-btn:hover {
-  background: rgba(91, 76, 224, 0.08) !important;
+  background: rgba(109, 94, 245, 0.08) !important;
   color: #1a1a2e !important;
 }
 html[data-theme="light"] #portal-agent .nav-btn.active {
-  background: rgba(91, 76, 224, 0.12) !important;
+  background: rgba(109, 94, 245, 0.12) !important;
   color: #4c3fd4 !important;
   box-shadow: inset 3px 0 0 #6d5ef5 !important;
 }
@@ -47,8 +99,8 @@ html[data-theme="light"] #portal-agent .agent-badge,
 html[data-theme="light"] #portal-agent .sidebar-user-card,
 html[data-theme="light"] #dr-status-card,
 html[data-theme="light"] .dr-status-card {
-  background: #f5f6fb !important;
-  border-color: #d0d3e4 !important;
+  background: #f7f6fc !important;
+  border-color: #e2e0f0 !important;
   color: #1a1a2e !important;
 }
 html[data-theme="light"] #portal-agent .brand,
@@ -59,21 +111,20 @@ html[data-theme="light"] #portal-agent .credits {
 }
 
 html[data-theme="light"] .mode-bar {
-  background: #ffffff !important;
-  border-bottom: 1px solid #d0d3e4 !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid #e2e0f0 !important;
   color: #1a1a2e !important;
-  box-shadow: 0 1px 8px rgba(30, 30, 60, 0.06) !important;
+  box-shadow: 0 1px 8px rgba(91, 76, 224, 0.06) !important;
 }
 html[data-theme="light"] .mode-bar .user-info,
 html[data-theme="light"] #logged-user-label,
 html[data-theme="light"] #btn-theme,
-html[data-theme="light"] .btn-theme {
-  color: #1a1a2e !important;
-}
+html[data-theme="light"] .btn-theme { color: #1a1a2e !important; }
 html[data-theme="light"] #btn-theme,
 html[data-theme="light"] .btn-theme {
-  background: #f5f6fb !important;
-  border: 1px solid #d0d3e4 !important;
+  background: #f7f6fc !important;
+  border: 1px solid #e2e0f0 !important;
 }
 
 html[data-theme="light"] h1,
@@ -92,62 +143,51 @@ html[data-theme="light"] #portal-customer .customer-header p {
 
 html[data-theme="light"] .stat-card,
 html[data-theme="light"] #portal-agent .stat-card {
-  background: #ffffff !important;
+  background: rgba(255, 255, 255, 0.92) !important;
   background-image: none !important;
-  border: 1px solid #d0d3e4 !important;
-  box-shadow: 0 2px 10px rgba(30, 30, 60, 0.06) !important;
+  border: 1px solid #e2e0f0 !important;
+  box-shadow: 0 2px 12px rgba(91, 76, 224, 0.07) !important;
   color: #1a1a2e !important;
 }
 html[data-theme="light"] #portal-agent .stat-card::after {
   background: rgba(109, 94, 245, 0.08) !important;
 }
 html[data-theme="light"] .stat-card .stat-value,
-html[data-theme="light"] #portal-agent .stat-card .stat-value {
-  color: #4c3fd4 !important;
-}
+html[data-theme="light"] #portal-agent .stat-card .stat-value { color: #4c3fd4 !important; }
 html[data-theme="light"] .stat-card .stat-label,
-html[data-theme="light"] #portal-agent .stat-card .stat-label {
-  color: #5a5a78 !important;
-}
+html[data-theme="light"] #portal-agent .stat-card .stat-label { color: #5a5a78 !important; }
 html[data-theme="light"] .stat-card.critical {
-  background: #fff5f5 !important;
-  border-color: #f5c2c2 !important;
+  background: #fff8f8 !important; border-color: #f5c2c2 !important;
 }
 html[data-theme="light"] .stat-card.critical .stat-value { color: #c53030 !important; }
 html[data-theme="light"] .stat-card.high {
-  background: #fffbeb !important;
-  border-color: #f5d78e !important;
+  background: #fffbeb !important; border-color: #f5d78e !important;
 }
 html[data-theme="light"] .stat-card.high .stat-value { color: #b45309 !important; }
 html[data-theme="light"] .stat-card.me {
-  background: #f5f3ff !important;
-  border-color: #c4b5fd !important;
+  background: #f5f3ff !important; border-color: #c4b5fd !important;
 }
 
 html[data-theme="light"] .ticket-card,
 html[data-theme="light"] #portal-agent .ticket-card,
 html[data-theme="light"] #portal-customer .ticket-card,
 html[data-theme="light"] .tickets-list .ticket-card {
-  background: #ffffff !important;
+  background: rgba(255, 255, 255, 0.94) !important;
   background-image: none !important;
-  border: 1px solid #d0d3e4 !important;
+  border: 1px solid #e2e0f0 !important;
   color: #1a1a2e !important;
-  box-shadow: 0 1px 6px rgba(30, 30, 60, 0.04) !important;
+  box-shadow: 0 1px 8px rgba(91, 76, 224, 0.05) !important;
 }
 html[data-theme="light"] .ticket-card:hover {
   border-color: #a78bfa !important;
-  box-shadow: 0 4px 16px rgba(91, 76, 224, 0.1) !important;
+  box-shadow: 0 4px 18px rgba(109, 94, 245, 0.12) !important;
 }
 html[data-theme="light"] .ticket-card h4,
-html[data-theme="light"] .ticket-meta,
-html[data-theme="light"] .ticket-meta span {
-  color: #1a1a2e !important;
-}
+html[data-theme="light"] .ticket-meta span { color: #1a1a2e !important; }
 html[data-theme="light"] .ticket-meta { color: #4a4a66 !important; }
 html[data-theme="light"] .ticket-meta .ticket-id { color: #5b4ce0 !important; }
 html[data-theme="light"] .ticket-av {
-  background: #e8e4ff !important;
-  color: #5b4ce0 !important;
+  background: #ede9fe !important; color: #5b4ce0 !important;
 }
 
 html[data-theme="light"] .badge { font-weight: 700 !important; }
@@ -200,16 +240,15 @@ html[data-theme="light"] #filter-priority,
 html[data-theme="light"] #filter-sort,
 html[data-theme="light"] #c-priority,
 html[data-theme="light"] #c-category {
-  background: #eef0f7 !important;
-  background-color: #eef0f7 !important;
+  background: #f7f6fc !important;
+  background-color: #f7f6fc !important;
   color: #1a1a2e !important;
-  border: 1px solid #c8cad8 !important;
+  border: 1px solid #d8d4ec !important;
   caret-color: #1a1a2e !important;
 }
 html[data-theme="light"] input::placeholder,
 html[data-theme="light"] textarea::placeholder {
-  color: #6b6b86 !important;
-  opacity: 1 !important;
+  color: #6b6b86 !important; opacity: 1 !important;
 }
 html[data-theme="light"] input:focus,
 html[data-theme="light"] select:focus,
@@ -221,22 +260,17 @@ html[data-theme="light"] textarea:focus {
 }
 html[data-theme="light"] label,
 html[data-theme="light"] .form-group label {
-  color: #3d3d55 !important;
-  font-weight: 600 !important;
+  color: #3d3d55 !important; font-weight: 600 !important;
 }
-html[data-theme="light"] select option {
-  background: #fff;
-  color: #1a1a2e;
-}
+html[data-theme="light"] select option { background: #fff; color: #1a1a2e; }
 
 html[data-theme="light"] #portal-customer .customer-tabs {
-  background: #ffffff !important;
-  border-color: #d8dae8 !important;
-  box-shadow: 0 2px 12px rgba(30, 30, 60, 0.06) !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-color: #e2e0f0 !important;
+  box-shadow: 0 2px 14px rgba(91, 76, 224, 0.07) !important;
 }
 html[data-theme="light"] #portal-customer .ctab {
-  color: #4a4a66 !important;
-  background: transparent !important;
+  color: #4a4a66 !important; background: transparent !important;
 }
 html[data-theme="light"] #portal-customer .ctab:hover {
   color: #1a1a2e !important;
@@ -250,11 +284,11 @@ html[data-theme="light"] #portal-customer .ticket-form,
 html[data-theme="light"] #customer-form.ticket-form,
 html[data-theme="light"] #portal-customer .track-box,
 html[data-theme="light"] #ctab-track > div {
-  background: #ffffff !important;
+  background: rgba(255, 255, 255, 0.95) !important;
   background-image: none !important;
-  border-color: #d0d3e4 !important;
+  border-color: #e2e0f0 !important;
   color: #1a1a2e !important;
-  box-shadow: 0 4px 20px rgba(30, 30, 60, 0.06) !important;
+  box-shadow: 0 4px 22px rgba(91, 76, 224, 0.07) !important;
 }
 
 html[data-theme="light"] .ticket-detail,
@@ -272,87 +306,79 @@ html[data-theme="light"] .profile-modal,
 html[data-theme="light"] #profile-modal,
 html[data-theme="light"] .modal-card,
 html[data-theme="light"] .login-card {
-  background: #ffffff !important;
+  background: rgba(255, 255, 255, 0.96) !important;
   background-image: none !important;
-  border-color: #d0d3e4 !important;
+  border-color: #e2e0f0 !important;
   color: #1a1a2e !important;
 }
 html[data-theme="light"] .comment-body,
 html[data-theme="light"] .comment-header,
-html[data-theme="light"] #csat-panel h4 {
-  color: #1a1a2e !important;
-}
+html[data-theme="light"] #csat-panel h4 { color: #1a1a2e !important; }
 html[data-theme="light"] #csat-panel p { color: #4a4a66 !important; }
 html[data-theme="light"] .csat-star {
-  background: #eef0f7 !important;
-  border: 1px solid #c8cad8 !important;
+  background: #f7f6fc !important;
+  border: 1px solid #d8d4ec !important;
   color: #5b4ce0 !important;
 }
 html[data-theme="light"] .csat-star.on,
 html[data-theme="light"] .csat-star:hover {
-  background: #6d5ef5 !important;
-  color: #fff !important;
+  background: #6d5ef5 !important; color: #fff !important;
 }
 
 html[data-theme="light"] .kb-table,
 html[data-theme="light"] .perf-table,
 html[data-theme="light"] table {
-  background: #fff !important;
-  color: #1a1a2e !important;
+  background: #fff !important; color: #1a1a2e !important;
 }
 html[data-theme="light"] .kb-table th,
 html[data-theme="light"] .perf-table th {
-  background: #f5f6fb !important;
+  background: #f7f6fc !important;
   color: #3d3d55 !important;
-  border-color: #d0d3e4 !important;
+  border-color: #e2e0f0 !important;
 }
 html[data-theme="light"] .kb-table td,
 html[data-theme="light"] .perf-table td {
-  color: #1a1a2e !important;
-  border-color: #e5e7ef !important;
+  color: #1a1a2e !important; border-color: #eeeef6 !important;
 }
 
 html[data-theme="light"] .dr-feature-card {
-  background: #ffffff !important;
-  border-color: #d8dae8 !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-color: #e2e0f0 !important;
 }
 html[data-theme="light"] .dr-feature-card h4 { color: #1a1a2e !important; }
 html[data-theme="light"] .dr-feature-card p { color: #4a4a66 !important; }
 html[data-theme="light"] .empty-state,
-html[data-theme="light"] .kb-sub {
-  color: #4a4a66 !important;
-}
+html[data-theme="light"] .kb-sub { color: #4a4a66 !important; }
 
-html[data-theme="light"] .login-screen,
-html[data-theme="light"] #login-screen {
-  background: radial-gradient(ellipse at top, #ebe6ff 0%, #eef0f7 55%) !important;
-}
 html[data-theme="light"] .login-brand h1 { color: #1a1a2e !important; }
 html[data-theme="light"] .login-brand p,
 html[data-theme="light"] .login-switch { color: #4a4a66 !important; }
 html[data-theme="light"] .login-tabs {
-  background: #eef0f7 !important;
-  border: 1px solid #d0d3e4 !important;
+  background: #f7f6fc !important; border: 1px solid #e2e0f0 !important;
 }
 html[data-theme="light"] .ltab { color: #4a4a66 !important; }
 html[data-theme="light"] .ltab.active {
-  background: #6d5ef5 !important;
-  color: #fff !important;
+  background: #6d5ef5 !important; color: #fff !important;
 }
 
 html[data-theme="light"] .btn-ghost {
-  color: #3d3d55 !important;
-  border-color: #c8cad8 !important;
+  color: #3d3d55 !important; border-color: #d8d4ec !important;
 }
 html[data-theme="light"] .btn-ghost:hover {
-  background: rgba(91, 76, 224, 0.08) !important;
-  color: #1a1a2e !important;
+  background: rgba(109, 94, 245, 0.08) !important; color: #1a1a2e !important;
 }
 
 html[data-theme="light"] .alert-bar,
 html[data-theme="light"] .priority-alert,
 html[data-theme="light"] .dash-alert {
-  background: #ffffff !important;
-  border-color: #d0d3e4 !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-color: #e2e0f0 !important;
   color: #1a1a2e !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme="light"] body::before,
+  html[data-theme="light"] body::after {
+    animation: none !important;
+  }
 }
