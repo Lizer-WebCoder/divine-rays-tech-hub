@@ -1,5 +1,5 @@
 /**
- * Divine Rays — big visible purple ECG life line (multi-pattern)
+ * Divine Rays — purple ECG life line (behind login, slow smooth cycle)
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
@@ -52,13 +52,14 @@
 
   var STROKE = '#c4b5fd';
   var patternIndex = 0;
+  var animating = false;
 
   function svgMarkup(pathD) {
     return (
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 100" preserveAspectRatio="none" ' +
       'width="100%" height="100%" style="display:block;overflow:visible">' +
-      '<path fill="none" stroke="rgba(124,106,240,0.35)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" d="' + pathD + '"/>' +
-      '<path class="dr-ecg-draw" fill="none" stroke="' + STROKE + '" stroke-width="5" ' +
+      '<path fill="none" stroke="rgba(124,106,240,0.28)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" d="' + pathD + '"/>' +
+      '<path class="dr-ecg-draw" fill="none" stroke="' + STROKE + '" stroke-width="3.2" ' +
       'stroke-linecap="round" stroke-linejoin="round" d="' + pathD + '"/>' +
       '</svg>'
     );
@@ -68,29 +69,29 @@
     '#' + LINE_ID + '{',
     'display:block!important;position:fixed!important;',
     'left:0!important;right:0!important;width:100vw!important;',
-    'top:50%!important;height:280px!important;margin-top:-140px!important;',
-    'z-index:5!important;pointer-events:none!important;',
+    'top:50%!important;height:140px!important;margin-top:-70px!important;',
+    'z-index:0!important;pointer-events:none!important;',
     'overflow:visible!important;opacity:1!important;visibility:visible!important}',
     '#' + LINE_ID + ',#' + LINE_ID + ' *{pointer-events:none!important}',
     '#' + LINE_ID + ' svg{width:100%!important;height:100%!important;display:block!important;overflow:visible!important}',
     '#' + LINE_ID + ' .dr-ecg-draw{',
     'stroke-dasharray:1600;',
     'stroke-dashoffset:1600;',
-    'animation:drEcgDrawFade 5s ease-in-out infinite;',
-    'filter:drop-shadow(0 0 4px #c4b5fd) drop-shadow(0 0 12px #a78bfa) drop-shadow(0 0 28px rgba(124,106,240,0.8)) drop-shadow(0 0 48px rgba(124,106,240,0.45))!important}',
-    '@keyframes drEcgDrawFade{',
-    '0%{stroke-dashoffset:1600;opacity:0.25}',
-    '5%{opacity:1}',
-    '45%{stroke-dashoffset:0;opacity:1}',
-    '60%{stroke-dashoffset:0;opacity:0.95}',
-    '82%{stroke-dashoffset:0;opacity:0}',
-    '100%{stroke-dashoffset:1600;opacity:0}',
+    'animation:none;',
+    'filter:drop-shadow(0 0 3px #c4b5fd) drop-shadow(0 0 10px rgba(167,139,250,0.7)) drop-shadow(0 0 22px rgba(124,106,240,0.4))!important}',
+    '@keyframes drEcgDraw{',
+    '0%{stroke-dashoffset:1600;opacity:0.15}',
+    '4%{opacity:0.95}',
+    '70%{stroke-dashoffset:0;opacity:1}',
+    '82%{stroke-dashoffset:0;opacity:0.85}',
+    '100%{stroke-dashoffset:0;opacity:0}',
     '}',
     '@media (prefers-reduced-motion:reduce){',
-    '#' + LINE_ID + ' .dr-ecg-draw{animation:none!important;stroke-dashoffset:0!important;opacity:0.7}',
+    '#' + LINE_ID + ' .dr-ecg-draw{animation:none!important;stroke-dashoffset:0!important;opacity:0.55}',
     '}',
-    '#login-screen .login-card{position:relative;z-index:10}',
-    '#login-screen{position:relative;z-index:2}',
+    '#login-screen{position:relative;z-index:5!important}',
+    '#login-screen .login-card{position:relative;z-index:6!important}',
+    '#dr-login-theme{z-index:10050!important}',
     '#dr-lifeline{opacity:0!important;visibility:hidden!important;height:0!important;overflow:hidden!important}'
   ].join('');
 
@@ -104,40 +105,65 @@
     el.textContent = CSS;
   }
 
-  function ensureLine() {
+  function ensureBox() {
     var box = document.getElementById(LINE_ID);
     if (!box) {
       box = document.createElement('div');
       box.id = LINE_ID;
       box.setAttribute('aria-hidden', 'true');
-      document.body.appendChild(box);
+      document.body.insertBefore(box, document.body.firstChild);
     }
-    var pathD = PATTERNS[patternIndex % PATTERNS.length];
-    box.innerHTML = svgMarkup(pathD);
+    return box;
   }
 
-  function nextPattern() {
-    patternIndex = (patternIndex + 1) % PATTERNS.length;
-    ensureLine();
+  function runCycle() {
+    if (animating) return;
+    animating = true;
+    injectCss();
+    var box = ensureBox();
+    var pathD = PATTERNS[patternIndex % PATTERNS.length];
+    box.innerHTML = svgMarkup(pathD);
+
+    var path = box.querySelector('.dr-ecg-draw');
+    if (!path) {
+      animating = false;
+      return;
+    }
+
+    path.style.animation = 'none';
+    void path.getBoundingClientRect();
+    path.style.animation = 'drEcgDraw 9s cubic-bezier(0.4, 0, 0.2, 1) forwards';
+
+    setTimeout(function () {
+      patternIndex = (patternIndex + 1) % PATTERNS.length;
+      animating = false;
+      runCycle();
+    }, 9100);
   }
 
   function tick() {
     injectCss();
-    ensureLine();
+    ensureBox();
+    if (!animating) runCycle();
   }
 
   tick();
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', tick);
-  setTimeout(tick, 300);
-  setTimeout(tick, 800);
-  setTimeout(tick, 2000);
-  setInterval(tick, 4000);
-  setInterval(nextPattern, 5000);
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', tick);
+  }
+  setTimeout(tick, 400);
+  setTimeout(tick, 1200);
 
   document.addEventListener('click', function (e) {
     var t = e.target;
-    if (t && (t.id === 'btn-theme' || (t.classList && t.classList.contains('btn-theme')))) setTimeout(tick, 40);
+    if (t && (t.id === 'btn-theme' || (t.classList && t.classList.contains('btn-theme')))) {
+      setTimeout(function () { injectCss(); }, 40);
+    }
   }, true);
 
-  window.DRHeartbeatDraw = { refresh: tick, next: nextPattern };
+  window.DRHeartbeatDraw = { refresh: tick, next: function () {
+    patternIndex = (patternIndex + 1) % PATTERNS.length;
+    animating = false;
+    runCycle();
+  }};
 })();
