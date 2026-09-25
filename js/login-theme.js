@@ -34,7 +34,7 @@
     'box-shadow:0 4px 16px rgba(30,30,60,.12)}'
   ].join('');
 
-  function inject() {
+  function injectCss() {
     var el = document.getElementById('dr-login-theme-css');
     if (!el) {
       el = document.createElement('style');
@@ -44,6 +44,16 @@
     el.textContent = CSS;
   }
 
+  function setTheme(t) {
+    t = t === 'light' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', t);
+    try { localStorage.setItem('dr_theme', t); } catch (e) {}
+    var b = document.getElementById('dr-login-theme');
+    if (b) b.textContent = t === 'light' ? 'Dark' : 'Light';
+    if (window.DRForceLightBg && window.DRForceLightBg.refresh) try { window.DRForceLightBg.refresh(); } catch (e) {}
+    if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.refresh) try { window.DRHeartbeatDraw.refresh(); } catch (e) {}
+  }
+
   function ensureToggle() {
     if (document.getElementById('dr-login-theme')) return;
     var login = document.getElementById('login-screen') || document.querySelector('.login-screen');
@@ -51,30 +61,35 @@
     var b = document.createElement('button');
     b.type = 'button';
     b.id = 'dr-login-theme';
-    var cur = document.documentElement.getAttribute('data-theme') || 'dark';
-    try { cur = localStorage.getItem('dr_theme') || cur; } catch (e) {}
+    var cur = 'dark';
+    try { cur = localStorage.getItem('dr_theme') || document.documentElement.getAttribute('data-theme') || 'dark'; } catch (e) {}
     b.textContent = cur === 'light' ? 'Dark' : 'Light';
     b.addEventListener('click', function () {
       var cur2 = document.documentElement.getAttribute('data-theme') || 'dark';
-      var next = cur2 === 'dark' ? 'light' : 'dark';
-      document.documentElement.setAttribute('data-theme', next);
-      try { localStorage.setItem('dr_theme', next); } catch (e) {}
-      b.textContent = next === 'light' ? 'Dark' : 'Light';
-      if (window.DRForceLightBg && window.DRForceLightBg.refresh) try { window.DRForceLightBg.refresh(); } catch (e) {}
-      if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.refresh) try { window.DRHeartbeatDraw.refresh(); } catch (e) {}
+      setTheme(cur2 === 'dark' ? 'light' : 'dark');
     });
     document.body.appendChild(b);
   }
 
-  function tick() {
-    inject();
-    ensureToggle();
+  var timer = null;
+  var busy = false;
+  function schedule() {
+    if (timer) return;
+    timer = setTimeout(function () {
+      timer = null;
+      injectCss();
+      ensureToggle();
+    }, 300);
   }
 
-  tick();
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', tick);
-  setTimeout(tick, 300);
-  setTimeout(tick, 1200);
+  injectCss();
+  try {
+    document.documentElement.setAttribute('data-theme', localStorage.getItem('dr_theme') || 'dark');
+  } catch (e) {}
 
-  window.DRLoginTheme = { refresh: tick };
+  setTimeout(schedule, 200);
+  setTimeout(schedule, 1000);
+  setInterval(schedule, 5000);
+
+  window.DRLoginTheme = { refresh: schedule, setTheme: setTheme };
 })();

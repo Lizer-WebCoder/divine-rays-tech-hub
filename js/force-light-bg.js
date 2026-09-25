@@ -53,13 +53,19 @@
       '#portal-agent .main',
       '#portal-agent main.main',
       '#portal-customer .main',
-      '.app-shell',
-      '#login-screen'
+      '.app-shell'
     ].forEach(function (sel) {
       document.querySelectorAll(sel).forEach(function (el) {
         el.style.setProperty('background-color', 'transparent', 'important');
         el.style.setProperty('background-image', 'none', 'important');
       });
+    });
+    // Login screen keeps the purple gradient (same as body)
+    document.querySelectorAll('#login-screen, .login-screen').forEach(function (el) {
+      el.style.setProperty('background-color', solid, 'important');
+      el.style.setProperty('background-image', grad, 'important');
+      el.style.setProperty('background-attachment', 'fixed', 'important');
+      el.style.setProperty('background-size', 'cover', 'important');
     });
   }
 
