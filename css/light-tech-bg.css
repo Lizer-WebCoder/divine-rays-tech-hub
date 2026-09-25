@@ -1,11 +1,11 @@
-/* Unified purple field for light (matches dark family) */
+/* Purple light field — pairs with spinning gears */
 html[data-theme="light"],
 html[data-theme="light"] body {
-  background-color: #ebe6f8 !important;
+  background-color: #ebe8f6 !important;
   background-image:
-    radial-gradient(ellipse 90% 60% at 50% -10%, rgba(124, 106, 240, 0.22), transparent 55%),
-    radial-gradient(ellipse 70% 50% at 100% 100%, rgba(167, 139, 250, 0.15), transparent 50%),
-    linear-gradient(165deg, #f0ebff 0%, #ebe6f8 40%, #e4dff2 100%) !important;
+    radial-gradient(ellipse 80% 50% at 70% 15%, rgba(109, 94, 245, 0.14), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 0% 90%, rgba(167, 139, 250, 0.1), transparent 50%),
+    linear-gradient(165deg, #f4f2fb 0%, #ebe8f6 50%, #e4e0f2 100%) !important;
   background-attachment: fixed !important;
   background-size: cover !important;
   color: #1a1a2e !important;
@@ -25,7 +25,7 @@ html[data-theme="light"] #portal-customer .main {
 
 html[data-theme="light"] #portal-agent .sidebar,
 html[data-theme="light"] .mode-bar {
-  background-color: rgba(255, 255, 255, 0.9) !important;
+  background-color: rgba(255, 255, 255, 0.92) !important;
   background-image: none !important;
 }
 
