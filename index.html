@@ -34,9 +34,8 @@
     var ACCT_SHA = '3e823d24458da24dbe01ee176f6c7ef0b45d77d8';
     var LF_SHA = '7d389b7ab971b4ae066af1fb54f9c3b410a56785';
     var SR_SHA = '2d8ad8c8495e77deb1fde8396f58211a495d597a';
-    var AC_SHA = 'daa14c2aed76f536d6bfdf030ec5e6017fbc6b72';
-    var BUBBLE_SHA = '57844c4e87fa494a8f6b549b2c55d95ba028ce51';
-    var TECH_BG_SHA = '4942daeaa3aac17b4208dd63fffebbc02bccaae7';
+    var TECH_BG_SHA = '8276520c5de389bb1440f0d2cf8d4afde44937be';
+    var CR_SHA = '8276520c5de389bb1440f0d2cf8d4afde44937be';
     var urls = [
       'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PIN + '/index.html',
       'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + PIN + '/index.html'
@@ -155,9 +154,7 @@
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + TICKET_AV + '/js/ticket-avatars.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + ACCT_SHA + '/js/account-security.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LF_SHA + '/js/light-force.js?v=' + ver);
-      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + AC_SHA + '/js/admin-click-fix.js?v=' + ver);
-      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + BUBBLE_SHA + '/js/bubble-safe.js?v=' + ver);
-      /* re-apply tech bg last so nothing overrides it */
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + CR_SHA + '/js/content-restore.js?v=' + ver);
       loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + TECH_BG_SHA + '/css/light-tech-bg.css?v=' + ver + '&t=' + Date.now());
       setTimeout(function () {
         if (window.DRPortalGuard && window.DRPortalGuard.sync) try { window.DRPortalGuard.sync(); } catch (e) {}
@@ -167,7 +164,7 @@
         if (window.DRAccountSecurity && window.DRAccountSecurity.refresh) try { window.DRAccountSecurity.refresh(); } catch (e) {}
         if (window.DRLightForce && window.DRLightForce.refresh) try { window.DRLightForce.refresh(); } catch (e) {}
         if (window.DRSmoothRefresh && window.DRSmoothRefresh.tick) try { window.DRSmoothRefresh.tick(); } catch (e) {}
-        if (window.DRAdminClickFix && window.DRAdminClickFix.refresh) try { window.DRAdminClickFix.refresh(); } catch (e) {}
+        if (window.DRContentRestore && window.DRContentRestore.refresh) try { window.DRContentRestore.refresh(); } catch (e) {}
         loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + TECH_BG_SHA + '/css/light-tech-bg.css?v=' + ver + '&t=' + Date.now());
       }, 500);
       function applyV8Once() {
@@ -197,7 +194,7 @@
         if (window.DRPortalGuard && window.DRPortalGuard.sync) try { window.DRPortalGuard.sync(); } catch (e) {}
         if (window.DRLayoutFix && window.DRLayoutFix.force) try { window.DRLayoutFix.force(); } catch (e) {}
         if (window.DRLightForce && window.DRLightForce.refresh) try { window.DRLightForce.refresh(); } catch (e) {}
-        if (window.DRAdminClickFix && window.DRAdminClickFix.refresh) try { window.DRAdminClickFix.refresh(); } catch (e) {}
+        if (window.DRContentRestore && window.DRContentRestore.refresh) try { window.DRContentRestore.refresh(); } catch (e) {}
       }
       applyV8Once();
       setTimeout(applyV8Once, 800);
