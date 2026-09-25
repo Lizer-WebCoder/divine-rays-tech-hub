@@ -32,8 +32,9 @@
     var LOGIN_SHA = SAFE;
     var TICKET_AV = 'cf9f7468e03f64f3cf44cac7de5e7262056d094e';
     var ACCT_SHA = '3e823d24458da24dbe01ee176f6c7ef0b45d77d8';
-    var LF_SHA = 'a5129a7a80f130db972831283b405973e7f9e5c5';
-    var SR_SHA = '543d751e248cf18080dff9b4ea5d098058aec31f';
+    var LF_SHA = '38c9ad39099d78a91db4fde14fbe55bda158008a';
+    var SR_SHA = '2d8ad8c8495e77deb1fde8396f58211a495d597a';
+    var AC_SHA = '51e0fbeefa5fb503269d0e9546f7983be471e56e';
     var urls = [
       'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PIN + '/index.html',
       'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + PIN + '/index.html'
@@ -151,6 +152,7 @@
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + TICKET_AV + '/js/ticket-avatars.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + ACCT_SHA + '/js/account-security.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LF_SHA + '/js/light-force.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + AC_SHA + '/js/admin-click-fix.js?v=' + ver);
       setTimeout(function () {
         if (window.DRPortalGuard && window.DRPortalGuard.sync) try { window.DRPortalGuard.sync(); } catch (e) {}
         if (window.DRUiPolish && window.DRUiPolish.refresh) try { window.DRUiPolish.refresh(); } catch (e) {}
@@ -159,6 +161,7 @@
         if (window.DRAccountSecurity && window.DRAccountSecurity.refresh) try { window.DRAccountSecurity.refresh(); } catch (e) {}
         if (window.DRLightForce && window.DRLightForce.refresh) try { window.DRLightForce.refresh(); } catch (e) {}
         if (window.DRSmoothRefresh && window.DRSmoothRefresh.tick) try { window.DRSmoothRefresh.tick(); } catch (e) {}
+        if (window.DRAdminClickFix && window.DRAdminClickFix.refresh) try { window.DRAdminClickFix.refresh(); } catch (e) {}
       }, 500);
       function applyV8Once() {
         document.querySelectorAll('.version').forEach(function (el) {
@@ -186,6 +189,7 @@
         if (window.DRPortalGuard && window.DRPortalGuard.sync) try { window.DRPortalGuard.sync(); } catch (e) {}
         if (window.DRLayoutFix && window.DRLayoutFix.force) try { window.DRLayoutFix.force(); } catch (e) {}
         if (window.DRLightForce && window.DRLightForce.refresh) try { window.DRLightForce.refresh(); } catch (e) {}
+        if (window.DRAdminClickFix && window.DRAdminClickFix.refresh) try { window.DRAdminClickFix.refresh(); } catch (e) {}
       }
       applyV8Once();
       setTimeout(applyV8Once, 800);
