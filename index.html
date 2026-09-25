@@ -35,6 +35,7 @@
     var LF_SHA = '7d389b7ab971b4ae066af1fb54f9c3b410a56785';
     var TECH_BG_SHA = '0ceb77441dbf7479a6398f4b41d418c1f1298754';
     var FORCE_BG_SHA = '0ceb77441dbf7479a6398f4b41d418c1f1298754';
+    var HB_SHA = '0a3b89e295de3470b4deebf68cb174e216a67824';
     var urls = [
       'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PIN + '/index.html',
       'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + PIN + '/index.html'
@@ -153,6 +154,7 @@
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + ACCT_SHA + '/js/account-security.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LF_SHA + '/js/light-force.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + FORCE_BG_SHA + '/js/force-light-bg.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + HB_SHA + '/js/heartbeat-draw.js?v=' + ver);
       loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + TECH_BG_SHA + '/css/light-tech-bg.css?v=' + ver + '&t=' + Date.now());
       setTimeout(function () {
         if (window.DRPortalGuard && window.DRPortalGuard.sync) try { window.DRPortalGuard.sync(); } catch (e) {}
@@ -162,6 +164,7 @@
         if (window.DRAccountSecurity && window.DRAccountSecurity.refresh) try { window.DRAccountSecurity.refresh(); } catch (e) {}
         if (window.DRLightForce && window.DRLightForce.refresh) try { window.DRLightForce.refresh(); } catch (e) {}
         if (window.DRForceLightBg && window.DRForceLightBg.refresh) try { window.DRForceLightBg.refresh(); } catch (e) {}
+        if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.refresh) try { window.DRHeartbeatDraw.refresh(); } catch (e) {}
       }, 500);
       function applyV8Once() {
         document.querySelectorAll('.version').forEach(function (el) {
@@ -182,6 +185,7 @@
             try { localStorage.setItem('dr_theme', next); } catch (e) {}
             b.textContent = next === 'light' ? 'Dark' : 'Light';
             if (window.DRForceLightBg && window.DRForceLightBg.refresh) try { window.DRForceLightBg.refresh(); } catch (e) {}
+            if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.refresh) try { window.DRHeartbeatDraw.refresh(); } catch (e) {}
           });
           info.insertBefore(b, info.firstChild);
         }
@@ -189,6 +193,7 @@
         if (window.DRPortalGuard && window.DRPortalGuard.sync) try { window.DRPortalGuard.sync(); } catch (e) {}
         if (window.DRLayoutFix && window.DRLayoutFix.force) try { window.DRLayoutFix.force(); } catch (e) {}
         if (window.DRForceLightBg && window.DRForceLightBg.refresh) try { window.DRForceLightBg.refresh(); } catch (e) {}
+        if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.refresh) try { window.DRHeartbeatDraw.refresh(); } catch (e) {}
       }
       applyV8Once();
       setTimeout(applyV8Once, 800);
