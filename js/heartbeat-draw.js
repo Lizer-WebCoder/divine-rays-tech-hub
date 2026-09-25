@@ -1,5 +1,5 @@
 /**
- * Divine Rays — purple ECG on login page (inside login-screen, behind card)
+ * Divine Rays — purple ECG: left→right draw, ~10s, animation only
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
@@ -11,6 +11,7 @@
 
   var CSS_ID = 'dr-ecg-glow-css';
   var LINE_ID = 'dr-ecg-glow';
+  var DURATION_MS = 10000;
 
   var PATTERNS = [
     'M0 50 H40 L50 50 L58 42 L65 50 L78 5 L95 95 L112 50 H170 ' +
@@ -53,6 +54,7 @@
   var STROKE = '#e9d5ff';
   var patternIndex = 0;
   var animating = false;
+  var cycleTimer = null;
 
   function svgMarkup(pathD) {
     return (
@@ -75,19 +77,16 @@
     '#' + LINE_ID + ',#' + LINE_ID + ' *{pointer-events:none!important}',
     '#' + LINE_ID + ' svg{width:100%!important;height:100%!important;display:block!important;overflow:visible!important}',
     '#' + LINE_ID + ' .dr-ecg-draw{',
-    'stroke-dasharray:1600;',
-    'stroke-dashoffset:1600;',
     'animation:none;',
     'filter:drop-shadow(0 0 4px #e9d5ff) drop-shadow(0 0 14px #c4b5fd) drop-shadow(0 0 28px rgba(167,139,250,0.9)) drop-shadow(0 0 48px rgba(124,106,240,0.55))!important}',
     '@keyframes drEcgDraw{',
-    '0%{stroke-dashoffset:1600;opacity:0}',
-    '3%{opacity:1}',
-    '78%{stroke-dashoffset:0;opacity:1}',
-    '88%{stroke-dashoffset:0;opacity:0.5}',
+    '0%{stroke-dashoffset:var(--dr-len);opacity:0}',
+    '4%{opacity:1}',
+    '85%{stroke-dashoffset:0;opacity:1}',
     '100%{stroke-dashoffset:0;opacity:0}',
     '}',
     '@media (prefers-reduced-motion:reduce){',
-    '#' + LINE_ID + ' .dr-ecg-draw{animation:none!important;stroke-dashoffset:0!important;opacity:0.7}',
+    '#' + LINE_ID + ' .dr-ecg-draw{animation:none!important;stroke-dashoffset:0!important;opacity:0.6}',
     '}',
     '#login-screen .login-card, .login-screen .login-card{position:relative!important;z-index:5!important}',
     '#dr-login-theme{z-index:10050!important}',
@@ -158,15 +157,28 @@
       return;
     }
 
+    var len = 0;
+    try {
+      len = path.getTotalLength();
+    } catch (e) {
+      len = 1600;
+    }
+    if (!len || !isFinite(len)) len = 1600;
+
+    path.style.setProperty('--dr-len', len);
+    path.style.strokeDasharray = String(len);
+    path.style.strokeDashoffset = String(len);
+
     path.style.animation = 'none';
     void path.getBoundingClientRect();
-    path.style.animation = 'drEcgDraw 17s cubic-bezier(0.4, 0, 0.2, 1) forwards';
+    path.style.animation = 'drEcgDraw ' + (DURATION_MS / 1000) + 's cubic-bezier(0.4, 0, 0.2, 1) forwards';
 
-    setTimeout(function () {
+    if (cycleTimer) clearTimeout(cycleTimer);
+    cycleTimer = setTimeout(function () {
       patternIndex = (patternIndex + 1) % PATTERNS.length;
       animating = false;
       runCycle();
-    }, 17100);
+    }, DURATION_MS + 80);
   }
 
   function tick() {
@@ -184,7 +196,7 @@
   setTimeout(tick, 1500);
   setInterval(function () {
     if (!animating && loginVisible()) runCycle();
-  }, 2000);
+  }, 2500);
 
   document.addEventListener('click', function (e) {
     var t = e.target;
@@ -198,6 +210,7 @@
     next: function () {
       patternIndex = (patternIndex + 1) % PATTERNS.length;
       animating = false;
+      if (cycleTimer) clearTimeout(cycleTimer);
       runCycle();
     }
   };
