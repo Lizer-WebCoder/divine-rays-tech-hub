@@ -40,6 +40,7 @@
     var FORCE_BG_SHA = '4bda0d3949f3994738d2f9efa4843c3ca2ac25a5';
     var AVATAR_SHA = '2626ceb8701247f864f1d72e39a2ba630922899a';
     var HB_SHA = '83e2cbb0fa34f124a3a3a1ab001b47b7f8520fa5';
+    var ADMIN_TB_SHA = '4ac442771ba75a1fe1d67962d907a1dedb156c56';
     var KB_JS_SHA = '155905d79c65f10fb3a49e73a820406ca3203d16';
     var KB_FULL_SHA = 'd26ea2ae4a0b4076fea4372ea6465aea6dd15822';
     var ENDUSER_SHA = '6d216fe1f8b00b9e18c6c6a3594323faff100265';
@@ -174,6 +175,7 @@
       loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LIGHT_V2 + '/css/light-mode-v2.css?v=' + ver);
       loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + TECH_BG_SHA + '/css/light-tech-bg.css?v=' + ver);
       loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + KB_FULL_SHA + '/css/kb-full.css?v=' + ver);
+      loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + ADMIN_TB_SHA + '/css/admin-toolbar.css?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + THEME_SHA + '/js/theme.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + JS_SHA + '/js/filters.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + STABLE + '/js/portal-guard.js?v=' + ver);
@@ -205,6 +207,7 @@
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + KB_FULL_SHA + '/js/kb-layout-fix.js?v=' + ver);
       loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + TECH_BG_SHA + '/css/light-tech-bg.css?v=' + ver);
       loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + KB_FULL_SHA + '/css/kb-full.css?v=' + ver);
+      loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + ADMIN_TB_SHA + '/css/admin-toolbar.css?v=' + ver);
       var kbPub = document.createElement('style');
       kbPub.textContent = '#view-kb.active table th:nth-child(1),#view-kb.active table td:nth-child(1){width:28%!important}#view-kb.active table th:nth-child(2),#view-kb.active table td:nth-child(2){width:12%!important}#view-kb.active table th:nth-child(3),#view-kb.active table td:nth-child(3){width:12%!important}#view-kb.active table th:nth-child(4),#view-kb.active table td:nth-child(4){width:16%!important}#view-kb.active table th:nth-child(5),#view-kb.active table td:nth-child(5){width:14%!important;text-align:left!important}#view-kb.active table th:nth-child(6),#view-kb.active table td:nth-child(6){width:18%!important;text-align:right!important}.kb-author{color:var(--text-muted,#9494ae);font-weight:500}';
       document.head.appendChild(kbPub);
