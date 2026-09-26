@@ -1,0 +1,138 @@
+/* Divine Rays — Admin toolbar polish (search + role filter + refresh)
+   Credit: Boyz at the Back LRK · All Rights Reserved */
+
+.admin-toolbar {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 0.65rem !important;
+  margin: 0.85rem 0 1.15rem !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+#admin-search,
+#admin-filter-role,
+#btn-admin-refresh {
+  font-family: inherit !important;
+  font-size: 0.9rem !important;
+  line-height: 1.35 !important;
+  border-radius: 12px !important;
+  height: 42px !important;
+  box-sizing: border-box !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease !important;
+}
+
+#admin-search {
+  flex: 1 1 220px !important;
+  min-width: 180px !important;
+  max-width: none !important;
+  padding: 0 1rem 0 2.55rem !important;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%238b8ba3' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='7' cy='7' r='5'/%3E%3Cpath d='M14 14l-3.2-3.2'/%3E%3C/svg%3E")
+    0.9rem 50% / 16px 16px no-repeat,
+    var(--surface-2, #1c1c2a) !important;
+  border: 1px solid rgba(139, 124, 247, 0.22) !important;
+  color: var(--text, #eeeef6) !important;
+  outline: none !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+}
+
+#admin-search::placeholder {
+  color: #7a7a94 !important;
+  opacity: 1 !important;
+}
+
+#admin-search:hover {
+  border-color: rgba(139, 124, 247, 0.4) !important;
+}
+
+#admin-search:focus {
+  border-color: var(--primary, #8b7cf7) !important;
+  box-shadow: 0 0 0 3px rgba(139, 124, 247, 0.28) !important;
+  background-color: var(--surface, #15151f) !important;
+}
+
+#admin-filter-role {
+  flex: 0 0 auto !important;
+  min-width: 140px !important;
+  padding: 0 2.2rem 0 0.95rem !important;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='%239494ae'%3E%3Cpath d='M1 1l5 5 5-5'/%3E%3C/svg%3E")
+    right 0.85rem center / 12px 8px no-repeat,
+    var(--surface-2, #1c1c2a) !important;
+  border: 1px solid rgba(139, 124, 247, 0.22) !important;
+  color: var(--text, #eeeef6) !important;
+  cursor: pointer !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  outline: none !important;
+}
+
+#admin-filter-role:hover {
+  border-color: rgba(139, 124, 247, 0.4) !important;
+}
+
+#admin-filter-role:focus {
+  border-color: var(--primary, #8b7cf7) !important;
+  box-shadow: 0 0 0 3px rgba(139, 124, 247, 0.28) !important;
+}
+
+#btn-admin-refresh {
+  flex: 0 0 auto !important;
+  padding: 0 1.15rem !important;
+  background: linear-gradient(135deg, #7c6cf5 0%, #6d5ef5 100%) !important;
+  border: none !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.01em !important;
+  cursor: pointer !important;
+  box-shadow: 0 4px 14px rgba(109, 94, 245, 0.35) !important;
+}
+
+#btn-admin-refresh:hover {
+  filter: brightness(1.08) !important;
+  box-shadow: 0 6px 18px rgba(109, 94, 245, 0.45) !important;
+}
+
+#btn-admin-refresh:active {
+  transform: translateY(1px);
+}
+
+html[data-theme="light"] #admin-search {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%236b6b88' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='7' cy='7' r='5'/%3E%3Cpath d='M14 14l-3.2-3.2'/%3E%3C/svg%3E")
+    0.9rem 50% / 16px 16px no-repeat,
+    rgba(255, 255, 255, 0.95) !important;
+  border: 1px solid rgba(109, 94, 245, 0.2) !important;
+  color: #1a1a2e !important;
+}
+
+html[data-theme="light"] #admin-search::placeholder {
+  color: #8a8aa4 !important;
+}
+
+html[data-theme="light"] #admin-filter-role {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='%236b6b88'%3E%3Cpath d='M1 1l5 5 5-5'/%3E%3C/svg%3E")
+    right 0.85rem center / 12px 8px no-repeat,
+    rgba(255, 255, 255, 0.95) !important;
+  border: 1px solid rgba(109, 94, 245, 0.2) !important;
+  color: #1a1a2e !important;
+}
+
+html[data-theme="light"] #admin-search:focus,
+html[data-theme="light"] #admin-filter-role:focus {
+  box-shadow: 0 0 0 3px rgba(109, 94, 245, 0.22) !important;
+}
+
+@media (max-width: 640px) {
+  #admin-search {
+    flex: 1 1 100% !important;
+  }
+  #admin-filter-role,
+  #btn-admin-refresh {
+    flex: 1 1 auto !important;
+  }
+}
