@@ -1,5 +1,5 @@
 /**
- * Divine Rays — avatars bound to current user only (no cross-login leak)
+ * Divine Rays — avatars strictly bound to current auth user
  * Credit: Lizzz · All Rights Reserved
  */
 (function () {
@@ -9,8 +9,9 @@
   }
   window.__DR_AVATAR_FIX = 1;
 
-  var CACHE_KEY = 'dr_avatar_cache_v2';
+  var CACHE_KEY = 'dr_avatar_cache_v3';
   var VER = 'v8.0.3';
+  var lastUid = null;
 
   function esc(s) {
     return String(s || '')
@@ -18,6 +19,14 @@
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;');
+  }
+
+  function clearAllCaches() {
+    try {
+      ['dr_avatar_cache_v1', 'dr_avatar_cache_v2', 'dr_avatar_cache_v3'].forEach(function (k) {
+        localStorage.removeItem(k);
+      });
+    } catch (e) {}
   }
 
   function readCache() {
@@ -30,18 +39,14 @@
 
   function writeCache(data) {
     try {
-      var cur = readCache();
-      if (data.user_id != null) cur.user_id = data.user_id;
-      if (data.avatar_url != null) cur.avatar_url = data.avatar_url;
-      if (data.full_name != null) cur.full_name = data.full_name;
-      localStorage.setItem(CACHE_KEY, JSON.stringify(cur));
-    } catch (e) {}
-  }
-
-  function clearCache() {
-    try {
-      localStorage.removeItem(CACHE_KEY);
-      localStorage.removeItem('dr_avatar_cache_v1');
+      localStorage.setItem(
+        CACHE_KEY,
+        JSON.stringify({
+          user_id: data.user_id || null,
+          avatar_url: data.avatar_url || null,
+          full_name: data.full_name || null
+        })
+      );
     } catch (e) {}
   }
 
@@ -108,12 +113,19 @@
   function clearAvatarDom() {
     ['sidebar-avatar-chip', 'header-avatar-chip'].forEach(function (id) {
       var el = document.getElementById(id);
-      if (el) el.innerHTML = avatarHtml(null, 'U', id.indexOf('header') !== -1 ? 'sm' : 'md');
+      if (el) el.innerHTML = '';
+    });
+    document.querySelectorAll('.header-avatar-chip img, .sidebar-avatar-chip img, #header-avatar-chip img, #sidebar-avatar-chip img').forEach(function (img) {
+      try {
+        img.removeAttribute('src');
+        if (img.parentNode) img.parentNode.removeChild(img);
+      } catch (e) {}
     });
   }
 
   function getClient() {
     try {
+      if (window.DR && typeof DR.sb === 'function') return DR.sb();
       if (window.DR && DR.supabase) return DR.supabase;
       if (window.sb) return window.sb;
     } catch (e) {}
@@ -122,38 +134,24 @@
 
   async function currentUserId() {
     try {
-      if (window.DR && DR.getProfile) {
-        var p = DR.getProfile();
-        if (p && p.id) return p.id;
-      }
       var client = getClient();
-      if (!client || !client.auth) return null;
-      var s = await client.auth.getSession();
-      return s && s.data && s.data.session && s.data.session.user && s.data.session.user.id;
-    } catch (e) {
-      return null;
-    }
-  }
-
-  function getProfileQuick() {
-    try {
+      if (client && client.auth) {
+        var s = await client.auth.getSession();
+        var uid = s && s.data && s.data.session && s.data.session.user && s.data.session.user.id;
+        if (uid) return uid;
+      }
       if (window.DR && typeof DR.getProfile === 'function') {
         var p = DR.getProfile();
-        if (p) return p;
+        if (p && p.id) return p.id;
       }
     } catch (e) {}
     return null;
   }
 
-  async function fetchProfile() {
-    var p = getProfileQuick();
-    if (p && (p.avatar_url || p.id)) return p;
+  async function fetchMyProfile(uid) {
     var client = getClient();
-    if (!client) return null;
+    if (!client || !uid) return null;
     try {
-      var s = await client.auth.getSession();
-      var uid = s && s.data && s.data.session && s.data.session.user && s.data.session.user.id;
-      if (!uid) return null;
       var r = await client.from('profiles').select('id,full_name,username,avatar_url,role').eq('id', uid).maybeSingle();
       return r.data || null;
     } catch (e) {
@@ -164,24 +162,32 @@
   async function syncAvatar() {
     var uid = await currentUserId();
     if (!uid) {
-      clearCache();
+      lastUid = null;
+      clearAllCaches();
       clearAvatarDom();
       return;
     }
 
+    if (lastUid && lastUid !== uid) {
+      clearAllCaches();
+      clearAvatarDom();
+    }
+    lastUid = uid;
+
     var cached = readCache();
     if (cached.user_id && cached.user_id !== uid) {
-      clearCache();
+      clearAllCaches();
       cached = {};
     }
 
-    var prof = await fetchProfile();
-    if (prof && prof.id && prof.id !== uid) {
-      prof = null;
-    }
+    var prof = await fetchMyProfile(uid);
 
     var url = (prof && prof.avatar_url) || null;
     var name = (prof && (prof.full_name || prof.username)) || 'User';
+
+    if (url && url.indexOf(uid) === -1 && /\/avatars\//.test(url) && /[0-9a-f]{8}-[0-9a-f]{4}/i.test(url)) {
+      url = null;
+    }
 
     if (url) {
       writeCache({ user_id: uid, avatar_url: url, full_name: name });
@@ -210,34 +216,21 @@
 
   tick();
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', tick);
-  setTimeout(tick, 600);
-  setTimeout(tick, 2000);
-  setTimeout(tick, 5000);
-  setInterval(function () {
-    forceVersion();
-    currentUserId().then(function (uid) {
-      if (!uid) {
-        clearCache();
-        clearAvatarDom();
-        return;
-      }
-      var c = readCache();
-      if (c.user_id && c.user_id !== uid) {
-        clearCache();
-        syncAvatar();
-      }
-    });
-  }, 8000);
+  setTimeout(tick, 500);
+  setTimeout(tick, 1500);
+  setTimeout(tick, 3500);
+  setInterval(tick, 5000);
 
   document.addEventListener(
     'click',
     function (e) {
       var t = e.target;
       if (t && (t.id === 'btn-logout' || (t.closest && t.closest('#btn-logout')))) {
-        clearCache();
+        lastUid = null;
+        clearAllCaches();
         clearAvatarDom();
         setTimeout(clearAvatarDom, 100);
-        setTimeout(clearAvatarDom, 500);
+        setTimeout(clearAvatarDom, 400);
       }
     },
     true
@@ -248,7 +241,8 @@
     apply: applyAvatar,
     forceVersion: forceVersion,
     clear: function () {
-      clearCache();
+      lastUid = null;
+      clearAllCaches();
       clearAvatarDom();
     }
   };
