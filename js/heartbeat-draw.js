@@ -1,5 +1,5 @@
 /**
- * Divine Rays — spinning steam gears (login + portals)
+ * Divine Rays — continuous spinning steam gears (no animation reset)
  * Purple interface · Credit: Lizzz · All Rights Reserved
  */
 (function () {
@@ -11,6 +11,7 @@
 
   var CSS_ID = 'dr-gears-bg';
   var BOX_ID = 'dr-lifeline';
+  var lastTheme = null;
 
   function isLight() {
     try {
@@ -21,6 +22,10 @@
     } catch (e) {
       return document.documentElement.getAttribute('data-theme') === 'light';
     }
+  }
+
+  function themeKey() {
+    return isLight() ? 'light' : 'dark';
   }
 
   function colors() {
@@ -158,11 +163,13 @@
       el = document.createElement('style');
       el.id = CSS_ID;
       document.head.appendChild(el);
+      el.textContent = CSS;
+    } else if (!el.textContent) {
+      el.textContent = CSS;
     }
-    el.textContent = CSS;
   }
 
-  function ensureGears() {
+  function ensureGears(force) {
     var box = document.getElementById(BOX_ID);
     if (!box) {
       box = document.createElement('div');
@@ -170,32 +177,62 @@
       box.setAttribute('aria-hidden', 'true');
       document.body.insertBefore(box, document.body.firstChild);
     }
-    box.innerHTML = svgMarkup();
+
+    var theme = themeKey();
+    var hasSvg = !!box.querySelector('svg');
+
+    if (force || !hasSvg || lastTheme !== theme) {
+      box.innerHTML = svgMarkup();
+      lastTheme = theme;
+    }
   }
 
-  function tick() {
+  function tick(force) {
     injectCss();
-    ensureGears();
+    ensureGears(!!force);
   }
 
-  tick();
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', tick);
-  setTimeout(tick, 300);
-  setTimeout(tick, 1000);
-  setTimeout(tick, 2500);
-  setInterval(tick, 8000);
+  tick(true);
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () {
+      tick(false);
+    });
+  }
+  setTimeout(function () {
+    tick(false);
+  }, 800);
+  setTimeout(function () {
+    tick(false);
+  }, 2000);
 
   document.addEventListener(
     'click',
     function (e) {
       var t = e.target;
       if (t && (t.id === 'btn-theme' || t.id === 'dr-login-theme' || (t.classList && t.classList.contains('btn-theme')))) {
-        setTimeout(tick, 50);
+        setTimeout(function () {
+          tick(true);
+        }, 60);
       }
     },
     true
   );
 
-  window.DRHeartbeatDraw = { refresh: tick };
-  window.DRGearsBg = { refresh: tick };
+  setInterval(function () {
+    if (!document.getElementById(BOX_ID) || !document.getElementById(BOX_ID).querySelector('svg')) {
+      tick(true);
+    } else if (themeKey() !== lastTheme) {
+      tick(true);
+    }
+  }, 12000);
+
+  window.DRHeartbeatDraw = {
+    refresh: function () {
+      tick(false);
+    },
+    force: function () {
+      tick(true);
+    }
+  };
+  window.DRGearsBg = window.DRHeartbeatDraw;
 })();
