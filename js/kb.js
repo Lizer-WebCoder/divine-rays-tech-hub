@@ -1,6 +1,6 @@
 /**
  * Divine Rays — Knowledge Base / FAQ
- * Credit: Lizzz · All Rights Reserved
+ * Credit: Boyz at the Back LRK · All Rights Reserved
  */
 (function () {
   'use strict';
@@ -73,8 +73,8 @@
   function renderFaqList(containerId, articles, emptyMsg) {
     var el = document.getElementById(containerId);
     if (!el) return;
-    if (!articles.length) {
-      el.innerHTML = '<p class="empty-state kb-empty">' + esc(emptyMsg || 'No articles yet.') + '</p>';
+    if (!articles || !articles.length) {
+      el.innerHTML = '<p class="empty-state">' + esc(emptyMsg || 'No articles.') + '</p>';
       return;
     }
     var byCat = {};
@@ -85,7 +85,7 @@
     });
     var html = '';
     Object.keys(byCat).forEach(function (cat) {
-      html += '<div class="kb-cat-block"><h3 class="kb-cat-title">' + esc(cat) + '</h3>';
+      html += '<div class="kb-cat-block"><h4 class="kb-cat-title">' + esc(cat) + '</h4>';
       byCat[cat].forEach(function (a) {
         html += '<details class="kb-item"><summary>' + esc(a.title) + '</summary><div class="kb-item-body">' +
           esc(a.body).replace(/\n/g, '<br>') + '</div></details>';
@@ -107,8 +107,41 @@
       'No matching help articles. Try another search or submit a ticket.');
   }
 
+  async function resolveAuthorNames(articles) {
+    var map = window.__kbAuthorMap || {};
+    var ids = [];
+    (articles || []).forEach(function (a) {
+      var id = a && a.created_by;
+      if (id && !map[id]) ids.push(id);
+    });
+    ids = ids.filter(function (id, i, arr) { return arr.indexOf(id) === i; });
+    if (ids.length) {
+      try {
+        var client = sb();
+        if (client) {
+          var r = await client.from('profiles').select('id, full_name, username, email, role').in('id', ids);
+          (r.data || []).forEach(function (p) {
+            var name = p.full_name || p.username || (p.email && p.email.split('@')[0]) || 'Staff';
+            map[p.id] = name;
+          });
+        }
+      } catch (e) { console.warn('kb authors', e); }
+    }
+    window.__kbAuthorMap = map;
+    return map;
+  }
+
+  function authorLabel(article) {
+    if (!article) return '—';
+    var map = window.__kbAuthorMap || {};
+    if (article.created_by && map[article.created_by]) return map[article.created_by];
+    if (article.author_name) return article.author_name;
+    return '—';
+  }
+
   async function loadAgentKb() {
     window.__kbAll = await fetchArticles({});
+    await resolveAuthorNames(window.__kbAll || []);
     renderAgentKbTable(window.__kbAll || []);
   }
 
@@ -123,11 +156,11 @@
         '<p class="kb-sub">If save fails, run the kb_articles SQL in Supabase first.</p></div>';
       return;
     }
-    el.innerHTML = '<table class="perf-table kb-table"><thead><tr><th>Title</th><th>Category</th><th>Status</th><th>Updated</th><th></th></tr></thead><tbody>' +
+    el.innerHTML = '<table class="perf-table kb-table"><thead><tr><th>Title</th><th>Category</th><th>Status</th><th>Published by</th><th>Updated</th><th></th></tr></thead><tbody>' +
       filtered.map(function (a) {
         return '<tr><td>' + esc(a.title) + '</td><td>' + esc(a.category || '—') + '</td><td>' +
           (a.published ? '<span class="badge badge-status-open">Published</span>' : '<span class="badge">Draft</span>') +
-          '</td><td>' + fmt(a.updated_at || a.created_at) + '</td><td class="kb-row-actions">' +
+          '</td><td class="kb-author">' + esc(authorLabel(a)) + '</td><td>' + fmt(a.updated_at || a.created_at) + '</td><td class="kb-row-actions">' +
           '<button type="button" class="btn btn-ghost btn-sm kb-edit" data-id="' + a.id + '">Edit</button>' +
           '<button type="button" class="btn btn-danger btn-sm kb-del" data-id="' + a.id + '">Delete</button></td></tr>';
       }).join('') + '</tbody></table>';
@@ -158,7 +191,7 @@
       '<div class="form-row"><div class="form-group"><label>Category</label><select id="kb-edit-category">' +
       CATEGORIES.map(function (c) { return '<option value="' + c + '">' + c + '</option>'; }).join('') +
       '</select></div><div class="form-group"><label>Published</label><select id="kb-edit-published">' +
-      '<option value="true">Published (customers see it)</option><option value="false">Draft (staff only)</option></select></div></div>' +
+      '<option value="true">Published (end-users see it)</option><option value="false">Draft (staff only)</option></select></div></div>' +
       '<div class="form-group"><label>Article body</label><textarea id="kb-edit-body" rows="8" placeholder="Write clear steps for the customer…"></textarea></div>' +
       '<div class="kb-editor-actions"><button type="button" class="btn btn-ghost" id="kb-edit-cancel">Cancel</button>' +
       '<button type="button" class="btn btn-primary" id="kb-edit-save">Save article</button></div></div>';
@@ -220,15 +253,9 @@
     loadAgentKb();
   }
 
-  function restoreTopbarFilters() {
-    var actions = document.querySelector('#portal-agent .topbar-actions');
-    if (actions) actions.style.display = '';
-  }
-
   function ensureAgentUi() {
-    var nav = document.querySelector('#portal-agent .nav');
-    var main = document.querySelector('#portal-agent .main');
-
+    var nav = document.querySelector('#portal-agent .sidebar-nav, #portal-agent nav');
+    var main = document.querySelector('#portal-agent main.main, #portal-agent .main');
     if (nav && !document.getElementById('nav-kb')) {
       var btn = document.createElement('button');
       btn.type = 'button';
@@ -237,7 +264,7 @@
       btn.setAttribute('data-view', 'kb');
       btn.textContent = 'Knowledge Base';
       var adminBtn = document.getElementById('nav-admin');
-      if (adminBtn) nav.insertBefore(btn, adminBtn);
+      if (adminBtn && adminBtn.parentNode) adminBtn.parentNode.insertBefore(btn, adminBtn);
       else nav.appendChild(btn);
     }
 
@@ -247,7 +274,7 @@
       sec.className = 'view';
       sec.innerHTML = '<div class="kb-manage"><div class="kb-manage-head"><div>' +
         '<h3 class="stats-heading" style="margin:0">Knowledge Base</h3>' +
-        '<p class="kb-sub">Articles customers see under Help / FAQ. Create, edit, publish, or delete below.</p></div>' +
+        '<p class="kb-sub">Articles end-users see under Help / FAQ. Create, edit, publish, or delete below.</p></div>' +
         '<button type="button" class="btn btn-primary" id="kb-btn-new">+ New article</button></div>' +
         '<div class="kb-toolbar"><input type="search" id="kb-manage-search" placeholder="Search articles…" /></div>' +
         '<div id="kb-manage-list"><p class="empty-state">Loading…</p></div></div>';
@@ -287,61 +314,42 @@
       '<div class="kb-toolbar"><input type="search" id="kb-search" placeholder="Search help articles…" />' +
       '<select id="kb-filter-cat"><option value="">All categories</option>' +
       CATEGORIES.map(function (c) { return '<option value="' + c + '">' + c + '</option>'; }).join('') +
-      '</select></div><div id="kb-faq-list" class="kb-faq-list"></div>' +
-      '<p class="kb-still">Still stuck? <button type="button" class="btn btn-primary btn-sm" id="kb-go-ticket">Submit a ticket</button></p></div>';
-    var credit = main.querySelector('.credit-footer');
-    if (credit) main.insertBefore(sec, credit);
-    else main.appendChild(sec);
+      '</select></div><div id="kb-faq-list" class="kb-faq-list"></div></div>';
+    main.appendChild(sec);
 
     btn.addEventListener('click', function () {
       document.querySelectorAll('#portal-customer .ctab').forEach(function (t) { t.classList.toggle('active', t === btn); });
       document.querySelectorAll('#portal-customer .ctab-panel').forEach(function (p) { p.classList.toggle('active', p.id === 'ctab-kb'); });
       loadCustomerFaq();
     });
-    document.getElementById('kb-search').addEventListener('input', applyCustomerFaqFilter);
-    document.getElementById('kb-filter-cat').addEventListener('change', applyCustomerFaqFilter);
-    document.getElementById('kb-go-ticket').addEventListener('click', function () {
-      var sub = document.querySelector('#portal-customer .ctab[data-ctab="submit"]');
-      if (sub) sub.click();
-    });
-  }
-
-  function bindGlobalClicks() {
-    if (document.__kbClickBound) return;
-    document.__kbClickBound = true;
-    document.addEventListener('click', function (e) {
-      var t = e.target;
-      if (!t || !t.closest) return;
-      var kbNav = t.closest('#nav-kb, .nav-btn[data-view="kb"]');
-      if (kbNav) {
-        e.preventDefault();
-        e.stopPropagation();
-        showKbView();
-        return;
-      }
-      var otherNav = t.closest('#portal-agent .nav-btn');
-      if (otherNav && otherNav.getAttribute('data-view') !== 'kb' && otherNav.id !== 'nav-kb') {
-        restoreTopbarFilters();
-      }
-    }, true);
+    var s = document.getElementById('kb-search');
+    var c = document.getElementById('kb-filter-cat');
+    if (s) s.addEventListener('input', applyCustomerFaqFilter);
+    if (c) c.addEventListener('change', applyCustomerFaqFilter);
   }
 
   function boot() {
-    ensureEditor();
-    ensureCustomerTab();
     ensureAgentUi();
-    bindGlobalClicks();
-    var shell = document.getElementById('app-shell') || document.body;
-    new MutationObserver(function () {
-      ensureCustomerTab();
-      ensureAgentUi();
-    }).observe(shell, { attributes: true, childList: true, subtree: true });
-    setTimeout(function () { ensureAgentUi(); ensureCustomerTab(); }, 1200);
-    setTimeout(function () { ensureAgentUi(); }, 3000);
+    ensureCustomerTab();
+    ensureEditor();
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-  else setTimeout(boot, 300);
+  else boot();
+  setTimeout(boot, 800);
+  setTimeout(boot, 2500);
+
+  document.addEventListener('click', function (e) {
+    var t = e.target;
+    if (!t || !t.closest) return;
+    var kbNav = t.closest('#nav-kb, .nav-btn[data-view="kb"]');
+    if (kbNav) {
+      e.preventDefault();
+      e.stopPropagation();
+      showKbView();
+      return;
+    }
+  }, true);
 
   window.DR_KB = { show: showKbView, loadCustomerFaq: loadCustomerFaq, loadAgentKb: loadAgentKb, openEditor: openEditor };
 })();
