@@ -30,12 +30,12 @@
     var SAFE = 'dcd63cf56e9b65313cdfc16b0edcee99168b3f2b';
     var KB_SHA = SAFE;
     var AGENT_LIGHT = 'eb1cb3fce7ee8b83ef7cf9a75288ac1bfc6e2ab3';
-    var LIGHT_V2 = '487c88a3c4f5b8bfb3a521fb2f68d8b678f41567';
+    var LIGHT_V2 = 'b7f180cbce2760adead2810d31925d7b791d4bb9';
     var CSAT_AV = SAFE;
     var LOGIN_SHA = 'e15dcf038ca9ed03fc5443bea3cde4d7c15c53be';
     var TICKET_AV = 'cf9f7468e03f64f3cf44cac7de5e7262056d094e';
     var ACCT_SHA = '3e823d24458da24dbe01ee176f6c7ef0b45d77d8';
-    var LF_SHA = '7d389b7ab971b4ae066af1fb54f9c3b410a56785';
+    var LF_SHA = '7209a771d5e80c5e85f96bf08e37161b6f7cc8a3';
     var TECH_BG_SHA = '4bda0d3949f3994738d2f9efa4843c3ca2ac25a5';
     var FORCE_BG_SHA = '4bda0d3949f3994738d2f9efa4843c3ca2ac25a5';
     var HB_SHA = '4bda0d3949f3994738d2f9efa4843c3ca2ac25a5';
@@ -205,6 +205,7 @@
         if (window.DRLayoutFix && window.DRLayoutFix.force) try { window.DRLayoutFix.force(); } catch (e) {}
         if (window.DRForceLightBg && window.DRForceLightBg.refresh) try { window.DRForceLightBg.refresh(); } catch (e) {}
         if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.refresh) try { window.DRHeartbeatDraw.refresh(); } catch (e) {}
+        if (window.DRLightForce && window.DRLightForce.refresh) try { window.DRLightForce.refresh(); } catch (e) {}
       }
       applyV8Once();
       setTimeout(applyV8Once, 800);
