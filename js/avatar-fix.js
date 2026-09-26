@@ -1,11 +1,15 @@
 /**
- * Divine Rays — keep avatars + version stable across refresh
+ * Divine Rays — avatars bound to current user only (no cross-login leak)
  * Credit: Lizzz · All Rights Reserved
  */
 (function () {
   'use strict';
+  if (window.__DR_AVATAR_FIX) {
+    try { delete window.__DR_AVATAR_FIX; } catch (e) {}
+  }
+  window.__DR_AVATAR_FIX = 1;
 
-  var CACHE_KEY = 'dr_avatar_cache_v1';
+  var CACHE_KEY = 'dr_avatar_cache_v2';
   var VER = 'v8.0.3';
 
   function esc(s) {
@@ -27,10 +31,17 @@
   function writeCache(data) {
     try {
       var cur = readCache();
+      if (data.user_id != null) cur.user_id = data.user_id;
       if (data.avatar_url != null) cur.avatar_url = data.avatar_url;
       if (data.full_name != null) cur.full_name = data.full_name;
-      if (data.user_id != null) cur.user_id = data.user_id;
       localStorage.setItem(CACHE_KEY, JSON.stringify(cur));
+    } catch (e) {}
+  }
+
+  function clearCache() {
+    try {
+      localStorage.removeItem(CACHE_KEY);
+      localStorage.removeItem('dr_avatar_cache_v1');
     } catch (e) {}
   }
 
@@ -39,9 +50,17 @@
     var letter = (name || 'U').charAt(0).toUpperCase();
     if (url) {
       return (
-        '<img class="avatar-img ' + sizeClass + '" src="' + esc(url) + '" alt="" ' +
+        '<img class="avatar-img ' +
+        sizeClass +
+        '" src="' +
+        esc(url) +
+        '" alt="" ' +
         'onerror="this.style.display=\'none\';var n=this.nextElementSibling;if(n)n.style.display=\'grid\'" />' +
-        '<div class="avatar-fallback ' + sizeClass + '" style="display:none">' + esc(letter) + '</div>'
+        '<div class="avatar-fallback ' +
+        sizeClass +
+        '" style="display:none">' +
+        esc(letter) +
+        '</div>'
       );
     }
     return '<div class="avatar-fallback ' + sizeClass + '">' + esc(letter) + '</div>';
@@ -86,17 +105,41 @@
     if (head) head.innerHTML = avatarHtml(url, name, 'sm');
   }
 
-  function forceVersion() {
-    document.querySelectorAll('.version').forEach(function (el) {
-      if (el.textContent !== VER) el.textContent = VER;
+  function clearAvatarDom() {
+    ['sidebar-avatar-chip', 'header-avatar-chip'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.innerHTML = avatarHtml(null, 'U', id.indexOf('header') !== -1 ? 'sm' : 'md');
     });
+  }
+
+  function getClient() {
+    try {
+      if (window.DR && DR.supabase) return DR.supabase;
+      if (window.sb) return window.sb;
+    } catch (e) {}
+    return null;
+  }
+
+  async function currentUserId() {
+    try {
+      if (window.DR && DR.getProfile) {
+        var p = DR.getProfile();
+        if (p && p.id) return p.id;
+      }
+      var client = getClient();
+      if (!client || !client.auth) return null;
+      var s = await client.auth.getSession();
+      return s && s.data && s.data.session && s.data.session.user && s.data.session.user.id;
+    } catch (e) {
+      return null;
+    }
   }
 
   function getProfileQuick() {
     try {
       if (window.DR && typeof DR.getProfile === 'function') {
         var p = DR.getProfile();
-        if (p && p.id) return p;
+        if (p) return p;
       }
     } catch (e) {}
     return null;
@@ -104,81 +147,109 @@
 
   async function fetchProfile() {
     var p = getProfileQuick();
-    if (p && p.avatar_url) return p;
+    if (p && (p.avatar_url || p.id)) return p;
+    var client = getClient();
+    if (!client) return null;
     try {
-      if (window.DR_PROFILE && typeof DR_PROFILE.fetch === 'function') {
-        var me = await DR_PROFILE.fetch();
-        if (me) return me;
-      }
-    } catch (e) {}
-    try {
-      if (window.DR && typeof DR.sb === 'function') {
-        var client = DR.sb();
-        if (!client) return p;
-        var sess = await client.auth.getSession();
-        var uid = sess && sess.data && sess.data.session && sess.data.session.user && sess.data.session.user.id;
-        if (!uid && p && p.id) uid = p.id;
-        if (!uid) return p;
-        var r = await client.from('profiles').select('id,full_name,avatar_url,role,username').eq('id', uid).maybeSingle();
-        if (!r.error && r.data) return r.data;
-      }
-    } catch (e) {}
-    return p;
-  }
-
-  function paintFromCache() {
-    var c = readCache();
-    if (c.avatar_url || c.full_name) {
-      applyAvatar(c.avatar_url || null, c.full_name || 'User');
+      var s = await client.auth.getSession();
+      var uid = s && s.data && s.data.session && s.data.session.user && s.data.session.user.id;
+      if (!uid) return null;
+      var r = await client.from('profiles').select('id,full_name,username,avatar_url,role').eq('id', uid).maybeSingle();
+      return r.data || null;
+    } catch (e) {
+      return null;
     }
   }
 
   async function syncAvatar() {
-    forceVersion();
-    paintFromCache();
-    var me = await fetchProfile();
-    if (!me) return;
-    writeCache({
-      user_id: me.id,
-      avatar_url: me.avatar_url || '',
-      full_name: me.full_name || me.username || 'User'
+    var uid = await currentUserId();
+    if (!uid) {
+      clearCache();
+      clearAvatarDom();
+      return;
+    }
+
+    var cached = readCache();
+    if (cached.user_id && cached.user_id !== uid) {
+      clearCache();
+      cached = {};
+    }
+
+    var prof = await fetchProfile();
+    if (prof && prof.id && prof.id !== uid) {
+      prof = null;
+    }
+
+    var url = (prof && prof.avatar_url) || null;
+    var name = (prof && (prof.full_name || prof.username)) || 'User';
+
+    if (url) {
+      writeCache({ user_id: uid, avatar_url: url, full_name: name });
+      applyAvatar(url, name);
+      return;
+    }
+
+    if (cached.user_id === uid && cached.avatar_url) {
+      applyAvatar(cached.avatar_url, cached.full_name || name);
+      return;
+    }
+
+    applyAvatar(null, name);
+  }
+
+  function forceVersion() {
+    document.querySelectorAll('.version').forEach(function (el) {
+      if (el.textContent.indexOf('8.0.3') === -1) el.textContent = VER;
     });
-    applyAvatar(me.avatar_url || null, me.full_name || me.username || 'User');
-    forceVersion();
   }
 
-  forceVersion();
-  if (document.getElementById('portal-agent') || document.querySelector('.agent-badge') || document.querySelector('.user-info')) {
-    paintFromCache();
-  }
-
-  function boot() {
+  function tick() {
     forceVersion();
-    paintFromCache();
     syncAvatar();
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function () { setTimeout(boot, 200); });
-  } else {
-    setTimeout(boot, 200);
-  }
-
-  setTimeout(boot, 800);
-  setTimeout(boot, 2000);
-  setTimeout(boot, 4500);
-
+  tick();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', tick);
+  setTimeout(tick, 600);
+  setTimeout(tick, 2000);
+  setTimeout(tick, 5000);
   setInterval(function () {
     forceVersion();
-    var side = document.getElementById('sidebar-avatar-chip');
-    var head = document.getElementById('header-avatar-chip');
-    var c = readCache();
-    if (!c.avatar_url) return;
-    var needs = false;
-    if (document.querySelector('#portal-agent .agent-badge') && (!side || !side.querySelector('img.avatar-img'))) needs = true;
-    if (document.querySelector('.user-info') && (!head || !head.querySelector('img.avatar-img'))) needs = true;
-    if (needs) applyAvatar(c.avatar_url, c.full_name || 'User');
-  }, 2500);
+    currentUserId().then(function (uid) {
+      if (!uid) {
+        clearCache();
+        clearAvatarDom();
+        return;
+      }
+      var c = readCache();
+      if (c.user_id && c.user_id !== uid) {
+        clearCache();
+        syncAvatar();
+      }
+    });
+  }, 8000);
 
-  window.DRAvatarFix = { sync: syncAvatar, apply: applyAvatar, forceVersion: forceVersion };
+  document.addEventListener(
+    'click',
+    function (e) {
+      var t = e.target;
+      if (t && (t.id === 'btn-logout' || (t.closest && t.closest('#btn-logout')))) {
+        clearCache();
+        clearAvatarDom();
+        setTimeout(clearAvatarDom, 100);
+        setTimeout(clearAvatarDom, 500);
+      }
+    },
+    true
+  );
+
+  window.DRAvatarFix = {
+    sync: syncAvatar,
+    apply: applyAvatar,
+    forceVersion: forceVersion,
+    clear: function () {
+      clearCache();
+      clearAvatarDom();
+    }
+  };
 })();
