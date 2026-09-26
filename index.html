@@ -38,6 +38,7 @@
     var LF_SHA = '7209a771d5e80c5e85f96bf08e37161b6f7cc8a3';
     var TECH_BG_SHA = '4bda0d3949f3994738d2f9efa4843c3ca2ac25a5';
     var FORCE_BG_SHA = '4bda0d3949f3994738d2f9efa4843c3ca2ac25a5';
+    var AVATAR_SHA = 'f48506bee350bd425e57904ed809c9d62312bf78';
     var HB_SHA = '4bda0d3949f3994738d2f9efa4843c3ca2ac25a5';
     var urls = [
       'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + PIN + '/index.html',
@@ -160,7 +161,8 @@
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + STABLE + '/js/portal-guard.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@1e6520dca83cccafdc0f0d7d031f3bf6cde80c82/js/status-card.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@af065832c121e643c6c7e6149a1f0367fdf94920/js/staff-presence.js?v=' + ver);
-      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@7671a3fa3bdb1e3a3ab9e6a79a124661a0bdbf9e/js/avatar-fix.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + AVATAR_SHA + '/js/avatar-fix.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + AVATAR_SHA + '/js/session-reset.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@d7d5c09e5d5d6a6289292449d4e532854a3b0e1d/js/emoji-fix.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + STABLE + '/js/layout-fix.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@49062e232bcd560ed8e409f70e7c109d2eb9ae94/js/csat.js?v=' + ver);
@@ -192,6 +194,7 @@
         if (window.DRForceLightBg && window.DRForceLightBg.refresh) try { window.DRForceLightBg.refresh(); } catch (e) {}
         if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.refresh) try { window.DRHeartbeatDraw.refresh(); } catch (e) {}
         if (window.DRTheme && window.DRTheme.ensure) try { window.DRTheme.ensure(); } catch (e) {}
+        if (window.DRAvatarFix && window.DRAvatarFix.sync) try { window.DRAvatarFix.sync(); } catch (e) {}
       }, 500);
       function applyV8Once() {
         document.querySelectorAll('.version').forEach(function (el) {
@@ -206,6 +209,7 @@
         if (window.DRForceLightBg && window.DRForceLightBg.refresh) try { window.DRForceLightBg.refresh(); } catch (e) {}
         if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.refresh) try { window.DRHeartbeatDraw.refresh(); } catch (e) {}
         if (window.DRLightForce && window.DRLightForce.refresh) try { window.DRLightForce.refresh(); } catch (e) {}
+        if (window.DRAvatarFix && window.DRAvatarFix.sync) try { window.DRAvatarFix.sync(); } catch (e) {}
       }
       applyV8Once();
       setTimeout(applyV8Once, 800);
