@@ -142,9 +142,17 @@
           scriptSrcs.push(src);
         }
       });
-      ['js/email-notify.js','js/ticket-plus.js','js/ticket-plus-fix.js','js/status-lock.js','js/polish-fixes.js','js/saved-views.js'].forEach(function (base) {
-        if (!scriptSrcs.some(function (s) { return s.indexOf(base) !== -1; })) {
-          scriptSrcs.push('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + EXTRA_SHA + '/' + base + '?v=' + ver);
+      var EXTRA_FILES = ['email-notify.js','ticket-plus.js','ticket-plus-fix.js','status-lock.js','polish-fixes.js','saved-views.js'];
+      EXTRA_FILES.forEach(function (base) {
+        var found = false;
+        for (var si = 0; si < scriptSrcs.length; si++) {
+          if (scriptSrcs[si].indexOf(base) !== -1) {
+            scriptSrcs[si] = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + EXTRA_SHA + '/js/' + base + '?v=' + ver;
+            found = true;
+          }
+        }
+        if (!found) {
+          scriptSrcs.push('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + EXTRA_SHA + '/js/' + base + '?v=' + ver);
         }
       });
       for (var j = 0; j < scriptSrcs.length; j++) await loadScript(scriptSrcs[j]);
