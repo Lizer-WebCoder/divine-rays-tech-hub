@@ -40,6 +40,7 @@
     var FORCE_BG_SHA = '4bda0d3949f3994738d2f9efa4843c3ca2ac25a5';
     var AVATAR_SHA = '2626ceb8701247f864f1d72e39a2ba630922899a';
     var HB_SHA = '83e2cbb0fa34f124a3a3a1ab001b47b7f8520fa5';
+    var KB_FULL_SHA = '931f2d1074d5911b8c3cd617cf3b3fb7cdfa9090';
     var CREDIT_SHA = '21367d67d977a43ed8ef425a4671abee11c6e9f6';
     var EXTRA_SHA = 'f0b0b583ebb98cd4f47f4b4781ef1cbaf4587ea6';
     var urls = [
@@ -167,6 +168,7 @@
       loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + AGENT_LIGHT + '/css/agent-light.css?v=' + ver);
       loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LIGHT_V2 + '/css/light-mode-v2.css?v=' + ver);
       loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + TECH_BG_SHA + '/css/light-tech-bg.css?v=' + ver);
+      loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + KB_FULL_SHA + '/css/kb-full.css?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + THEME_SHA + '/js/theme.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + JS_SHA + '/js/filters.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + STABLE + '/js/portal-guard.js?v=' + ver);
@@ -194,7 +196,9 @@
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LF_SHA + '/js/light-force.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + FORCE_BG_SHA + '/js/force-light-bg.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + HB_SHA + '/js/heartbeat-draw.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + KB_FULL_SHA + '/js/kb-layout-fix.js?v=' + ver);
       loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + TECH_BG_SHA + '/css/light-tech-bg.css?v=' + ver);
+      loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + KB_FULL_SHA + '/css/kb-full.css?v=' + ver);
       setTimeout(function () {
         if (window.DRPortalGuard && window.DRPortalGuard.sync) try { window.DRPortalGuard.sync(); } catch (e) {}
         if (window.DRUiPolish && window.DRUiPolish.refresh) try { window.DRUiPolish.refresh(); } catch (e) {}
@@ -208,6 +212,7 @@
         if (window.DRTheme && window.DRTheme.ensure) try { window.DRTheme.ensure(); } catch (e) {}
         if (window.DRAvatarFix && window.DRAvatarFix.sync) try { window.DRAvatarFix.sync(); } catch (e) {}
         if (window.DRCreditFix && window.DRCreditFix.refresh) try { window.DRCreditFix.refresh(); } catch (e) {}
+        if (window.DRKbLayout && window.DRKbLayout.refresh) try { window.DRKbLayout.refresh(); } catch (e) {}
       }, 500);
       function applyV8Once() {
         document.querySelectorAll('.version').forEach(function (el) {
@@ -224,6 +229,7 @@
         if (window.DRLightForce && window.DRLightForce.refresh) try { window.DRLightForce.refresh(); } catch (e) {}
         if (window.DRAvatarFix && window.DRAvatarFix.sync) try { window.DRAvatarFix.sync(); } catch (e) {}
         if (window.DRCreditFix && window.DRCreditFix.refresh) try { window.DRCreditFix.refresh(); } catch (e) {}
+        if (window.DRKbLayout && window.DRKbLayout.refresh) try { window.DRKbLayout.refresh(); } catch (e) {}
       }
       applyV8Once();
       setTimeout(applyV8Once, 800);
