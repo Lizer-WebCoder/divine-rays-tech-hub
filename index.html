@@ -40,6 +40,7 @@
     var FORCE_BG_SHA = '4bda0d3949f3994738d2f9efa4843c3ca2ac25a5';
     var AVATAR_SHA = 'f48506bee350bd425e57904ed809c9d62312bf78';
     var HB_SHA = '4bda0d3949f3994738d2f9efa4843c3ca2ac25a5';
+    var EXTRA_SHA = 'f0b0b583ebb98cd4f47f4b4781ef1cbaf4587ea6';
     var urls = [
       'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + PIN + '/index.html',
       'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PIN + '/index.html'
@@ -143,7 +144,7 @@
       });
       ['js/email-notify.js','js/ticket-plus.js','js/ticket-plus-fix.js','js/status-lock.js','js/polish-fixes.js','js/saved-views.js'].forEach(function (base) {
         if (!scriptSrcs.some(function (s) { return s.indexOf(base) !== -1; })) {
-          scriptSrcs.push('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PIN + '/' + base + '?v=' + ver);
+          scriptSrcs.push('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + EXTRA_SHA + '/' + base + '?v=' + ver);
         }
       });
       for (var j = 0; j < scriptSrcs.length; j++) await loadScript(scriptSrcs[j]);
