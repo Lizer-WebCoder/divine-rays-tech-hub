@@ -41,6 +41,7 @@
     var AVATAR_SHA = '2626ceb8701247f864f1d72e39a2ba630922899a';
     var HB_SHA = '83e2cbb0fa34f124a3a3a1ab001b47b7f8520fa5';
     var KB_FULL_SHA = '931f2d1074d5911b8c3cd617cf3b3fb7cdfa9090';
+    var ENDUSER_SHA = '6d216fe1f8b00b9e18c6c6a3594323faff100265';
     var CREDIT_SHA = '21367d67d977a43ed8ef425a4671abee11c6e9f6';
     var EXTRA_SHA = 'f0b0b583ebb98cd4f47f4b4781ef1cbaf4587ea6';
     var urls = [
@@ -131,6 +132,7 @@
       });
       bodyHtml = bodyHtml.replace(/>v7\.[0-9.]+</g, '>v' + ver + '<').replace(/v7\.6\.7/g, 'v' + ver);
       bodyHtml = bodyHtml.replace(/Lizzz?\s*[·•\-]\s*All Rights Reserved/gi, 'Boyz at the Back LRK · All Rights Reserved');
+      bodyHtml = bodyHtml.replace(/>Customer</g, '>End-User<').replace(/Create Customer Account/g, 'Create End-User Account').replace(/\(Customer\)/g, '(End-User)').replace(/>Customers</g, '>End-Users<');
       document.body.innerHTML = bodyHtml;
       document.querySelectorAll('.version').forEach(function (el) { el.textContent = 'v' + ver; });
       wireTabs();
@@ -177,6 +179,7 @@
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + AVATAR_SHA + '/js/avatar-fix.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + AVATAR_SHA + '/js/session-reset.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + CREDIT_SHA + '/js/credit-fix.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + ENDUSER_SHA + '/js/enduser-label.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@d7d5c09e5d5d6a6289292449d4e532854a3b0e1d/js/emoji-fix.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + STABLE + '/js/layout-fix.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@49062e232bcd560ed8e409f70e7c109d2eb9ae94/js/csat.js?v=' + ver);
@@ -213,6 +216,7 @@
         if (window.DRAvatarFix && window.DRAvatarFix.sync) try { window.DRAvatarFix.sync(); } catch (e) {}
         if (window.DRCreditFix && window.DRCreditFix.refresh) try { window.DRCreditFix.refresh(); } catch (e) {}
         if (window.DRKbLayout && window.DRKbLayout.refresh) try { window.DRKbLayout.refresh(); } catch (e) {}
+        if (window.DREndUserLabel && window.DREndUserLabel.refresh) try { window.DREndUserLabel.refresh(); } catch (e) {}
       }, 500);
       function applyV8Once() {
         document.querySelectorAll('.version').forEach(function (el) {
@@ -230,6 +234,7 @@
         if (window.DRAvatarFix && window.DRAvatarFix.sync) try { window.DRAvatarFix.sync(); } catch (e) {}
         if (window.DRCreditFix && window.DRCreditFix.refresh) try { window.DRCreditFix.refresh(); } catch (e) {}
         if (window.DRKbLayout && window.DRKbLayout.refresh) try { window.DRKbLayout.refresh(); } catch (e) {}
+        if (window.DREndUserLabel && window.DREndUserLabel.refresh) try { window.DREndUserLabel.refresh(); } catch (e) {}
       }
       applyV8Once();
       setTimeout(applyV8Once, 800);
