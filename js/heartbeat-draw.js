@@ -1,6 +1,6 @@
 /**
  * Divine Rays — continuous spinning steam gears (no animation reset)
- * Purple interface · Credit: Lizzz · All Rights Reserved
+ * Gears on portal only · ECG on login · Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
@@ -26,6 +26,21 @@
 
   function themeKey() {
     return isLight() ? 'light' : 'dark';
+  }
+
+  function loginVisible() {
+    var login = document.getElementById('login-screen') || document.querySelector('.login-screen');
+    if (!login) return false;
+    if (login.hidden || login.classList.contains('is-hidden')) return false;
+    try {
+      var st = window.getComputedStyle(login);
+      if (st.display === 'none' || st.visibility === 'hidden') return false;
+    } catch (e) {}
+    return true;
+  }
+
+  function portalActive() {
+    return !loginVisible();
   }
 
   function colors() {
@@ -137,23 +152,20 @@
     '#dr-lifeline .dr-spin-ccw-slow{transform-origin:0 0;animation:drGearCCW 36s linear infinite}',
     '@keyframes drGearCW{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}',
     '@keyframes drGearCCW{from{transform:rotate(0deg)}to{transform:rotate(-360deg)}}',
-    '#login-screen,.login-screen{',
-    'background:transparent!important;',
-    'position:relative!important;z-index:2!important',
-    '}',
-    'html[data-theme="dark"] #login-screen,html[data-theme="dark"] .login-screen,',
-    'html:not([data-theme="light"]) #login-screen,html:not([data-theme="light"]) .login-screen{',
-    'background:radial-gradient(ellipse 90% 70% at 50% -5%,rgba(109,94,245,0.18),transparent 55%),',
-    'radial-gradient(ellipse 60% 40% at 80% 90%,rgba(124,106,240,0.08),transparent 50%)!important',
-    '}',
-    'html[data-theme="light"] #login-screen,html[data-theme="light"] .login-screen{',
-    'background:radial-gradient(ellipse 90% 70% at 50% -5%,rgba(109,94,245,0.14),transparent 55%),',
-    'radial-gradient(ellipse 60% 40% at 80% 90%,rgba(124,106,240,0.06),transparent 50%)!important',
-    '}',
+    'body.is-login #' + BOX_ID + '{opacity:0!important;visibility:hidden!important}',
+    'body.is-portal #' + BOX_ID + '{opacity:1!important;visibility:visible!important}',
+    '#login-screen,.login-screen{position:relative!important;z-index:2!important}',
     '#login-screen .login-card,.login-card{position:relative!important;z-index:3!important}',
     'body,.app-shell,#portal-customer,#portal-agent{position:relative;z-index:1}',
+    '@keyframes drEcgDraw{',
+    '0%{stroke-dashoffset:var(--dr-len);opacity:0}',
+    '3%{opacity:1}',
+    '88%{stroke-dashoffset:0;opacity:1}',
+    '100%{stroke-dashoffset:0;opacity:0}',
+    '}',
     '@media (prefers-reduced-motion:reduce){',
     '#dr-lifeline .dr-spin-cw,#dr-lifeline .dr-spin-ccw,#dr-lifeline .dr-spin-cw-fast,#dr-lifeline .dr-spin-ccw-slow{animation:none!important}',
+    '#dr-lifeline .dr-ecg-draw{animation:none!important;stroke-dashoffset:0!important;opacity:0.5}',
     '}'
   ].join('');
 
@@ -169,7 +181,34 @@
     }
   }
 
-  function ensureGears(force) {
+  var ECG_PATTERNS = [
+    'M0 50 H40 L50 50 L58 42 L65 50 L78 5 L95 95 L112 50 H170 L180 50 L188 42 L195 50 L208 8 L225 92 L242 50 H300 L310 50 L318 42 L325 50 L338 4 L355 96 L372 50 H430 L440 50 L448 42 L455 50 L468 10 L485 90 L502 50 H560 L570 50 L578 42 L585 50 L598 6 L615 94 L632 50 H690 L700 50 L708 42 L715 50 H720',
+    'M0 50 H30 L38 46 L45 50 L52 38 L60 50 L72 3 L92 97 L110 50 H160 L168 46 L175 50 L182 38 L190 50 L202 5 L222 95 L240 50 H290 L298 46 L305 50 L312 38 L320 50 L332 4 L352 96 L370 50 H420 L428 46 L435 50 L442 38 L450 50 L462 6 L482 94 L500 50 H550 L558 46 L565 50 L572 38 L580 50 L592 3 L612 97 L630 50 H680 L688 46 L695 50 L702 38 L710 50 H720',
+    'M0 50 H25 L33 42 L40 50 L48 32 L56 50 L68 8 L80 50 L88 28 L100 92 L115 50 L125 36 L135 50 H185 L193 42 L200 50 L208 32 L216 50 L228 6 L240 50 L248 28 L260 94 L275 50 L285 36 L295 50 H345 L353 42 L360 50 L368 32 L376 50 L388 8 L400 50 L408 28 L420 92 L435 50 L445 36 L455 50 H505 L513 42 L520 50 L528 32 L536 50 L548 6 L560 50 L568 28 L580 94 L595 50 L605 36 L615 50 H665 L673 42 L680 50 L688 32 L696 50 L708 8 L720 50'
+  ];
+  var ecgIndex = 0;
+  var ecgTimer = null;
+  var lastMode = null;
+
+  function ecgStroke() {
+    return isLight() ? '#5b21b6' : '#e9d5ff';
+  }
+  function ecgGlow() {
+    if (isLight()) {
+      return 'drop-shadow(0 0 3px #7c3aed) drop-shadow(0 0 10px rgba(109,40,217,0.65))';
+    }
+    return 'drop-shadow(0 0 4px #e9d5ff) drop-shadow(0 0 14px #c4b5fd) drop-shadow(0 0 28px rgba(167,139,250,0.9))';
+  }
+  function ecgMarkup() {
+    var d = ECG_PATTERNS[ecgIndex % ECG_PATTERNS.length];
+    return (
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 100" preserveAspectRatio="none" width="100%" height="100%" style="display:block">' +
+      '<path class="dr-ecg-draw" fill="none" stroke="' + ecgStroke() + '" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" d="' + d + '"/>' +
+      '</svg>'
+    );
+  }
+
+  function ensureBox() {
     var box = document.getElementById(BOX_ID);
     if (!box) {
       box = document.createElement('div');
@@ -177,19 +216,86 @@
       box.setAttribute('aria-hidden', 'true');
       document.body.insertBefore(box, document.body.firstChild);
     }
+    return box;
+  }
 
+  function runEcgCycle() {
+    if (ecgTimer) {
+      clearTimeout(ecgTimer);
+      ecgTimer = null;
+    }
+    if (!loginVisible()) return;
+    var login = document.getElementById('login-screen') || document.querySelector('.login-screen');
+    var box = ensureBox();
+    if (login && box.parentNode !== login) {
+      login.insertBefore(box, login.firstChild);
+    }
+    box.style.cssText = 'display:block!important;position:absolute!important;left:0!important;right:0!important;width:100%!important;top:50%!important;height:200px!important;margin-top:-100px!important;z-index:1!important;pointer-events:none!important;opacity:1!important;visibility:visible!important';
+    box.innerHTML = ecgMarkup();
+    var path = box.querySelector('.dr-ecg-draw');
+    if (!path) return;
+    var len = 1600;
+    try { len = path.getTotalLength() || 1600; } catch (e) {}
+    path.style.setProperty('--dr-len', len);
+    path.style.strokeDasharray = String(len);
+    path.style.strokeDashoffset = String(len);
+    path.style.filter = ecgGlow();
+    path.style.animation = 'none';
+    void path.getBoundingClientRect();
+    path.style.animation = 'drEcgDraw 10s linear forwards';
+    ecgTimer = setTimeout(function () {
+      ecgIndex = (ecgIndex + 1) % ECG_PATTERNS.length;
+      if (loginVisible()) runEcgCycle();
+    }, 10080);
+  }
+
+  function ensureGears(force) {
+    var box = ensureBox();
+    var mode = portalActive() ? 'portal' : 'login';
+
+    if (mode === 'login') {
+      if (lastMode !== 'login' || force) {
+        lastMode = 'login';
+        lastTheme = themeKey();
+        runEcgCycle();
+      } else if (themeKey() !== lastTheme) {
+        lastTheme = themeKey();
+        var p = box.querySelector('.dr-ecg-draw');
+        if (p) {
+          p.setAttribute('stroke', ecgStroke());
+          p.style.filter = ecgGlow();
+        }
+      }
+      return;
+    }
+
+    if (ecgTimer) {
+      clearTimeout(ecgTimer);
+      ecgTimer = null;
+    }
+    if (box.parentNode !== document.body) {
+      document.body.insertBefore(box, document.body.firstChild);
+    }
+    box.style.cssText = 'position:fixed!important;inset:0!important;width:100%!important;height:100%!important;z-index:0!important;pointer-events:none!important;overflow:hidden!important;opacity:1!important;visibility:visible!important;background:transparent!important';
     var theme = themeKey();
-    var hasSvg = !!box.querySelector('svg');
-
-    if (force || !hasSvg || lastTheme !== theme) {
+    var hasGears = !!box.querySelector('.dr-spin-cw');
+    if (force || !hasGears || lastTheme !== theme || lastMode !== 'portal') {
       box.innerHTML = svgMarkup();
       lastTheme = theme;
+      lastMode = 'portal';
     }
   }
 
   function tick(force) {
     injectCss();
+    try {
+      document.body.classList.toggle('is-login', loginVisible());
+      document.body.classList.toggle('is-portal', portalActive());
+    } catch (e) {}
     ensureGears(!!force);
+    if (window.DRForceLightBg && window.DRForceLightBg.refresh) {
+      try { window.DRForceLightBg.refresh(); } catch (e) {}
+    }
   }
 
   tick(true);
@@ -211,7 +317,14 @@
       var t = e.target;
       if (t && (t.id === 'btn-theme' || t.id === 'dr-login-theme' || (t.classList && t.classList.contains('btn-theme')))) {
         setTimeout(function () {
-          tick(true);
+          if (portalActive()) tick(true);
+          else {
+            var p = document.querySelector('#dr-lifeline .dr-ecg-draw');
+            if (p) {
+              p.setAttribute('stroke', ecgStroke());
+              p.style.filter = ecgGlow();
+            } else tick(true);
+          }
         }, 60);
       }
     },
@@ -219,12 +332,8 @@
   );
 
   setInterval(function () {
-    if (!document.getElementById(BOX_ID) || !document.getElementById(BOX_ID).querySelector('svg')) {
-      tick(true);
-    } else if (themeKey() !== lastTheme) {
-      tick(true);
-    }
-  }, 12000);
+    tick(false);
+  }, 2000);
 
   window.DRHeartbeatDraw = {
     refresh: function () {
