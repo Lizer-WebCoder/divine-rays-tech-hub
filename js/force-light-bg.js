@@ -99,7 +99,7 @@
       'position:absolute;border-radius:50%;',
       'background:' + particleC + ';',
       'box-shadow:0 0 6px ' + particleC + ';',
-      'animation:drParticle float 1 linear infinite;opacity:0.5',
+      'animation:drParticle 6s ease-in-out infinite;opacity:0.5',
       '}',
       '@keyframes drParticle{',
       '0%{transform:translateY(0) scale(1);opacity:0.15}',
