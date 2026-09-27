@@ -140,13 +140,11 @@
 
   var CSS = [
     '#' + BOX_ID + '{',
-    'pointer-events:none!important;overflow:visible!important;',
-    'background:none!important;background-color:transparent!important;background-image:none!important;',
-    'backdrop-filter:none!important;-webkit-backdrop-filter:none!important;',
-    'box-shadow:none!important;border:none!important;outline:none!important',
+    'z-index:0!important;pointer-events:none!important;overflow:hidden!important;',
+    'background:transparent!important',
     '}',
-    '#dr-lifeline,#dr-lifeline *{pointer-events:none!important;background:none!important;backdrop-filter:none!important}',
-    '#dr-lifeline svg{width:100%;height:100%;display:block;background:none!important}',
+    '#dr-lifeline,#dr-lifeline *{pointer-events:none!important}',
+    '#dr-lifeline svg{width:100%;height:100%;display:block}',
     '#dr-lifeline .dr-spin-cw{transform-origin:0 0;animation:drGearCW 30s linear infinite}',
     '#dr-lifeline .dr-spin-ccw{transform-origin:0 0;animation:drGearCCW 24s linear infinite}',
     '#dr-lifeline .dr-spin-cw-fast{transform-origin:0 0;animation:drGearCW 18s linear infinite}',
@@ -154,14 +152,18 @@
     '@keyframes drGearCW{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}',
     '@keyframes drGearCCW{from{transform:rotate(0deg)}to{transform:rotate(-360deg)}}',
     '#login-screen,.login-screen{position:relative!important;z-index:2!important}',
-    '#login-screen .login-card,.login-card{position:relative!important;z-index:2!important}',
-    '#login-screen #' + BOX_ID + ',#' + BOX_ID + '.dr-ecg-mode{z-index:6!important}',
+    '#login-screen .login-card,.login-card{position:relative!important;z-index:5!important}',
     'body,.app-shell,#portal-customer,#portal-agent{position:relative;z-index:1}',
     '@keyframes drEcgDraw{',
     '0%{stroke-dashoffset:var(--dr-len);opacity:0}',
-    '3%{opacity:1}',
+    '4%{opacity:0.85}',
+    '50%{opacity:1}',
     '88%{stroke-dashoffset:0;opacity:1}',
     '100%{stroke-dashoffset:0;opacity:0}',
+    '}',
+    '@keyframes drEcgPulse{',
+    '0%,100%{filter:drop-shadow(0 0 4px #e9d5ff) drop-shadow(0 0 12px rgba(167,139,250,0.7))}',
+    '50%{filter:drop-shadow(0 0 8px #f5f3ff) drop-shadow(0 0 22px rgba(196,181,253,0.95)) drop-shadow(0 0 36px rgba(124,106,240,0.6))}',
     '}',
     '@media (prefers-reduced-motion:reduce){',
     '#dr-lifeline .dr-spin-cw,#dr-lifeline .dr-spin-ccw,#dr-lifeline .dr-spin-cw-fast,#dr-lifeline .dr-spin-ccw-slow{animation:none!important}',
@@ -197,12 +199,12 @@
     if (isLight()) {
       return 'drop-shadow(0 0 3px #7c3aed) drop-shadow(0 0 10px rgba(109,40,217,0.65))';
     }
-    return 'drop-shadow(0 0 4px #e9d5ff) drop-shadow(0 0 14px #c4b5fd) drop-shadow(0 0 28px rgba(167,139,250,0.9))';
+    return 'drop-shadow(0 0 4px #e9d5ff) drop-shadow(0 0 12px rgba(167,139,250,0.7))';
   }
   function ecgMarkup() {
     var d = ECG_PATTERNS[ecgIndex % ECG_PATTERNS.length];
     return (
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 100" preserveAspectRatio="none" width="100%" height="100%" style="display:block;background:none">' +
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 100" preserveAspectRatio="none" width="100%" height="100%" style="display:block">' +
       '<path class="dr-ecg-draw" fill="none" stroke="' + ecgStroke() + '" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" d="' + d + '"/>' +
       '</svg>'
     );
@@ -230,8 +232,7 @@
     if (login && box.parentNode !== login) {
       login.insertBefore(box, login.firstChild);
     }
-    box.classList.add('dr-ecg-mode');
-    box.style.cssText = 'display:block!important;position:absolute!important;left:0!important;right:0!important;width:100%!important;top:50%!important;height:200px!important;margin-top:-100px!important;z-index:6!important;pointer-events:none!important;opacity:1!important;visibility:visible!important;background:none!important;background-color:transparent!important;background-image:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;box-shadow:none!important;border:none!important';
+    box.style.cssText = 'display:block!important;position:absolute!important;left:0!important;right:0!important;width:100%!important;top:50%!important;height:240px!important;margin-top:-120px!important;z-index:1!important;pointer-events:none!important;opacity:1!important;visibility:visible!important';
     box.innerHTML = ecgMarkup();
     var path = box.querySelector('.dr-ecg-draw');
     if (!path) return;
@@ -243,7 +244,7 @@
     path.style.filter = ecgGlow();
     path.style.animation = 'none';
     void path.getBoundingClientRect();
-    path.style.animation = 'drEcgDraw 10s linear forwards';
+    path.style.animation = 'drEcgDraw 10s linear forwards, drEcgPulse 2.4s ease-in-out infinite';
     ecgTimer = setTimeout(function () {
       ecgIndex = (ecgIndex + 1) % ECG_PATTERNS.length;
       if (loginVisible()) runEcgCycle();
@@ -277,7 +278,6 @@
     if (box.parentNode !== document.body) {
       document.body.insertBefore(box, document.body.firstChild);
     }
-    box.classList.remove('dr-ecg-mode');
     box.style.cssText = 'position:fixed!important;inset:0!important;width:100%!important;height:100%!important;z-index:0!important;pointer-events:none!important;overflow:hidden!important;opacity:1!important;visibility:visible!important;background:transparent!important';
     var theme = themeKey();
     var hasGears = !!box.querySelector('.dr-spin-cw');
