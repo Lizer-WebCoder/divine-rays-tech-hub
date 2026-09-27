@@ -140,7 +140,6 @@
 
   var CSS = [
     '#' + BOX_ID + '{',
-    'position:fixed!important;inset:0!important;width:100%!important;height:100%!important;',
     'z-index:0!important;pointer-events:none!important;overflow:hidden!important;',
     'background:transparent!important',
     '}',
@@ -152,8 +151,6 @@
     '#dr-lifeline .dr-spin-ccw-slow{transform-origin:0 0;animation:drGearCCW 36s linear infinite}',
     '@keyframes drGearCW{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}',
     '@keyframes drGearCCW{from{transform:rotate(0deg)}to{transform:rotate(-360deg)}}',
-    'body.is-login #' + BOX_ID + '{opacity:0!important;visibility:hidden!important}',
-    'body.is-portal #' + BOX_ID + '{opacity:1!important;visibility:visible!important}',
     '#login-screen,.login-screen{position:relative!important;z-index:2!important}',
     '#login-screen .login-card,.login-card{position:relative!important;z-index:3!important}',
     'body,.app-shell,#portal-customer,#portal-agent{position:relative;z-index:1}',
@@ -176,7 +173,7 @@
       el.id = CSS_ID;
       document.head.appendChild(el);
       el.textContent = CSS;
-    } else if (!el.textContent) {
+    } else {
       el.textContent = CSS;
     }
   }
@@ -304,12 +301,8 @@
       tick(false);
     });
   }
-  setTimeout(function () {
-    tick(false);
-  }, 800);
-  setTimeout(function () {
-    tick(false);
-  }, 2000);
+  setTimeout(function () { tick(false); }, 800);
+  setTimeout(function () { tick(false); }, 2000);
 
   document.addEventListener(
     'click',
@@ -336,12 +329,8 @@
   }, 2000);
 
   window.DRHeartbeatDraw = {
-    refresh: function () {
-      tick(false);
-    },
-    force: function () {
-      tick(true);
-    }
+    refresh: function () { tick(false); },
+    force: function () { tick(true); }
   };
   window.DRGearsBg = window.DRHeartbeatDraw;
 })();
