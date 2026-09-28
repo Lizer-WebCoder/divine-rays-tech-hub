@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.2.6" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.2.7" />
   <style>
     html,body{margin:0;background:#0c0c14;color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
     #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae}
@@ -21,12 +21,12 @@
     var PIN = '830dac02096eb08be1b2dc22bdc191a14df91a04';
     var STABLE = 'bd4e6cf77fb157a42f39f763f178634835b41e66';
     var UX_SHA = 'fe2be829d8cc69c749860dbfec23f5171d6a7713';
-    var REMOTE_SHA = 'de8926c0cb2b68afeab2d61ff07389cd414e4e01';
-    var LIVE_SHA = '06a09e8df880b73ad6a7723b425b23e008349944';
-    var ATTACH_SHA = 'ef7e7a55d083699c68e563def20c1e5f357c98e9';
+    var REMOTE_SHA = '14138a207b20fea5f32019529442c0e4e2ff130f';
+    var LIVE_SHA = 'd2d98ad0185806eec4f642850662f3d790c89338';
+    var ATTACH_SHA = '26f81d38b7006bebc767ec76c9efc0bb23c7bca0';
     var POLISH_SHA = '0374063136bf15df86745b02a2bb1d5b668dd3e0';
     var BRANCH_SHA = 'cc1a854e40366817cba63d3671587f9f21b30aa2';
-    var LIGHT_SHA = '960d173406487c80309e329d0adeacdfbd9ceb2d';
+    var LIGHT_SHA = '9f4e700974aa62dc462012eb92140adb24c459e1';
     var SAFE = 'dcd63cf56e9b65313cdfc16b0edcee99168b3f2b';
     var KB_SHA = SAFE;
     var AGENT_LIGHT = 'eb1cb3fce7ee8b83ef7cf9a75288ac1bfc6e2ab3';
@@ -37,27 +37,20 @@
     var ACCT_SHA = '3e823d24458da24dbe01ee176f6c7ef0b45d77d8';
     var LF_SHA = '7209a771d5e80c5e85f96bf08e37161b6f7cc8a3';
     var TECH_BG_SHA = '4bda0d3949f3994738d2f9efa4843c3ca2ac25a5';
-    var FORCE_BG_SHA = '848325ee3bf360088f700ced58cdb390cf23001d';
+    var FORCE_BG_SHA = '4647914fff1e3dca2bd87b0fb13f5e4b2ed58462';
     var AVATAR_SHA = '2626ceb8701247f864f1d72e39a2ba630922899a';
     var HB_SHA = '0d4b1079c2ab4dfdd91187b633f5d4df476a1e25';
-    var QUOTA_SHA = 'f48b7c3076ee67fda9a2e78a36e04b886a6fb544';
-    var PORTAL_EN_SHA = '279c5771e9a8e7474fef6b4585d223556d8d4f7c';
     var ADMIN_TB_SHA = '4ac442771ba75a1fe1d67962d907a1dedb156c56';
     var KB_JS_SHA = '155905d79c65f10fb3a49e73a820406ca3203d16';
     var KB_FULL_SHA = 'd26ea2ae4a0b4076fea4372ea6465aea6dd15822';
     var ENDUSER_SHA = '6d216fe1f8b00b9e18c6c6a3594323faff100265';
-    var CREDIT_SHA = '62fd30e1dd6afc977a32bf8112e2cfa4ee9efe54';
-    var TRACK_UX_SHA = '207df6ef35d0d1610ef04b2bdd3067f9d9b0c357';
-    var DEL_SHA = '3287fa956dfb798d90ddeff8e1553c9b6f4f01cd';
-    var TAB_CONTRAST_SHA = '57809fec6071af304a00efcd7249ab96e9303d2b';
-    var AUDIT_SLA_SHA = '50080d3505faf336e47e856b1dc02b0e2c504f0d';
-    var DASH_POLISH_SHA = '6f0caa20594e357614c4c3c0188cc8f7c634abfa';
+    var CREDIT_SHA = '21367d67d977a43ed8ef425a4671abee11c6e9f6';
     var EXTRA_SHA = 'f0b0b583ebb98cd4f47f4b4781ef1cbaf4587ea6';
     var urls = [
       'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + PIN + '/index.html',
       'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PIN + '/index.html'
     ];
-    var ver = '8.2.6';
+    var ver = '8.2.7';
     var BUST = String(Date.now());
     try {
       if (navigator.serviceWorker) {
@@ -183,7 +176,6 @@
       loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + TECH_BG_SHA + '/css/light-tech-bg.css?v=' + ver);
       loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + KB_FULL_SHA + '/css/kb-full.css?v=' + ver);
       loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + ADMIN_TB_SHA + '/css/admin-toolbar.css?v=' + ver);
-      loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PORTAL_EN_SHA + '/css/portal-enrich.css?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + THEME_SHA + '/js/theme.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + JS_SHA + '/js/filters.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + STABLE + '/js/portal-guard.js?v=' + ver);
@@ -213,17 +205,9 @@
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + FORCE_BG_SHA + '/js/force-light-bg.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + HB_SHA + '/js/heartbeat-draw.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + KB_FULL_SHA + '/js/kb-layout-fix.js?v=' + ver);
-      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PORTAL_EN_SHA + '/js/portal-enrich.js?v=' + ver);
-      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + QUOTA_SHA + '/js/ticket-quota.js?v=' + ver);
-      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + TRACK_UX_SHA + '/js/track-notif-ux.js?v=' + ver);
-      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + DEL_SHA + '/js/delete-ticket.js?v=' + ver);
-      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + TAB_CONTRAST_SHA + '/js/tab-contrast.js?v=' + ver);
-      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + AUDIT_SLA_SHA + '/js/audit-sla.js?v=' + ver);
-      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + DASH_POLISH_SHA + '/js/dashboard-polish.js?v=' + ver);
       loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + TECH_BG_SHA + '/css/light-tech-bg.css?v=' + ver);
       loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + KB_FULL_SHA + '/css/kb-full.css?v=' + ver);
       loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + ADMIN_TB_SHA + '/css/admin-toolbar.css?v=' + ver);
-      loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PORTAL_EN_SHA + '/css/portal-enrich.css?v=' + ver);
       var kbPub = document.createElement('style');
       kbPub.textContent = '#view-kb.active table th:nth-child(1),#view-kb.active table td:nth-child(1){width:28%!important}#view-kb.active table th:nth-child(2),#view-kb.active table td:nth-child(2){width:12%!important}#view-kb.active table th:nth-child(3),#view-kb.active table td:nth-child(3){width:12%!important}#view-kb.active table th:nth-child(4),#view-kb.active table td:nth-child(4){width:16%!important}#view-kb.active table th:nth-child(5),#view-kb.active table td:nth-child(5){width:14%!important;text-align:left!important}#view-kb.active table th:nth-child(6),#view-kb.active table td:nth-child(6){width:18%!important;text-align:right!important}.kb-author{color:var(--text-muted,#9494ae);font-weight:500}';
       document.head.appendChild(kbPub);
@@ -242,16 +226,10 @@
         if (window.DRCreditFix && window.DRCreditFix.refresh) try { window.DRCreditFix.refresh(); } catch (e) {}
         if (window.DRKbLayout && window.DRKbLayout.refresh) try { window.DRKbLayout.refresh(); } catch (e) {}
         if (window.DREndUserLabel && window.DREndUserLabel.refresh) try { window.DREndUserLabel.refresh(); } catch (e) {}
-        if (window.DRPortalEnrich && window.DRPortalEnrich.refresh) try { window.DRPortalEnrich.refresh(); } catch (e) {}
-        if (window.DRTicketQuota && window.DRTicketQuota.refresh) try { window.DRTicketQuota.refresh(); } catch (e) {}
-        if (window.DRTrackNotifUx && window.DRTrackNotifUx.refresh) try { window.DRTrackNotifUx.refresh(); } catch (e) {}
-        if (window.DRTabContrast && window.DRTabContrast.refresh) try { window.DRTabContrast.refresh(); } catch (e) {}
-        if (window.DRAuditSla && window.DRAuditSla.refresh) try { window.DRAuditSla.refresh(); } catch (e) {}
-        if (window.DRDashPolish && window.DRDashPolish.refresh) try { window.DRDashPolish.refresh(); } catch (e) {}
       }, 500);
       function applyV8Once() {
         document.querySelectorAll('.version').forEach(function (el) {
-          if (el.textContent.indexOf('8.2.6') === -1) el.textContent = 'v' + ver;
+          if (el.textContent.indexOf('8.2.7') === -1) el.textContent = 'v' + ver;
         });
         var lt = document.getElementById('dr-login-theme');
         if (lt && lt.parentNode) lt.parentNode.removeChild(lt);
@@ -266,12 +244,6 @@
         if (window.DRCreditFix && window.DRCreditFix.refresh) try { window.DRCreditFix.refresh(); } catch (e) {}
         if (window.DRKbLayout && window.DRKbLayout.refresh) try { window.DRKbLayout.refresh(); } catch (e) {}
         if (window.DREndUserLabel && window.DREndUserLabel.refresh) try { window.DREndUserLabel.refresh(); } catch (e) {}
-        if (window.DRPortalEnrich && window.DRPortalEnrich.refresh) try { window.DRPortalEnrich.refresh(); } catch (e) {}
-        if (window.DRTicketQuota && window.DRTicketQuota.refresh) try { window.DRTicketQuota.refresh(); } catch (e) {}
-        if (window.DRTrackNotifUx && window.DRTrackNotifUx.refresh) try { window.DRTrackNotifUx.refresh(); } catch (e) {}
-        if (window.DRTabContrast && window.DRTabContrast.refresh) try { window.DRTabContrast.refresh(); } catch (e) {}
-        if (window.DRAuditSla && window.DRAuditSla.refresh) try { window.DRAuditSla.refresh(); } catch (e) {}
-        if (window.DRDashPolish && window.DRDashPolish.refresh) try { window.DRDashPolish.refresh(); } catch (e) {}
       }
       applyV8Once();
       setTimeout(applyV8Once, 800);
