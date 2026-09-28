@@ -1,15 +1,17 @@
 /**
- * Divine Rays — daily ticket quota + anti double-submit + RLS error mapping
+ * Divine Rays — daily ticket quota + anti double-submit + form reset after success
  * Credit: Boyz at the Back LRK · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_TICKET_QUOTA) return;
+  if (window.__DR_TICKET_QUOTA) {
+    try { delete window.__DR_TICKET_QUOTA; } catch (e) {}
+  }
   window.__DR_TICKET_QUOTA = 1;
 
   var DEFAULT_LIMIT = 5;
   var submitting = false;
-  var lastQuota = null;
+  var submitLockUntil = 0;
 
   function client() {
     try {
@@ -18,6 +20,30 @@
       if (window.DR && window.DR.sb) return window.DR.sb;
     } catch (e) {}
     return null;
+  }
+
+  function isLocked() {
+    return submitting || Date.now() < submitLockUntil;
+  }
+
+  function lockBriefly(ms) {
+    submitting = true;
+    submitLockUntil = Date.now() + (ms || 1200);
+    setTimeout(function () {
+      submitting = false;
+    }, ms || 1200);
+  }
+
+  function unlock() {
+    submitting = false;
+    submitLockUntil = 0;
+    var form = document.getElementById('customer-form');
+    if (!form) return;
+    var btn = form.querySelector('button[type="submit"], .btn-primary');
+    if (btn) {
+      btn.disabled = false;
+      btn.removeAttribute('disabled');
+    }
   }
 
   function isQuotaError(err) {
@@ -65,13 +91,53 @@
     el.textContent = text;
   }
 
+  function resetSubmitForm(clearFields) {
+    var form = document.getElementById('customer-form');
+    var success = document.getElementById('submit-success');
+    if (success) {
+      success.hidden = true;
+      success.style.display = 'none';
+    }
+    if (form) {
+      form.hidden = false;
+      form.style.display = '';
+      form.removeAttribute('hidden');
+      if (clearFields) {
+        try {
+          form.reset();
+        } catch (e) {}
+      }
+    }
+    unlock();
+  }
+
+  function ensureSubmitAnotherBtn() {
+    var success = document.getElementById('submit-success');
+    if (!success) return;
+    if (success.querySelector('#btn-submit-another')) return;
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.id = 'btn-submit-another';
+    btn.className = 'btn btn-primary';
+    btn.textContent = 'Submit another ticket';
+    btn.setAttribute(
+      'style',
+      'margin-top:0.75rem;width:100%;border-radius:12px;padding:0.75rem 1rem;font-weight:700;cursor:pointer;'
+    );
+    btn.addEventListener('click', function () {
+      resetSubmitForm(true);
+      var tab = document.querySelector('.ctab[data-ctab="submit"]');
+      if (tab) tab.click();
+    });
+    success.appendChild(btn);
+  }
+
   async function fetchQuota() {
     var sb = client();
     if (!sb || !sb.rpc) return null;
     try {
       var r = await sb.rpc('get_my_ticket_quota');
       if (r.error) return null;
-      lastQuota = r.data;
       return r.data;
     } catch (e) {
       return null;
@@ -99,7 +165,7 @@
   function mapCreateError(err) {
     if (isQuotaError(err)) return parseQuotaMessage(err).message;
     if (isRlsError(err)) {
-      return 'Could not create ticket (permission). If a ticket still appeared in My Tickets, it was saved — do not submit again.';
+      return 'Could not create ticket (permission). Check My Tickets — it may already be saved.';
     }
     return (err && err.message) || String(err || 'Create failed');
   }
@@ -113,15 +179,16 @@
         if (root[n].__drQuotaWrapped) return;
         var orig = root[n];
         var wrapped = async function () {
-          if (submitting) {
+          if (isLocked()) {
             return { error: 'Please wait — ticket is still being created.' };
           }
-          submitting = true;
+          lockBriefly(1500);
           try {
             var q = await fetchQuota();
             if (q && !q.exempt && typeof q.remaining === 'number' && q.remaining <= 0) {
               var p = parseQuotaMessage({ message: 'Daily limit of ' + q.limit });
               showBanner(p.message, 'err');
+              unlock();
               return { error: p.message, quota: p };
             }
             var res = await orig.apply(this, arguments);
@@ -130,14 +197,18 @@
               if (isQuotaError(res.error) || isRlsError(res.error)) {
                 showBanner(msg, 'err');
               }
-              return { error: msg, quota: isQuotaError(res.error) ? parseQuotaMessage({ message: String(res.error) }) : undefined };
+              unlock();
+              return { error: msg };
             }
-            refreshHint();
-            return res;
-          } finally {
             setTimeout(function () {
-              submitting = false;
-            }, 2000);
+              ensureSubmitAnotherBtn();
+              unlock();
+              refreshHint();
+            }, 400);
+            return res;
+          } catch (err) {
+            unlock();
+            throw err;
           }
         };
         wrapped.__drQuotaWrapped = true;
@@ -148,72 +219,86 @@
 
   function wireForm() {
     var form = document.getElementById('customer-form');
-    if (!form || form.getAttribute('data-dr-quota') === '1') return;
-    form.setAttribute('data-dr-quota', '1');
+    if (!form) return;
 
-    form.addEventListener(
-      'submit',
-      function (e) {
-        if (submitting) {
-          e.preventDefault();
-          e.stopImmediatePropagation();
-          showBanner('Please wait — ticket is still being created.', 'err');
-          return;
-        }
-        submitting = true;
-        setTimeout(function () {
-          submitting = false;
-        }, 2500);
-      },
-      true
-    );
+    if (form.getAttribute('data-dr-quota') !== '1') {
+      form.setAttribute('data-dr-quota', '1');
+      form.addEventListener(
+        'submit',
+        function (e) {
+          if (isLocked()) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            return;
+          }
+          lockBriefly(1500);
+          var btn = form.querySelector('button[type="submit"], .btn-primary');
+          if (btn) {
+            btn.disabled = true;
+            setTimeout(function () {
+              btn.disabled = false;
+            }, 1500);
+          }
+        },
+        true
+      );
+    }
 
-    var btn = form.querySelector('button[type="submit"], .btn-primary');
-    if (btn && !btn.getAttribute('data-dr-quota-btn')) {
-      btn.setAttribute('data-dr-quota-btn', '1');
-      btn.addEventListener('click', function () {
-        if (btn.disabled) return;
-        var prev = btn.textContent;
-        btn.disabled = true;
-        setTimeout(function () {
-          btn.disabled = false;
-          if (prev) btn.textContent = prev;
-        }, 2500);
+    ensureSubmitAnotherBtn();
+  }
+
+  function wireTabs() {
+    document.querySelectorAll('.ctab[data-ctab="submit"]').forEach(function (tab) {
+      if (tab.getAttribute('data-dr-quota-tab') === '1') return;
+      tab.setAttribute('data-dr-quota-tab', '1');
+      tab.addEventListener('click', function () {
+        resetSubmitForm(false);
       });
+    });
+
+    var panel = document.getElementById('ctab-submit');
+    if (panel && panel.getAttribute('data-dr-quota-panel') !== '1') {
+      panel.setAttribute('data-dr-quota-panel', '1');
+      try {
+        var mo = new MutationObserver(function () {
+          if (panel.classList.contains('active')) {
+            var success = document.getElementById('submit-success');
+            if (success && !success.hidden && success.style.display !== 'none') {
+              ensureSubmitAnotherBtn();
+            } else {
+              resetSubmitForm(false);
+            }
+          }
+        });
+        mo.observe(panel, { attributes: true, attributeFilter: ['class'] });
+      } catch (e) {}
     }
   }
 
-  var _alert = window.alert;
-  window.alert = function (msg) {
-    if (isQuotaError(msg) || isRlsError(msg)) {
-      showBanner(mapCreateError({ message: String(msg) }), 'err');
-      return;
-    }
-    return _alert.apply(this, arguments);
-  };
-
   function apply() {
     wireForm();
+    wireTabs();
     wrapCreateTicket();
+    ensureSubmitAnotherBtn();
     refreshHint();
   }
 
   apply();
-  setTimeout(apply, 800);
-  setTimeout(apply, 2500);
+  setTimeout(apply, 600);
+  setTimeout(apply, 2000);
   setTimeout(apply, 5000);
-  setInterval(apply, 12000);
+  setInterval(function () {
+    wireForm();
+    wireTabs();
+    wrapCreateTicket();
+    ensureSubmitAnotherBtn();
+  }, 10000);
 
   window.DRTicketQuota = {
     refresh: apply,
+    resetForm: resetSubmitForm,
     fetch: fetchQuota,
     isQuotaError: isQuotaError,
-    parse: parseQuotaMessage,
-    exampleError: {
-      code: 429,
-      error: 'Too Many Requests',
-      message:
-        'You have reached the daily ticket limit (5 per day). Please try again after 00:00 UTC.'
-    }
+    parse: parseQuotaMessage
   };
 })();
