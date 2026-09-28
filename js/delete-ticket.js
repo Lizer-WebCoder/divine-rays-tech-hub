@@ -1,6 +1,6 @@
 /**
  * Divine Rays — agent delete ticket + notify requester
- * Credit: Lizzz · All Rights Reserved
+ * Credit: Boyz at the Back LRK · All Rights Reserved
  */
 (function () {
   'use strict';
@@ -73,8 +73,17 @@
 
     var num = ticket.ticket_number || ticket.id;
     var title = ticket.title || 'Support request';
+    var agentName = 'Tech Support';
+    try {
+      var prof = (dr().getProfile && dr().getProfile()) || null;
+      if (prof) {
+        agentName = prof.full_name || prof.username || (prof.email || '').split('@')[0] || agentName;
+        if (prof.role === 'admin') agentName = agentName + ' (Admin)';
+        else if (prof.role === 'agent') agentName = agentName + ' (Agent)';
+      }
+    } catch (e) {}
     var msg =
-      'Your ticket ' + num + ' ("' + title + '") was deleted by Tech Support. ' +
+      'Your ticket ' + num + ' ("' + title + '") was deleted by ' + agentName + '. ' +
       'If you still need help, please submit a new ticket.';
 
     try {
@@ -84,7 +93,7 @@
         title: 'Ticket deleted',
         body: msg,
         ticket_number: num,
-        meta: { ticket_id: ticket.id, ticket_number: num, title: title },
+        meta: { ticket_id: ticket.id, ticket_number: num, title: title, deleted_by_name: agentName },
         read: false
       });
       if (!ins.error) return { ok: true, channel: 'notifications' };
@@ -247,10 +256,10 @@
 
   function escapeHtml(s) {
     return String(s || '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
+      .replace(/&/g, '&')
+      .replace(/</g, '<')
+      .replace(/>/g, '>')
+      .replace(/"/g, '"');
   }
 
   function boot() {
