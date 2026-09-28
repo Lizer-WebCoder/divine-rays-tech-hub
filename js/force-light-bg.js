@@ -1,6 +1,6 @@
 /**
- * Divine Rays — large full-bleed honeycomb + ECG-centered bands
- * Light mode upper-left gradient fix · Credit: Boyz at the Back
+ * Divine Rays — previous honeycomb pattern restored
+ * Other effects unchanged · Credit: Boyz at the Back
  */
 (function () {
   'use strict';
@@ -94,25 +94,25 @@
 
   function honeycombSvg(stroke) {
     var cells = [];
-    var rows = 22, cols = 16, w = 95, h = 56;
+    var rows = 18, cols = 20, w = 68, h = 40;
     for (var r = 0; r < rows; r++) {
       for (var c = 0; c < cols; c++) {
-        var ox = c * w + (r % 2 ? w / 2 : 0) - 50;
-        var oy = r * h * 0.78 - 30;
+        var ox = c * w + (r % 2 ? w / 2 : 0) - 40;
+        var oy = r * h * 0.78 - 20;
         cells.push(
-          'M' + (ox + 40) + ' ' + oy +
-          ' L' + (ox + 71) + ' ' + (oy + 18) +
-          ' L' + (ox + 71) + ' ' + (oy + 46) +
-          ' L' + (ox + 40) + ' ' + (oy + 64) +
-          ' L' + (ox + 9) + ' ' + (oy + 46) +
-          ' L' + (ox + 9) + ' ' + (oy + 18) + ' Z'
+          'M' + (ox + 28) + ' ' + oy +
+          ' L' + (ox + 52) + ' ' + (oy + 14) +
+          ' L' + (ox + 52) + ' ' + (oy + 34) +
+          ' L' + (ox + 28) + ' ' + (oy + 48) +
+          ' L' + (ox + 4) + ' ' + (oy + 34) +
+          ' L' + (ox + 4) + ' ' + (oy + 14) + ' Z'
         );
       }
     }
     return (
       '<svg class="dr-honeycomb" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" preserveAspectRatio="none" ' +
       'width="100%" height="100%" style="display:block">' +
-      '<g fill="none" stroke="' + stroke + '" stroke-width="1.35">' +
+      '<g fill="none" stroke="' + stroke + '" stroke-width="1">' +
       cells.map(function (d) { return '<path d="' + d + '"/>'; }).join('') +
       '</g></svg>'
     );
@@ -274,7 +274,7 @@
       login.insertBefore(layer, login.firstChild);
     }
     var light = isLight();
-    var key = (light ? 'L' : 'D') + '-login-v6';
+    var key = (light ? 'L' : 'D') + '-login-v7';
     if (key === lastAmbientKey && layer.childNodes.length) {
       layer.style.display = 'block';
       return;
