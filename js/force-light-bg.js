@@ -1,5 +1,5 @@
 /**
- * Divine Rays — flat-top honeycomb matching ref pattern (nearer, full-screen)
+ * Divine Rays — reference honeycomb (pointy-top continuous mesh, regular)
  * Other effects unchanged · Credit: Boyz at the Back
  */
 (function () {
@@ -75,7 +75,7 @@
       '}',
       'body.is-login #' + LAYER_ID + '{display:block!important}',
       'body.is-portal #' + LAYER_ID + '{display:none!important}',
-      '#' + LAYER_ID + ' .dr-honeycomb{position:absolute;inset:-12%;width:124%;height:124%;opacity:' + hexOp + '}',
+      '#' + LAYER_ID + ' .dr-honeycomb{position:absolute;inset:-5%;width:110%;height:110%;opacity:' + hexOp + '}',
       '#' + LAYER_ID + ' .dr-honeycomb svg{width:100%;height:100%;display:block}',
       '#' + LAYER_ID + ' .dr-network{position:absolute;inset:0;opacity:' + netOp + '}',
       '#' + LAYER_ID + ' .dr-network svg{width:100%;height:100%;display:block}',
@@ -93,38 +93,34 @@
   }
 
   function honeycombSvg(stroke) {
-    // Flat-top continuous honeycomb mesh matching reference pattern
-    // Nearer / denser so it fills any resolution (viewBox stretches full screen)
-    var size = 42;
-    var w = size * 1.5;
-    var h = size * 1.7320508;
-    var cols = 24;
-    var rows = 14;
+    // Reference-style continuous honeycomb:
+    // pointy-top (vertical sides, points top/bottom), regular geometry, shared edges
+    // preserveAspectRatio slice keeps hexes undistorted; dense grid fills any screen
+    var R = 26;
+    var SQ3 = Math.sqrt(3);
+    var horiz = SQ3 * R;
+    var vert = 1.5 * R;
+    var cols = 36;
+    var rows = 28;
     var paths = [];
     for (var r = 0; r < rows; r++) {
       for (var c = 0; c < cols; c++) {
-        var cx = c * w + (r % 2 ? w * 0.5 : 0) - size;
-        var cy = r * h - size * 0.5;
-        // 6 vertices of flat-top hex (horizontal top/bottom, vertical sides) — matches ref
-        var v = [];
+        var cx = c * horiz + (r % 2 ? horiz * 0.5 : 0);
+        var cy = r * vert + R;
+        var pts = [];
         for (var i = 0; i < 6; i++) {
-          var a = (Math.PI / 180) * (60 * i);
-          v.push([(cx + size * Math.cos(a)).toFixed(2), (cy + size * Math.sin(a)).toFixed(2)]);
+          var a = (Math.PI / 180) * (60 * i - 30);
+          pts.push((cx + R * Math.cos(a)).toFixed(2) + ' ' + (cy + R * Math.sin(a)).toFixed(2));
         }
-        paths.push(
-          'M' + v[0][0] + ' ' + v[0][1] +
-          ' L' + v[1][0] + ' ' + v[1][1] +
-          ' L' + v[2][0] + ' ' + v[2][1] +
-          ' L' + v[3][0] + ' ' + v[3][1] +
-          ' L' + v[4][0] + ' ' + v[4][1] +
-          ' L' + v[5][0] + ' ' + v[5][1] + ' Z'
-        );
+        paths.push('M' + pts.join(' L') + ' Z');
       }
     }
+    var vbW = Math.ceil(cols * horiz + horiz);
+    var vbH = Math.ceil(rows * vert + 2 * R);
     return (
-      '<svg class="dr-honeycomb" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" preserveAspectRatio="none" ' +
-      'width="100%" height="100%" style="display:block">' +
-      '<g fill="none" stroke="' + stroke + '" stroke-width="1.15" stroke-linejoin="round">' +
+      '<svg class="dr-honeycomb" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + vbW + ' ' + vbH + '" ' +
+      'preserveAspectRatio="xMidYMid slice" width="100%" height="100%" style="display:block">' +
+      '<g fill="none" stroke="' + stroke + '" stroke-width="1.25" stroke-linejoin="round" stroke-linecap="round">' +
       paths.map(function (d) { return '<path d="' + d + '"/>'; }).join('') +
       '</g></svg>'
     );
@@ -286,7 +282,7 @@
       login.insertBefore(layer, login.firstChild);
     }
     var light = isLight();
-    var key = (light ? 'L' : 'D') + '-login-v8';
+    var key = (light ? 'L' : 'D') + '-login-v9';
     if (key === lastAmbientKey && layer.childNodes.length) {
       layer.style.display = 'block';
       return;
