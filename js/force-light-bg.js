@@ -1,6 +1,6 @@
 /**
- * Divine Rays — symmetrical medical-tech login ambient (centered on login card)
- * Light mode: rich purple gradient + strong lines · Credit: Boyz at the Back
+ * Divine Rays — symmetrical medical-tech login ambient
+ * Upper/lower broken lines frame the ECG · Credit: Boyz at the Back
  */
 (function () {
   'use strict';
@@ -187,49 +187,46 @@
       '</filter>' +
       '</defs>' +
       '<g fill="none" stroke="' + stroke + '" stroke-width="1.15" filter="url(#drG)" opacity="0.9">' +
-      line('M60 150 H220 L280 100 H420 L480 150 H600', true) +
-      line('M1140 150 H980 L920 100 H780 L720 150 H600', true) +
-      line('M280 100 V65 M420 100 V65') +
-      line('M920 100 V65 M780 100 V65') +
-      line('M220 150 V195 M480 150 V195') +
-      line('M980 150 V195 M720 150 V195') +
-      line('M60 400 H200 L260 350 H400 L460 400 H600', true) +
-      line('M1140 400 H1000 L940 350 H800 L740 400 H600', true) +
-      line('M260 350 V310 M400 350 V310') +
-      line('M940 350 V310 M800 350 V310') +
-      line('M200 400 V450 M460 400 V450') +
-      line('M1000 400 V450 M740 400 V450') +
-      line('M60 650 H220 L280 600 H420 L480 650 H600', true) +
-      line('M1140 650 H980 L920 600 H780 L720 650 H600', true) +
-      line('M280 600 V565 M420 600 V565') +
-      line('M920 600 V565 M780 600 V565') +
-      line('M220 650 V695 M480 650 V695') +
-      line('M980 650 V695 M720 650 V695') +
-      line('M600 150 V400 M600 400 V650', false) +
+      line('M60 300 H220 L280 250 H420 L480 300 H600', true) +
+      line('M1140 300 H980 L920 250 H780 L720 300 H600', true) +
+      line('M280 250 V215 M420 250 V215') +
+      line('M920 250 V215 M780 250 V215') +
+      line('M220 300 V340 M480 300 V340') +
+      line('M980 300 V340 M720 300 V340') +
+      line('M60 500 H200 L260 450 H400 L460 500 H600', true) +
+      line('M1140 500 H1000 L940 450 H800 L740 500 H600', true) +
+      line('M260 450 V410 M400 450 V410') +
+      line('M940 450 V410 M800 450 V410') +
+      line('M200 500 V545 M460 500 V545') +
+      line('M1000 500 V545 M740 500 V545') +
+      line('M60 680 H220 L280 630 H420 L480 680 H600', false) +
+      line('M1140 680 H980 L920 630 H780 L720 680 H600', false) +
+      line('M280 630 V600 M420 630 V600') +
+      line('M920 630 V600 M780 630 V600') +
+      line('M600 300 V500 M600 500 V680', false) +
       '</g>' +
       '<g fill="' + fill + '">' +
-      node(220, 150) + node(280, 100) + node(420, 100) + node(480, 150) + node(600, 150) +
-      node(980, 150) + node(920, 100) + node(780, 100) + node(720, 150) +
-      node(280, 65) + node(420, 65) + node(920, 65) + node(780, 65) +
-      node(220, 195) + node(480, 195) + node(980, 195) + node(720, 195) +
-      node(200, 400) + node(260, 350) + node(400, 350) + node(460, 400) + node(600, 400) +
-      node(1000, 400) + node(940, 350) + node(800, 350) + node(740, 400) +
-      node(260, 310) + node(400, 310) + node(940, 310) + node(800, 310) +
-      node(200, 450) + node(460, 450) + node(1000, 450) + node(740, 450) +
-      node(220, 650) + node(280, 600) + node(420, 600) + node(480, 650) + node(600, 650) +
-      node(980, 650) + node(920, 600) + node(780, 600) + node(720, 650) +
-      node(280, 565) + node(420, 565) + node(920, 565) + node(780, 565) +
-      node(220, 695) + node(480, 695) + node(980, 695) + node(720, 695) +
+      node(220, 300) + node(280, 250) + node(420, 250) + node(480, 300) + node(600, 300) +
+      node(980, 300) + node(920, 250) + node(780, 250) + node(720, 300) +
+      node(280, 215) + node(420, 215) + node(920, 215) + node(780, 215) +
+      node(220, 340) + node(480, 340) + node(980, 340) + node(720, 340) +
+      node(200, 500) + node(260, 450) + node(400, 450) + node(460, 500) + node(600, 500) +
+      node(1000, 500) + node(940, 450) + node(800, 450) + node(740, 500) +
+      node(260, 410) + node(400, 410) + node(940, 410) + node(800, 410) +
+      node(200, 545) + node(460, 545) + node(1000, 545) + node(740, 545) +
+      node(220, 680) + node(280, 630) + node(420, 630) + node(480, 680) + node(600, 680) +
+      node(980, 680) + node(920, 630) + node(780, 630) + node(720, 680) +
+      node(280, 600) + node(420, 600) + node(920, 600) + node(780, 600) +
       '</g>' +
       '<g opacity="0.9">' +
-      iconEcg(120, 150, 42) + iconEcg(1080, 150, 42) +
-      iconHex(350, 55, 14) + iconHex(850, 55, 14) +
-      iconCross(120, 400, 16) + iconCross(1080, 400, 16) +
-      iconDna(330, 320, 22) + iconDna(870, 320, 22) +
-      iconHeart(500, 460, 12) + iconHeart(700, 460, 12) +
-      iconHeart(120, 650, 14) + iconHeart(1080, 650, 14) +
-      iconCross(350, 680, 13) + iconCross(850, 680, 13) +
-      iconEcg(500, 650, 36) + iconEcg(700, 650, 36) +
+      iconEcg(120, 300, 42) + iconEcg(1080, 300, 42) +
+      iconHex(350, 220, 14) + iconHex(850, 220, 14) +
+      iconCross(120, 500, 16) + iconCross(1080, 500, 16) +
+      iconDna(330, 430, 22) + iconDna(870, 430, 22) +
+      iconHeart(500, 545, 12) + iconHeart(700, 545, 12) +
+      iconHeart(120, 680, 14) + iconHeart(1080, 680, 14) +
+      iconCross(350, 700, 13) + iconCross(850, 700, 13) +
+      iconEcg(500, 680, 36) + iconEcg(700, 680, 36) +
       '</g>' +
       '</svg>'
     );
