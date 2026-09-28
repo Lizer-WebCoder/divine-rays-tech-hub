@@ -1,7 +1,6 @@
 /**
- * Divine Rays — medical-tech login ambient (dense hex network + icons)
- * Login only · Portal keeps gear field
- * Credit: Boyz at the Back · All Rights Reserved
+ * Divine Rays — full-screen symmetrical medical-tech login ambient
+ * Equal density light + dark · fills viewport · Credit: Boyz at the Back
  */
 (function () {
   'use strict';
@@ -14,14 +13,16 @@
   var LAYER_ID = 'dr-login-ambient';
 
   var LOGIN_DARK =
-    'radial-gradient(ellipse 100% 60% at 50% 0%, rgba(139,92,246,0.4), transparent 55%),' +
-    'radial-gradient(ellipse 80% 50% at 50% 100%, rgba(76,29,149,0.35), transparent 50%),' +
-    'linear-gradient(180deg, #3b1a6e 0%, #2a1060 25%, #1a0a40 55%, #120830 80%, #0c0620 100%)';
+    'radial-gradient(ellipse 120% 80% at 50% 50%, rgba(139,92,246,0.28), transparent 60%),' +
+    'radial-gradient(ellipse 70% 50% at 20% 20%, rgba(167,139,250,0.2), transparent 50%),' +
+    'radial-gradient(ellipse 70% 50% at 80% 80%, rgba(91,33,182,0.25), transparent 50%),' +
+    'linear-gradient(180deg, #2e1260 0%, #1c0a45 40%, #120830 70%, #0a0518 100%)';
 
   var LOGIN_LIGHT =
-    'radial-gradient(ellipse 100% 55% at 50% -5%, rgba(124,106,240,0.28), transparent 55%),' +
-    'radial-gradient(ellipse 70% 45% at 50% 100%, rgba(167,139,250,0.2), transparent 50%),' +
-    'linear-gradient(180deg, #efe8ff 0%, #e4dcf8 40%, #d9d0f0 100%)';
+    'radial-gradient(ellipse 120% 80% at 50% 50%, rgba(124,106,240,0.22), transparent 60%),' +
+    'radial-gradient(ellipse 70% 50% at 20% 20%, rgba(139,92,246,0.16), transparent 50%),' +
+    'radial-gradient(ellipse 70% 50% at 80% 80%, rgba(109,40,217,0.14), transparent 50%),' +
+    'linear-gradient(180deg, #f0ebff 0%, #e6def8 35%, #ddd4f2 70%, #d4cbee 100%)';
 
   var PORTAL_DARK =
     'radial-gradient(ellipse 80% 50% at 70% 20%, rgba(109,94,245,0.18), transparent 55%),' +
@@ -57,9 +58,12 @@
 
   function ambientCss() {
     var light = isLight();
-    var particle = light ? 'rgba(109,40,217,0.55)' : 'rgba(233,213,255,0.65)';
-    var hexOp = light ? '0.22' : '0.28';
-    var netOp = light ? '0.55' : '0.7';
+    var hexOp = light ? '0.32' : '0.22';
+    var netOp = light ? '0.72' : '0.62';
+    var particle = light ? 'rgba(91,33,182,0.6)' : 'rgba(233,213,255,0.6)';
+    var vignette = light
+      ? 'radial-gradient(ellipse 50% 45% at 50% 48%, transparent 25%, rgba(228,220,248,0.5) 100%)'
+      : 'radial-gradient(ellipse 50% 45% at 50% 48%, transparent 25%, rgba(10,5,24,0.55) 100%)';
 
     return [
       '#' + LAYER_ID + '{',
@@ -68,133 +72,126 @@
       '}',
       'body.is-login #' + LAYER_ID + '{display:block!important}',
       'body.is-portal #' + LAYER_ID + '{display:none!important}',
-      '#' + LAYER_ID + ' .dr-honeycomb{',
-      'position:absolute;left:-5%;right:-5%;top:28%;height:44%;',
-      'opacity:' + hexOp + ';',
-      '}',
+      '#' + LAYER_ID + ' .dr-honeycomb{position:absolute;inset:-2%;opacity:' + hexOp + '}',
       '#' + LAYER_ID + ' .dr-honeycomb svg{width:100%;height:100%;display:block}',
-      '#' + LAYER_ID + ' .dr-network{',
-      'position:absolute;left:0;right:0;top:32%;height:36%;',
-      'opacity:' + netOp + ';',
-      '}',
+      '#' + LAYER_ID + ' .dr-network{position:absolute;inset:0;opacity:' + netOp + '}',
       '#' + LAYER_ID + ' .dr-network svg{width:100%;height:100%;display:block}',
-      '#' + LAYER_ID + ' .dr-vignette{',
-      'position:absolute;inset:0;',
-      'background:radial-gradient(ellipse 55% 50% at 50% 48%, transparent 30%, ' +
-        (light ? 'rgba(228,220,248,0.55)' : 'rgba(12,6,32,0.55)') +
-        ' 100%);',
-      '}',
+      '#' + LAYER_ID + ' .dr-vignette{position:absolute;inset:0;background:' + vignette + '}',
       '#' + LAYER_ID + ' .dr-particles span{',
-      'position:absolute;border-radius:50%;',
-      'background:' + particle + ';',
-      'box-shadow:0 0 8px ' + particle + ',0 0 14px ' + particle + ';',
-      'animation:drParticle 7s ease-in-out infinite',
+      'position:absolute;border-radius:50%;background:' + particle + ';',
+      'box-shadow:0 0 8px ' + particle + ',0 0 16px ' + particle + ';',
+      'animation:drParticle 8s ease-in-out infinite',
       '}',
-      '@keyframes drParticle{',
-      '0%{transform:translate(0,0) scale(1);opacity:0.2}',
-      '35%{opacity:0.85}',
-      '100%{transform:translate(6px,-32px) scale(0.7);opacity:0.1}',
-      '}',
-      '#' + LAYER_ID + ' .dr-network .dr-pulse-line{',
-      'stroke-dasharray:8 14;',
-      'animation:drTrace 18s linear infinite',
-      '}',
-      '@keyframes drTrace{to{stroke-dashoffset:-200}}',
-      '@media (prefers-reduced-motion:reduce){',
-      '#' + LAYER_ID + ' .dr-particles span,#' + LAYER_ID + ' .dr-network .dr-pulse-line{animation:none!important}',
-      '}'
+      '@keyframes drParticle{0%{transform:translate(0,0) scale(1);opacity:0.25}40%{opacity:0.9}100%{transform:translate(8px,-36px) scale(0.65);opacity:0.08}}',
+      '#' + LAYER_ID + ' .dr-pulse{stroke-dasharray:6 12;animation:drTrace 22s linear infinite}',
+      '@keyframes drTrace{to{stroke-dashoffset:-240}}',
+      '@media (prefers-reduced-motion:reduce){#' + LAYER_ID + ' .dr-particles span,#' + LAYER_ID + ' .dr-pulse{animation:none!important}}'
     ].join('');
   }
 
   function honeycombSvg(stroke) {
     var cells = [];
-    var rows = 5;
-    var cols = 14;
-    var w = 70;
-    var h = 40;
+    var rows = 12, cols = 16, w = 72, h = 42;
     for (var r = 0; r < rows; r++) {
       for (var c = 0; c < cols; c++) {
-        var ox = c * w + (r % 2 ? w / 2 : 0) - 20;
-        var oy = r * h * 0.85 + 10;
+        var ox = c * w + (r % 2 ? w / 2 : 0) - 30;
+        var oy = r * h * 0.78 - 10;
         cells.push(
-          'M' + (ox + 28) + ' ' + oy +
-          ' L' + (ox + 52) + ' ' + (oy + 14) +
-          ' L' + (ox + 52) + ' ' + (oy + 34) +
-          ' L' + (ox + 28) + ' ' + (oy + 48) +
-          ' L' + (ox + 4) + ' ' + (oy + 34) +
-          ' L' + (ox + 4) + ' ' + (oy + 14) + ' Z'
+          'M' + (ox + 30) + ' ' + oy +
+          ' L' + (ox + 56) + ' ' + (oy + 15) +
+          ' L' + (ox + 56) + ' ' + (oy + 36) +
+          ' L' + (ox + 30) + ' ' + (oy + 51) +
+          ' L' + (ox + 4) + ' ' + (oy + 36) +
+          ' L' + (ox + 4) + ' ' + (oy + 15) + ' Z'
         );
       }
     }
     return (
-      '<svg class="dr-honeycomb" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 220" preserveAspectRatio="xMidYMid slice">' +
-      '<g fill="none" stroke="' + stroke + '" stroke-width="1.1">' +
+      '<svg class="dr-honeycomb" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 400" preserveAspectRatio="xMidYMid slice">' +
+      '<g fill="none" stroke="' + stroke + '" stroke-width="1">' +
       cells.map(function (d) { return '<path d="' + d + '"/>'; }).join('') +
       '</g></svg>'
     );
   }
 
-  function networkSvg(stroke, fill) {
+  function networkSvg(stroke, fill, accent) {
+    function node(x, y, r) {
+      return '<circle cx="' + x + '" cy="' + y + '" r="' + (r || 3) + '"/>';
+    }
+    function line(d, pulse) {
+      return '<path ' + (pulse ? 'class="dr-pulse" ' : '') + 'd="' + d + '"/>';
+    }
     return (
-      '<svg class="dr-network" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 240" preserveAspectRatio="xMidYMid meet">' +
-      '<defs>' +
-      '<filter id="drNetGlow" x="-20%" y="-20%" width="140%" height="140%">' +
-      '<feGaussianBlur stdDeviation="2.2" result="b"/>' +
-      '<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>' +
-      '</filter>' +
-      '</defs>' +
-      '<g fill="none" stroke="' + stroke + '" stroke-width="1.35" filter="url(#drNetGlow)" opacity="0.9">' +
-      '<path class="dr-pulse-line" d="M20 120 H100 L140 80 H220 L260 120 H340 L380 70 H480 L520 120 H600 L640 75 H720 L760 120 H860 L900 80 H980 L1020 120 H1180"/>' +
-      '<path d="M140 80 L140 50 M220 80 L220 50 M380 70 L380 40 M480 70 L480 40 M640 75 L640 45 M900 80 L900 50"/>' +
-      '<path d="M260 120 L260 170 M340 120 L340 175 M520 120 L520 175 M760 120 L760 170 M1020 120 L1020 175"/>' +
-      '<path d="M100 120 L80 160 M600 120 L580 165 M860 120 L840 165"/>' +
-      '<path d="M220 50 H300 M480 40 H560 M900 50 H970" opacity="0.7"/>' +
-      '<path d="M260 170 H320 M520 175 H600 M760 170 H830" opacity="0.7"/>' +
+      '<svg class="dr-network" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice">' +
+      '<defs><filter id="drG" x="-15%" y="-15%" width="130%" height="130%">' +
+      '<feGaussianBlur stdDeviation="1.8" result="b"/>' +
+      '<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>' +
+      '<g fill="none" stroke="' + stroke + '" stroke-width="1.25" filter="url(#drG)" opacity="0.95">' +
+      line('M40 160 H200 L260 110 H400 L460 160 H600 L660 110 H800 L860 160 H1160', true) +
+      line('M260 110 V70 M400 110 V70 M660 110 V70 M800 110 V70') +
+      line('M200 160 V210 M460 160 V210 M860 160 V210') +
+      line('M40 400 H180 L240 340 H380 L440 400 H600 L660 340 H800 L860 400 H1160', true) +
+      line('M240 340 V300 M380 340 V300 M660 340 V300 M800 340 V300') +
+      line('M180 400 V460 M440 400 V460 M860 400 V460') +
+      line('M40 640 H200 L260 590 H400 L460 640 H600 L660 590 H800 L860 640 H1160', true) +
+      line('M260 590 V550 M400 590 V550 M660 590 V550 M800 590 V550') +
+      line('M200 640 V690 M460 640 V690 M860 640 V690') +
+      line('M600 160 V400 M600 400 V640', false) +
+      line('M300 210 V340 M900 210 V340 M300 460 V590 M900 460 V590', false) +
       '</g>' +
       '<g fill="' + fill + '">' +
-      '<circle cx="100" cy="120" r="3.2"/><circle cx="140" cy="80" r="3.2"/><circle cx="220" cy="80" r="3.2"/>' +
-      '<circle cx="260" cy="120" r="3.2"/><circle cx="340" cy="120" r="3.2"/><circle cx="380" cy="70" r="3.2"/>' +
-      '<circle cx="480" cy="70" r="3.2"/><circle cx="520" cy="120" r="3.2"/><circle cx="600" cy="120" r="3.2"/>' +
-      '<circle cx="640" cy="75" r="3.2"/><circle cx="760" cy="120" r="3.2"/><circle cx="860" cy="120" r="3.2"/>' +
-      '<circle cx="900" cy="80" r="3.2"/><circle cx="980" cy="80" r="3.2"/><circle cx="1020" cy="120" r="3.2"/>' +
-      '<circle cx="80" cy="160" r="2.5"/><circle cx="580" cy="165" r="2.5"/><circle cx="840" cy="165" r="2.5"/>' +
-      '<circle cx="300" cy="50" r="2.2"/><circle cx="560" cy="40" r="2.2"/><circle cx="970" cy="50" r="2.2"/>' +
-      '<circle cx="320" cy="170" r="2.2"/><circle cx="600" cy="175" r="2.2"/><circle cx="830" cy="170" r="2.2"/>' +
+      node(200, 160) + node(260, 110) + node(400, 110) + node(460, 160) +
+      node(600, 160) + node(660, 110) + node(800, 110) + node(860, 160) +
+      node(260, 70) + node(400, 70) + node(660, 70) + node(800, 70) +
+      node(200, 210) + node(460, 210) + node(860, 210) +
+      node(180, 400) + node(240, 340) + node(380, 340) + node(440, 400) +
+      node(600, 400) + node(660, 340) + node(800, 340) + node(860, 400) +
+      node(240, 300) + node(380, 300) + node(660, 300) + node(800, 300) +
+      node(180, 460) + node(440, 460) + node(860, 460) +
+      node(200, 640) + node(260, 590) + node(400, 590) + node(460, 640) +
+      node(600, 640) + node(660, 590) + node(800, 590) + node(860, 640) +
+      node(260, 550) + node(400, 550) + node(660, 550) + node(800, 550) +
+      node(200, 690) + node(460, 690) + node(860, 690) +
+      node(300, 210, 2.5) + node(900, 210, 2.5) + node(300, 460, 2.5) + node(900, 460, 2.5) +
       '</g>' +
-      '<g fill="' + fill + '" stroke="' + stroke + '" stroke-width="1.2" opacity="0.95">' +
-      '<path d="M45 120 H70 L76 105 L82 135 L88 120 H110" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/>' +
-      '<circle cx="180" cy="55" r="9" fill="none"/><path d="M168 72 C168 64 192 64 192 72 V78 H168 Z" fill="none"/>' +
-      '<path d="M176 48 H184 M180 44 V52" stroke-width="1.6"/>' +
-      '<path d="M300 155 H318 V167 H330 V179 H318 V191 H300 V179 H288 V167 H300 Z" fill="' + fill + '" stroke="none" opacity="0.9"/>' +
-      '<path d="M430 45 C442 55 442 75 430 85 M450 45 C438 55 438 75 450 85" fill="none" stroke-width="1.6"/>' +
-      '<path d="M432 55 H448 M432 75 H448" fill="none" stroke-width="1"/>' +
-      '<path d="M580 58 C580 48 568 42 560 50 C552 42 540 48 540 58 C540 72 560 86 560 86 C560 86 580 72 580 58 Z" fill="' + fill + '" stroke="none" opacity="0.88"/>' +
-      '<path d="M548 62 H554 L558 54 L562 70 L566 62 H572" fill="none" stroke="' + (stroke === '#6d28d9' ? '#4c1d95' : '#2e1065') + '" stroke-width="1.3" opacity="0.9"/>' +
-      '<path d="M700 155 H745 V168 H700 Z" fill="none"/><path d="M745 161.5 H758" fill="none"/><path d="M758 157 L766 161.5 L758 166" fill="none"/>' +
-      '<path d="M708 155 V148 H720 V155" fill="none"/>' +
-      '<rect x="880" y="150" width="22" height="32" rx="4" fill="none"/><path d="M886 150 V142 H896 V150" fill="none"/>' +
-      '<path d="M880 166 H902" fill="none"/>' +
-      '<circle cx="1085" cy="52" r="7" fill="none"/><circle cx="1105" cy="55" r="6" fill="none"/><circle cx="1125" cy="52" r="7" fill="none"/>' +
-      '<path d="M1074 68 C1074 62 1096 62 1096 68 V74 H1074 Z" fill="none"/>' +
-      '<path d="M1095 70 C1095 65 1115 65 1115 70 V75 H1095 Z" fill="none"/>' +
-      '<path d="M1114 68 C1114 62 1136 62 1136 68 V74 H1114 Z" fill="none"/>' +
+      '<g fill="' + fill + '" stroke="' + stroke + '" stroke-width="1.3" opacity="0.95">' +
+      '<path d="M80 160 H105 L112 140 L119 180 L126 160 H150" fill="none" stroke-linecap="round" stroke-width="1.8"/>' +
+      '<circle cx="330" cy="55" r="10" fill="none"/><path d="M316 74 C316 64 344 64 344 74 V82 H316 Z" fill="none"/>' +
+      '<path d="M326 46 H334 M330 42 V50" stroke-width="1.5"/>' +
+      '<path d="M520 45 C535 58 535 82 520 95 M545 45 C530 58 530 82 545 95" fill="none" stroke-width="1.5"/>' +
+      '<path d="M523 60 H542 M523 80 H542" fill="none" stroke-width="1"/>' +
+      '<path d="M700 58 C700 46 686 40 678 50 C670 40 656 46 656 58 C656 74 678 90 678 90 C678 90 700 74 700 58 Z" fill="' + fill + '" stroke="none" opacity="0.9"/>' +
+      '<path d="M666 62 H672 L676 52 L680 72 L684 62 H690" fill="none" stroke="' + accent + '" stroke-width="1.2"/>' +
+      '<circle cx="1050" cy="50" r="8" fill="none"/><circle cx="1072" cy="53" r="7" fill="none"/><circle cx="1094" cy="50" r="8" fill="none"/>' +
+      '<path d="M1038 68 C1038 60 1062 60 1062 68 V76 H1038 Z" fill="none"/>' +
+      '<path d="M1060 70 C1060 63 1084 63 1084 70 V76 H1060 Z" fill="none"/>' +
+      '<path d="M1082 68 C1082 60 1106 60 1106 68 V76 H1082 Z" fill="none"/>' +
+      '<path d="M90 385 H112 V400 H126 V418 H112 V433 H90 V418 H76 V400 H90 Z" fill="' + fill + '" stroke="none" opacity="0.88"/>' +
+      '<path d="M300 445 H350 V460 H300 Z" fill="none"/><path d="M350 452.5 H365"/><path d="M365 447 L375 452.5 L365 458" fill="none"/>' +
+      '<rect x="1000" y="440" width="24" height="36" rx="4" fill="none"/><path d="M1006 440 V430 H1018 V440" fill="none"/><path d="M1000 458 H1024" fill="none"/>' +
+      '<path d="M1080 400 H1100 L1106 385 L1112 415 L1118 400 H1140" fill="none" stroke-width="1.6"/>' +
+      '<path d="M100 620 C115 635 115 660 100 675 M125 620 C110 635 110 660 125 675" fill="none" stroke-width="1.5"/>' +
+      '<path d="M600 620 C600 608 586 602 578 612 C570 602 556 608 556 620 C556 636 578 652 578 652 C578 652 600 636 600 620 Z" fill="' + fill + '" stroke="none" opacity="0.9"/>' +
+      '<path d="M1050 615 H1072 V630 H1086 V648 H1072 V663 H1050 V648 H1036 V630 H1050 Z" fill="' + fill + '" stroke="none" opacity="0.88"/>' +
+      '<path d="M1120 680 H1165 V693 H1120 Z" fill="none"/><path d="M1165 686.5 H1178"/>' +
       '</g></svg>'
     );
   }
 
   function particlesHtml() {
     var html = '<div class="dr-particles">';
-    var spots = [
-      [4, 8], [10, 18], [16, 6], [22, 25], [30, 10], [38, 4], [48, 12],
-      [58, 7], [68, 15], [78, 5], [86, 20], [94, 9], [7, 75], [14, 88],
-      [25, 80], [35, 92], [55, 85], [70, 78], [82, 90], [92, 72],
-      [3, 45], [97, 40], [12, 55], [88, 50], [45, 3], [55, 96]
+    var left = [
+      [3, 6], [8, 15], [5, 28], [12, 40], [4, 55], [10, 68], [6, 82], [14, 90],
+      [18, 10], [22, 72], [16, 48]
     ];
+    var spots = left.slice();
+    left.forEach(function (p) { spots.push([100 - p[0], p[1]]); });
+    spots.push([50, 4], [50, 96], [40, 8], [60, 8], [40, 92], [60, 92]);
     for (var i = 0; i < spots.length; i++) {
       var s = spots[i];
       var size = 2 + (i % 4);
-      var dur = 5 + (i % 6) * 0.9;
-      var delay = (i * 0.31) % 6;
+      var dur = 5.5 + (i % 5) * 1.1;
+      var delay = (i * 0.28) % 6;
       html +=
         '<span style="left:' + s[0] + '%;top:' + s[1] + '%;width:' + size +
         'px;height:' + size + 'px;animation-duration:' + dur +
@@ -218,16 +215,13 @@
     if (layer.parentNode !== login) {
       login.insertBefore(layer, login.firstChild);
     }
-
     var light = isLight();
-    var stroke = light ? '#6d28d9' : '#e9d5ff';
-    var fill = light ? '#7c3aed' : '#f5f3ff';
-
+    var stroke = light ? '#5b21b6' : '#e9d5ff';
+    var fill = light ? '#6d28d9' : '#f5f3ff';
+    var accent = light ? '#4c1d95' : '#2e1065';
     layer.innerHTML =
-      honeycombSvg(stroke) +
-      networkSvg(stroke, fill) +
-      '<div class="dr-vignette"></div>' +
-      particlesHtml();
+      honeycombSvg(stroke) + networkSvg(stroke, fill, accent) +
+      '<div class="dr-vignette"></div>' + particlesHtml();
     layer.style.display = 'block';
   }
 
@@ -247,30 +241,25 @@
     var light = isLight();
     var onLogin = loginVisible();
     var grad = onLogin ? (light ? LOGIN_LIGHT : LOGIN_DARK) : light ? PORTAL_LIGHT : PORTAL_DARK;
-    var solid = onLogin ? (light ? '#e4dcf8' : '#120830') : light ? '#ebe8f6' : '#0c0c14';
-
+    var solid = onLogin ? (light ? '#ddd4f2' : '#120830') : light ? '#ebe8f6' : '#0c0c14';
     try {
       body.classList.toggle('is-login', onLogin);
       body.classList.toggle('is-portal', !onLogin);
     } catch (e) {}
-
     body.style.setProperty('background-color', solid, 'important');
     body.style.setProperty('background-image', grad, 'important');
     body.style.setProperty('background-attachment', 'fixed', 'important');
     body.style.setProperty('background-size', 'cover', 'important');
     document.documentElement.style.setProperty('background-color', solid, 'important');
     document.documentElement.style.setProperty('background-image', grad, 'important');
-
-    [
-      '#portal-agent', '#portal-agent.active', '#portal-customer', '#portal-customer.active',
-      '#portal-agent .main', '#portal-agent main.main', '#portal-customer .main', '.app-shell'
+    ['#portal-agent','#portal-agent.active','#portal-customer','#portal-customer.active',
+     '#portal-agent .main','#portal-agent main.main','#portal-customer .main','.app-shell'
     ].forEach(function (sel) {
       document.querySelectorAll(sel).forEach(function (el) {
         el.style.setProperty('background-color', 'transparent', 'important');
         el.style.setProperty('background-image', 'none', 'important');
       });
     });
-
     document.querySelectorAll('#login-screen, .login-screen').forEach(function (el) {
       if (onLogin) {
         el.style.setProperty('background-color', solid, 'important');
@@ -283,7 +272,6 @@
         el.style.setProperty('background', 'transparent', 'important');
       }
     });
-
     injectCss();
     ensureAmbient();
   }
@@ -294,23 +282,16 @@
   setTimeout(apply, 2000);
   setInterval(apply, 3000);
 
-  document.addEventListener(
-    'click',
-    function (e) {
-      var t = e.target;
-      if (
-        t &&
-        (t.id === 'btn-theme' || t.id === 'dr-login-theme' ||
-          (t.classList && t.classList.contains('btn-theme')) ||
-          (t.closest && (t.closest('form.login-form') || t.closest('#login-screen'))))
-      ) {
-        setTimeout(apply, 30);
-        setTimeout(apply, 250);
-        setTimeout(apply, 700);
-      }
-    },
-    true
-  );
+  document.addEventListener('click', function (e) {
+    var t = e.target;
+    if (t && (t.id === 'btn-theme' || t.id === 'dr-login-theme' ||
+        (t.classList && t.classList.contains('btn-theme')) ||
+        (t.closest && (t.closest('form.login-form') || t.closest('#login-screen'))))) {
+      setTimeout(apply, 30);
+      setTimeout(apply, 250);
+      setTimeout(apply, 700);
+    }
+  }, true);
 
   window.DRForceLightBg = { refresh: apply };
 })();
