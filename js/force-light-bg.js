@@ -1,7 +1,7 @@
 /**
  * Divine Rays — symmetrical medical-tech login ambient
  * Upper band at card-top · lower at card-bottom · ECG centered between
- * Extra lower-screen particles · Credit: Boyz at the Back
+ * Extra galaxy particles only · Credit: Boyz at the Back
  */
 (function () {
   'use strict';
@@ -230,22 +230,19 @@
       [3, 6], [8, 15], [5, 28], [12, 40], [4, 55], [10, 68], [6, 82], [14, 90],
       [18, 10], [22, 72], [16, 48]
     ];
-    var lowerLeft = [
-      [2, 58], [7, 62], [11, 66], [4, 70], [15, 73], [9, 76], [3, 79],
-      [13, 81], [6, 84], [17, 86], [1, 88], [12, 90], [8, 92], [19, 93],
-      [5, 95], [14, 97], [21, 64], [24, 78], [20, 88], [25, 94],
-      [28, 60], [30, 71], [26, 85], [32, 91]
-    ];
-    left = left.concat(lowerLeft);
     var spots = left.slice();
     left.forEach(function (p) { spots.push([100 - p[0], p[1]]); });
     spots.push([50, 4], [50, 96], [40, 8], [60, 8], [40, 92], [60, 92]);
-    spots.push(
-      [35, 70], [45, 74], [55, 74], [65, 70],
-      [38, 82], [50, 80], [62, 82],
-      [42, 90], [50, 88], [58, 90],
-      [35, 96], [50, 94], [65, 96]
-    );
+    var galaxy = [
+      [5, 60], [12, 65], [8, 72], [15, 78], [3, 85], [10, 90], [18, 94],
+      [22, 62], [28, 70], [25, 80], [30, 88], [35, 95],
+      [42, 68], [48, 75], [45, 85], [52, 92],
+      [58, 65], [55, 78], [62, 88], [68, 72], [65, 90],
+      [72, 60], [78, 68], [75, 80], [82, 85], [70, 94],
+      [88, 62], [92, 70], [85, 78], [95, 82], [90, 90], [97, 95],
+      [7, 55], [20, 58], [40, 58], [60, 58], [80, 55], [93, 58]
+    ];
+    for (var g = 0; g < galaxy.length; g++) spots.push(galaxy[g]);
     for (var i = 0; i < spots.length; i++) {
       var s = spots[i];
       var size = 2 + (i % 4);
@@ -276,7 +273,7 @@
       login.insertBefore(layer, login.firstChild);
     }
     var light = isLight();
-    var key = (light ? 'L' : 'D') + '-login-v3';
+    var key = (light ? 'L' : 'D') + '-login-v2p';
     if (key === lastAmbientKey && layer.childNodes.length) {
       layer.style.display = 'block';
       return;
