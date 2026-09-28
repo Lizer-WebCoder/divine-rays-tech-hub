@@ -1,5 +1,5 @@
 /**
- * Divine Rays — continuous gears + ECG (11s draw, soft neon glow)
+ * Divine Rays — continuous gears + ECG (10s draw, soft neon glow)
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
@@ -233,15 +233,15 @@
     for (var j = 0; j < paths.length; j++) {
       var pj = paths[j];
       if (pj.classList.contains('dr-ecg-core')) {
-        pj.style.animation = 'drEcgDraw 11s linear forwards, drEcgCorePulse 2.4s ease-in-out infinite';
+        pj.style.animation = 'drEcgDraw 10s linear forwards, drEcgCorePulse 2.4s ease-in-out infinite';
       } else {
-        pj.style.animation = 'drEcgDraw 11s linear forwards, drEcgGlowPulse 2.4s ease-in-out infinite';
+        pj.style.animation = 'drEcgDraw 10s linear forwards, drEcgGlowPulse 2.4s ease-in-out infinite';
       }
     }
     ecgTimer = setTimeout(function () {
       ecgIndex = (ecgIndex + 1) % ECG_PATTERNS.length;
       if (loginVisible()) runEcgCycle();
-    }, 11000);
+    }, 10000);
   }
 
   function ensureGears(force) {
