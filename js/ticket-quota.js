@@ -1,6 +1,5 @@
 /**
- * Divine Rays — daily ticket quota (client)
- * Enforced in Postgres; this pre-checks + maps errors to a clean UI message.
+ * Divine Rays — daily ticket quota + anti double-submit + RLS error mapping
  * Credit: Boyz at the Back LRK · All Rights Reserved
  */
 (function () {
@@ -9,6 +8,7 @@
   window.__DR_TICKET_QUOTA = 1;
 
   var DEFAULT_LIMIT = 5;
+  var submitting = false;
   var lastQuota = null;
 
   function client() {
@@ -23,6 +23,11 @@
   function isQuotaError(err) {
     var msg = (err && (err.message || err.error_description || err.details || String(err))) || '';
     return /TICKET_QUOTA_EXCEEDED|quota_exceeded|Daily limit/i.test(msg);
+  }
+
+  function isRlsError(err) {
+    var msg = (err && (err.message || String(err))) || '';
+    return /row-level security|violates row-level|RLS/i.test(msg);
   }
 
   function parseQuotaMessage(err) {
@@ -80,9 +85,7 @@
     if (rem === null) return;
     if (rem <= 0) {
       showBanner(
-        'Daily ticket limit reached (' +
-          q.limit +
-          ' / day). Resets at 00:00 UTC.',
+        'Daily ticket limit reached (' + q.limit + ' / day). Resets at 00:00 UTC.',
         'err'
       );
     } else if (rem <= 2) {
@@ -93,49 +96,53 @@
     }
   }
 
-  async function guardSubmit(e) {
-    var q = await fetchQuota();
-    if (q && !q.exempt && typeof q.remaining === 'number' && q.remaining <= 0) {
-      if (e && e.preventDefault) e.preventDefault();
-      if (e && e.stopImmediatePropagation) e.stopImmediatePropagation();
-      var payload = {
-        code: 429,
-        error: 'Too Many Requests',
-        message:
-          'You have reached the daily ticket limit (' +
-          q.limit +
-          ' per day). Please try again after 00:00 UTC.',
-        limit: q.limit,
-        used: q.used,
-        remaining: 0
-      };
-      showBanner(payload.message, 'err');
-      try {
-        window.dispatchEvent(new CustomEvent('dr:quota-exceeded', { detail: payload }));
-      } catch (err) {}
-      return false;
+  function mapCreateError(err) {
+    if (isQuotaError(err)) return parseQuotaMessage(err).message;
+    if (isRlsError(err)) {
+      return 'Could not create ticket (permission). If a ticket still appeared in My Tickets, it was saved — do not submit again.';
     }
-    return true;
+    return (err && err.message) || String(err || 'Create failed');
   }
 
   function wrapCreateTicket() {
+    var roots = [window, window.DR].filter(Boolean);
     var names = ['createTicket', 'submitTicket', 'newTicket'];
-    names.forEach(function (n) {
-      var root = window.DR || window;
-      if (typeof root[n] !== 'function') return;
-      var orig = root[n];
-      root[n] = async function () {
-        var ok = await guardSubmit();
-        if (!ok) return { error: parseQuotaMessage({ message: 'TICKET_QUOTA_EXCEEDED' }) };
-        var res = await orig.apply(this, arguments);
-        if (res && res.error && isQuotaError(res.error)) {
-          var p = parseQuotaMessage({ message: String(res.error) });
-          showBanner(p.message, 'err');
-          return { error: p.message, quota: p };
-        }
-        refreshHint();
-        return res;
-      };
+    roots.forEach(function (root) {
+      names.forEach(function (n) {
+        if (!root || typeof root[n] !== 'function') return;
+        if (root[n].__drQuotaWrapped) return;
+        var orig = root[n];
+        var wrapped = async function () {
+          if (submitting) {
+            return { error: 'Please wait — ticket is still being created.' };
+          }
+          submitting = true;
+          try {
+            var q = await fetchQuota();
+            if (q && !q.exempt && typeof q.remaining === 'number' && q.remaining <= 0) {
+              var p = parseQuotaMessage({ message: 'Daily limit of ' + q.limit });
+              showBanner(p.message, 'err');
+              return { error: p.message, quota: p };
+            }
+            var res = await orig.apply(this, arguments);
+            if (res && res.error) {
+              var msg = mapCreateError({ message: String(res.error) });
+              if (isQuotaError(res.error) || isRlsError(res.error)) {
+                showBanner(msg, 'err');
+              }
+              return { error: msg, quota: isQuotaError(res.error) ? parseQuotaMessage({ message: String(res.error) }) : undefined };
+            }
+            refreshHint();
+            return res;
+          } finally {
+            setTimeout(function () {
+              submitting = false;
+            }, 2000);
+          }
+        };
+        wrapped.__drQuotaWrapped = true;
+        root[n] = wrapped;
+      });
     });
   }
 
@@ -143,20 +150,43 @@
     var form = document.getElementById('customer-form');
     if (!form || form.getAttribute('data-dr-quota') === '1') return;
     form.setAttribute('data-dr-quota', '1');
+
     form.addEventListener(
       'submit',
       function (e) {
-        guardSubmit(e);
+        if (submitting) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          showBanner('Please wait — ticket is still being created.', 'err');
+          return;
+        }
+        submitting = true;
+        setTimeout(function () {
+          submitting = false;
+        }, 2500);
       },
       true
     );
+
+    var btn = form.querySelector('button[type="submit"], .btn-primary');
+    if (btn && !btn.getAttribute('data-dr-quota-btn')) {
+      btn.setAttribute('data-dr-quota-btn', '1');
+      btn.addEventListener('click', function () {
+        if (btn.disabled) return;
+        var prev = btn.textContent;
+        btn.disabled = true;
+        setTimeout(function () {
+          btn.disabled = false;
+          if (prev) btn.textContent = prev;
+        }, 2500);
+      });
+    }
   }
 
   var _alert = window.alert;
   window.alert = function (msg) {
-    if (isQuotaError(msg)) {
-      var p = parseQuotaMessage({ message: String(msg) });
-      showBanner(p.message, 'err');
+    if (isQuotaError(msg) || isRlsError(msg)) {
+      showBanner(mapCreateError({ message: String(msg) }), 'err');
       return;
     }
     return _alert.apply(this, arguments);
@@ -171,6 +201,7 @@
   apply();
   setTimeout(apply, 800);
   setTimeout(apply, 2500);
+  setTimeout(apply, 5000);
   setInterval(apply, 12000);
 
   window.DRTicketQuota = {
