@@ -1,7 +1,6 @@
 /**
- * Divine Rays — symmetrical medical-tech login ambient
- * Upper band at card-top · lower at card-bottom · ECG centered between
- * Extra galaxy particles only · Credit: Boyz at the Back
+ * Divine Rays — full-bleed honeycomb + bands locked around ECG center
+ * Scales to any resolution · Credit: Boyz at the Back
  */
 (function () {
   'use strict';
@@ -75,7 +74,7 @@
       '}',
       'body.is-login #' + LAYER_ID + '{display:block!important}',
       'body.is-portal #' + LAYER_ID + '{display:none!important}',
-      '#' + LAYER_ID + ' .dr-honeycomb{position:absolute;inset:-2%;opacity:' + hexOp + '}',
+      '#' + LAYER_ID + ' .dr-honeycomb{position:absolute;inset:-8%;width:116%;height:116%;opacity:' + hexOp + '}',
       '#' + LAYER_ID + ' .dr-honeycomb svg{width:100%;height:100%;display:block}',
       '#' + LAYER_ID + ' .dr-network{position:absolute;inset:0;opacity:' + netOp + '}',
       '#' + LAYER_ID + ' .dr-network svg{width:100%;height:100%;display:block}',
@@ -94,23 +93,24 @@
 
   function honeycombSvg(stroke) {
     var cells = [];
-    var rows = 12, cols = 16, w = 72, h = 42;
+    var rows = 18, cols = 20, w = 68, h = 40;
     for (var r = 0; r < rows; r++) {
       for (var c = 0; c < cols; c++) {
-        var ox = c * w + (r % 2 ? w / 2 : 0) - 30;
-        var oy = r * h * 0.78 - 10;
+        var ox = c * w + (r % 2 ? w / 2 : 0) - 40;
+        var oy = r * h * 0.78 - 20;
         cells.push(
-          'M' + (ox + 30) + ' ' + oy +
-          ' L' + (ox + 56) + ' ' + (oy + 15) +
-          ' L' + (ox + 56) + ' ' + (oy + 36) +
-          ' L' + (ox + 30) + ' ' + (oy + 51) +
-          ' L' + (ox + 4) + ' ' + (oy + 36) +
-          ' L' + (ox + 4) + ' ' + (oy + 15) + ' Z'
+          'M' + (ox + 28) + ' ' + oy +
+          ' L' + (ox + 52) + ' ' + (oy + 14) +
+          ' L' + (ox + 52) + ' ' + (oy + 34) +
+          ' L' + (ox + 28) + ' ' + (oy + 48) +
+          ' L' + (ox + 4) + ' ' + (oy + 34) +
+          ' L' + (ox + 4) + ' ' + (oy + 14) + ' Z'
         );
       }
     }
     return (
-      '<svg class="dr-honeycomb" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 400" preserveAspectRatio="xMidYMid slice">' +
+      '<svg class="dr-honeycomb" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" preserveAspectRatio="none" ' +
+      'width="100%" height="100%" style="display:block">' +
       '<g fill="none" stroke="' + stroke + '" stroke-width="1">' +
       cells.map(function (d) { return '<path d="' + d + '"/>'; }).join('') +
       '</g></svg>'
@@ -179,8 +179,10 @@
       return '<path fill="none" stroke="' + stroke + '" stroke-width="1.2" d="M' + pts.join(' L') + ' Z"/>';
     }
 
+    // viewBox 0–800 maps to full screen height (preserveAspectRatio none)
+    // ECG is at 50% → y=400. Upper band y=250, lower y=550 → always equidistant around center
     return (
-      '<svg class="dr-network" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice">' +
+      '<svg class="dr-network" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" preserveAspectRatio="none" width="100%" height="100%" style="display:block">' +
       '<defs>' +
       '<filter id="drG" x="-10%" y="-10%" width="120%" height="120%">' +
       '<feGaussianBlur stdDeviation="1.4" result="b"/>' +
@@ -188,37 +190,37 @@
       '</filter>' +
       '</defs>' +
       '<g fill="none" stroke="' + stroke + '" stroke-width="1.15" filter="url(#drG)" opacity="0.9">' +
-      line('M40 220 H200 L260 170 H420 L480 220 H600', true) +
-      line('M1160 220 H1000 L940 170 H780 L720 220 H600', true) +
-      line('M260 170 V130 M420 170 V130') +
-      line('M940 170 V130 M780 170 V130') +
-      line('M200 220 V265 M480 220 V265') +
-      line('M1000 220 V265 M720 220 V265') +
-      line('M40 570 H200 L260 520 H420 L480 570 H600', true) +
-      line('M1160 570 H1000 L940 520 H780 L720 570 H600', true) +
-      line('M260 520 V480 M420 520 V480') +
-      line('M940 520 V480 M780 520 V480') +
-      line('M200 570 V615 M480 570 V615') +
-      line('M1000 570 V615 M720 570 V615') +
-      line('M600 220 V400 M600 400 V570', false) +
+      line('M40 250 H200 L260 200 H420 L480 250 H600', true) +
+      line('M1160 250 H1000 L940 200 H780 L720 250 H600', true) +
+      line('M260 200 V160 M420 200 V160') +
+      line('M940 200 V160 M780 200 V160') +
+      line('M200 250 V295 M480 250 V295') +
+      line('M1000 250 V295 M720 250 V295') +
+      line('M40 550 H200 L260 500 H420 L480 550 H600', true) +
+      line('M1160 550 H1000 L940 500 H780 L720 550 H600', true) +
+      line('M260 500 V460 M420 500 V460') +
+      line('M940 500 V460 M780 500 V460') +
+      line('M200 550 V595 M480 550 V595') +
+      line('M1000 550 V595 M720 550 V595') +
+      line('M600 250 V400 M600 400 V550', false) +
       '</g>' +
       '<g fill="' + fill + '">' +
-      node(200, 220) + node(260, 170) + node(420, 170) + node(480, 220) + node(600, 220) +
-      node(1000, 220) + node(940, 170) + node(780, 170) + node(720, 220) +
-      node(260, 130) + node(420, 130) + node(940, 130) + node(780, 130) +
-      node(200, 265) + node(480, 265) + node(1000, 265) + node(720, 265) +
-      node(200, 570) + node(260, 520) + node(420, 520) + node(480, 570) + node(600, 570) +
-      node(1000, 570) + node(940, 520) + node(780, 520) + node(720, 570) +
-      node(260, 480) + node(420, 480) + node(940, 480) + node(780, 480) +
-      node(200, 615) + node(480, 615) + node(1000, 615) + node(720, 615) +
+      node(200, 250) + node(260, 200) + node(420, 200) + node(480, 250) + node(600, 250) +
+      node(1000, 250) + node(940, 200) + node(780, 200) + node(720, 250) +
+      node(260, 160) + node(420, 160) + node(940, 160) + node(780, 160) +
+      node(200, 295) + node(480, 295) + node(1000, 295) + node(720, 295) +
+      node(200, 550) + node(260, 500) + node(420, 500) + node(480, 550) + node(600, 550) +
+      node(1000, 550) + node(940, 500) + node(780, 500) + node(720, 550) +
+      node(260, 460) + node(420, 460) + node(940, 460) + node(780, 460) +
+      node(200, 595) + node(480, 595) + node(1000, 595) + node(720, 595) +
       '</g>' +
       '<g opacity="0.9">' +
-      iconEcg(110, 220, 40) + iconEcg(1090, 220, 40) +
-      iconHex(340, 140, 13) + iconHex(860, 140, 13) +
-      iconCross(110, 570, 15) + iconCross(1090, 570, 15) +
-      iconDna(340, 500, 20) + iconDna(860, 500, 20) +
-      iconHeart(500, 615, 11) + iconHeart(700, 615, 11) +
-      iconHeart(110, 615, 12) + iconHeart(1090, 615, 12) +
+      iconEcg(110, 250, 40) + iconEcg(1090, 250, 40) +
+      iconHex(340, 160, 13) + iconHex(860, 160, 13) +
+      iconCross(110, 550, 15) + iconCross(1090, 550, 15) +
+      iconDna(340, 480, 20) + iconDna(860, 480, 20) +
+      iconHeart(500, 595, 11) + iconHeart(700, 595, 11) +
+      iconHeart(110, 595, 12) + iconHeart(1090, 595, 12) +
       '</g>' +
       '</svg>'
     );
@@ -273,7 +275,7 @@
       login.insertBefore(layer, login.firstChild);
     }
     var light = isLight();
-    var key = (light ? 'L' : 'D') + '-login-v2p';
+    var key = (light ? 'L' : 'D') + '-login-v4';
     if (key === lastAmbientKey && layer.childNodes.length) {
       layer.style.display = 'block';
       return;
