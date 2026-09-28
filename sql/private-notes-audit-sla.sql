@@ -278,7 +278,7 @@ SET search_path = public
 AS $$
   SELECT
     t.id,
-    COALESCE(t.ticket_number, t.number::text, t.id::text) AS ticket_number,
+    COALESCE(t.ticket_number, t.id::text) AS ticket_number,
     t.status,
     t.priority,
     round(EXTRACT(EPOCH FROM (now() - COALESCE(t.last_agent_activity_at, t.created_at))) / 3600.0, 1) AS idle_hours,
