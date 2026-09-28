@@ -1,6 +1,5 @@
 /**
- * Divine Rays — continuous spinning steam gears + seamless ECG
- * Gears on portal · ECG on login · no rectangular glow plate
+ * Divine Rays — continuous gears + ECG (11s draw, soft neon glow)
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
@@ -129,11 +128,11 @@
     '100%{stroke-dashoffset:0}',
     '}',
     '@keyframes drEcgGlowPulse{',
-    '0%,100%{opacity:0.18}',
-    '50%{opacity:0.42}',
+    '0%,100%{opacity:0.55}',
+    '50%{opacity:0.95}',
     '}',
     '@keyframes drEcgCorePulse{',
-    '0%,100%{opacity:0.88}',
+    '0%,100%{opacity:0.92}',
     '50%{opacity:1}',
     '}',
     '@media (prefers-reduced-motion:reduce){',
@@ -162,10 +161,10 @@
   var lastMode = null;
 
   function ecgStroke() {
-    return isLight() ? '#5b21b6' : '#f0e7ff';
+    return isLight() ? '#6d28d9' : '#e9d5ff';
   }
   function ecgGlowStroke() {
-    return isLight() ? '#7c3aed' : '#c4b5fd';
+    return isLight() ? '#a78bfa' : '#c4b5fd';
   }
 
   function ecgMarkup() {
@@ -175,11 +174,15 @@
     return (
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 100" preserveAspectRatio="none" ' +
       'width="100%" height="100%" style="display:block;overflow:visible">' +
-      '<path class="dr-ecg-glow" fill="none" stroke="' + glow + '" stroke-width="11" ' +
-      'stroke-linecap="round" stroke-linejoin="round" d="' + d + '"/>' +
-      '<path class="dr-ecg-glow" fill="none" stroke="' + glow + '" stroke-width="6" ' +
-      'stroke-linecap="round" stroke-linejoin="round" d="' + d + '"/>' +
-      '<path class="dr-ecg-core" fill="none" stroke="' + core + '" stroke-width="3" ' +
+      '<defs>' +
+      '<filter id="drEcgBlur" x="-20%" y="-50%" width="140%" height="200%" color-interpolation-filters="sRGB">' +
+      '<feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur"/>' +
+      '<feMerge><feMergeNode in="blur"/><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>' +
+      '</filter>' +
+      '</defs>' +
+      '<path class="dr-ecg-glow" fill="none" stroke="' + glow + '" stroke-width="4.5" ' +
+      'stroke-linecap="round" stroke-linejoin="round" filter="url(#drEcgBlur)" d="' + d + '"/>' +
+      '<path class="dr-ecg-core" fill="none" stroke="' + core + '" stroke-width="2.8" ' +
       'stroke-linecap="round" stroke-linejoin="round" d="' + d + '"/>' +
       '</svg>'
     );
@@ -224,22 +227,21 @@
       p.style.setProperty('--dr-len', len);
       p.style.strokeDasharray = String(len);
       p.style.strokeDashoffset = String(len);
-      p.style.filter = 'none';
       p.style.animation = 'none';
     }
     void box.getBoundingClientRect();
     for (var j = 0; j < paths.length; j++) {
       var pj = paths[j];
       if (pj.classList.contains('dr-ecg-core')) {
-        pj.style.animation = 'drEcgDraw 9s linear forwards, drEcgCorePulse 2.2s ease-in-out infinite';
+        pj.style.animation = 'drEcgDraw 11s linear forwards, drEcgCorePulse 2.4s ease-in-out infinite';
       } else {
-        pj.style.animation = 'drEcgDraw 9s linear forwards, drEcgGlowPulse 2.2s ease-in-out infinite';
+        pj.style.animation = 'drEcgDraw 11s linear forwards, drEcgGlowPulse 2.4s ease-in-out infinite';
       }
     }
     ecgTimer = setTimeout(function () {
       ecgIndex = (ecgIndex + 1) % ECG_PATTERNS.length;
       if (loginVisible()) runEcgCycle();
-    }, 9000);
+    }, 11000);
   }
 
   function ensureGears(force) {
