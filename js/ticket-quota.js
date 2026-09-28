@@ -1,12 +1,9 @@
 /**
- * Divine Rays — daily ticket quota + anti double-submit + form reset after success
+ * Divine Rays — daily ticket quota + anti double-submit + form reset + notice modal
  * Credit: Boyz at the Back LRK · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_TICKET_QUOTA) {
-    try { delete window.__DR_TICKET_QUOTA; } catch (e) {}
-  }
   window.__DR_TICKET_QUOTA = 1;
 
   var DEFAULT_LIMIT = 5;
@@ -59,19 +56,122 @@
   function parseQuotaMessage(err) {
     var msg = (err && err.message) || String(err || '');
     var m = msg.match(/Daily limit of (\d+)/i);
-    var limit = m ? m[1] : String(DEFAULT_LIMIT);
+    var limit = m ? Number(m[1]) : DEFAULT_LIMIT;
     return {
       code: 429,
       error: 'Too Many Requests',
       message:
-        'You have reached the daily ticket limit (' +
+        'You have reached your daily ticket limit of ' +
         limit +
-        ' per day). Please try again after 00:00 UTC.',
-      limit: Number(limit)
+        '. The limit resets at 00:00 UTC.',
+      limit: limit
     };
   }
 
-  function showBanner(text, kind) {
+  function injectStyles() {
+    if (document.getElementById('dr-quota-styles')) return;
+    var s = document.createElement('style');
+    s.id = 'dr-quota-styles';
+    s.textContent =
+      '#dr-quota-overlay{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;' +
+      'background:rgba(8,6,18,0.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:1.25rem;' +
+      'animation:drQuotaFadeIn .22s ease-out}' +
+      '@keyframes drQuotaFadeIn{from{opacity:0}to{opacity:1}}' +
+      '@keyframes drQuotaPop{from{opacity:0;transform:translateY(12px) scale(.96)}to{opacity:1;transform:none}}' +
+      '#dr-quota-modal{width:min(420px,100%);border-radius:18px;padding:1.5rem 1.4rem 1.25rem;text-align:center;' +
+      'background:linear-gradient(165deg,rgba(42,28,72,.97),rgba(22,16,40,.98));' +
+      'border:1px solid rgba(167,139,250,.45);box-shadow:0 0 0 1px rgba(139,92,246,.15),0 24px 48px rgba(0,0,0,.55),0 0 40px rgba(124,58,237,.2);' +
+      'animation:drQuotaPop .28s cubic-bezier(.2,.9,.2,1);color:#eeeef6;font-family:Inter,system-ui,sans-serif}' +
+      '#dr-quota-modal .dr-q-icon{width:56px;height:56px;margin:0 auto .9rem;border-radius:50%;' +
+      'display:flex;align-items:center;justify-content:center;font-size:1.55rem;' +
+      'background:rgba(239,68,68,.15);border:1px solid rgba(248,113,113,.4);box-shadow:0 0 24px rgba(239,68,68,.25)}' +
+      '#dr-quota-modal h3{margin:0 0 .5rem;font-size:1.15rem;font-weight:800;letter-spacing:.01em;color:#fff}' +
+      '#dr-quota-modal p{margin:0 0 .35rem;font-size:.92rem;line-height:1.5;color:#c4b5fd}' +
+      '#dr-quota-modal .dr-q-meta{margin:.85rem 0 1.1rem;padding:.65rem .85rem;border-radius:12px;' +
+      'background:rgba(15,10,30,.55);border:1px solid rgba(139,92,246,.25);font-size:.82rem;color:#a78bfa;font-weight:600}' +
+      '#dr-quota-modal .dr-q-actions{display:flex;gap:.6rem;flex-wrap:wrap;justify-content:center}' +
+      '#dr-quota-modal .dr-q-btn{flex:1;min-width:120px;border:none;border-radius:12px;padding:.7rem 1rem;' +
+      'font-weight:700;font-size:.9rem;cursor:pointer;transition:transform .15s,opacity .15s}' +
+      '#dr-quota-modal .dr-q-btn:active{transform:scale(.98)}' +
+      '#dr-quota-modal .dr-q-btn-primary{background:linear-gradient(135deg,#7c3aed,#5b21b6);color:#fff;' +
+      'box-shadow:0 4px 16px rgba(124,58,237,.4)}' +
+      '#dr-quota-modal .dr-q-btn-ghost{background:rgba(255,255,255,.06);color:#ddd6fe;border:1px solid rgba(167,139,250,.3)}' +
+      '#dr-quota-banner{margin:0 0 .85rem;padding:.85rem 1rem;border-radius:14px;font-size:.88rem;font-weight:600;line-height:1.45;' +
+      'display:flex;align-items:flex-start;gap:.65rem;' +
+      'background:rgba(239,68,68,.12);border:1px solid rgba(248,113,113,.4);color:#fecaca}' +
+      '#dr-quota-banner .dr-q-bicon{flex-shrink:0;font-size:1.15rem;line-height:1.2}' +
+      '[data-theme="light"] #dr-quota-modal{background:linear-gradient(165deg,#faf5ff,#f3e8ff);color:#1e1b4b;' +
+      'border-color:rgba(124,58,237,.35);box-shadow:0 24px 48px rgba(91,33,182,.18)}' +
+      '[data-theme="light"] #dr-quota-modal h3{color:#1e1b4b}' +
+      '[data-theme="light"] #dr-quota-modal p{color:#5b21b6}' +
+      '[data-theme="light"] #dr-quota-modal .dr-q-meta{background:rgba(124,58,237,.08);color:#6d28d9;border-color:rgba(124,58,237,.2)}' +
+      '[data-theme="light"] #dr-quota-banner{background:rgba(254,226,226,.9);border-color:#f87171;color:#991b1b}' +
+      '[data-theme="light"] #dr-quota-overlay{background:rgba(30,20,50,.45)}';
+    document.head.appendChild(s);
+  }
+
+  function closeQuotaModal() {
+    var ov = document.getElementById('dr-quota-overlay');
+    if (ov && ov.parentNode) ov.parentNode.removeChild(ov);
+  }
+
+  function showQuotaModal(limit) {
+    injectStyles();
+    closeQuotaModal();
+    limit = limit || DEFAULT_LIMIT;
+    var ov = document.createElement('div');
+    ov.id = 'dr-quota-overlay';
+    ov.setAttribute('role', 'dialog');
+    ov.setAttribute('aria-modal', 'true');
+    ov.innerHTML =
+      '<div id="dr-quota-modal">' +
+      '<div class="dr-q-icon" aria-hidden="true">⛔</div>' +
+      '<h3>Daily ticket limit reached</h3>' +
+      '<p>You have already submitted the maximum number of tickets allowed for today.</p>' +
+      '<div class="dr-q-meta">Limit: <strong>' +
+      limit +
+      ' tickets / day</strong> · Resets at <strong>00:00 UTC</strong></div>' +
+      '<div class="dr-q-actions">' +
+      '<button type="button" class="dr-q-btn dr-q-btn-ghost" id="dr-q-close">Close</button>' +
+      '<button type="button" class="dr-q-btn dr-q-btn-primary" id="dr-q-mytickets">View my tickets</button>' +
+      '</div></div>';
+    document.body.appendChild(ov);
+
+    function onClose() {
+      closeQuotaModal();
+    }
+    ov.addEventListener('click', function (e) {
+      if (e.target === ov) onClose();
+    });
+    var closeBtn = document.getElementById('dr-q-close');
+    if (closeBtn) closeBtn.addEventListener('click', onClose);
+    var myBtn = document.getElementById('dr-q-mytickets');
+    if (myBtn) {
+      myBtn.addEventListener('click', function () {
+        onClose();
+        var tab = document.querySelector('.ctab[data-ctab="mytickets"]');
+        if (tab) tab.click();
+        else if (typeof window.showCustomerTab === 'function') {
+          try {
+            window.showCustomerTab('mytickets');
+          } catch (e) {}
+        }
+      });
+    }
+    document.addEventListener(
+      'keydown',
+      function esc(e) {
+        if (e.key === 'Escape') {
+          onClose();
+          document.removeEventListener('keydown', esc);
+        }
+      },
+      { once: true }
+    );
+  }
+
+  function showBanner(text) {
+    injectStyles();
     var form = document.getElementById('customer-form');
     if (!form) return;
     var id = 'dr-quota-banner';
@@ -81,14 +181,20 @@
       el.id = id;
       form.insertBefore(el, form.firstChild);
     }
-    el.setAttribute(
-      'style',
-      'margin:0 0 0.85rem;padding:0.75rem 1rem;border-radius:12px;font-size:0.88rem;font-weight:600;line-height:1.4;' +
-        (kind === 'ok'
-          ? 'background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.35);color:#86efac;'
-          : 'background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.4);color:#fca5a5;')
-    );
-    el.textContent = text;
+    el.innerHTML =
+      '<span class="dr-q-bicon" aria-hidden="true">⛔</span><span>' + text + '</span>';
+  }
+
+  function hideToastLikeQuota() {
+    try {
+      document.querySelectorAll('.toast, .toast-error, [class*="toast"]').forEach(function (t) {
+        var txt = (t.textContent || '');
+        if (/TICKET_QUOTA|Daily limit of/i.test(txt)) {
+          t.style.display = 'none';
+          if (t.parentNode) t.parentNode.removeChild(t);
+        }
+      });
+    } catch (e) {}
   }
 
   function resetSubmitForm(clearFields) {
@@ -151,15 +257,25 @@
     if (rem === null) return;
     if (rem <= 0) {
       showBanner(
-        'Daily ticket limit reached (' + q.limit + ' / day). Resets at 00:00 UTC.',
-        'err'
+        'Daily limit reached (' +
+          q.limit +
+          ' tickets / day). You can submit again after 00:00 UTC.'
       );
     } else if (rem <= 2) {
       showBanner(
-        'You can submit ' + rem + ' more ticket(s) today (limit ' + q.limit + ').',
-        'err'
+        'You can submit ' + rem + ' more ticket(s) today (limit ' + q.limit + ').'
       );
     }
+  }
+
+  function handleQuotaHit(err) {
+    var p = parseQuotaMessage(err || {});
+    showBanner(p.message);
+    showQuotaModal(p.limit);
+    hideToastLikeQuota();
+    setTimeout(hideToastLikeQuota, 80);
+    setTimeout(hideToastLikeQuota, 300);
+    return p;
   }
 
   function mapCreateError(err) {
@@ -186,17 +302,18 @@
           try {
             var q = await fetchQuota();
             if (q && !q.exempt && typeof q.remaining === 'number' && q.remaining <= 0) {
-              var p = parseQuotaMessage({ message: 'Daily limit of ' + q.limit });
-              showBanner(p.message, 'err');
+              handleQuotaHit({ message: 'Daily limit of ' + q.limit });
               unlock();
-              return { error: p.message, quota: p };
+              return { error: parseQuotaMessage({ message: 'Daily limit of ' + q.limit }).message };
             }
             var res = await orig.apply(this, arguments);
             if (res && res.error) {
-              var msg = mapCreateError({ message: String(res.error) });
-              if (isQuotaError(res.error) || isRlsError(res.error)) {
-                showBanner(msg, 'err');
+              if (isQuotaError(res.error)) {
+                handleQuotaHit({ message: String(res.error) });
+                unlock();
+                return { error: parseQuotaMessage({ message: String(res.error) }).message };
               }
+              var msg = mapCreateError({ message: String(res.error) });
               unlock();
               return { error: msg };
             }
@@ -207,6 +324,7 @@
             }, 400);
             return res;
           } catch (err) {
+            if (isQuotaError(err)) handleQuotaHit(err);
             unlock();
             throw err;
           }
@@ -243,7 +361,6 @@
         true
       );
     }
-
     ensureSubmitAnotherBtn();
   }
 
@@ -275,10 +392,38 @@
     }
   }
 
+  function patchToast() {
+    if (window.__drQuotaToastPatched) return;
+    window.__drQuotaToastPatched = true;
+    var names = ['toast', 'showToast', 'notify'];
+    names.forEach(function (n) {
+      if (typeof window[n] !== 'function') return;
+      var orig = window[n];
+      window[n] = function (msg, type) {
+        if (isQuotaError(msg)) {
+          handleQuotaHit({ message: String(msg) });
+          return;
+        }
+        return orig.apply(this, arguments);
+      };
+    });
+  }
+
+  var _alert = window.alert;
+  window.alert = function (msg) {
+    if (isQuotaError(msg)) {
+      handleQuotaHit({ message: String(msg) });
+      return;
+    }
+    return _alert.apply(this, arguments);
+  };
+
   function apply() {
+    injectStyles();
     wireForm();
     wireTabs();
     wrapCreateTicket();
+    patchToast();
     ensureSubmitAnotherBtn();
     refreshHint();
   }
@@ -291,12 +436,14 @@
     wireForm();
     wireTabs();
     wrapCreateTicket();
+    patchToast();
     ensureSubmitAnotherBtn();
   }, 10000);
 
   window.DRTicketQuota = {
     refresh: apply,
     resetForm: resetSubmitForm,
+    showModal: showQuotaModal,
     fetch: fetchQuota,
     isQuotaError: isQuotaError,
     parse: parseQuotaMessage
