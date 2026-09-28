@@ -1,5 +1,8 @@
 /**
- * Divine Rays — daily ticket quota + anti double-submit + form reset + notice modal
+ * Divine Rays — daily ticket quota
+ * - Pre-check on submit
+ * - Centered modal (not corner toast)
+ * - Watches #toast-container for leaked TICKET_QUOTA messages
  * Credit: Boyz at the Back LRK · All Rights Reserved
  */
 (function () {
@@ -9,6 +12,7 @@
   var DEFAULT_LIMIT = 5;
   var submitting = false;
   var submitLockUntil = 0;
+  var lastModalAt = 0;
 
   function client() {
     try {
@@ -43,29 +47,13 @@
     }
   }
 
-  function isQuotaError(err) {
-    var msg = (err && (err.message || err.error_description || err.details || String(err))) || '';
-    return /TICKET_QUOTA_EXCEEDED|quota_exceeded|Daily limit/i.test(msg);
+  function isQuotaText(txt) {
+    return /TICKET_QUOTA_EXCEEDED|quota_exceeded|Daily limit of \d+|daily ticket limit/i.test(String(txt || ''));
   }
 
-  function isRlsError(err) {
-    var msg = (err && (err.message || String(err))) || '';
-    return /row-level security|violates row-level|RLS/i.test(msg);
-  }
-
-  function parseQuotaMessage(err) {
-    var msg = (err && err.message) || String(err || '');
-    var m = msg.match(/Daily limit of (\d+)/i);
-    var limit = m ? Number(m[1]) : DEFAULT_LIMIT;
-    return {
-      code: 429,
-      error: 'Too Many Requests',
-      message:
-        'You have reached your daily ticket limit of ' +
-        limit +
-        '. The limit resets at 00:00 UTC.',
-      limit: limit
-    };
+  function parseLimit(txt) {
+    var m = String(txt || '').match(/Daily limit of (\d+)/i);
+    return m ? Number(m[1]) : DEFAULT_LIMIT;
   }
 
   function injectStyles() {
@@ -73,40 +61,39 @@
     var s = document.createElement('style');
     s.id = 'dr-quota-styles';
     s.textContent =
-      '#dr-quota-overlay{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;' +
-      'background:rgba(8,6,18,0.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:1.25rem;' +
-      'animation:drQuotaFadeIn .22s ease-out}' +
+      '#dr-quota-overlay{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;' +
+      'background:rgba(8,6,18,0.75);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:1.25rem;' +
+      'animation:drQuotaFadeIn .2s ease-out}' +
       '@keyframes drQuotaFadeIn{from{opacity:0}to{opacity:1}}' +
-      '@keyframes drQuotaPop{from{opacity:0;transform:translateY(12px) scale(.96)}to{opacity:1;transform:none}}' +
-      '#dr-quota-modal{width:min(420px,100%);border-radius:18px;padding:1.5rem 1.4rem 1.25rem;text-align:center;' +
-      'background:linear-gradient(165deg,rgba(42,28,72,.97),rgba(22,16,40,.98));' +
-      'border:1px solid rgba(167,139,250,.45);box-shadow:0 0 0 1px rgba(139,92,246,.15),0 24px 48px rgba(0,0,0,.55),0 0 40px rgba(124,58,237,.2);' +
+      '@keyframes drQuotaPop{from{opacity:0;transform:translateY(14px) scale(.95)}to{opacity:1;transform:none}}' +
+      '#dr-quota-modal{width:min(440px,100%);border-radius:18px;padding:1.6rem 1.45rem 1.3rem;text-align:center;' +
+      'background:linear-gradient(165deg,rgba(42,28,72,.98),rgba(22,16,40,.99));' +
+      'border:1px solid rgba(167,139,250,.5);box-shadow:0 0 0 1px rgba(139,92,246,.2),0 28px 56px rgba(0,0,0,.6),0 0 48px rgba(124,58,237,.25);' +
       'animation:drQuotaPop .28s cubic-bezier(.2,.9,.2,1);color:#eeeef6;font-family:Inter,system-ui,sans-serif}' +
-      '#dr-quota-modal .dr-q-icon{width:56px;height:56px;margin:0 auto .9rem;border-radius:50%;' +
-      'display:flex;align-items:center;justify-content:center;font-size:1.55rem;' +
-      'background:rgba(239,68,68,.15);border:1px solid rgba(248,113,113,.4);box-shadow:0 0 24px rgba(239,68,68,.25)}' +
-      '#dr-quota-modal h3{margin:0 0 .5rem;font-size:1.15rem;font-weight:800;letter-spacing:.01em;color:#fff}' +
-      '#dr-quota-modal p{margin:0 0 .35rem;font-size:.92rem;line-height:1.5;color:#c4b5fd}' +
-      '#dr-quota-modal .dr-q-meta{margin:.85rem 0 1.1rem;padding:.65rem .85rem;border-radius:12px;' +
-      'background:rgba(15,10,30,.55);border:1px solid rgba(139,92,246,.25);font-size:.82rem;color:#a78bfa;font-weight:600}' +
-      '#dr-quota-modal .dr-q-actions{display:flex;gap:.6rem;flex-wrap:wrap;justify-content:center}' +
-      '#dr-quota-modal .dr-q-btn{flex:1;min-width:120px;border:none;border-radius:12px;padding:.7rem 1rem;' +
-      'font-weight:700;font-size:.9rem;cursor:pointer;transition:transform .15s,opacity .15s}' +
-      '#dr-quota-modal .dr-q-btn:active{transform:scale(.98)}' +
+      '#dr-quota-modal .dr-q-icon{width:58px;height:58px;margin:0 auto .95rem;border-radius:50%;' +
+      'display:flex;align-items:center;justify-content:center;font-size:1.6rem;' +
+      'background:rgba(239,68,68,.18);border:1px solid rgba(248,113,113,.45);box-shadow:0 0 28px rgba(239,68,68,.3)}' +
+      '#dr-quota-modal h3{margin:0 0 .55rem;font-size:1.2rem;font-weight:800;color:#fff}' +
+      '#dr-quota-modal p{margin:0 0 .4rem;font-size:.94rem;line-height:1.5;color:#c4b5fd}' +
+      '#dr-quota-modal .dr-q-meta{margin:.9rem 0 1.15rem;padding:.7rem .9rem;border-radius:12px;' +
+      'background:rgba(15,10,30,.6);border:1px solid rgba(139,92,246,.3);font-size:.84rem;color:#a78bfa;font-weight:600}' +
+      '#dr-quota-modal .dr-q-actions{display:flex;gap:.65rem;flex-wrap:wrap;justify-content:center}' +
+      '#dr-quota-modal .dr-q-btn{flex:1;min-width:120px;border:none;border-radius:12px;padding:.75rem 1rem;' +
+      'font-weight:700;font-size:.9rem;cursor:pointer}' +
       '#dr-quota-modal .dr-q-btn-primary{background:linear-gradient(135deg,#7c3aed,#5b21b6);color:#fff;' +
-      'box-shadow:0 4px 16px rgba(124,58,237,.4)}' +
-      '#dr-quota-modal .dr-q-btn-ghost{background:rgba(255,255,255,.06);color:#ddd6fe;border:1px solid rgba(167,139,250,.3)}' +
-      '#dr-quota-banner{margin:0 0 .85rem;padding:.85rem 1rem;border-radius:14px;font-size:.88rem;font-weight:600;line-height:1.45;' +
-      'display:flex;align-items:flex-start;gap:.65rem;' +
-      'background:rgba(239,68,68,.12);border:1px solid rgba(248,113,113,.4);color:#fecaca}' +
-      '#dr-quota-banner .dr-q-bicon{flex-shrink:0;font-size:1.15rem;line-height:1.2}' +
-      '[data-theme="light"] #dr-quota-modal{background:linear-gradient(165deg,#faf5ff,#f3e8ff);color:#1e1b4b;' +
-      'border-color:rgba(124,58,237,.35);box-shadow:0 24px 48px rgba(91,33,182,.18)}' +
+      'box-shadow:0 4px 18px rgba(124,58,237,.45)}' +
+      '#dr-quota-modal .dr-q-btn-ghost{background:rgba(255,255,255,.07);color:#ddd6fe;border:1px solid rgba(167,139,250,.35)}' +
+      '#dr-quota-banner{margin:0 0 .9rem;padding:.9rem 1rem;border-radius:14px;font-size:.9rem;font-weight:600;line-height:1.45;' +
+      'display:flex;align-items:flex-start;gap:.7rem;' +
+      'background:rgba(239,68,68,.14);border:1px solid rgba(248,113,113,.45);color:#fecaca}' +
+      '#dr-quota-banner .dr-q-bicon{flex-shrink:0;font-size:1.2rem}' +
+      '#toast-container .toast.dr-quota-hide,[data-dr-quota-hide="1"]{display:none!important;opacity:0!important;pointer-events:none!important}' +
+      '[data-theme="light"] #dr-quota-modal{background:linear-gradient(165deg,#faf5ff,#f3e8ff);color:#1e1b4b;border-color:rgba(124,58,237,.35)}' +
       '[data-theme="light"] #dr-quota-modal h3{color:#1e1b4b}' +
       '[data-theme="light"] #dr-quota-modal p{color:#5b21b6}' +
-      '[data-theme="light"] #dr-quota-modal .dr-q-meta{background:rgba(124,58,237,.08);color:#6d28d9;border-color:rgba(124,58,237,.2)}' +
-      '[data-theme="light"] #dr-quota-banner{background:rgba(254,226,226,.9);border-color:#f87171;color:#991b1b}' +
-      '[data-theme="light"] #dr-quota-overlay{background:rgba(30,20,50,.45)}';
+      '[data-theme="light"] #dr-quota-modal .dr-q-meta{background:rgba(124,58,237,.08);color:#6d28d9}' +
+      '[data-theme="light"] #dr-quota-banner{background:#fee2e2;border-color:#f87171;color:#991b1b}' +
+      '[data-theme="light"] #dr-quota-overlay{background:rgba(30,20,50,.5)}';
     document.head.appendChild(s);
   }
 
@@ -117,8 +104,11 @@
 
   function showQuotaModal(limit) {
     injectStyles();
+    if (Date.now() - lastModalAt < 800 && document.getElementById('dr-quota-overlay')) return;
+    lastModalAt = Date.now();
     closeQuotaModal();
     limit = limit || DEFAULT_LIMIT;
+
     var ov = document.createElement('div');
     ov.id = 'dr-quota-overlay';
     ov.setAttribute('role', 'dialog');
@@ -158,43 +148,65 @@
         }
       });
     }
-    document.addEventListener(
-      'keydown',
-      function esc(e) {
-        if (e.key === 'Escape') {
-          onClose();
-          document.removeEventListener('keydown', esc);
-        }
-      },
-      { once: true }
-    );
   }
 
   function showBanner(text) {
     injectStyles();
     var form = document.getElementById('customer-form');
     if (!form) return;
-    var id = 'dr-quota-banner';
-    var el = document.getElementById(id);
+    var el = document.getElementById('dr-quota-banner');
     if (!el) {
       el = document.createElement('div');
-      el.id = id;
+      el.id = 'dr-quota-banner';
       form.insertBefore(el, form.firstChild);
     }
     el.innerHTML =
       '<span class="dr-q-bicon" aria-hidden="true">⛔</span><span>' + text + '</span>';
   }
 
-  function hideToastLikeQuota() {
-    try {
-      document.querySelectorAll('.toast, .toast-error, [class*="toast"]').forEach(function (t) {
-        var txt = (t.textContent || '');
-        if (/TICKET_QUOTA|Daily limit of/i.test(txt)) {
-          t.style.display = 'none';
+  function scrubQuotaToasts() {
+    injectStyles();
+    var nodes = document.querySelectorAll(
+      '#toast-container .toast, #toast-container > *, .toast, [class*="toast"]'
+    );
+    nodes.forEach(function (t) {
+      var txt = t.textContent || '';
+      if (isQuotaText(txt)) {
+        t.setAttribute('data-dr-quota-hide', '1');
+        t.classList.add('dr-quota-hide');
+        t.style.display = 'none';
+        try {
           if (t.parentNode) t.parentNode.removeChild(t);
-        }
-      });
-    } catch (e) {}
+        } catch (e) {}
+        showQuotaModal(parseLimit(txt));
+        showBanner(
+          'You have reached your daily ticket limit (' +
+            parseLimit(txt) +
+            ' / day). Resets at 00:00 UTC.'
+        );
+      }
+    });
+  }
+
+  function watchToasts() {
+    if (window.__drQuotaToastWatch) return;
+    window.__drQuotaToastWatch = true;
+
+    function attach(root) {
+      if (!root || root.__drQuotaMo) return;
+      try {
+        var mo = new MutationObserver(function () {
+          scrubQuotaToasts();
+        });
+        mo.observe(root, { childList: true, subtree: true, characterData: true });
+        root.__drQuotaMo = mo;
+      } catch (e) {}
+    }
+
+    var c = document.getElementById('toast-container');
+    if (c) attach(c);
+    attach(document.body);
+    setInterval(scrubQuotaToasts, 400);
   }
 
   function resetSubmitForm(clearFields) {
@@ -219,8 +231,7 @@
 
   function ensureSubmitAnotherBtn() {
     var success = document.getElementById('submit-success');
-    if (!success) return;
-    if (success.querySelector('#btn-submit-another')) return;
+    if (!success || success.querySelector('#btn-submit-another')) return;
     var btn = document.createElement('button');
     btn.type = 'button';
     btn.id = 'btn-submit-another';
@@ -268,71 +279,19 @@
     }
   }
 
-  function handleQuotaHit(err) {
-    var p = parseQuotaMessage(err || {});
-    showBanner(p.message);
-    showQuotaModal(p.limit);
-    hideToastLikeQuota();
-    setTimeout(hideToastLikeQuota, 80);
-    setTimeout(hideToastLikeQuota, 300);
-    return p;
-  }
-
-  function mapCreateError(err) {
-    if (isQuotaError(err)) return parseQuotaMessage(err).message;
-    if (isRlsError(err)) {
-      return 'Could not create ticket (permission). Check My Tickets — it may already be saved.';
-    }
-    return (err && err.message) || String(err || 'Create failed');
-  }
-
-  function wrapCreateTicket() {
-    var roots = [window, window.DR].filter(Boolean);
-    var names = ['createTicket', 'submitTicket', 'newTicket'];
-    roots.forEach(function (root) {
-      names.forEach(function (n) {
-        if (!root || typeof root[n] !== 'function') return;
-        if (root[n].__drQuotaWrapped) return;
-        var orig = root[n];
-        var wrapped = async function () {
-          if (isLocked()) {
-            return { error: 'Please wait — ticket is still being created.' };
-          }
-          lockBriefly(1500);
-          try {
-            var q = await fetchQuota();
-            if (q && !q.exempt && typeof q.remaining === 'number' && q.remaining <= 0) {
-              handleQuotaHit({ message: 'Daily limit of ' + q.limit });
-              unlock();
-              return { error: parseQuotaMessage({ message: 'Daily limit of ' + q.limit }).message };
-            }
-            var res = await orig.apply(this, arguments);
-            if (res && res.error) {
-              if (isQuotaError(res.error)) {
-                handleQuotaHit({ message: String(res.error) });
-                unlock();
-                return { error: parseQuotaMessage({ message: String(res.error) }).message };
-              }
-              var msg = mapCreateError({ message: String(res.error) });
-              unlock();
-              return { error: msg };
-            }
-            setTimeout(function () {
-              ensureSubmitAnotherBtn();
-              unlock();
-              refreshHint();
-            }, 400);
-            return res;
-          } catch (err) {
-            if (isQuotaError(err)) handleQuotaHit(err);
-            unlock();
-            throw err;
-          }
-        };
-        wrapped.__drQuotaWrapped = true;
-        root[n] = wrapped;
-      });
-    });
+  function handleQuotaHit(limitOrMsg) {
+    var limit =
+      typeof limitOrMsg === 'number' ? limitOrMsg : parseLimit(limitOrMsg);
+    showQuotaModal(limit);
+    showBanner(
+      'You have reached your daily ticket limit of ' +
+        limit +
+        '. The limit resets at 00:00 UTC.'
+    );
+    scrubQuotaToasts();
+    setTimeout(scrubQuotaToasts, 50);
+    setTimeout(scrubQuotaToasts, 200);
+    setTimeout(scrubQuotaToasts, 500);
   }
 
   function wireForm() {
@@ -341,26 +300,64 @@
 
     if (form.getAttribute('data-dr-quota') !== '1') {
       form.setAttribute('data-dr-quota', '1');
+
       form.addEventListener(
         'submit',
         function (e) {
+          setTimeout(scrubQuotaToasts, 30);
+          setTimeout(scrubQuotaToasts, 150);
+          setTimeout(scrubQuotaToasts, 400);
+
           if (isLocked()) {
             e.preventDefault();
             e.stopImmediatePropagation();
             return;
           }
+
+          if (form.getAttribute('data-dr-quota-pass') === '1') {
+            form.removeAttribute('data-dr-quota-pass');
+            lockBriefly(1500);
+            return;
+          }
+
+          e.preventDefault();
+          e.stopImmediatePropagation();
+
           lockBriefly(1500);
           var btn = form.querySelector('button[type="submit"], .btn-primary');
           if (btn) {
             btn.disabled = true;
             setTimeout(function () {
               btn.disabled = false;
-            }, 1500);
+            }, 1600);
           }
+
+          (async function () {
+            try {
+              var q = await fetchQuota();
+              if (q && !q.exempt && typeof q.remaining === 'number' && q.remaining <= 0) {
+                handleQuotaHit(q.limit || DEFAULT_LIMIT);
+                unlock();
+                return;
+              }
+            } catch (err) {}
+
+            form.setAttribute('data-dr-quota-pass', '1');
+            try {
+              if (typeof form.requestSubmit === 'function') form.requestSubmit();
+              else {
+                var ev = new Event('submit', { bubbles: true, cancelable: true });
+                form.dispatchEvent(ev);
+              }
+            } catch (err2) {
+              form.removeAttribute('data-dr-quota-pass');
+            }
+          })();
         },
         true
       );
     }
+
     ensureSubmitAnotherBtn();
   }
 
@@ -372,80 +369,34 @@
         resetSubmitForm(false);
       });
     });
-
-    var panel = document.getElementById('ctab-submit');
-    if (panel && panel.getAttribute('data-dr-quota-panel') !== '1') {
-      panel.setAttribute('data-dr-quota-panel', '1');
-      try {
-        var mo = new MutationObserver(function () {
-          if (panel.classList.contains('active')) {
-            var success = document.getElementById('submit-success');
-            if (success && !success.hidden && success.style.display !== 'none') {
-              ensureSubmitAnotherBtn();
-            } else {
-              resetSubmitForm(false);
-            }
-          }
-        });
-        mo.observe(panel, { attributes: true, attributeFilter: ['class'] });
-      } catch (e) {}
-    }
   }
-
-  function patchToast() {
-    if (window.__drQuotaToastPatched) return;
-    window.__drQuotaToastPatched = true;
-    var names = ['toast', 'showToast', 'notify'];
-    names.forEach(function (n) {
-      if (typeof window[n] !== 'function') return;
-      var orig = window[n];
-      window[n] = function (msg, type) {
-        if (isQuotaError(msg)) {
-          handleQuotaHit({ message: String(msg) });
-          return;
-        }
-        return orig.apply(this, arguments);
-      };
-    });
-  }
-
-  var _alert = window.alert;
-  window.alert = function (msg) {
-    if (isQuotaError(msg)) {
-      handleQuotaHit({ message: String(msg) });
-      return;
-    }
-    return _alert.apply(this, arguments);
-  };
 
   function apply() {
     injectStyles();
     wireForm();
     wireTabs();
-    wrapCreateTicket();
-    patchToast();
+    watchToasts();
     ensureSubmitAnotherBtn();
     refreshHint();
+    scrubQuotaToasts();
   }
 
   apply();
-  setTimeout(apply, 600);
-  setTimeout(apply, 2000);
-  setTimeout(apply, 5000);
+  setTimeout(apply, 500);
+  setTimeout(apply, 1500);
+  setTimeout(apply, 3500);
   setInterval(function () {
     wireForm();
     wireTabs();
-    wrapCreateTicket();
-    patchToast();
-    ensureSubmitAnotherBtn();
-  }, 10000);
+    watchToasts();
+    scrubQuotaToasts();
+  }, 8000);
 
   window.DRTicketQuota = {
     refresh: apply,
     resetForm: resetSubmitForm,
     showModal: showQuotaModal,
     fetch: fetchQuota,
-    isQuotaError: isQuotaError,
-    parse: parseQuotaMessage
+    scrub: scrubQuotaToasts
   };
 })();
