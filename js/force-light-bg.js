@@ -1,6 +1,7 @@
 /**
  * Divine Rays — symmetrical medical-tech login ambient
- * Upper/lower broken lines frame the ECG · Credit: Boyz at the Back
+ * Upper band at card-top · lower at card-bottom · ECG centered between
+ * Credit: Boyz at the Back
  */
 (function () {
   'use strict';
@@ -187,46 +188,37 @@
       '</filter>' +
       '</defs>' +
       '<g fill="none" stroke="' + stroke + '" stroke-width="1.15" filter="url(#drG)" opacity="0.9">' +
-      line('M60 300 H220 L280 250 H420 L480 300 H600', true) +
-      line('M1140 300 H980 L920 250 H780 L720 300 H600', true) +
-      line('M280 250 V215 M420 250 V215') +
-      line('M920 250 V215 M780 250 V215') +
-      line('M220 300 V340 M480 300 V340') +
-      line('M980 300 V340 M720 300 V340') +
-      line('M60 500 H200 L260 450 H400 L460 500 H600', true) +
-      line('M1140 500 H1000 L940 450 H800 L740 500 H600', true) +
-      line('M260 450 V410 M400 450 V410') +
-      line('M940 450 V410 M800 450 V410') +
-      line('M200 500 V545 M460 500 V545') +
-      line('M1000 500 V545 M740 500 V545') +
-      line('M60 680 H220 L280 630 H420 L480 680 H600', false) +
-      line('M1140 680 H980 L920 630 H780 L720 680 H600', false) +
-      line('M280 630 V600 M420 630 V600') +
-      line('M920 630 V600 M780 630 V600') +
-      line('M600 300 V500 M600 500 V680', false) +
+      line('M40 220 H200 L260 170 H420 L480 220 H600', true) +
+      line('M1160 220 H1000 L940 170 H780 L720 220 H600', true) +
+      line('M260 170 V130 M420 170 V130') +
+      line('M940 170 V130 M780 170 V130') +
+      line('M200 220 V265 M480 220 V265') +
+      line('M1000 220 V265 M720 220 V265') +
+      line('M40 570 H200 L260 520 H420 L480 570 H600', true) +
+      line('M1160 570 H1000 L940 520 H780 L720 570 H600', true) +
+      line('M260 520 V480 M420 520 V480') +
+      line('M940 520 V480 M780 520 V480') +
+      line('M200 570 V615 M480 570 V615') +
+      line('M1000 570 V615 M720 570 V615') +
+      line('M600 220 V400 M600 400 V570', false) +
       '</g>' +
       '<g fill="' + fill + '">' +
-      node(220, 300) + node(280, 250) + node(420, 250) + node(480, 300) + node(600, 300) +
-      node(980, 300) + node(920, 250) + node(780, 250) + node(720, 300) +
-      node(280, 215) + node(420, 215) + node(920, 215) + node(780, 215) +
-      node(220, 340) + node(480, 340) + node(980, 340) + node(720, 340) +
-      node(200, 500) + node(260, 450) + node(400, 450) + node(460, 500) + node(600, 500) +
-      node(1000, 500) + node(940, 450) + node(800, 450) + node(740, 500) +
-      node(260, 410) + node(400, 410) + node(940, 410) + node(800, 410) +
-      node(200, 545) + node(460, 545) + node(1000, 545) + node(740, 545) +
-      node(220, 680) + node(280, 630) + node(420, 630) + node(480, 680) + node(600, 680) +
-      node(980, 680) + node(920, 630) + node(780, 630) + node(720, 680) +
-      node(280, 600) + node(420, 600) + node(920, 600) + node(780, 600) +
+      node(200, 220) + node(260, 170) + node(420, 170) + node(480, 220) + node(600, 220) +
+      node(1000, 220) + node(940, 170) + node(780, 170) + node(720, 220) +
+      node(260, 130) + node(420, 130) + node(940, 130) + node(780, 130) +
+      node(200, 265) + node(480, 265) + node(1000, 265) + node(720, 265) +
+      node(200, 570) + node(260, 520) + node(420, 520) + node(480, 570) + node(600, 570) +
+      node(1000, 570) + node(940, 520) + node(780, 520) + node(720, 570) +
+      node(260, 480) + node(420, 480) + node(940, 480) + node(780, 480) +
+      node(200, 615) + node(480, 615) + node(1000, 615) + node(720, 615) +
       '</g>' +
       '<g opacity="0.9">' +
-      iconEcg(120, 300, 42) + iconEcg(1080, 300, 42) +
-      iconHex(350, 220, 14) + iconHex(850, 220, 14) +
-      iconCross(120, 500, 16) + iconCross(1080, 500, 16) +
-      iconDna(330, 430, 22) + iconDna(870, 430, 22) +
-      iconHeart(500, 545, 12) + iconHeart(700, 545, 12) +
-      iconHeart(120, 680, 14) + iconHeart(1080, 680, 14) +
-      iconCross(350, 700, 13) + iconCross(850, 700, 13) +
-      iconEcg(500, 680, 36) + iconEcg(700, 680, 36) +
+      iconEcg(110, 220, 40) + iconEcg(1090, 220, 40) +
+      iconHex(340, 140, 13) + iconHex(860, 140, 13) +
+      iconCross(110, 570, 15) + iconCross(1090, 570, 15) +
+      iconDna(340, 500, 20) + iconDna(860, 500, 20) +
+      iconHeart(500, 615, 11) + iconHeart(700, 615, 11) +
+      iconHeart(110, 615, 12) + iconHeart(1090, 615, 12) +
       '</g>' +
       '</svg>'
     );
@@ -271,7 +263,7 @@
       login.insertBefore(layer, login.firstChild);
     }
     var light = isLight();
-    var key = (light ? 'L' : 'D') + '-login';
+    var key = (light ? 'L' : 'D') + '-login-v2';
     if (key === lastAmbientKey && layer.childNodes.length) {
       layer.style.display = 'block';
       return;
