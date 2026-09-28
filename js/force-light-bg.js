@@ -1,6 +1,6 @@
 /**
  * Divine Rays — full-screen symmetrical medical-tech login ambient
- * Equal density light + dark · fills viewport · Credit: Boyz at the Back
+ * Continuous dash animation (no rebuild pause) · Credit: Boyz at the Back
  */
 (function () {
   'use strict';
@@ -11,6 +11,7 @@
 
   var CSS_ID = 'dr-login-ambient-css';
   var LAYER_ID = 'dr-login-ambient';
+  var lastAmbientKey = '';
 
   var LOGIN_DARK =
     'radial-gradient(ellipse 120% 80% at 50% 50%, rgba(139,92,246,0.28), transparent 60%),' +
@@ -83,8 +84,8 @@
       'animation:drParticle 8s ease-in-out infinite',
       '}',
       '@keyframes drParticle{0%{transform:translate(0,0) scale(1);opacity:0.25}40%{opacity:0.9}100%{transform:translate(8px,-36px) scale(0.65);opacity:0.08}}',
-      '#' + LAYER_ID + ' .dr-pulse{stroke-dasharray:6 12;animation:drTrace 22s linear infinite}',
-      '@keyframes drTrace{to{stroke-dashoffset:-240}}',
+      '#' + LAYER_ID + ' .dr-pulse{stroke-dasharray:4 10;animation:drTrace 14s linear infinite}',
+      '@keyframes drTrace{from{stroke-dashoffset:0}to{stroke-dashoffset:-280}}',
       '@media (prefers-reduced-motion:reduce){#' + LAYER_ID + ' .dr-particles span,#' + LAYER_ID + ' .dr-pulse{animation:none!important}}'
     ].join('');
   }
@@ -205,6 +206,7 @@
     var layer = document.getElementById(LAYER_ID);
     if (!loginVisible() || !login) {
       if (layer) layer.style.display = 'none';
+      lastAmbientKey = '';
       return;
     }
     if (!layer) {
@@ -216,6 +218,12 @@
       login.insertBefore(layer, login.firstChild);
     }
     var light = isLight();
+    var key = (light ? 'L' : 'D') + '-login';
+    if (key === lastAmbientKey && layer.childNodes.length) {
+      layer.style.display = 'block';
+      return;
+    }
+    lastAmbientKey = key;
     var stroke = light ? '#5b21b6' : '#e9d5ff';
     var fill = light ? '#6d28d9' : '#f5f3ff';
     var accent = light ? '#4c1d95' : '#2e1065';
@@ -280,7 +288,7 @@
   setTimeout(apply, 200);
   setTimeout(apply, 800);
   setTimeout(apply, 2000);
-  setInterval(apply, 3000);
+  setInterval(apply, 5000);
 
   document.addEventListener('click', function (e) {
     var t = e.target;
