@@ -1,6 +1,7 @@
 /**
- * Divine Rays — continuous spinning steam gears (no animation reset)
- * Gears on portal only · ECG on login · Credit: Boyz at the Back · All Rights Reserved
+ * Divine Rays — continuous spinning steam gears + seamless ECG
+ * Gears on portal · ECG on login · no rectangular glow plate
+ * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
@@ -73,21 +74,8 @@
     }
     d += ' Z';
     d +=
-      ' M' +
-      holeR +
-      ' 0 A' +
-      holeR +
-      ' ' +
-      holeR +
-      ' 0 1 0 ' +
-      -holeR +
-      ' 0 A' +
-      holeR +
-      ' ' +
-      holeR +
-      ' 0 1 0 ' +
-      holeR +
-      ' 0 Z';
+      ' M' + holeR + ' 0 A' + holeR + ' ' + holeR + ' 0 1 0 ' + -holeR +
+      ' 0 A' + holeR + ' ' + holeR + ' 0 1 0 ' + holeR + ' 0 Z';
     return d;
   }
 
@@ -95,26 +83,10 @@
     var d = gearPath(teeth, outer, inner, hole);
     var s = scale || 1;
     return (
-      '<g transform="translate(' +
-      cx +
-      ' ' +
-      cy +
-      ') scale(' +
-      s +
-      ')">' +
-      '<g class="' +
-      cls +
-      '">' +
-      '<path fill="' +
-      fill +
-      '" fill-rule="evenodd" d="' +
-      d +
-      '"/>' +
-      '<circle cx="0" cy="0" r="' +
-      (hole * 0.55).toFixed(1) +
-      '" fill="' +
-      fill +
-      '" opacity="0.85"/>' +
+      '<g transform="translate(' + cx + ' ' + cy + ') scale(' + s + ')">' +
+      '<g class="' + cls + '">' +
+      '<path fill="' + fill + '" fill-rule="evenodd" d="' + d + '"/>' +
+      '<circle cx="0" cy="0" r="' + (hole * 0.55).toFixed(1) + '" fill="' + fill + '" opacity="0.85"/>' +
       '</g></g>'
     );
   }
@@ -123,9 +95,7 @@
     var c = colors();
     return (
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice" ' +
-      'width="100%" height="100%" style="display:block;opacity:' +
-      c.opacity +
-      '">' +
+      'width="100%" height="100%" style="display:block;opacity:' + c.opacity + '">' +
       oneGear('dr-spin-cw', c.a, 12, 90, 62, 22, 180, 200, 1.15) +
       oneGear('dr-spin-ccw', c.b, 10, 70, 48, 18, 340, 280, 1) +
       oneGear('dr-spin-cw-fast', c.c, 14, 110, 76, 26, 620, 180, 1.25) +
@@ -140,11 +110,11 @@
 
   var CSS = [
     '#' + BOX_ID + '{',
-    'z-index:0!important;pointer-events:none!important;overflow:hidden!important;',
-    'background:transparent!important',
+    'z-index:0!important;pointer-events:none!important;overflow:visible!important;',
+    'background:transparent!important;box-shadow:none!important;filter:none!important',
     '}',
     '#dr-lifeline,#dr-lifeline *{pointer-events:none!important}',
-    '#dr-lifeline svg{width:100%;height:100%;display:block}',
+    '#dr-lifeline svg{width:100%;height:100%;display:block;overflow:visible}',
     '#dr-lifeline .dr-spin-cw{transform-origin:0 0;animation:drGearCW 30s linear infinite}',
     '#dr-lifeline .dr-spin-ccw{transform-origin:0 0;animation:drGearCCW 24s linear infinite}',
     '#dr-lifeline .dr-spin-cw-fast{transform-origin:0 0;animation:drGearCW 18s linear infinite}',
@@ -155,19 +125,20 @@
     '#login-screen .login-card,.login-card{position:relative!important;z-index:5!important}',
     'body,.app-shell,#portal-customer,#portal-agent{position:relative;z-index:1}',
     '@keyframes drEcgDraw{',
-    '0%{stroke-dashoffset:var(--dr-len);opacity:0}',
-    '4%{opacity:0.85}',
-    '50%{opacity:1}',
-    '88%{stroke-dashoffset:0;opacity:1}',
-    '100%{stroke-dashoffset:0;opacity:0}',
+    '0%{stroke-dashoffset:var(--dr-len)}',
+    '100%{stroke-dashoffset:0}',
     '}',
-    '@keyframes drEcgPulse{',
-    '0%,100%{filter:drop-shadow(0 0 4px #e9d5ff) drop-shadow(0 0 12px rgba(167,139,250,0.7))}',
-    '50%{filter:drop-shadow(0 0 8px #f5f3ff) drop-shadow(0 0 22px rgba(196,181,253,0.95)) drop-shadow(0 0 36px rgba(124,106,240,0.6))}',
+    '@keyframes drEcgGlowPulse{',
+    '0%,100%{opacity:0.18}',
+    '50%{opacity:0.42}',
+    '}',
+    '@keyframes drEcgCorePulse{',
+    '0%,100%{opacity:0.88}',
+    '50%{opacity:1}',
     '}',
     '@media (prefers-reduced-motion:reduce){',
     '#dr-lifeline .dr-spin-cw,#dr-lifeline .dr-spin-ccw,#dr-lifeline .dr-spin-cw-fast,#dr-lifeline .dr-spin-ccw-slow{animation:none!important}',
-    '#dr-lifeline .dr-ecg-draw{animation:none!important;stroke-dashoffset:0!important;opacity:0.5}',
+    '#dr-lifeline .dr-ecg-core,#dr-lifeline .dr-ecg-glow{animation:none!important;stroke-dashoffset:0!important;opacity:0.5}',
     '}'
   ].join('');
 
@@ -177,10 +148,8 @@
       el = document.createElement('style');
       el.id = CSS_ID;
       document.head.appendChild(el);
-      el.textContent = CSS;
-    } else {
-      el.textContent = CSS;
     }
+    el.textContent = CSS;
   }
 
   var ECG_PATTERNS = [
@@ -193,19 +162,25 @@
   var lastMode = null;
 
   function ecgStroke() {
-    return isLight() ? '#5b21b6' : '#e9d5ff';
+    return isLight() ? '#5b21b6' : '#f0e7ff';
   }
-  function ecgGlow() {
-    if (isLight()) {
-      return 'drop-shadow(0 0 3px #7c3aed) drop-shadow(0 0 10px rgba(109,40,217,0.65))';
-    }
-    return 'drop-shadow(0 0 4px #e9d5ff) drop-shadow(0 0 12px rgba(167,139,250,0.7))';
+  function ecgGlowStroke() {
+    return isLight() ? '#7c3aed' : '#c4b5fd';
   }
+
   function ecgMarkup() {
     var d = ECG_PATTERNS[ecgIndex % ECG_PATTERNS.length];
+    var core = ecgStroke();
+    var glow = ecgGlowStroke();
     return (
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 100" preserveAspectRatio="none" width="100%" height="100%" style="display:block">' +
-      '<path class="dr-ecg-draw" fill="none" stroke="' + ecgStroke() + '" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" d="' + d + '"/>' +
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 100" preserveAspectRatio="none" ' +
+      'width="100%" height="100%" style="display:block;overflow:visible">' +
+      '<path class="dr-ecg-glow" fill="none" stroke="' + glow + '" stroke-width="11" ' +
+      'stroke-linecap="round" stroke-linejoin="round" d="' + d + '"/>' +
+      '<path class="dr-ecg-glow" fill="none" stroke="' + glow + '" stroke-width="6" ' +
+      'stroke-linecap="round" stroke-linejoin="round" d="' + d + '"/>' +
+      '<path class="dr-ecg-core" fill="none" stroke="' + core + '" stroke-width="3" ' +
+      'stroke-linecap="round" stroke-linejoin="round" d="' + d + '"/>' +
       '</svg>'
     );
   }
@@ -232,23 +207,39 @@
     if (login && box.parentNode !== login) {
       login.insertBefore(box, login.firstChild);
     }
-    box.style.cssText = 'display:block!important;position:absolute!important;left:0!important;right:0!important;width:100%!important;top:50%!important;height:240px!important;margin-top:-120px!important;z-index:1!important;pointer-events:none!important;opacity:1!important;visibility:visible!important';
+    box.style.cssText =
+      'display:block!important;position:absolute!important;left:0!important;right:0!important;' +
+      'width:100%!important;top:50%!important;height:180px!important;margin-top:-90px!important;' +
+      'z-index:1!important;pointer-events:none!important;opacity:1!important;visibility:visible!important;' +
+      'background:transparent!important;overflow:visible!important;box-shadow:none!important;filter:none!important';
     box.innerHTML = ecgMarkup();
-    var path = box.querySelector('.dr-ecg-draw');
-    if (!path) return;
+    var paths = box.querySelectorAll('.dr-ecg-core, .dr-ecg-glow');
+    if (!paths.length) return;
     var len = 1600;
-    try { len = path.getTotalLength() || 1600; } catch (e) {}
-    path.style.setProperty('--dr-len', len);
-    path.style.strokeDasharray = String(len);
-    path.style.strokeDashoffset = String(len);
-    path.style.filter = ecgGlow();
-    path.style.animation = 'none';
-    void path.getBoundingClientRect();
-    path.style.animation = 'drEcgDraw 10s linear forwards, drEcgPulse 2.4s ease-in-out infinite';
+    try {
+      len = paths[paths.length - 1].getTotalLength() || 1600;
+    } catch (e) {}
+    for (var i = 0; i < paths.length; i++) {
+      var p = paths[i];
+      p.style.setProperty('--dr-len', len);
+      p.style.strokeDasharray = String(len);
+      p.style.strokeDashoffset = String(len);
+      p.style.filter = 'none';
+      p.style.animation = 'none';
+    }
+    void box.getBoundingClientRect();
+    for (var j = 0; j < paths.length; j++) {
+      var pj = paths[j];
+      if (pj.classList.contains('dr-ecg-core')) {
+        pj.style.animation = 'drEcgDraw 9s linear forwards, drEcgCorePulse 2.2s ease-in-out infinite';
+      } else {
+        pj.style.animation = 'drEcgDraw 9s linear forwards, drEcgGlowPulse 2.2s ease-in-out infinite';
+      }
+    }
     ecgTimer = setTimeout(function () {
       ecgIndex = (ecgIndex + 1) % ECG_PATTERNS.length;
       if (loginVisible()) runEcgCycle();
-    }, 10080);
+    }, 9000);
   }
 
   function ensureGears(force) {
@@ -262,11 +253,10 @@
         runEcgCycle();
       } else if (themeKey() !== lastTheme) {
         lastTheme = themeKey();
-        var p = box.querySelector('.dr-ecg-draw');
-        if (p) {
-          p.setAttribute('stroke', ecgStroke());
-          p.style.filter = ecgGlow();
-        }
+        var cores = box.querySelectorAll('.dr-ecg-core');
+        var glows = box.querySelectorAll('.dr-ecg-glow');
+        for (var ci = 0; ci < cores.length; ci++) cores[ci].setAttribute('stroke', ecgStroke());
+        for (var gi = 0; gi < glows.length; gi++) glows[gi].setAttribute('stroke', ecgGlowStroke());
       }
       return;
     }
@@ -278,7 +268,10 @@
     if (box.parentNode !== document.body) {
       document.body.insertBefore(box, document.body.firstChild);
     }
-    box.style.cssText = 'position:fixed!important;inset:0!important;width:100%!important;height:100%!important;z-index:0!important;pointer-events:none!important;overflow:hidden!important;opacity:1!important;visibility:visible!important;background:transparent!important';
+    box.style.cssText =
+      'position:fixed!important;inset:0!important;width:100%!important;height:100%!important;' +
+      'z-index:0!important;pointer-events:none!important;overflow:hidden!important;' +
+      'opacity:1!important;visibility:visible!important;background:transparent!important';
     var theme = themeKey();
     var hasGears = !!box.querySelector('.dr-spin-cw');
     if (force || !hasGears || lastTheme !== theme || lastMode !== 'portal') {
@@ -317,10 +310,11 @@
         setTimeout(function () {
           if (portalActive()) tick(true);
           else {
-            var p = document.querySelector('#dr-lifeline .dr-ecg-draw');
-            if (p) {
-              p.setAttribute('stroke', ecgStroke());
-              p.style.filter = ecgGlow();
+            var cores = document.querySelectorAll('#dr-lifeline .dr-ecg-core');
+            var glows = document.querySelectorAll('#dr-lifeline .dr-ecg-glow');
+            if (cores.length) {
+              for (var ci = 0; ci < cores.length; ci++) cores[ci].setAttribute('stroke', ecgStroke());
+              for (var gi = 0; gi < glows.length; gi++) glows[gi].setAttribute('stroke', ecgGlowStroke());
             } else tick(true);
           }
         }, 60);
