@@ -75,6 +75,10 @@
       'background:rgba(239,68,68,.18);border:1px solid rgba(248,113,113,.45);box-shadow:0 0 28px rgba(239,68,68,.3)}' +
       '#dr-quota-modal h3{margin:0 0 .55rem;font-size:1.2rem;font-weight:800;color:#fff}' +
       '#dr-quota-modal p{margin:0 0 .4rem;font-size:.94rem;line-height:1.5;color:#c4b5fd}' +
+      '#dr-quota-modal .dr-q-why{margin:.75rem 0 0;padding:.75rem .9rem;border-radius:12px;text-align:left;font-size:.82rem;line-height:1.45;color:#c4b5fd;background:rgba(124,58,237,.12);border:1px solid rgba(167,139,250,.28)}' +
+      '#dr-quota-modal .dr-q-why strong{display:block;margin-bottom:.25rem;color:#e9d5ff;font-size:.85rem}' +
+      '[data-theme="light"] #dr-quota-modal .dr-q-why{background:rgba(124,58,237,.08);color:#5b21b6;border-color:rgba(124,58,237,.22)}' +
+      '[data-theme="light"] #dr-quota-modal .dr-q-why strong{color:#4c1d95}' +
       '#dr-quota-modal .dr-q-meta{margin:.9rem 0 1.15rem;padding:.7rem .9rem;border-radius:12px;' +
       'background:rgba(15,10,30,.6);border:1px solid rgba(139,92,246,.3);font-size:.84rem;color:#a78bfa;font-weight:600}' +
       '#dr-quota-modal .dr-q-actions{display:flex;gap:.65rem;flex-wrap:wrap;justify-content:center}' +
@@ -118,6 +122,11 @@
       '<div class="dr-q-icon" aria-hidden="true">⛔</div>' +
       '<h3>Daily ticket limit reached</h3>' +
       '<p>You have already submitted the maximum number of tickets allowed for today.</p>' +
+      '<div class="dr-q-why">' +
+      '<strong>Why is there a limit?</strong><br/>' +
+      'A daily cap keeps support fair and responsive for everyone. ' +
+      'It prevents accidental mass submissions, spam, and overload so agents can focus on real issues and resolve them faster.' +
+      '</div>' +
       '<div class="dr-q-meta">Limit: <strong>' +
       limit +
       ' tickets / day</strong> · Resets at <strong>00:00 UTC</strong></div>' +
@@ -180,9 +189,7 @@
         } catch (e) {}
         showQuotaModal(parseLimit(txt));
         showBanner(
-          'You have reached your daily ticket limit (' +
-            parseLimit(txt) +
-            ' / day). Resets at 00:00 UTC.'
+          'Daily limit reached (' + parseLimit(txt) + ' / day). This protects support capacity for all users. Resets at 00:00 UTC.'
         );
       }
     });
@@ -268,9 +275,7 @@
     if (rem === null) return;
     if (rem <= 0) {
       showBanner(
-        'Daily limit reached (' +
-          q.limit +
-          ' tickets / day). You can submit again after 00:00 UTC.'
+        'Daily limit reached (' + q.limit + ' / day). This keeps support fair for everyone. Try again after 00:00 UTC.'
       );
     } else if (rem <= 2) {
       showBanner(
@@ -284,9 +289,7 @@
       typeof limitOrMsg === 'number' ? limitOrMsg : parseLimit(limitOrMsg);
     showQuotaModal(limit);
     showBanner(
-      'You have reached your daily ticket limit of ' +
-        limit +
-        '. The limit resets at 00:00 UTC.'
+      'Daily limit of ' + limit + ' tickets reached. Limits keep support fair and prevent overload. Resets at 00:00 UTC.'
     );
     scrubQuotaToasts();
     setTimeout(scrubQuotaToasts, 50);
