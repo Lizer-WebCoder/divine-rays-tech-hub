@@ -1,6 +1,6 @@
 /**
- * Divine Rays — full-screen symmetrical medical-tech login ambient
- * Continuous dash animation (no rebuild pause) · Credit: Boyz at the Back
+ * Divine Rays — symmetrical medical-tech login ambient (centered on login card)
+ * Clean geometric icons · continuous dash · Credit: Boyz at the Back
  */
 (function () {
   'use strict';
@@ -60,11 +60,11 @@
   function ambientCss() {
     var light = isLight();
     var hexOp = light ? '0.32' : '0.22';
-    var netOp = light ? '0.72' : '0.62';
+    var netOp = light ? '0.58' : '0.52';
     var particle = light ? 'rgba(91,33,182,0.6)' : 'rgba(233,213,255,0.6)';
     var vignette = light
-      ? 'radial-gradient(ellipse 50% 45% at 50% 48%, transparent 25%, rgba(228,220,248,0.5) 100%)'
-      : 'radial-gradient(ellipse 50% 45% at 50% 48%, transparent 25%, rgba(10,5,24,0.55) 100%)';
+      ? 'radial-gradient(ellipse 42% 40% at 50% 48%, transparent 20%, rgba(228,220,248,0.5) 100%)'
+      : 'radial-gradient(ellipse 42% 40% at 50% 48%, transparent 20%, rgba(10,5,24,0.55) 100%)';
 
     return [
       '#' + LAYER_ID + '{',
@@ -117,65 +117,120 @@
 
   function networkSvg(stroke, fill, accent) {
     function node(x, y, r) {
-      return '<circle cx="' + x + '" cy="' + y + '" r="' + (r || 3) + '"/>';
+      return '<circle cx="' + x + '" cy="' + y + '" r="' + (r || 2.8) + '"/>';
     }
     function line(d, pulse) {
       return '<path ' + (pulse ? 'class="dr-pulse" ' : '') + 'd="' + d + '"/>';
     }
+    function iconCross(x, y, s) {
+      var w = s * 0.35, h = s * 0.9, t = s * 0.28;
+      return (
+        '<path fill="' + fill + '" stroke="none" opacity="0.85" d="' +
+        'M' + (x - w) + ' ' + (y - t) +
+        ' H' + (x + w) + ' V' + (y + t) +
+        ' H' + (x + t) + ' V' + (y + h) +
+        ' H' + (x - t) + ' V' + (y + t) +
+        ' H' + (x - w) + ' Z' +
+        ' M' + (x - t) + ' ' + (y - h) +
+        ' H' + (x + t) + ' V' + (y - t) +
+        ' H' + (x - t) + ' Z"/>'
+      );
+    }
+    function iconHeart(x, y, s) {
+      return (
+        '<path fill="' + fill + '" stroke="none" opacity="0.85" d="' +
+        'M' + x + ' ' + (y + s * 0.55) +
+        ' C' + x + ' ' + (y + s * 0.15) + ' ' + (x - s * 0.7) + ' ' + (y - s * 0.15) + ' ' + (x - s * 0.55) + ' ' + (y - s * 0.35) +
+        ' C' + (x - s * 0.35) + ' ' + (y - s * 0.6) + ' ' + x + ' ' + (y - s * 0.35) + ' ' + x + ' ' + (y - s * 0.1) +
+        ' C' + x + ' ' + (y - s * 0.35) + ' ' + (x + s * 0.35) + ' ' + (y - s * 0.6) + ' ' + (x + s * 0.55) + ' ' + (y - s * 0.35) +
+        ' C' + (x + s * 0.7) + ' ' + (y - s * 0.15) + ' ' + x + ' ' + (y + s * 0.15) + ' ' + x + ' ' + (y + s * 0.55) + ' Z"/>'
+      );
+    }
+    function iconEcg(x, y, w) {
+      var h = 14;
+      return (
+        '<path fill="none" stroke="' + stroke + '" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="' +
+        'M' + (x - w) + ' ' + y +
+        ' H' + (x - w * 0.45) +
+        ' L' + (x - w * 0.3) + ' ' + (y - h) +
+        ' L' + (x - w * 0.1) + ' ' + (y + h * 1.1) +
+        ' L' + (x + w * 0.05) + ' ' + y +
+        ' H' + (x + w) + '"/>'
+      );
+    }
+    function iconDna(x, y, h) {
+      return (
+        '<g fill="none" stroke="' + stroke + '" stroke-width="1.35" stroke-linecap="round">' +
+        '<path d="M' + (x - 7) + ' ' + (y - h) + ' C' + (x + 8) + ' ' + (y - h * 0.5) + ' ' + (x + 8) + ' ' + (y + h * 0.5) + ' ' + (x - 7) + ' ' + (y + h) + '"/>' +
+        '<path d="M' + (x + 7) + ' ' + (y - h) + ' C' + (x - 8) + ' ' + (y - h * 0.5) + ' ' + (x - 8) + ' ' + (y + h * 0.5) + ' ' + (x + 7) + ' ' + (y + h) + '"/>' +
+        '<path d="M' + (x - 5) + ' ' + (y - h * 0.35) + ' H' + (x + 5) + '"/>' +
+        '<path d="M' + (x - 5) + ' ' + (y + h * 0.35) + ' H' + (x + 5) + '"/>' +
+        '</g>'
+      );
+    }
+    function iconHex(x, y, r) {
+      var pts = [];
+      for (var i = 0; i < 6; i++) {
+        var a = (Math.PI / 3) * i - Math.PI / 6;
+        pts.push((x + Math.cos(a) * r).toFixed(1) + ' ' + (y + Math.sin(a) * r).toFixed(1));
+      }
+      return '<path fill="none" stroke="' + stroke + '" stroke-width="1.2" d="M' + pts.join(' L') + ' Z"/>';
+    }
+
     return (
       '<svg class="dr-network" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice">' +
-      '<defs><filter id="drG" x="-15%" y="-15%" width="130%" height="130%">' +
-      '<feGaussianBlur stdDeviation="1.8" result="b"/>' +
-      '<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>' +
-      '<g fill="none" stroke="' + stroke + '" stroke-width="1.25" filter="url(#drG)" opacity="0.95">' +
-      line('M40 160 H200 L260 110 H400 L460 160 H600 L660 110 H800 L860 160 H1160', true) +
-      line('M260 110 V70 M400 110 V70 M660 110 V70 M800 110 V70') +
-      line('M200 160 V210 M460 160 V210 M860 160 V210') +
-      line('M40 400 H180 L240 340 H380 L440 400 H600 L660 340 H800 L860 400 H1160', true) +
-      line('M240 340 V300 M380 340 V300 M660 340 V300 M800 340 V300') +
-      line('M180 400 V460 M440 400 V460 M860 400 V460') +
-      line('M40 640 H200 L260 590 H400 L460 640 H600 L660 590 H800 L860 640 H1160', true) +
-      line('M260 590 V550 M400 590 V550 M660 590 V550 M800 590 V550') +
-      line('M200 640 V690 M460 640 V690 M860 640 V690') +
-      line('M600 160 V400 M600 400 V640', false) +
-      line('M300 210 V340 M900 210 V340 M300 460 V590 M900 460 V590', false) +
+      '<defs>' +
+      '<filter id="drG" x="-10%" y="-10%" width="120%" height="120%">' +
+      '<feGaussianBlur stdDeviation="1.4" result="b"/>' +
+      '<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>' +
+      '</filter>' +
+      '</defs>' +
+      '<g fill="none" stroke="' + stroke + '" stroke-width="1.15" filter="url(#drG)" opacity="0.9">' +
+      line('M60 150 H220 L280 100 H420 L480 150 H600', true) +
+      line('M1140 150 H980 L920 100 H780 L720 150 H600', true) +
+      line('M280 100 V65 M420 100 V65') +
+      line('M920 100 V65 M780 100 V65') +
+      line('M220 150 V195 M480 150 V195') +
+      line('M980 150 V195 M720 150 V195') +
+      line('M60 400 H200 L260 350 H400 L460 400 H600', true) +
+      line('M1140 400 H1000 L940 350 H800 L740 400 H600', true) +
+      line('M260 350 V310 M400 350 V310') +
+      line('M940 350 V310 M800 350 V310') +
+      line('M200 400 V450 M460 400 V450') +
+      line('M1000 400 V450 M740 400 V450') +
+      line('M60 650 H220 L280 600 H420 L480 650 H600', true) +
+      line('M1140 650 H980 L920 600 H780 L720 650 H600', true) +
+      line('M280 600 V565 M420 600 V565') +
+      line('M920 600 V565 M780 600 V565') +
+      line('M220 650 V695 M480 650 V695') +
+      line('M980 650 V695 M720 650 V695') +
+      line('M600 150 V400 M600 400 V650', false) +
       '</g>' +
       '<g fill="' + fill + '">' +
-      node(200, 160) + node(260, 110) + node(400, 110) + node(460, 160) +
-      node(600, 160) + node(660, 110) + node(800, 110) + node(860, 160) +
-      node(260, 70) + node(400, 70) + node(660, 70) + node(800, 70) +
-      node(200, 210) + node(460, 210) + node(860, 210) +
-      node(180, 400) + node(240, 340) + node(380, 340) + node(440, 400) +
-      node(600, 400) + node(660, 340) + node(800, 340) + node(860, 400) +
-      node(240, 300) + node(380, 300) + node(660, 300) + node(800, 300) +
-      node(180, 460) + node(440, 460) + node(860, 460) +
-      node(200, 640) + node(260, 590) + node(400, 590) + node(460, 640) +
-      node(600, 640) + node(660, 590) + node(800, 590) + node(860, 640) +
-      node(260, 550) + node(400, 550) + node(660, 550) + node(800, 550) +
-      node(200, 690) + node(460, 690) + node(860, 690) +
-      node(300, 210, 2.5) + node(900, 210, 2.5) + node(300, 460, 2.5) + node(900, 460, 2.5) +
+      node(220, 150) + node(280, 100) + node(420, 100) + node(480, 150) + node(600, 150) +
+      node(980, 150) + node(920, 100) + node(780, 100) + node(720, 150) +
+      node(280, 65) + node(420, 65) + node(920, 65) + node(780, 65) +
+      node(220, 195) + node(480, 195) + node(980, 195) + node(720, 195) +
+      node(200, 400) + node(260, 350) + node(400, 350) + node(460, 400) + node(600, 400) +
+      node(1000, 400) + node(940, 350) + node(800, 350) + node(740, 400) +
+      node(260, 310) + node(400, 310) + node(940, 310) + node(800, 310) +
+      node(200, 450) + node(460, 450) + node(1000, 450) + node(740, 450) +
+      node(220, 650) + node(280, 600) + node(420, 600) + node(480, 650) + node(600, 650) +
+      node(980, 650) + node(920, 600) + node(780, 600) + node(720, 650) +
+      node(280, 565) + node(420, 565) + node(920, 565) + node(780, 565) +
+      node(220, 695) + node(480, 695) + node(980, 695) + node(720, 695) +
       '</g>' +
-      '<g fill="' + fill + '" stroke="' + stroke + '" stroke-width="1.3" opacity="0.95">' +
-      '<path d="M80 160 H105 L112 140 L119 180 L126 160 H150" fill="none" stroke-linecap="round" stroke-width="1.8"/>' +
-      '<circle cx="330" cy="55" r="10" fill="none"/><path d="M316 74 C316 64 344 64 344 74 V82 H316 Z" fill="none"/>' +
-      '<path d="M326 46 H334 M330 42 V50" stroke-width="1.5"/>' +
-      '<path d="M520 45 C535 58 535 82 520 95 M545 45 C530 58 530 82 545 95" fill="none" stroke-width="1.5"/>' +
-      '<path d="M523 60 H542 M523 80 H542" fill="none" stroke-width="1"/>' +
-      '<path d="M700 58 C700 46 686 40 678 50 C670 40 656 46 656 58 C656 74 678 90 678 90 C678 90 700 74 700 58 Z" fill="' + fill + '" stroke="none" opacity="0.9"/>' +
-      '<path d="M666 62 H672 L676 52 L680 72 L684 62 H690" fill="none" stroke="' + accent + '" stroke-width="1.2"/>' +
-      '<circle cx="1050" cy="50" r="8" fill="none"/><circle cx="1072" cy="53" r="7" fill="none"/><circle cx="1094" cy="50" r="8" fill="none"/>' +
-      '<path d="M1038 68 C1038 60 1062 60 1062 68 V76 H1038 Z" fill="none"/>' +
-      '<path d="M1060 70 C1060 63 1084 63 1084 70 V76 H1060 Z" fill="none"/>' +
-      '<path d="M1082 68 C1082 60 1106 60 1106 68 V76 H1082 Z" fill="none"/>' +
-      '<path d="M90 385 H112 V400 H126 V418 H112 V433 H90 V418 H76 V400 H90 Z" fill="' + fill + '" stroke="none" opacity="0.88"/>' +
-      '<path d="M300 445 H350 V460 H300 Z" fill="none"/><path d="M350 452.5 H365"/><path d="M365 447 L375 452.5 L365 458" fill="none"/>' +
-      '<rect x="1000" y="440" width="24" height="36" rx="4" fill="none"/><path d="M1006 440 V430 H1018 V440" fill="none"/><path d="M1000 458 H1024" fill="none"/>' +
-      '<path d="M1080 400 H1100 L1106 385 L1112 415 L1118 400 H1140" fill="none" stroke-width="1.6"/>' +
-      '<path d="M100 620 C115 635 115 660 100 675 M125 620 C110 635 110 660 125 675" fill="none" stroke-width="1.5"/>' +
-      '<path d="M600 620 C600 608 586 602 578 612 C570 602 556 608 556 620 C556 636 578 652 578 652 C578 652 600 636 600 620 Z" fill="' + fill + '" stroke="none" opacity="0.9"/>' +
-      '<path d="M1050 615 H1072 V630 H1086 V648 H1072 V663 H1050 V648 H1036 V630 H1050 Z" fill="' + fill + '" stroke="none" opacity="0.88"/>' +
-      '<path d="M1120 680 H1165 V693 H1120 Z" fill="none"/><path d="M1165 686.5 H1178"/>' +
-      '</g></svg>'
+      '<g opacity="0.9">' +
+      iconEcg(120, 150, 42) + iconEcg(1080, 150, 42) +
+      iconHex(350, 55, 14) + iconHex(850, 55, 14) +
+      iconCross(120, 400, 16) + iconCross(1080, 400, 16) +
+      iconDna(330, 320, 22) + iconDna(870, 320, 22) +
+      iconHeart(500, 460, 12) + iconHeart(700, 460, 12) +
+      iconHeart(120, 650, 14) + iconHeart(1080, 650, 14) +
+      iconCross(350, 680, 13) + iconCross(850, 680, 13) +
+      iconEcg(500, 650, 36) + iconEcg(700, 650, 36) +
+      '</g>' +
+      '</svg>'
     );
   }
 
