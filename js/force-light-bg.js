@@ -1,6 +1,6 @@
 /**
- * Divine Rays — full-bleed honeycomb + bands locked around ECG center
- * Scales to any resolution · Credit: Boyz at the Back
+ * Divine Rays — large full-bleed honeycomb (top to bottom) + ECG-centered bands
+ * Credit: Boyz at the Back
  */
 (function () {
   'use strict';
@@ -60,7 +60,7 @@
 
   function ambientCss() {
     var light = isLight();
-    var hexOp = light ? '0.48' : '0.22';
+    var hexOp = light ? '0.62' : '0.32';
     var netOp = light ? '0.85' : '0.52';
     var particle = light ? 'rgba(91,33,182,0.75)' : 'rgba(233,213,255,0.6)';
     var vignette = light
@@ -74,7 +74,7 @@
       '}',
       'body.is-login #' + LAYER_ID + '{display:block!important}',
       'body.is-portal #' + LAYER_ID + '{display:none!important}',
-      '#' + LAYER_ID + ' .dr-honeycomb{position:absolute;inset:-8%;width:116%;height:116%;opacity:' + hexOp + '}',
+      '#' + LAYER_ID + ' .dr-honeycomb{position:absolute;inset:-12%;width:124%;height:124%;opacity:' + hexOp + '}',
       '#' + LAYER_ID + ' .dr-honeycomb svg{width:100%;height:100%;display:block}',
       '#' + LAYER_ID + ' .dr-network{position:absolute;inset:0;opacity:' + netOp + '}',
       '#' + LAYER_ID + ' .dr-network svg{width:100%;height:100%;display:block}',
@@ -93,25 +93,26 @@
 
   function honeycombSvg(stroke) {
     var cells = [];
-    var rows = 18, cols = 20, w = 68, h = 40;
+    // Larger hexes, full coverage top→bottom (viewBox 1200×800)
+    var rows = 22, cols = 16, w = 95, h = 56;
     for (var r = 0; r < rows; r++) {
       for (var c = 0; c < cols; c++) {
-        var ox = c * w + (r % 2 ? w / 2 : 0) - 40;
-        var oy = r * h * 0.78 - 20;
+        var ox = c * w + (r % 2 ? w / 2 : 0) - 50;
+        var oy = r * h * 0.78 - 30;
         cells.push(
-          'M' + (ox + 28) + ' ' + oy +
-          ' L' + (ox + 52) + ' ' + (oy + 14) +
-          ' L' + (ox + 52) + ' ' + (oy + 34) +
-          ' L' + (ox + 28) + ' ' + (oy + 48) +
-          ' L' + (ox + 4) + ' ' + (oy + 34) +
-          ' L' + (ox + 4) + ' ' + (oy + 14) + ' Z'
+          'M' + (ox + 40) + ' ' + oy +
+          ' L' + (ox + 71) + ' ' + (oy + 18) +
+          ' L' + (ox + 71) + ' ' + (oy + 46) +
+          ' L' + (ox + 40) + ' ' + (oy + 64) +
+          ' L' + (ox + 9) + ' ' + (oy + 46) +
+          ' L' + (ox + 9) + ' ' + (oy + 18) + ' Z'
         );
       }
     }
     return (
       '<svg class="dr-honeycomb" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" preserveAspectRatio="none" ' +
       'width="100%" height="100%" style="display:block">' +
-      '<g fill="none" stroke="' + stroke + '" stroke-width="1">' +
+      '<g fill="none" stroke="' + stroke + '" stroke-width="1.35">' +
       cells.map(function (d) { return '<path d="' + d + '"/>'; }).join('') +
       '</g></svg>'
     );
@@ -179,8 +180,6 @@
       return '<path fill="none" stroke="' + stroke + '" stroke-width="1.2" d="M' + pts.join(' L') + ' Z"/>';
     }
 
-    // viewBox 0–800 maps to full screen height (preserveAspectRatio none)
-    // ECG is at 50% → y=400. Upper band y=250, lower y=550 → always equidistant around center
     return (
       '<svg class="dr-network" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" preserveAspectRatio="none" width="100%" height="100%" style="display:block">' +
       '<defs>' +
@@ -275,7 +274,7 @@
       login.insertBefore(layer, login.firstChild);
     }
     var light = isLight();
-    var key = (light ? 'L' : 'D') + '-login-v4';
+    var key = (light ? 'L' : 'D') + '-login-v5';
     if (key === lastAmbientKey && layer.childNodes.length) {
       layer.style.display = 'block';
       return;
