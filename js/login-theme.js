@@ -1,6 +1,6 @@
 /**
- * Divine Rays — polished login light/dark + theme toggle (removed after login)
- * Credit: Lizzz · All Rights Reserved
+ * Divine Rays — login glass 20% opacity + glow (red on failed login)
+ * Credit: Boyz at the Back
  */
 (function () {
   'use strict';
@@ -11,10 +11,15 @@
 
   var CSS = [
     '.login-card,#login-screen .login-card{',
-    'background:rgba(26,22,40,0.72)!important;',
-    'backdrop-filter:blur(18px)!important;-webkit-backdrop-filter:blur(18px)!important;',
-    'border:1px solid rgba(124,106,240,0.28)!important;',
-    'box-shadow:0 20px 50px rgba(0,0,0,0.35)!important}',
+    'background:rgba(26,22,40,0.20)!important;',
+    'backdrop-filter:blur(16px)!important;-webkit-backdrop-filter:blur(16px)!important;',
+    'border:1px solid rgba(167,139,250,0.45)!important;',
+    'box-shadow:0 0 24px rgba(139,92,246,0.55),0 0 48px rgba(124,58,237,0.35),0 12px 40px rgba(0,0,0,0.25)!important;',
+    'transition:box-shadow .35s ease,border-color .35s ease!important}',
+
+    '.login-card.login-fail-glow,#login-screen .login-card.login-fail-glow{',
+    'border-color:rgba(248,113,113,0.75)!important;',
+    'box-shadow:0 0 22px rgba(239,68,68,0.7),0 0 48px rgba(220,38,38,0.45),0 12px 40px rgba(0,0,0,0.3)!important}',
 
     'html[data-theme="light"] .login-screen,html[data-theme="light"] #login-screen{',
     'background:radial-gradient(ellipse 90% 60% at 50% -10%,rgba(109,94,245,0.16),transparent 55%),',
@@ -22,11 +27,15 @@
     'linear-gradient(165deg,#f6f4fc 0%,#efeaf8 45%,#e8e2f5 100%)!important}',
 
     'html[data-theme="light"] .login-card,html[data-theme="light"] #login-screen .login-card{',
-    'background:rgba(255,255,255,0.88)!important;',
-    'backdrop-filter:blur(20px)!important;-webkit-backdrop-filter:blur(20px)!important;',
-    'border:1px solid rgba(124,106,240,0.22)!important;',
-    'box-shadow:0 16px 48px rgba(91,76,224,0.12),0 2px 8px rgba(30,30,60,0.06)!important;',
+    'background:rgba(255,255,255,0.20)!important;',
+    'backdrop-filter:blur(18px)!important;-webkit-backdrop-filter:blur(18px)!important;',
+    'border:1px solid rgba(124,106,240,0.40)!important;',
+    'box-shadow:0 0 22px rgba(139,92,246,0.45),0 0 44px rgba(109,94,245,0.28),0 10px 32px rgba(91,76,224,0.12)!important;',
     'color:#1a1a2e!important}',
+
+    'html[data-theme="light"] .login-card.login-fail-glow,html[data-theme="light"] #login-screen .login-card.login-fail-glow{',
+    'border-color:rgba(239,68,68,0.7)!important;',
+    'box-shadow:0 0 22px rgba(239,68,68,0.65),0 0 48px rgba(220,38,38,0.4),0 10px 32px rgba(185,28,28,0.12)!important}',
 
     'html[data-theme="light"] .login-brand h1{color:#1a1a2e!important}',
     'html[data-theme="light"] .login-brand p,',
@@ -49,41 +58,34 @@
     'color:#3d3d55!important;font-weight:600!important}',
     'html[data-theme="light"] .login-form input,',
     'html[data-theme="light"] .login-form select,',
-    'html[data-theme="light"] .login-form textarea,',
     'html[data-theme="light"] #login-screen input,',
-    'html[data-theme="light"] #login-screen select,',
-    'html[data-theme="light"] #login-screen textarea{',
+    'html[data-theme="light"] #login-screen select{',
     'background:#fff!important;color:#1a1a2e!important;',
-    'border:1px solid #d4d0ea!important;',
-    'border-radius:10px!important;',
+    'border:1px solid rgba(124,106,240,0.28)!important;',
     'box-shadow:0 1px 2px rgba(30,30,60,0.04)!important}',
-    'html[data-theme="light"] .login-form input::placeholder,',
-    'html[data-theme="light"] #login-screen input::placeholder{color:#8b8ba3!important}',
     'html[data-theme="light"] .login-form input:focus,',
     'html[data-theme="light"] #login-screen input:focus{',
-    'background:#fff!important;border-color:#6d5ef5!important;',
+    'border-color:#6d5ef5!important;',
     'box-shadow:0 0 0 3px rgba(109,94,245,0.22)!important;outline:none!important}',
 
-    'html[data-theme="light"] .login-form .btn-primary,',
-    'html[data-theme="light"] #login-screen .btn-primary{',
-    'background:linear-gradient(135deg,#7c6af0,#5b4ce0)!important;',
+    'html[data-theme="light"] .btn-primary,',
+    'html[data-theme="light"] #login-screen .btn-primary,',
+    'html[data-theme="light"] button[type="submit"]{',
+    'background:linear-gradient(135deg,#6d5ef5,#8b7cf8)!important;',
     'color:#fff!important;border:none!important;',
     'box-shadow:0 6px 18px rgba(91,76,224,0.35)!important;',
     'font-weight:600!important}',
-    'html[data-theme="light"] .login-form .btn-primary:hover,',
-    'html[data-theme="light"] #login-screen .btn-primary:hover{',
-    'filter:brightness(1.05)!important}',
 
-    'html[data-theme="light"] .login-switch{color:#5a5a78!important}',
-    'html[data-theme="light"] .login-switch a{color:#5b4ce0!important;font-weight:600!important}',
+    'html[data-theme="light"] .login-switch,',
+    'html[data-theme="light"] .login-switch a{color:#5b4fd4!important}',
     'html[data-theme="light"] .login-error{',
-    'background:#fef2f2!important;border:1px solid #fecaca!important;color:#b91c1c!important}',
+    'background:rgba(248,113,113,0.12)!important;border-color:rgba(248,113,113,0.35)!important}',
     'html[data-theme="light"] hr,html[data-theme="light"] .login-card hr{',
-    'border-color:rgba(124,106,240,0.15)!important}',
+    'border-color:rgba(124,106,240,0.18)!important}',
 
-    '#dr-login-theme{position:fixed;top:1rem;right:1rem;z-index:10050;',
-    'border:1px solid rgba(124,106,240,.4);',
-    'background:rgba(26,26,36,.92);color:#c4b5fd;border-radius:999px;',
+    '#dr-login-theme{',
+    'position:fixed;top:1rem;right:1rem;z-index:9999;',
+    'background:#1a1628;color:#c4b5fd;border:1px solid #5b4fd4;border-radius:999px;',
     'padding:.5rem 1rem;font-size:.85rem;font-weight:600;cursor:pointer;',
     'font-family:inherit;box-shadow:0 4px 16px rgba(0,0,0,.25)}',
     'html[data-theme="light"] #dr-login-theme{',
@@ -91,12 +93,7 @@
     'box-shadow:0 4px 16px rgba(30,30,60,.1)}',
 
     '#login-screen,.login-screen{position:relative;z-index:2}',
-    '#login-screen .login-card,.login-card{position:relative;z-index:3}',
-
-    '.mode-bar .user-info{display:flex!important;align-items:center!important;',
-    'flex-wrap:wrap!important;gap:0.5rem!important;position:relative!important;z-index:5!important}',
-    '.mode-bar #btn-logout{position:relative!important;z-index:6!important}',
-    '.mode-bar #btn-theme{position:relative!important;z-index:5!important;flex-shrink:0!important}'
+    '#login-screen .login-card,.login-card{position:relative;z-index:3}'
   ].join('');
 
   function injectCss() {
@@ -125,74 +122,86 @@
   }
 
   function removeLoginToggle() {
-    var b = document.getElementById('dr-login-theme');
-    if (b && b.parentNode) b.parentNode.removeChild(b);
+    var lt = document.getElementById('dr-login-theme');
+    if (lt && lt.parentNode) lt.parentNode.removeChild(lt);
   }
 
-  function setTheme(t) {
-    t = t === 'light' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', t);
-    try { localStorage.setItem('dr_theme', t); } catch (e) {}
-    var b = document.getElementById('dr-login-theme');
-    if (b) b.textContent = t === 'light' ? 'Dark' : 'Light';
-    document.querySelectorAll('#btn-theme').forEach(function (btn) {
-      btn.textContent = t === 'light' ? 'Dark' : 'Light';
-    });
-    if (window.DRForceLightBg && window.DRForceLightBg.refresh) try { window.DRForceLightBg.refresh(); } catch (e) {}
-    if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.refresh) try { window.DRHeartbeatDraw.refresh(); } catch (e) {}
-    if (window.DRTheme && window.DRTheme.apply) try { window.DRTheme.apply(t); } catch (e) {}
-  }
-
-  function ensureToggle() {
+  function ensureLoginToggle() {
     if (!isLoginVisible()) {
       removeLoginToggle();
       return;
     }
-    if (document.getElementById('dr-login-theme')) return;
-    var b = document.createElement('button');
-    b.type = 'button';
-    b.id = 'dr-login-theme';
-    var cur = 'dark';
-    try {
-      cur = localStorage.getItem('dr_theme') || document.documentElement.getAttribute('data-theme') || 'dark';
-    } catch (e) {}
-    b.textContent = cur === 'light' ? 'Dark' : 'Light';
-    b.addEventListener('click', function () {
-      var cur2 = document.documentElement.getAttribute('data-theme') || 'dark';
-      setTheme(cur2 === 'dark' ? 'light' : 'dark');
-    });
-    document.body.appendChild(b);
-  }
-
-  function ensureGearsOnLogin() {
-    if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.refresh) {
-      try { window.DRHeartbeatDraw.refresh(); } catch (e) {}
+    var btn = document.getElementById('dr-login-theme');
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.id = 'dr-login-theme';
+      btn.type = 'button';
+      btn.addEventListener('click', function () {
+        var cur = document.documentElement.getAttribute('data-theme') || 'dark';
+        var next = cur === 'light' ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', next);
+        try { localStorage.setItem('dr_theme', next); } catch (e) {}
+        btn.textContent = next === 'light' ? 'Dark' : 'Light';
+        if (window.DRForceLightBg && window.DRForceLightBg.refresh) try { window.DRForceLightBg.refresh(); } catch (e) {}
+        if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.refresh) try { window.DRHeartbeatDraw.refresh(); } catch (e) {}
+      });
+      document.body.appendChild(btn);
     }
+    var theme = document.documentElement.getAttribute('data-theme') || 'dark';
+    btn.textContent = theme === 'light' ? 'Dark' : 'Light';
   }
 
-  var timer = null;
-  function schedule() {
-    if (timer) return;
-    timer = setTimeout(function () {
-      timer = null;
-      injectCss();
-      ensureToggle();
-      ensureGearsOnLogin();
-    }, 200);
+  function syncFailGlow() {
+    var card = document.querySelector('#login-screen .login-card, .login-card');
+    if (!card) return;
+    var hasErr = !!document.querySelector('#login-screen .login-error, .login-form .login-error, .login-card .login-error');
+    card.classList.toggle('login-fail-glow', hasErr);
+  }
+
+  function watchLoginErrors() {
+    var root = document.getElementById('login-screen') || document.body;
+    if (!root || root.__drFailGlowObs) return;
+    try {
+      var obs = new MutationObserver(function () { syncFailGlow(); });
+      obs.observe(root, { childList: true, subtree: true, characterData: true });
+      root.__drFailGlowObs = obs;
+    } catch (e) {}
+    document.addEventListener('submit', function () {
+      setTimeout(syncFailGlow, 50);
+      setTimeout(syncFailGlow, 300);
+      setTimeout(syncFailGlow, 800);
+    }, true);
+    document.addEventListener('input', function (ev) {
+      var t = ev.target;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'SELECT') && t.closest && t.closest('.login-card')) {
+        var err = document.querySelector('.login-card .login-error');
+        if (!err) syncFailGlow();
+      }
+    }, true);
+    setInterval(syncFailGlow, 1500);
+    syncFailGlow();
+  }
+
+  function refresh() {
+    injectCss();
+    ensureLoginToggle();
+    syncFailGlow();
   }
 
   injectCss();
-  try {
-    document.documentElement.setAttribute('data-theme', localStorage.getItem('dr_theme') || 'dark');
-  } catch (e) {}
-
-  ensureToggle();
-  setTimeout(schedule, 200);
-  setTimeout(schedule, 1000);
+  ensureLoginToggle();
+  watchLoginErrors();
+  setTimeout(refresh, 200);
+  setTimeout(refresh, 800);
+  setTimeout(refresh, 2000);
   setInterval(function () {
-    injectCss();
-    ensureToggle();
-  }, 2500);
+    if (isLoginVisible()) ensureLoginToggle();
+    else removeLoginToggle();
+    syncFailGlow();
+  }, 3000);
 
-  window.DRLoginTheme = { refresh: schedule, setTheme: setTheme, removeLoginToggle: removeLoginToggle };
+  window.DRLoginTheme = {
+    refresh: refresh,
+    removeLoginToggle: removeLoginToggle
+  };
 })();
