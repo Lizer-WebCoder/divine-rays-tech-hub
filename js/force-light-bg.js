@@ -1,5 +1,5 @@
 /**
- * Divine Rays — reference honeycomb (pointy-top continuous mesh, regular)
+ * Divine Rays — larger nearer honeycomb (pointy-top regular mesh)
  * Other effects unchanged · Credit: Boyz at the Back
  */
 (function () {
@@ -93,15 +93,13 @@
   }
 
   function honeycombSvg(stroke) {
-    // Reference-style continuous honeycomb:
-    // pointy-top (vertical sides, points top/bottom), regular geometry, shared edges
-    // preserveAspectRatio slice keeps hexes undistorted; dense grid fills any screen
-    var R = 26;
+    // Larger / nearer pointy-top honeycomb — regular geometry, fills any resolution
+    var R = 48;
     var SQ3 = Math.sqrt(3);
     var horiz = SQ3 * R;
     var vert = 1.5 * R;
-    var cols = 36;
-    var rows = 28;
+    var cols = 22;
+    var rows = 18;
     var paths = [];
     for (var r = 0; r < rows; r++) {
       for (var c = 0; c < cols; c++) {
@@ -120,7 +118,7 @@
     return (
       '<svg class="dr-honeycomb" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + vbW + ' ' + vbH + '" ' +
       'preserveAspectRatio="xMidYMid slice" width="100%" height="100%" style="display:block">' +
-      '<g fill="none" stroke="' + stroke + '" stroke-width="1.25" stroke-linejoin="round" stroke-linecap="round">' +
+      '<g fill="none" stroke="' + stroke + '" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round">' +
       paths.map(function (d) { return '<path d="' + d + '"/>'; }).join('') +
       '</g></svg>'
     );
@@ -282,7 +280,7 @@
       login.insertBefore(layer, login.firstChild);
     }
     var light = isLight();
-    var key = (light ? 'L' : 'D') + '-login-v9';
+    var key = (light ? 'L' : 'D') + '-login-v10';
     if (key === lastAmbientKey && layer.childNodes.length) {
       layer.style.display = 'block';
       return;
