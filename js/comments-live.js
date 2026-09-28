@@ -1,11 +1,10 @@
 /**
- * Divine Rays — live ticket conversation + delete own notes
- * Credit: Lizzz · All Rights Reserved
+ * Divine Rays — live comments + delete notes (no flicker)
+ * Credit: Boyz at the Back LRK · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_COMMENTS_LIVE_V2) return;
-  window.__DR_COMMENTS_LIVE_V2 = 1;
+  if (window.__DR_COMMENTS_LIVE) return;
   window.__DR_COMMENTS_LIVE = 1;
 
   var channel = null;
@@ -20,6 +19,17 @@
     try { if (window.DR && window.DR.getProfile) return window.DR.getProfile(); } catch (e) {}
     return window.__drProfile || null;
   }
+  function myId() {
+    var p = profile();
+    return (p && p.id) || null;
+  }
+  function isStaff() {
+    var p = profile();
+    return !!(p && (p.role === 'agent' || p.role === 'admin'));
+  }
+  function isCustomerView() {
+    return !!(document.getElementById('portal-customer') && document.getElementById('portal-customer').classList.contains('active'));
+  }
   function esc(s) {
     return String(s || '')
       .replace(/&/g, '&amp;')
@@ -27,46 +37,41 @@
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;');
   }
-  function formatDate(iso) {
-    if (window.DR && typeof window.DR.formatDate === 'function') {
-      try { return window.DR.formatDate(iso); } catch (e) {}
-    }
+  function formatDate(d) {
     try {
-      var d = new Date(iso);
-      return d.toLocaleString(undefined, {
+      return new Date(d).toLocaleString(undefined, {
         month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
       });
     } catch (e) {
       return '';
     }
   }
-  function isStaff() {
-    var p = profile();
-    return !!(p && (p.role === 'agent' || p.role === 'admin'));
-  }
-  function myId() {
-    var p = profile();
-    return (p && p.id) || null;
-  }
 
   function injectCss() {
-    if (document.getElementById('dr-comments-del-css')) return;
+    if (document.getElementById('dr-comments-live-css')) return;
     var s = document.createElement('style');
-    s.id = 'dr-comments-del-css';
+    s.id = 'dr-comments-live-css';
     s.textContent = [
-      '.comment{position:relative}',
-      '.comment .dr-cdel{position:absolute;top:.55rem;right:.55rem;background:transparent;border:1px solid rgba(239,68,68,.35);color:#f87171;border-radius:6px;padding:.15rem .45rem;font-size:.72rem;cursor:pointer;opacity:.85}',
-      '.comment .dr-cdel:hover{background:rgba(239,68,68,.15);opacity:1}',
-      '.comment .comment-header{padding-right:4.5rem}'
+      '.dr-cdel{float:right;font-size:.72rem;padding:.15rem .45rem;border-radius:6px;border:1px solid rgba(239,68,68,.35);background:rgba(239,68,68,.12);color:#fca5a5;cursor:pointer;font-weight:600}',
+      'html[data-theme="light"] .dr-cdel{color:#b91c1c;background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.3)}',
+      '.comment.internal{border-left:3px solid #f59e0b!important}'
     ].join('');
     document.head.appendChild(s);
   }
 
+  function listEl() {
+    return (
+      document.querySelector('#ticket-detail .comments-list') ||
+      document.querySelector('#cust-ticket-detail .comments-list') ||
+      document.getElementById('comments-list') ||
+      document.getElementById('cust-comments-list')
+    );
+  }
+
   function currentTicketId() {
-    var detail = document.getElementById('ticket-detail');
-    if (detail && (detail.textContent || '').trim()) {
-      if (window.__drOpenTicketId) return window.__drOpenTicketId;
-      var idAttr = detail.getAttribute('data-ticket-id');
+    var d = document.getElementById('ticket-detail');
+    if (d) {
+      var idAttr = d.getAttribute('data-ticket-id');
       if (idAttr) return idAttr;
     }
     var cust = document.getElementById('cust-ticket-detail');
@@ -77,6 +82,8 @@
   async function resolveTicketIdFromDom() {
     var root = document.getElementById('ticket-detail') || document.getElementById('cust-ticket-detail');
     if (!root) return null;
+    var early = root.getAttribute('data-ticket-id') || window.__drOpenTicketId;
+    if (early) return early;
     var idEl = root.querySelector('.ticket-id');
     var num = idEl ? idEl.textContent.trim() : '';
     if (!num) {
@@ -87,12 +94,30 @@
     var client = sb();
     if (!client) return null;
     try {
-      var r = await client.from('tickets').select('id,ticket_number')
-        .or('ticket_number.eq.' + num + ',number.eq.' + num)
+      var attr = root.getAttribute('data-ticket-id');
+      if (attr) return attr;
+      if (window.__drOpenTicketId) return window.__drOpenTicketId;
+
+      // Never query column "number" — it does not exist (HTTP 400)
+      var r = await client
+        .from('tickets')
+        .select('id, ticket_number')
+        .eq('ticket_number', num)
         .limit(1);
-      if (r.data && r.data[0]) return r.data[0].id;
-      var r2 = await client.from('tickets').select('id').ilike('ticket_number', num).limit(1);
-      return r2.data && r2.data[0] && r2.data[0].id;
+      if (!r.error && r.data && r.data[0]) return r.data[0].id;
+
+      var r2 = await client
+        .from('tickets')
+        .select('id, ticket_number')
+        .order('created_at', { ascending: false })
+        .limit(100);
+      if (!r2.error && r2.data) {
+        var hit = r2.data.find(function (t) {
+          return String(t.ticket_number || '') === num || String(t.id) === num;
+        });
+        if (hit) return hit.id;
+      }
+      return null;
     } catch (e) {
       return null;
     }
@@ -157,46 +182,23 @@
     }
   }
 
-  function listEl() {
-    return (
-      document.getElementById('comments-list') ||
-      document.getElementById('cust-comments-list') ||
-      document.querySelector('#ticket-detail .comments-list') ||
-      document.querySelector('#cust-ticket-detail .comments-list')
-    );
-  }
-
-  function isCustomerView() {
-    var pc = document.getElementById('portal-customer');
-    return !!(pc && pc.classList.contains('active'));
-  }
-
   function bindDeleteButtons(list) {
     if (!list) return;
     list.querySelectorAll('.dr-cdel').forEach(function (btn) {
       if (btn._drBound) return;
       btn._drBound = true;
-      btn.addEventListener('click', async function (ev) {
-        ev.preventDefault();
-        ev.stopPropagation();
-        var id = btn.getAttribute('data-del-cid');
-        if (!id) return;
-        if (!window.confirm('Delete this note? This cannot be undone.')) return;
+      btn.addEventListener('click', async function () {
+        var cid = btn.getAttribute('data-del-cid');
+        if (!cid || !confirm('Delete this note?')) return;
         var client = sb();
         if (!client) return;
-        btn.disabled = true;
-        btn.textContent = '…';
         try {
-          var r = await client.from('comments').delete().eq('id', id);
-          if (r.error) throw r.error;
-          var card = btn.closest('.comment');
-          if (card) card.remove();
+          var del = await client.from('comments').delete().eq('id', cid);
+          if (del.error) throw del.error;
           lastSig = '';
-          await refreshList(true);
+          refreshList(true);
         } catch (e) {
-          btn.disabled = false;
-          btn.textContent = 'Delete';
-          alert((e && e.message) || 'Could not delete. Run comments-delete.sql in Supabase if you have not yet.');
+          alert((e && e.message) || 'Could not delete');
         }
       });
     });
