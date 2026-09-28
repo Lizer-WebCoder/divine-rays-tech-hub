@@ -49,6 +49,7 @@
     var CREDIT_SHA = '62fd30e1dd6afc977a32bf8112e2cfa4ee9efe54';
     var TRACK_UX_SHA = '207df6ef35d0d1610ef04b2bdd3067f9d9b0c357';
     var DEL_SHA = '3287fa956dfb798d90ddeff8e1553c9b6f4f01cd';
+    var TAB_CONTRAST_SHA = '57809fec6071af304a00efcd7249ab96e9303d2b';
     var EXTRA_SHA = 'f0b0b583ebb98cd4f47f4b4781ef1cbaf4587ea6';
     var urls = [
       'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + PIN + '/index.html',
@@ -214,6 +215,7 @@
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + QUOTA_SHA + '/js/ticket-quota.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + TRACK_UX_SHA + '/js/track-notif-ux.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + DEL_SHA + '/js/delete-ticket.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + TAB_CONTRAST_SHA + '/js/tab-contrast.js?v=' + ver);
       loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + TECH_BG_SHA + '/css/light-tech-bg.css?v=' + ver);
       loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + KB_FULL_SHA + '/css/kb-full.css?v=' + ver);
       loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + ADMIN_TB_SHA + '/css/admin-toolbar.css?v=' + ver);
@@ -239,6 +241,7 @@
         if (window.DRPortalEnrich && window.DRPortalEnrich.refresh) try { window.DRPortalEnrich.refresh(); } catch (e) {}
         if (window.DRTicketQuota && window.DRTicketQuota.refresh) try { window.DRTicketQuota.refresh(); } catch (e) {}
         if (window.DRTrackNotifUx && window.DRTrackNotifUx.refresh) try { window.DRTrackNotifUx.refresh(); } catch (e) {}
+        if (window.DRTabContrast && window.DRTabContrast.refresh) try { window.DRTabContrast.refresh(); } catch (e) {}
       }, 500);
       function applyV8Once() {
         document.querySelectorAll('.version').forEach(function (el) {
@@ -260,6 +263,7 @@
         if (window.DRPortalEnrich && window.DRPortalEnrich.refresh) try { window.DRPortalEnrich.refresh(); } catch (e) {}
         if (window.DRTicketQuota && window.DRTicketQuota.refresh) try { window.DRTicketQuota.refresh(); } catch (e) {}
         if (window.DRTrackNotifUx && window.DRTrackNotifUx.refresh) try { window.DRTrackNotifUx.refresh(); } catch (e) {}
+        if (window.DRTabContrast && window.DRTabContrast.refresh) try { window.DRTabContrast.refresh(); } catch (e) {}
       }
       applyV8Once();
       setTimeout(applyV8Once, 800);
