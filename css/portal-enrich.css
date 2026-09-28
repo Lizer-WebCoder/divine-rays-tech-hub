@@ -77,7 +77,9 @@ html[data-theme="light"] #portal-customer .customer-header h1 {
 }
 
 html[data-theme="light"] #portal-customer .customer-header p {
-  color: #5a5a78 !important;
+  color: #3b0764 !important;
+  font-weight: 600 !important;
+  opacity: 1 !important;
 }
 
 #portal-customer .customer-tabs {
@@ -85,21 +87,18 @@ html[data-theme="light"] #portal-customer .customer-header p {
   flex-wrap: wrap !important;
   justify-content: center !important;
   gap: 0.35rem !important;
-  padding: 0.35rem !important;
   margin: 0 auto 1.5rem !important;
-  max-width: 520px !important;
-  background: rgba(20, 18, 36, 0.72) !important;
-  border: 1px solid rgba(139, 124, 247, 0.22) !important;
+  padding: 0.35rem !important;
+  background: rgba(20, 18, 36, 0.45) !important;
+  border: 1px solid rgba(139, 124, 247, 0.2) !important;
   border-radius: 999px !important;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.25) !important;
+  width: fit-content !important;
+  max-width: 100% !important;
 }
 
 html[data-theme="light"] #portal-customer .customer-tabs {
-  background: rgba(255, 255, 255, 0.85) !important;
-  border-color: rgba(109, 94, 245, 0.18) !important;
-  box-shadow: 0 8px 24px rgba(90, 70, 180, 0.1) !important;
+  background: rgba(255, 255, 255, 0.7) !important;
+  border: 1px solid rgba(124, 58, 237, 0.25) !important;
 }
 
 #portal-customer .ctab {
@@ -119,13 +118,33 @@ html[data-theme="light"] #portal-customer .customer-tabs {
   background: rgba(139, 124, 247, 0.12) !important;
 }
 
-html[data-theme="light"] #portal-customer .ctab {
-  color: #5a5a78 !important;
+html[data-theme="light"] #portal-customer .customer-tabs .ctab,
+html[data-theme="light"] #portal-customer .ctab,
+html[data-theme="light"] #portal-customer button.ctab {
+  color: #1e1b4b !important;
+  background: #ffffff !important;
+  border: 2px solid #7c3aed !important;
+  box-shadow: 0 2px 8px rgba(91, 33, 182, 0.12) !important;
+  opacity: 1 !important;
+  -webkit-text-fill-color: #1e1b4b !important;
 }
 
+html[data-theme="light"] #portal-customer .customer-tabs .ctab:hover,
 html[data-theme="light"] #portal-customer .ctab:hover {
-  color: #1a1a2e !important;
-  background: rgba(109, 94, 245, 0.1) !important;
+  color: #1e1b4b !important;
+  background: #f5f3ff !important;
+  border-color: #5b21b6 !important;
+  -webkit-text-fill-color: #1e1b4b !important;
+}
+
+html[data-theme="light"] #portal-customer .customer-tabs .ctab.active,
+html[data-theme="light"] #portal-customer .ctab.active,
+html[data-theme="light"] #portal-customer button.ctab.active {
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #6d28d9 0%, #5b21b6 100%) !important;
+  border: 2px solid #5b21b6 !important;
+  box-shadow: 0 4px 16px rgba(91, 33, 182, 0.4) !important;
+  -webkit-text-fill-color: #ffffff !important;
 }
 
 #portal-customer .ctab.active {
@@ -135,57 +154,32 @@ html[data-theme="light"] #portal-customer .ctab:hover {
 }
 
 #portal-customer .ticket-form,
-#customer-form.ticket-form,
-#portal-customer .track-box,
-#portal-customer .success-box,
-#portal-customer .kb-panel {
-  position: relative !important;
-  background: linear-gradient(160deg, rgba(28, 26, 48, 0.92) 0%, rgba(18, 16, 32, 0.88) 100%) !important;
+#customer-form {
+  background: linear-gradient(165deg, rgba(28, 26, 48, 0.92) 0%, rgba(18, 16, 32, 0.88) 100%) !important;
   border: 1px solid rgba(139, 124, 247, 0.28) !important;
   border-radius: 18px !important;
-  padding: 1.5rem 1.5rem 1.35rem !important;
-  box-shadow:
-    0 12px 40px rgba(0, 0, 0, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-}
-
-#portal-customer .ticket-form::before,
-#customer-form.ticket-form::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 1.25rem;
-  right: 1.25rem;
-  height: 2px;
-  border-radius: 0 0 4px 4px;
-  background: linear-gradient(90deg, transparent, #a78bfa, #6d5ef5, transparent);
-  opacity: 0.85;
+  padding: 1.5rem 1.35rem 1.35rem !important;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(139, 124, 247, 0.08) !important;
+  backdrop-filter: blur(12px);
 }
 
 html[data-theme="light"] #portal-customer .ticket-form,
-html[data-theme="light"] #customer-form.ticket-form,
-html[data-theme="light"] #portal-customer .track-box,
-html[data-theme="light"] #portal-customer .success-box,
-html[data-theme="light"] #portal-customer .kb-panel {
-  background: linear-gradient(160deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 246, 255, 0.92) 100%) !important;
+html[data-theme="light"] #customer-form {
+  background: rgba(255, 255, 255, 0.95) !important;
   border-color: rgba(109, 94, 245, 0.2) !important;
-  box-shadow:
-    0 12px 36px rgba(90, 70, 180, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+  box-shadow: 0 12px 36px rgba(90, 70, 180, 0.12) !important;
 }
 
-#portal-customer .form-group label {
-  font-size: 0.82rem !important;
+#portal-customer .ticket-form label,
+#customer-form label {
   font-weight: 600 !important;
-  color: #b4b4cc !important;
-  margin-bottom: 0.4rem !important;
-  letter-spacing: 0.01em;
+  color: #c4b5fd !important;
+  margin-bottom: 0.35rem !important;
 }
 
-html[data-theme="light"] #portal-customer .form-group label {
-  color: #4a4a68 !important;
+html[data-theme="light"] #portal-customer .ticket-form label,
+html[data-theme="light"] #customer-form label {
+  color: #4c1d95 !important;
 }
 
 #portal-customer .ticket-form input,
@@ -193,17 +187,12 @@ html[data-theme="light"] #portal-customer .form-group label {
 #portal-customer .ticket-form textarea,
 #customer-form input,
 #customer-form select,
-#customer-form textarea,
-#portal-customer .track-box input {
-  background: rgba(10, 10, 18, 0.65) !important;
-  border: 1px solid rgba(139, 124, 247, 0.2) !important;
+#customer-form textarea {
+  background: rgba(12, 10, 24, 0.75) !important;
+  border: 1px solid rgba(139, 124, 247, 0.3) !important;
   border-radius: 12px !important;
   color: #eeeef6 !important;
-  padding: 0.7rem 0.95rem !important;
-  font-size: 0.92rem !important;
-  width: 100% !important;
-  box-sizing: border-box !important;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+  padding: 0.7rem 0.9rem !important;
 }
 
 html[data-theme="light"] #portal-customer .ticket-form input,
@@ -211,27 +200,16 @@ html[data-theme="light"] #portal-customer .ticket-form select,
 html[data-theme="light"] #portal-customer .ticket-form textarea,
 html[data-theme="light"] #customer-form input,
 html[data-theme="light"] #customer-form select,
-html[data-theme="light"] #customer-form textarea,
-html[data-theme="light"] #portal-customer .track-box input {
-  background: rgba(255, 255, 255, 0.95) !important;
-  border-color: rgba(109, 94, 245, 0.22) !important;
-  color: #1a1a2e !important;
-}
-
-#portal-customer .ticket-form input:focus,
-#portal-customer .ticket-form select:focus,
-#portal-customer .ticket-form textarea:focus,
-#customer-form input:focus,
-#customer-form select:focus,
-#customer-form textarea:focus {
-  outline: none !important;
-  border-color: #8b7cf7 !important;
-  box-shadow: 0 0 0 3px rgba(139, 124, 247, 0.28) !important;
+html[data-theme="light"] #customer-form textarea {
+  background: #f8f7ff !important;
+  border-color: rgba(109, 94, 245, 0.25) !important;
+  color: #1e1b4b !important;
 }
 
 #portal-customer .ticket-form .btn-primary,
 #customer-form .btn-primary {
-  margin-top: 0.35rem !important;
+  width: 100% !important;
+  margin-top: 0.5rem !important;
   border-radius: 12px !important;
   padding: 0.85rem 1.25rem !important;
   font-weight: 700 !important;
@@ -240,6 +218,7 @@ html[data-theme="light"] #portal-customer .track-box input {
   border: none !important;
   box-shadow: 0 8px 24px rgba(109, 94, 245, 0.4) !important;
   letter-spacing: 0.02em;
+  color: #fff !important;
 }
 
 #portal-customer .ticket-form .btn-primary:hover,
