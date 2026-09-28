@@ -1,7 +1,7 @@
 /**
- * Divine Rays — symmetrical medical-tech login ambient
+ * Divine Rays — symmetrical medical-tech ambient (login + portal)
  * Upper band at card-top · lower at card-bottom · ECG centered between
- * Credit: Boyz at the Back
+ * Credit: Boyz at the Back LRK · All Rights Reserved
  */
 (function () {
   'use strict';
@@ -54,7 +54,7 @@
     if (login.hidden || login.classList.contains('is-hidden')) return false;
     try {
       var st = window.getComputedStyle(login);
-      if (st.display === 'none' || st.visibility === 'hidden') return false;
+      if (st.display === 'none' || st.visibility === 'hidden' || st.opacity === '0') return false;
     } catch (e) {}
     return true;
   }
@@ -73,8 +73,8 @@
       'position:absolute!important;inset:0!important;z-index:0!important;',
       'pointer-events:none!important;overflow:hidden!important;display:none',
       '}',
-      'body.is-login #' + LAYER_ID + '{display:block!important}',
-      'body.is-portal #' + LAYER_ID + '{display:none!important}',
+      'body.is-login #' + LAYER_ID + '{display:block!important;position:absolute!important}',
+      'body.is-portal #' + LAYER_ID + '{display:block!important;position:fixed!important;inset:0!important;z-index:0!important}',
       '#' + LAYER_ID + ' .dr-honeycomb{position:absolute;inset:-2%;opacity:' + hexOp + '}',
       '#' + LAYER_ID + ' .dr-honeycomb svg{width:100%;height:100%;display:block}',
       '#' + LAYER_ID + ' .dr-network{position:absolute;inset:0;opacity:' + netOp + '}',
@@ -94,176 +94,138 @@
 
   function honeycombSvg(stroke) {
     var cells = [];
-    var rows = 12, cols = 16, w = 72, h = 42;
-    for (var r = 0; r < rows; r++) {
-      for (var c = 0; c < cols; c++) {
-        var ox = c * w + (r % 2 ? w / 2 : 0) - 30;
-        var oy = r * h * 0.78 - 10;
-        cells.push(
-          'M' + (ox + 30) + ' ' + oy +
-          ' L' + (ox + 56) + ' ' + (oy + 15) +
-          ' L' + (ox + 56) + ' ' + (oy + 36) +
-          ' L' + (ox + 30) + ' ' + (oy + 51) +
-          ' L' + (ox + 4) + ' ' + (oy + 36) +
-          ' L' + (ox + 4) + ' ' + (oy + 15) + ' Z'
-        );
+    var r = 28;
+    var dx = r * 1.75;
+    var dy = r * 1.52;
+    for (var row = -1; row < 18; row++) {
+      for (var col = -1; col < 24; col++) {
+        var x = col * dx + (row % 2 ? dx / 2 : 0);
+        var y = row * dy;
+        var pts = [];
+        for (var i = 0; i < 6; i++) {
+          var a = (Math.PI / 180) * (60 * i - 30);
+          pts.push((x + r * Math.cos(a)).toFixed(1) + ',' + (y + r * Math.sin(a)).toFixed(1));
+        }
+        cells.push('M' + pts.join('L') + 'Z');
       }
     }
     return (
-      '<svg class="dr-honeycomb" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 400" preserveAspectRatio="xMidYMid slice">' +
-      '<g fill="none" stroke="' + stroke + '" stroke-width="1">' +
+      '<div class="dr-honeycomb"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice" fill="none" stroke="' +
+      stroke +
+      '" stroke-width="1.1">' +
       cells.map(function (d) { return '<path d="' + d + '"/>'; }).join('') +
-      '</g></svg>'
+      '</svg></div>'
     );
   }
 
   function networkSvg(stroke, fill, accent) {
     function node(x, y, r) {
-      return '<circle cx="' + x + '" cy="' + y + '" r="' + (r || 2.8) + '"/>';
+      return '<circle cx="' + x + '" cy="' + y + '" r="' + r + '" fill="' + fill + '" stroke="' + stroke + '" stroke-width="1.2"/>';
     }
     function line(d, pulse) {
-      return '<path ' + (pulse ? 'class="dr-pulse" ' : '') + 'd="' + d + '"/>';
+      return '<path d="' + d + '" fill="none" stroke="' + stroke + '" stroke-width="1.15" class="' + (pulse ? 'dr-pulse' : '') + '" opacity="0.55"/>';
     }
     function iconCross(x, y, s) {
-      var w = s * 0.35, h = s * 0.9, t = s * 0.28;
+      var h = s / 2;
       return (
-        '<path fill="' + fill + '" stroke="none" opacity="0.85" d="' +
-        'M' + (x - w) + ' ' + (y - t) +
-        ' H' + (x + w) + ' V' + (y + t) +
-        ' H' + (x + t) + ' V' + (y + h) +
-        ' H' + (x - t) + ' V' + (y + t) +
-        ' H' + (x - w) + ' Z' +
-        ' M' + (x - t) + ' ' + (y - h) +
-        ' H' + (x + t) + ' V' + (y - t) +
-        ' H' + (x - t) + ' Z"/>'
+        '<g transform="translate(' + x + ',' + y + ')">' +
+        '<rect x="' + (-h * 0.22) + '" y="' + (-h) + '" width="' + h * 0.44 + '" height="' + s + '" rx="1" fill="' + accent + '" opacity="0.55"/>' +
+        '<rect x="' + (-h) + '" y="' + (-h * 0.22) + '" width="' + s + '" height="' + h * 0.44 + '" rx="1" fill="' + accent + '" opacity="0.55"/>' +
+        '</g>'
       );
     }
     function iconHeart(x, y, s) {
       return (
-        '<path fill="' + fill + '" stroke="none" opacity="0.85" d="' +
-        'M' + x + ' ' + (y + s * 0.55) +
-        ' C' + x + ' ' + (y + s * 0.15) + ' ' + (x - s * 0.7) + ' ' + (y - s * 0.15) + ' ' + (x - s * 0.55) + ' ' + (y - s * 0.35) +
-        ' C' + (x - s * 0.35) + ' ' + (y - s * 0.6) + ' ' + x + ' ' + (y - s * 0.35) + ' ' + x + ' ' + (y - s * 0.1) +
-        ' C' + x + ' ' + (y - s * 0.35) + ' ' + (x + s * 0.35) + ' ' + (y - s * 0.6) + ' ' + (x + s * 0.55) + ' ' + (y - s * 0.35) +
-        ' C' + (x + s * 0.7) + ' ' + (y - s * 0.15) + ' ' + x + ' ' + (y + s * 0.15) + ' ' + x + ' ' + (y + s * 0.55) + ' Z"/>'
+        '<path transform="translate(' + x + ',' + y + ') scale(' + s / 24 + ')" d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0 1 12 6.5 5.5 5.5 0 0 1 21.5 12C19 16.5 12 21 12 21z" fill="' +
+        accent +
+        '" opacity="0.45"/>'
       );
     }
     function iconEcg(x, y, w) {
-      var h = 14;
+      var h = w * 0.35;
       return (
-        '<path fill="none" stroke="' + stroke + '" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="' +
-        'M' + (x - w) + ' ' + y +
-        ' H' + (x - w * 0.45) +
-        ' L' + (x - w * 0.3) + ' ' + (y - h) +
-        ' L' + (x - w * 0.1) + ' ' + (y + h * 1.1) +
-        ' L' + (x + w * 0.05) + ' ' + y +
-        ' H' + (x + w) + '"/>'
+        '<path d="M' + (x - w / 2) + ' ' + y + ' L' + (x - w * 0.2) + ' ' + y +
+        ' L' + (x - w * 0.1) + ' ' + (y - h) + ' L' + (x + w * 0.05) + ' ' + (y + h * 0.9) +
+        ' L' + (x + w * 0.18) + ' ' + (y - h * 0.35) + ' L' + (x + w * 0.28) + ' ' + y +
+        ' L' + (x + w / 2) + ' ' + y + '" fill="none" stroke="' + stroke + '" stroke-width="1.6" opacity="0.7"/>'
       );
     }
     function iconDna(x, y, h) {
       return (
-        '<g fill="none" stroke="' + stroke + '" stroke-width="1.35" stroke-linecap="round">' +
-        '<path d="M' + (x - 7) + ' ' + (y - h) + ' C' + (x + 8) + ' ' + (y - h * 0.5) + ' ' + (x + 8) + ' ' + (y + h * 0.5) + ' ' + (x - 7) + ' ' + (y + h) + '"/>' +
-        '<path d="M' + (x + 7) + ' ' + (y - h) + ' C' + (x - 8) + ' ' + (y - h * 0.5) + ' ' + (x - 8) + ' ' + (y + h * 0.5) + ' ' + (x + 7) + ' ' + (y + h) + '"/>' +
-        '<path d="M' + (x - 5) + ' ' + (y - h * 0.35) + ' H' + (x + 5) + '"/>' +
-        '<path d="M' + (x - 5) + ' ' + (y + h * 0.35) + ' H' + (x + 5) + '"/>' +
+        '<g opacity="0.5" stroke="' + stroke + '" fill="none" stroke-width="1.2">' +
+        '<path d="M' + (x - 6) + ' ' + (y - h / 2) + ' C' + (x + 10) + ' ' + (y - h / 4) + ',' + (x - 10) + ' ' + (y + h / 4) + ',' + (x + 6) + ' ' + (y + h / 2) + '"/>' +
+        '<path d="M' + (x + 6) + ' ' + (y - h / 2) + ' C' + (x - 10) + ' ' + (y - h / 4) + ',' + (x + 10) + ' ' + (y + h / 4) + ',' + (x - 6) + ' ' + (y + h / 2) + '"/>' +
         '</g>'
       );
     }
     function iconHex(x, y, r) {
       var pts = [];
       for (var i = 0; i < 6; i++) {
-        var a = (Math.PI / 3) * i - Math.PI / 6;
-        pts.push((x + Math.cos(a) * r).toFixed(1) + ' ' + (y + Math.sin(a) * r).toFixed(1));
+        var a = (Math.PI / 180) * (60 * i - 30);
+        pts.push((x + r * Math.cos(a)).toFixed(1) + ',' + (y + r * Math.sin(a)).toFixed(1));
       }
-      return '<path fill="none" stroke="' + stroke + '" stroke-width="1.2" d="M' + pts.join(' L') + ' Z"/>';
+      return '<path d="M' + pts.join('L') + 'Z" fill="none" stroke="' + stroke + '" stroke-width="1.2" opacity="0.55"/>';
     }
-
     return (
       '<svg class="dr-network" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice">' +
-      '<defs>' +
-      '<filter id="drG" x="-10%" y="-10%" width="120%" height="120%">' +
-      '<feGaussianBlur stdDeviation="1.4" result="b"/>' +
-      '<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>' +
-      '</filter>' +
-      '</defs>' +
-      '<g fill="none" stroke="' + stroke + '" stroke-width="1.15" filter="url(#drG)" opacity="0.9">' +
-      line('M40 220 H200 L260 170 H420 L480 220 H600', true) +
-      line('M1160 220 H1000 L940 170 H780 L720 220 H600', true) +
-      line('M260 170 V130 M420 170 V130') +
-      line('M940 170 V130 M780 170 V130') +
-      line('M200 220 V265 M480 220 V265') +
-      line('M1000 220 V265 M720 220 V265') +
-      line('M40 570 H200 L260 520 H420 L480 570 H600', true) +
-      line('M1160 570 H1000 L940 520 H780 L720 570 H600', true) +
-      line('M260 520 V480 M420 520 V480') +
-      line('M940 520 V480 M780 520 V480') +
-      line('M200 570 V615 M480 570 V615') +
-      line('M1000 570 V615 M720 570 V615') +
-      line('M600 220 V400 M600 400 V570', false) +
-      '</g>' +
-      '<g fill="' + fill + '">' +
-      node(200, 220) + node(260, 170) + node(420, 170) + node(480, 220) + node(600, 220) +
-      node(1000, 220) + node(940, 170) + node(780, 170) + node(720, 220) +
-      node(260, 130) + node(420, 130) + node(940, 130) + node(780, 130) +
-      node(200, 265) + node(480, 265) + node(1000, 265) + node(720, 265) +
-      node(200, 570) + node(260, 520) + node(420, 520) + node(480, 570) + node(600, 570) +
-      node(1000, 570) + node(940, 520) + node(780, 520) + node(720, 570) +
-      node(260, 480) + node(420, 480) + node(940, 480) + node(780, 480) +
-      node(200, 615) + node(480, 615) + node(1000, 615) + node(720, 615) +
-      '</g>' +
-      '<g opacity="0.9">' +
+      line('M80 120 L220 180 L360 140 L520 200', true) +
+      line('M520 200 L680 160 L820 220 L1040 170', true) +
+      line('M100 400 L260 360 L420 420 L600 380', false) +
+      line('M600 380 L780 440 L940 400 L1100 460', true) +
+      line('M140 650 L300 600 L480 660 L700 610', false) +
+      line('M700 610 L880 670 L1040 620', true) +
+      line('M220 180 L260 360 L300 600', false) +
+      line('M680 160 L600 380 L700 610', true) +
+      line('M820 220 L780 440 L880 670', false) +
+      node(80, 120, 4) + node(220, 180, 5) + node(360, 140, 4) + node(520, 200, 6) +
+      node(680, 160, 4) + node(820, 220, 5) + node(1040, 170, 4) +
+      node(100, 400, 4) + node(260, 360, 5) + node(420, 420, 4) + node(600, 380, 6) +
+      node(780, 440, 5) + node(940, 400, 4) + node(1100, 460, 4) +
+      node(140, 650, 4) + node(300, 600, 5) + node(480, 660, 4) + node(700, 610, 5) +
+      node(880, 670, 4) + node(1040, 620, 4) +
       iconEcg(110, 220, 40) + iconEcg(1090, 220, 40) +
-      iconHex(340, 140, 13) + iconHex(860, 140, 13) +
-      iconCross(110, 570, 15) + iconCross(1090, 570, 15) +
-      iconDna(340, 500, 20) + iconDna(860, 500, 20) +
-      iconHeart(500, 615, 11) + iconHeart(700, 615, 11) +
-      iconHeart(110, 615, 12) + iconHeart(1090, 615, 12) +
-      '</g>' +
+      iconCross(60, 520, 18) + iconCross(1140, 520, 18) +
+      iconHeart(180, 740, 14) + iconHeart(1020, 740, 14) +
+      iconDna(50, 300, 40) + iconDna(1150, 300, 40) +
+      iconHex(400, 80, 14) + iconHex(800, 720, 14) +
       '</svg>'
     );
   }
 
   function particlesHtml() {
-    var html = '<div class="dr-particles">';
     var left = [
-      [3, 6], [8, 15], [5, 28], [12, 40], [4, 55], [10, 68], [6, 82], [14, 90],
-      [18, 10], [22, 72], [16, 48]
+      [8, 12], [14, 28], [6, 45], [18, 62], [10, 78],
+      [22, 18], [4, 55], [16, 88]
     ];
     var spots = left.slice();
     left.forEach(function (p) { spots.push([100 - p[0], p[1]]); });
-    spots.push([50, 4], [50, 96], [40, 8], [60, 8], [40, 92], [60, 92]);
-    for (var i = 0; i < spots.length; i++) {
-      var s = spots[i];
-      var size = 2 + (i % 4);
-      var dur = 5.5 + (i % 5) * 1.1;
-      var delay = (i * 0.28) % 6;
+    var html = '<div class="dr-particles">';
+    spots.forEach(function (p, i) {
+      var size = 2 + (i % 3);
       html +=
-        '<span style="left:' + s[0] + '%;top:' + s[1] + '%;width:' + size +
-        'px;height:' + size + 'px;animation-duration:' + dur +
-        's;animation-delay:' + delay + 's"></span>';
-    }
-    return html + '</div>';
+        '<span style="left:' + p[0] + '%;top:' + p[1] + '%;width:' + size + 'px;height:' + size +
+        'px;animation-delay:' + (i * 0.45) + 's"></span>';
+    });
+    html += '</div>';
+    return html;
   }
 
   function ensureAmbient() {
     var login = document.getElementById('login-screen') || document.querySelector('.login-screen');
     var layer = document.getElementById(LAYER_ID);
-    if (!loginVisible() || !login) {
-      if (layer) layer.style.display = 'none';
-      lastAmbientKey = '';
-      return;
-    }
+    var onLogin = loginVisible();
     if (!layer) {
       layer = document.createElement('div');
       layer.id = LAYER_ID;
       layer.setAttribute('aria-hidden', 'true');
     }
-    if (layer.parentNode !== login) {
-      login.insertBefore(layer, login.firstChild);
+    var host = onLogin && login ? login : document.body;
+    if (layer.parentNode !== host) {
+      if (onLogin && login) login.insertBefore(layer, login.firstChild);
+      else document.body.insertBefore(layer, document.body.firstChild);
     }
     var light = isLight();
-    var key = (light ? 'L' : 'D') + '-login-v2';
+    var key = (light ? 'L' : 'D') + (onLogin ? '-login-v3' : '-portal-v3');
     if (key === lastAmbientKey && layer.childNodes.length) {
       layer.style.display = 'block';
       return;
@@ -275,6 +237,12 @@
     layer.innerHTML =
       honeycombSvg(stroke) + networkSvg(stroke, fill, accent) +
       '<div class="dr-vignette"></div>' + particlesHtml();
+    if (!onLogin) {
+      var honey = layer.querySelector('.dr-honeycomb');
+      var net = layer.querySelector('.dr-network');
+      if (honey) honey.style.opacity = light ? '0.32' : '0.18';
+      if (net) net.style.opacity = light ? '0.55' : '0.38';
+    }
     layer.style.display = 'block';
   }
 
