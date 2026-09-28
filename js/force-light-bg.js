@@ -1,5 +1,5 @@
 /**
- * Divine Rays — previous honeycomb pattern restored
+ * Divine Rays — flat-top honeycomb matching ref pattern (nearer, full-screen)
  * Other effects unchanged · Credit: Boyz at the Back
  */
 (function () {
@@ -93,27 +93,39 @@
   }
 
   function honeycombSvg(stroke) {
-    var cells = [];
-    var rows = 18, cols = 20, w = 68, h = 40;
+    // Flat-top continuous honeycomb mesh matching reference pattern
+    // Nearer / denser so it fills any resolution (viewBox stretches full screen)
+    var size = 42;
+    var w = size * 1.5;
+    var h = size * 1.7320508;
+    var cols = 24;
+    var rows = 14;
+    var paths = [];
     for (var r = 0; r < rows; r++) {
       for (var c = 0; c < cols; c++) {
-        var ox = c * w + (r % 2 ? w / 2 : 0) - 40;
-        var oy = r * h * 0.78 - 20;
-        cells.push(
-          'M' + (ox + 28) + ' ' + oy +
-          ' L' + (ox + 52) + ' ' + (oy + 14) +
-          ' L' + (ox + 52) + ' ' + (oy + 34) +
-          ' L' + (ox + 28) + ' ' + (oy + 48) +
-          ' L' + (ox + 4) + ' ' + (oy + 34) +
-          ' L' + (ox + 4) + ' ' + (oy + 14) + ' Z'
+        var cx = c * w + (r % 2 ? w * 0.5 : 0) - size;
+        var cy = r * h - size * 0.5;
+        // 6 vertices of flat-top hex (horizontal top/bottom, vertical sides) — matches ref
+        var v = [];
+        for (var i = 0; i < 6; i++) {
+          var a = (Math.PI / 180) * (60 * i);
+          v.push([(cx + size * Math.cos(a)).toFixed(2), (cy + size * Math.sin(a)).toFixed(2)]);
+        }
+        paths.push(
+          'M' + v[0][0] + ' ' + v[0][1] +
+          ' L' + v[1][0] + ' ' + v[1][1] +
+          ' L' + v[2][0] + ' ' + v[2][1] +
+          ' L' + v[3][0] + ' ' + v[3][1] +
+          ' L' + v[4][0] + ' ' + v[4][1] +
+          ' L' + v[5][0] + ' ' + v[5][1] + ' Z'
         );
       }
     }
     return (
       '<svg class="dr-honeycomb" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" preserveAspectRatio="none" ' +
       'width="100%" height="100%" style="display:block">' +
-      '<g fill="none" stroke="' + stroke + '" stroke-width="1">' +
-      cells.map(function (d) { return '<path d="' + d + '"/>'; }).join('') +
+      '<g fill="none" stroke="' + stroke + '" stroke-width="1.15" stroke-linejoin="round">' +
+      paths.map(function (d) { return '<path d="' + d + '"/>'; }).join('') +
       '</g></svg>'
     );
   }
@@ -274,7 +286,7 @@
       login.insertBefore(layer, login.firstChild);
     }
     var light = isLight();
-    var key = (light ? 'L' : 'D') + '-login-v7';
+    var key = (light ? 'L' : 'D') + '-login-v8';
     if (key === lastAmbientKey && layer.childNodes.length) {
       layer.style.display = 'block';
       return;
