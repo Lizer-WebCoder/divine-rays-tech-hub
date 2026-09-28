@@ -1,0 +1,312 @@
+/* Divine Rays — richer post-login portal design
+   Credit: Boyz at the Back LRK · All Rights Reserved */
+
+#portal-customer.active,
+#portal-agent.active {
+  position: relative;
+  min-height: calc(100vh - 52px);
+}
+
+#portal-customer.active::before,
+#portal-agent.active::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 70% 50% at 15% 20%, rgba(109, 94, 245, 0.14), transparent 55%),
+    radial-gradient(ellipse 60% 45% at 90% 80%, rgba(139, 124, 247, 0.1), transparent 50%),
+    radial-gradient(ellipse 40% 30% at 50% 50%, rgba(91, 76, 224, 0.06), transparent 60%);
+}
+
+html[data-theme="light"] #portal-customer.active::before,
+html[data-theme="light"] #portal-agent.active::before {
+  background:
+    radial-gradient(ellipse 70% 50% at 15% 20%, rgba(109, 94, 245, 0.12), transparent 55%),
+    radial-gradient(ellipse 60% 45% at 90% 80%, rgba(139, 124, 247, 0.1), transparent 50%),
+    radial-gradient(ellipse 40% 30% at 50% 50%, rgba(180, 170, 255, 0.15), transparent 60%);
+}
+
+#dr-lifeline {
+  opacity: 0.55 !important;
+  z-index: 0 !important;
+}
+
+html[data-theme="light"] #dr-lifeline {
+  opacity: 0.4 !important;
+}
+
+#portal-customer .customer-main {
+  position: relative;
+  z-index: 1;
+  max-width: 720px !important;
+  margin: 0 auto !important;
+  padding: 2.25rem 1.35rem 3.5rem !important;
+}
+
+#portal-customer .customer-header {
+  text-align: center;
+  margin-bottom: 1.75rem !important;
+  padding: 0.5rem 0 1.25rem;
+}
+
+#portal-customer .customer-header h1 {
+  font-size: 1.85rem !important;
+  font-weight: 750 !important;
+  letter-spacing: -0.03em !important;
+  margin: 0 0 0.45rem !important;
+  background: linear-gradient(135deg, #eeeef6 0%, #c4b5fd 55%, #a78bfa 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+html[data-theme="light"] #portal-customer .customer-header h1 {
+  background: linear-gradient(135deg, #1a1a2e 0%, #5b4ce0 55%, #7c6af0 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+#portal-customer .customer-header p {
+  margin: 0 !important;
+  color: #9a9ab4 !important;
+  font-size: 0.98rem !important;
+}
+
+html[data-theme="light"] #portal-customer .customer-header p {
+  color: #5a5a78 !important;
+}
+
+#portal-customer .customer-tabs {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  gap: 0.35rem !important;
+  padding: 0.35rem !important;
+  margin: 0 auto 1.5rem !important;
+  max-width: 520px !important;
+  background: rgba(20, 18, 36, 0.72) !important;
+  border: 1px solid rgba(139, 124, 247, 0.22) !important;
+  border-radius: 999px !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.25) !important;
+}
+
+html[data-theme="light"] #portal-customer .customer-tabs {
+  background: rgba(255, 255, 255, 0.85) !important;
+  border-color: rgba(109, 94, 245, 0.18) !important;
+  box-shadow: 0 8px 24px rgba(90, 70, 180, 0.1) !important;
+}
+
+#portal-customer .ctab {
+  border: none !important;
+  background: transparent !important;
+  color: #a0a0b8 !important;
+  padding: 0.55rem 1.1rem !important;
+  border-radius: 999px !important;
+  font-weight: 600 !important;
+  font-size: 0.88rem !important;
+  cursor: pointer !important;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+#portal-customer .ctab:hover {
+  color: #eeeef6 !important;
+  background: rgba(139, 124, 247, 0.12) !important;
+}
+
+html[data-theme="light"] #portal-customer .ctab {
+  color: #5a5a78 !important;
+}
+
+html[data-theme="light"] #portal-customer .ctab:hover {
+  color: #1a1a2e !important;
+  background: rgba(109, 94, 245, 0.1) !important;
+}
+
+#portal-customer .ctab.active {
+  background: linear-gradient(135deg, #8b7cf7 0%, #6d5ef5 100%) !important;
+  color: #fff !important;
+  box-shadow: 0 4px 16px rgba(109, 94, 245, 0.4) !important;
+}
+
+#portal-customer .ticket-form,
+#customer-form.ticket-form,
+#portal-customer .track-box,
+#portal-customer .success-box,
+#portal-customer .kb-panel {
+  position: relative !important;
+  background: linear-gradient(160deg, rgba(28, 26, 48, 0.92) 0%, rgba(18, 16, 32, 0.88) 100%) !important;
+  border: 1px solid rgba(139, 124, 247, 0.28) !important;
+  border-radius: 18px !important;
+  padding: 1.5rem 1.5rem 1.35rem !important;
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+#portal-customer .ticket-form::before,
+#customer-form.ticket-form::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 1.25rem;
+  right: 1.25rem;
+  height: 2px;
+  border-radius: 0 0 4px 4px;
+  background: linear-gradient(90deg, transparent, #a78bfa, #6d5ef5, transparent);
+  opacity: 0.85;
+}
+
+html[data-theme="light"] #portal-customer .ticket-form,
+html[data-theme="light"] #customer-form.ticket-form,
+html[data-theme="light"] #portal-customer .track-box,
+html[data-theme="light"] #portal-customer .success-box,
+html[data-theme="light"] #portal-customer .kb-panel {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 246, 255, 0.92) 100%) !important;
+  border-color: rgba(109, 94, 245, 0.2) !important;
+  box-shadow:
+    0 12px 36px rgba(90, 70, 180, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+}
+
+#portal-customer .form-group label {
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  color: #b4b4cc !important;
+  margin-bottom: 0.4rem !important;
+  letter-spacing: 0.01em;
+}
+
+html[data-theme="light"] #portal-customer .form-group label {
+  color: #4a4a68 !important;
+}
+
+#portal-customer .ticket-form input,
+#portal-customer .ticket-form select,
+#portal-customer .ticket-form textarea,
+#customer-form input,
+#customer-form select,
+#customer-form textarea,
+#portal-customer .track-box input {
+  background: rgba(10, 10, 18, 0.65) !important;
+  border: 1px solid rgba(139, 124, 247, 0.2) !important;
+  border-radius: 12px !important;
+  color: #eeeef6 !important;
+  padding: 0.7rem 0.95rem !important;
+  font-size: 0.92rem !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+html[data-theme="light"] #portal-customer .ticket-form input,
+html[data-theme="light"] #portal-customer .ticket-form select,
+html[data-theme="light"] #portal-customer .ticket-form textarea,
+html[data-theme="light"] #customer-form input,
+html[data-theme="light"] #customer-form select,
+html[data-theme="light"] #customer-form textarea,
+html[data-theme="light"] #portal-customer .track-box input {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-color: rgba(109, 94, 245, 0.22) !important;
+  color: #1a1a2e !important;
+}
+
+#portal-customer .ticket-form input:focus,
+#portal-customer .ticket-form select:focus,
+#portal-customer .ticket-form textarea:focus,
+#customer-form input:focus,
+#customer-form select:focus,
+#customer-form textarea:focus {
+  outline: none !important;
+  border-color: #8b7cf7 !important;
+  box-shadow: 0 0 0 3px rgba(139, 124, 247, 0.28) !important;
+}
+
+#portal-customer .ticket-form .btn-primary,
+#customer-form .btn-primary {
+  margin-top: 0.35rem !important;
+  border-radius: 12px !important;
+  padding: 0.85rem 1.25rem !important;
+  font-weight: 700 !important;
+  font-size: 0.95rem !important;
+  background: linear-gradient(135deg, #8b7cf7 0%, #6d5ef5 100%) !important;
+  border: none !important;
+  box-shadow: 0 8px 24px rgba(109, 94, 245, 0.4) !important;
+  letter-spacing: 0.02em;
+}
+
+#portal-customer .ticket-form .btn-primary:hover,
+#customer-form .btn-primary:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 10px 28px rgba(109, 94, 245, 0.5) !important;
+}
+
+#portal-customer .ticket-list .ticket-card,
+#my-tickets-list .ticket-card,
+#portal-customer .ticket-item {
+  background: linear-gradient(160deg, rgba(28, 26, 48, 0.9) 0%, rgba(18, 16, 32, 0.85) 100%) !important;
+  border: 1px solid rgba(139, 124, 247, 0.22) !important;
+  border-radius: 14px !important;
+  padding: 1rem 1.15rem !important;
+  margin-bottom: 0.75rem !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25) !important;
+  transition: border-color 0.15s ease, transform 0.15s ease !important;
+}
+
+#portal-customer .ticket-list .ticket-card:hover,
+#my-tickets-list .ticket-card:hover {
+  border-color: rgba(139, 124, 247, 0.45) !important;
+  transform: translateY(-1px);
+}
+
+html[data-theme="light"] #portal-customer .ticket-list .ticket-card,
+html[data-theme="light"] #my-tickets-list .ticket-card {
+  background: rgba(255, 255, 255, 0.92) !important;
+  border-color: rgba(109, 94, 245, 0.16) !important;
+  box-shadow: 0 6px 18px rgba(90, 70, 180, 0.08) !important;
+}
+
+#portal-customer .empty-state,
+#my-tickets-list .empty-state {
+  text-align: center;
+  padding: 2.5rem 1.25rem !important;
+  color: #9a9ab4 !important;
+  border: 1px dashed rgba(139, 124, 247, 0.25) !important;
+  border-radius: 16px !important;
+  background: rgba(20, 18, 36, 0.4) !important;
+}
+
+#portal-customer .help-tour-btn,
+button.help-tour,
+#btn-help-tour {
+  border-radius: 999px !important;
+  border: 1px solid rgba(139, 124, 247, 0.35) !important;
+  background: rgba(28, 26, 48, 0.85) !important;
+  color: #c4b5fd !important;
+  backdrop-filter: blur(8px);
+}
+
+#portal-agent.active .main,
+#portal-agent.active main.main {
+  position: relative;
+  z-index: 1;
+}
+
+#portal-agent .stat-card,
+#portal-agent .dashboard-card,
+#portal-agent .ticket-card {
+  border: 1px solid rgba(139, 124, 247, 0.18) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22) !important;
+}
+
+#portal-agent .stat-card:hover,
+#portal-agent .ticket-card:hover {
+  border-color: rgba(139, 124, 247, 0.35) !important;
+}
