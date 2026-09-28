@@ -1,7 +1,6 @@
 /**
- * Divine Rays — split backgrounds + medical-tech login ambient
- * Login: purple field, hex grid, circuit traces, soft med icons
- * Portal: quieter field for spinning gears
+ * Divine Rays — medical-tech login ambient (dense hex network + icons)
+ * Login only · Portal keeps gear field
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
@@ -15,15 +14,14 @@
   var LAYER_ID = 'dr-login-ambient';
 
   var LOGIN_DARK =
-    'radial-gradient(ellipse 90% 55% at 50% -5%, rgba(139,92,246,0.35), transparent 55%),' +
-    'radial-gradient(ellipse 70% 45% at 100% 100%, rgba(91,33,182,0.28), transparent 50%),' +
-    'radial-gradient(ellipse 50% 40% at 0% 85%, rgba(167,139,250,0.18), transparent 45%),' +
-    'linear-gradient(180deg, #2a1060 0%, #1a0a40 40%, #120830 70%, #0c0620 100%)';
+    'radial-gradient(ellipse 100% 60% at 50% 0%, rgba(139,92,246,0.4), transparent 55%),' +
+    'radial-gradient(ellipse 80% 50% at 50% 100%, rgba(76,29,149,0.35), transparent 50%),' +
+    'linear-gradient(180deg, #3b1a6e 0%, #2a1060 25%, #1a0a40 55%, #120830 80%, #0c0620 100%)';
 
   var LOGIN_LIGHT =
-    'radial-gradient(ellipse 90% 60% at 50% -10%, rgba(124,106,240,0.2), transparent 55%),' +
-    'radial-gradient(ellipse 70% 50% at 100% 100%, rgba(167,139,250,0.12), transparent 50%),' +
-    'linear-gradient(165deg, #f0ebff 0%, #ebe6f8 40%, #e4dff2 100%)';
+    'radial-gradient(ellipse 100% 55% at 50% -5%, rgba(124,106,240,0.28), transparent 55%),' +
+    'radial-gradient(ellipse 70% 45% at 50% 100%, rgba(167,139,250,0.2), transparent 50%),' +
+    'linear-gradient(180deg, #efe8ff 0%, #e4dcf8 40%, #d9d0f0 100%)';
 
   var PORTAL_DARK =
     'radial-gradient(ellipse 80% 50% at 70% 20%, rgba(109,94,245,0.18), transparent 55%),' +
@@ -34,9 +32,6 @@
     'radial-gradient(ellipse 80% 50% at 70% 15%, rgba(109,94,245,0.14), transparent 55%),' +
     'radial-gradient(ellipse 50% 40% at 0% 90%, rgba(167,139,250,0.1), transparent 50%),' +
     'linear-gradient(165deg, #f4f2fb 0%, #ebe8f6 50%, #e4e0f2 100%)';
-
-  var HEX_SVG =
-    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100' viewBox='0 0 56 100'%3E%3Cpath fill='none' stroke='%23c4b5fd' stroke-width='0.6' opacity='0.35' d='M28 2 L52 16 L52 44 L28 58 L4 44 L4 16 Z M28 58 L52 72 L52 100'/%3E%3C/svg%3E\")";
 
   function isLight() {
     try {
@@ -62,143 +57,159 @@
 
   function ambientCss() {
     var light = isLight();
-    var hexOp = light ? '0.08' : '0.12';
-    var circuitOp = light ? '0.07' : '0.09';
-    var particleC = light ? 'rgba(91,33,182,0.45)' : 'rgba(196,181,253,0.55)';
+    var particle = light ? 'rgba(109,40,217,0.55)' : 'rgba(233,213,255,0.65)';
+    var hexOp = light ? '0.22' : '0.28';
+    var netOp = light ? '0.55' : '0.7';
 
     return [
       '#' + LAYER_ID + '{',
       'position:absolute!important;inset:0!important;z-index:0!important;',
-      'pointer-events:none!important;overflow:hidden!important;',
-      'display:none',
+      'pointer-events:none!important;overflow:hidden!important;display:none',
       '}',
       'body.is-login #' + LAYER_ID + '{display:block!important}',
       'body.is-portal #' + LAYER_ID + '{display:none!important}',
-      '#' + LAYER_ID + ' .dr-hex{',
-      'position:absolute;inset:0;',
-      'background-image:' + HEX_SVG + ';',
-      'background-size:56px 100px;',
+      '#' + LAYER_ID + ' .dr-honeycomb{',
+      'position:absolute;left:-5%;right:-5%;top:28%;height:44%;',
       'opacity:' + hexOp + ';',
-      'animation:drHexDrift 48s linear infinite',
       '}',
-      '@keyframes drHexDrift{from{background-position:0 0}to{background-position:56px 100px}}',
-      '#' + LAYER_ID + ' .dr-circuits{',
-      'position:absolute;inset:0;opacity:' + circuitOp + ';',
+      '#' + LAYER_ID + ' .dr-honeycomb svg{width:100%;height:100%;display:block}',
+      '#' + LAYER_ID + ' .dr-network{',
+      'position:absolute;left:0;right:0;top:32%;height:36%;',
+      'opacity:' + netOp + ';',
       '}',
-      '#' + LAYER_ID + ' .dr-circuits path{',
-      'fill:none;stroke:' + (light ? '#7c3aed' : '#c4b5fd') + ';stroke-width:1.2;',
-      'stroke-linecap:round;stroke-linejoin:round',
+      '#' + LAYER_ID + ' .dr-network svg{width:100%;height:100%;display:block}',
+      '#' + LAYER_ID + ' .dr-vignette{',
+      'position:absolute;inset:0;',
+      'background:radial-gradient(ellipse 55% 50% at 50% 48%, transparent 30%, ' +
+        (light ? 'rgba(228,220,248,0.55)' : 'rgba(12,6,32,0.55)') +
+        ' 100%);',
       '}',
-      '#' + LAYER_ID + ' .dr-circuits circle{fill:' + (light ? '#7c3aed' : '#e9d5ff') + '}',
-      '#' + LAYER_ID + ' .dr-med-band{',
-      'position:absolute;left:0;right:0;top:42%;height:22%;',
-      'opacity:' + (light ? '0.35' : '0.45') + ';',
-      '}',
-      '#' + LAYER_ID + ' .dr-med-band svg{width:100%;height:100%;display:block}',
       '#' + LAYER_ID + ' .dr-particles span{',
       'position:absolute;border-radius:50%;',
-      'background:' + particleC + ';',
-      'box-shadow:0 0 6px ' + particleC + ';',
-      'animation:drParticle 6s ease-in-out infinite;opacity:0.5',
+      'background:' + particle + ';',
+      'box-shadow:0 0 8px ' + particle + ',0 0 14px ' + particle + ';',
+      'animation:drParticle 7s ease-in-out infinite',
       '}',
       '@keyframes drParticle{',
-      '0%{transform:translateY(0) scale(1);opacity:0.15}',
-      '40%{opacity:0.7}',
-      '100%{transform:translateY(-28px) scale(0.85);opacity:0.1}',
+      '0%{transform:translate(0,0) scale(1);opacity:0.2}',
+      '35%{opacity:0.85}',
+      '100%{transform:translate(6px,-32px) scale(0.7);opacity:0.1}',
       '}',
+      '#' + LAYER_ID + ' .dr-network .dr-pulse-line{',
+      'stroke-dasharray:8 14;',
+      'animation:drTrace 18s linear infinite',
+      '}',
+      '@keyframes drTrace{to{stroke-dashoffset:-200}}',
       '@media (prefers-reduced-motion:reduce){',
-      '#' + LAYER_ID + ' .dr-hex{animation:none}',
-      '#' + LAYER_ID + ' .dr-particles span{animation:none}',
+      '#' + LAYER_ID + ' .dr-particles span,#' + LAYER_ID + ' .dr-network .dr-pulse-line{animation:none!important}',
       '}'
     ].join('');
   }
 
-  function circuitSvg() {
+  function honeycombSvg(stroke) {
+    var cells = [];
+    var rows = 5;
+    var cols = 14;
+    var w = 70;
+    var h = 40;
+    for (var r = 0; r < rows; r++) {
+      for (var c = 0; c < cols; c++) {
+        var ox = c * w + (r % 2 ? w / 2 : 0) - 20;
+        var oy = r * h * 0.85 + 10;
+        cells.push(
+          'M' + (ox + 28) + ' ' + oy +
+          ' L' + (ox + 52) + ' ' + (oy + 14) +
+          ' L' + (ox + 52) + ' ' + (oy + 34) +
+          ' L' + (ox + 28) + ' ' + (oy + 48) +
+          ' L' + (ox + 4) + ' ' + (oy + 34) +
+          ' L' + (ox + 4) + ' ' + (oy + 14) + ' Z'
+        );
+      }
+    }
     return (
-      '<svg class="dr-circuits" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" preserveAspectRatio="none">' +
-      '<path d="M40 80 H180 V160 H320"/>' +
-      '<circle cx="40" cy="80" r="2.5"/><circle cx="180" cy="80" r="2"/><circle cx="320" cy="160" r="2.5"/>' +
-      '<path d="M900 90 H1060 V200 H1160"/>' +
-      '<circle cx="900" cy="90" r="2"/><circle cx="1160" cy="200" r="2.5"/>' +
-      '<path d="M60 580 H200 V640 H380"/>' +
-      '<circle cx="60" cy="580" r="2"/><circle cx="380" cy="640" r="2.5"/>' +
-      '<path d="M820 560 H980 V640 H1140"/>' +
-      '<circle cx="820" cy="560" r="2"/><circle cx="1140" cy="640" r="2"/>' +
-      '<path d="M50 320 H120 V400 H60"/>' +
-      '<circle cx="50" cy="320" r="2"/><circle cx="60" cy="400" r="2"/>' +
-      '<path d="M1080 360 H1150 V440"/>' +
-      '<circle cx="1080" cy="360" r="2"/><circle cx="1150" cy="440" r="2"/>' +
-      '</svg>'
+      '<svg class="dr-honeycomb" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 220" preserveAspectRatio="xMidYMid slice">' +
+      '<g fill="none" stroke="' + stroke + '" stroke-width="1.1">' +
+      cells.map(function (d) { return '<path d="' + d + '"/>'; }).join('') +
+      '</g></svg>'
     );
   }
 
-  function medBandSvg() {
+  function networkSvg(stroke, fill) {
     return (
-      '<svg class="dr-med-band" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 200" preserveAspectRatio="xMidYMid meet">' +
+      '<svg class="dr-network" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 240" preserveAspectRatio="xMidYMid meet">' +
       '<defs>' +
-      '<filter id="drGlow"><feGaussianBlur stdDeviation="1.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>' +
+      '<filter id="drNetGlow" x="-20%" y="-20%" width="140%" height="140%">' +
+      '<feGaussianBlur stdDeviation="2.2" result="b"/>' +
+      '<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>' +
+      '</filter>' +
       '</defs>' +
-      '<g fill="none" stroke="#c4b5fd" stroke-width="1" opacity="0.55" filter="url(#drGlow)">' +
-      '<path d="M40 100 H160 M160 100 L220 60 M160 100 L220 140 M220 60 H300 M220 140 H300 M300 60 L360 100 M300 140 L360 100 M360 100 H460 M460 100 L520 55 M460 100 L520 145 M520 55 H620 M520 145 H620 M620 55 L680 100 M620 145 L680 100 M680 100 H780 M780 100 L840 60 M780 100 L840 140 M840 60 H940 M840 140 H940 M940 60 L1000 100 M940 140 L1000 100 M1000 100 H1160"/>' +
-      '<circle cx="160" cy="100" r="3" fill="#e9d5ff" stroke="none"/>' +
-      '<circle cx="360" cy="100" r="3" fill="#e9d5ff" stroke="none"/>' +
-      '<circle cx="680" cy="100" r="3" fill="#e9d5ff" stroke="none"/>' +
-      '<circle cx="1000" cy="100" r="3" fill="#e9d5ff" stroke="none"/>' +
+      '<g fill="none" stroke="' + stroke + '" stroke-width="1.35" filter="url(#drNetGlow)" opacity="0.9">' +
+      '<path class="dr-pulse-line" d="M20 120 H100 L140 80 H220 L260 120 H340 L380 70 H480 L520 120 H600 L640 75 H720 L760 120 H860 L900 80 H980 L1020 120 H1180"/>' +
+      '<path d="M140 80 L140 50 M220 80 L220 50 M380 70 L380 40 M480 70 L480 40 M640 75 L640 45 M900 80 L900 50"/>' +
+      '<path d="M260 120 L260 170 M340 120 L340 175 M520 120 L520 175 M760 120 L760 170 M1020 120 L1020 175"/>' +
+      '<path d="M100 120 L80 160 M600 120 L580 165 M860 120 L840 165"/>' +
+      '<path d="M220 50 H300 M480 40 H560 M900 50 H970" opacity="0.7"/>' +
+      '<path d="M260 170 H320 M520 175 H600 M760 170 H830" opacity="0.7"/>' +
       '</g>' +
-      '<g fill="#e9d5ff" opacity="0.7">' +
-      '<path d="M70 100 H90 L96 88 L102 112 L108 100 H128" fill="none" stroke="#e9d5ff" stroke-width="1.6" stroke-linecap="round"/>' +
-      '<path d="M250 88 H268 V100 H280 V112 H268 V124 H250 V112 H238 V100 H250 Z" opacity="0.85"/>' +
-      '<path d="M560 108 C560 98 548 92 540 100 C532 92 520 98 520 108 C520 120 540 132 540 132 C540 132 560 120 560 108 Z" opacity="0.8"/>' +
-      '<path d="M420 80 C430 90 430 110 420 120 M440 80 C430 90 430 110 440 120" fill="none" stroke="#e9d5ff" stroke-width="1.4"/>' +
-      '<path d="M760 95 H800 V105 H760 Z M800 100 H812" fill="none" stroke="#e9d5ff" stroke-width="1.4"/>' +
-      '<rect x="900" y="88" width="16" height="24" rx="2" fill="none" stroke="#e9d5ff" stroke-width="1.4"/>' +
-      '<path d="M904 88 V82 H912 V88" fill="none" stroke="#e9d5ff" stroke-width="1.2"/>' +
-      '<circle cx="1040" cy="92" r="5"/><circle cx="1055" cy="94" r="4"/><circle cx="1070" cy="92" r="5"/>' +
+      '<g fill="' + fill + '">' +
+      '<circle cx="100" cy="120" r="3.2"/><circle cx="140" cy="80" r="3.2"/><circle cx="220" cy="80" r="3.2"/>' +
+      '<circle cx="260" cy="120" r="3.2"/><circle cx="340" cy="120" r="3.2"/><circle cx="380" cy="70" r="3.2"/>' +
+      '<circle cx="480" cy="70" r="3.2"/><circle cx="520" cy="120" r="3.2"/><circle cx="600" cy="120" r="3.2"/>' +
+      '<circle cx="640" cy="75" r="3.2"/><circle cx="760" cy="120" r="3.2"/><circle cx="860" cy="120" r="3.2"/>' +
+      '<circle cx="900" cy="80" r="3.2"/><circle cx="980" cy="80" r="3.2"/><circle cx="1020" cy="120" r="3.2"/>' +
+      '<circle cx="80" cy="160" r="2.5"/><circle cx="580" cy="165" r="2.5"/><circle cx="840" cy="165" r="2.5"/>' +
+      '<circle cx="300" cy="50" r="2.2"/><circle cx="560" cy="40" r="2.2"/><circle cx="970" cy="50" r="2.2"/>' +
+      '<circle cx="320" cy="170" r="2.2"/><circle cx="600" cy="175" r="2.2"/><circle cx="830" cy="170" r="2.2"/>' +
       '</g>' +
-      '</svg>'
+      '<g fill="' + fill + '" stroke="' + stroke + '" stroke-width="1.2" opacity="0.95">' +
+      '<path d="M45 120 H70 L76 105 L82 135 L88 120 H110" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/>' +
+      '<circle cx="180" cy="55" r="9" fill="none"/><path d="M168 72 C168 64 192 64 192 72 V78 H168 Z" fill="none"/>' +
+      '<path d="M176 48 H184 M180 44 V52" stroke-width="1.6"/>' +
+      '<path d="M300 155 H318 V167 H330 V179 H318 V191 H300 V179 H288 V167 H300 Z" fill="' + fill + '" stroke="none" opacity="0.9"/>' +
+      '<path d="M430 45 C442 55 442 75 430 85 M450 45 C438 55 438 75 450 85" fill="none" stroke-width="1.6"/>' +
+      '<path d="M432 55 H448 M432 75 H448" fill="none" stroke-width="1"/>' +
+      '<path d="M580 58 C580 48 568 42 560 50 C552 42 540 48 540 58 C540 72 560 86 560 86 C560 86 580 72 580 58 Z" fill="' + fill + '" stroke="none" opacity="0.88"/>' +
+      '<path d="M548 62 H554 L558 54 L562 70 L566 62 H572" fill="none" stroke="' + (stroke === '#6d28d9' ? '#4c1d95' : '#2e1065') + '" stroke-width="1.3" opacity="0.9"/>' +
+      '<path d="M700 155 H745 V168 H700 Z" fill="none"/><path d="M745 161.5 H758" fill="none"/><path d="M758 157 L766 161.5 L758 166" fill="none"/>' +
+      '<path d="M708 155 V148 H720 V155" fill="none"/>' +
+      '<rect x="880" y="150" width="22" height="32" rx="4" fill="none"/><path d="M886 150 V142 H896 V150" fill="none"/>' +
+      '<path d="M880 166 H902" fill="none"/>' +
+      '<circle cx="1085" cy="52" r="7" fill="none"/><circle cx="1105" cy="55" r="6" fill="none"/><circle cx="1125" cy="52" r="7" fill="none"/>' +
+      '<path d="M1074 68 C1074 62 1096 62 1096 68 V74 H1074 Z" fill="none"/>' +
+      '<path d="M1095 70 C1095 65 1115 65 1115 70 V75 H1095 Z" fill="none"/>' +
+      '<path d="M1114 68 C1114 62 1136 62 1136 68 V74 H1114 Z" fill="none"/>' +
+      '</g></svg>'
     );
   }
 
   function particlesHtml() {
     var html = '<div class="dr-particles">';
     var spots = [
-      [8, 12], [18, 28], [28, 8], [72, 15], [88, 22], [12, 70], [22, 85],
-      [78, 78], [92, 68], [45, 6], [55, 90], [35, 18], [65, 12], [5, 45],
-      [95, 50], [40, 88], [60, 5], [15, 55], [85, 40], [50, 95]
+      [4, 8], [10, 18], [16, 6], [22, 25], [30, 10], [38, 4], [48, 12],
+      [58, 7], [68, 15], [78, 5], [86, 20], [94, 9], [7, 75], [14, 88],
+      [25, 80], [35, 92], [55, 85], [70, 78], [82, 90], [92, 72],
+      [3, 45], [97, 40], [12, 55], [88, 50], [45, 3], [55, 96]
     ];
     for (var i = 0; i < spots.length; i++) {
       var s = spots[i];
-      var size = 2 + (i % 3);
-      var dur = 4 + (i % 5) * 1.2;
-      var delay = (i * 0.37) % 5;
+      var size = 2 + (i % 4);
+      var dur = 5 + (i % 6) * 0.9;
+      var delay = (i * 0.31) % 6;
       html +=
-        '<span style="left:' +
-        s[0] +
-        '%;top:' +
-        s[1] +
-        '%;width:' +
-        size +
-        'px;height:' +
-        size +
-        'px;animation-duration:' +
-        dur +
-        's;animation-delay:' +
-        delay +
-        's"></span>';
+        '<span style="left:' + s[0] + '%;top:' + s[1] + '%;width:' + size +
+        'px;height:' + size + 'px;animation-duration:' + dur +
+        's;animation-delay:' + delay + 's"></span>';
     }
-    html += '</div>';
-    return html;
+    return html + '</div>';
   }
 
   function ensureAmbient() {
     var login = document.getElementById('login-screen') || document.querySelector('.login-screen');
     var layer = document.getElementById(LAYER_ID);
-
     if (!loginVisible() || !login) {
       if (layer) layer.style.display = 'none';
       return;
     }
-
     if (!layer) {
       layer = document.createElement('div');
       layer.id = LAYER_ID;
@@ -208,8 +219,15 @@
       login.insertBefore(layer, login.firstChild);
     }
 
+    var light = isLight();
+    var stroke = light ? '#6d28d9' : '#e9d5ff';
+    var fill = light ? '#7c3aed' : '#f5f3ff';
+
     layer.innerHTML =
-      '<div class="dr-hex"></div>' + circuitSvg() + medBandSvg() + particlesHtml();
+      honeycombSvg(stroke) +
+      networkSvg(stroke, fill) +
+      '<div class="dr-vignette"></div>' +
+      particlesHtml();
     layer.style.display = 'block';
   }
 
@@ -229,7 +247,7 @@
     var light = isLight();
     var onLogin = loginVisible();
     var grad = onLogin ? (light ? LOGIN_LIGHT : LOGIN_DARK) : light ? PORTAL_LIGHT : PORTAL_DARK;
-    var solid = onLogin ? (light ? '#ebe6f8' : '#120830') : light ? '#ebe8f6' : '#0c0c14';
+    var solid = onLogin ? (light ? '#e4dcf8' : '#120830') : light ? '#ebe8f6' : '#0c0c14';
 
     try {
       body.classList.toggle('is-login', onLogin);
@@ -244,14 +262,8 @@
     document.documentElement.style.setProperty('background-image', grad, 'important');
 
     [
-      '#portal-agent',
-      '#portal-agent.active',
-      '#portal-customer',
-      '#portal-customer.active',
-      '#portal-agent .main',
-      '#portal-agent main.main',
-      '#portal-customer .main',
-      '.app-shell'
+      '#portal-agent', '#portal-agent.active', '#portal-customer', '#portal-customer.active',
+      '#portal-agent .main', '#portal-agent main.main', '#portal-customer .main', '.app-shell'
     ].forEach(function (sel) {
       document.querySelectorAll(sel).forEach(function (el) {
         el.style.setProperty('background-color', 'transparent', 'important');
@@ -288,14 +300,13 @@
       var t = e.target;
       if (
         t &&
-        (t.id === 'btn-theme' ||
-          t.id === 'dr-login-theme' ||
+        (t.id === 'btn-theme' || t.id === 'dr-login-theme' ||
           (t.classList && t.classList.contains('btn-theme')) ||
           (t.closest && (t.closest('form.login-form') || t.closest('#login-screen'))))
       ) {
         setTimeout(apply, 30);
-        setTimeout(apply, 200);
-        setTimeout(apply, 600);
+        setTimeout(apply, 250);
+        setTimeout(apply, 700);
       }
     },
     true
