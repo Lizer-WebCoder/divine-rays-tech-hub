@@ -1,5 +1,5 @@
 /**
- * Divine Rays — login glass 20% + glow; realistic crack on fail (heals after 3s)
+ * Divine Rays — login glass 20% + glow; shake on failed login (no crack)
  * Credit: Boyz at the Back
  */
 (function () {
@@ -20,13 +20,14 @@
 
     '.login-card.login-fail-glow,#login-screen .login-card.login-fail-glow{',
     'border-color:rgba(248,113,113,0.9)!important;',
-    'box-shadow:0 0 22px rgba(239,68,68,0.8),0 0 52px rgba(220,38,38,0.55),0 12px 40px rgba(0,0,0,0.3)!important;',
+    'box-shadow:0 0 22px rgba(239,68,68,0.8),0 0 52px rgba(220,38,38,0.55),0 12px 40px rgba(0,0,0,0.3)!important}',
+
+    '.login-card.login-fail-shake,#login-screen .login-card.login-fail-shake{',
     'animation:drCardShake .5s ease-out}',
 
     '.login-card.login-fail-healing,#login-screen .login-card.login-fail-healing{',
     'border-color:rgba(167,139,250,0.45)!important;',
-    'box-shadow:0 0 24px rgba(139,92,246,0.55),0 0 48px rgba(124,58,237,0.35),0 12px 40px rgba(0,0,0,0.25)!important;',
-    'animation:none!important}',
+    'box-shadow:0 0 24px rgba(139,92,246,0.55),0 0 48px rgba(124,58,237,0.35),0 12px 40px rgba(0,0,0,0.25)!important}',
 
     '@keyframes drCardShake{',
     '0%{transform:translate(0,0) rotate(0deg)}',
@@ -37,49 +38,6 @@
     '60%{transform:translate(-2px,0) rotate(-0.2deg)}',
     '72%{transform:translate(1px,0) rotate(0.1deg)}',
     '100%{transform:translate(0,0) rotate(0deg)}}',
-
-    '.login-card .dr-crack-overlay{',
-    'position:absolute;inset:0;z-index:20;pointer-events:none;',
-    'opacity:0;border-radius:inherit;overflow:hidden;',
-    'transition:opacity .7s ease}',
-    '.login-card.login-fail-glow .dr-crack-overlay{opacity:1;transition:opacity .15s ease}',
-    '.login-card.login-fail-healing .dr-crack-overlay{opacity:0;transition:opacity .9s ease}',
-    '.login-card .dr-crack-overlay svg{width:100%;height:100%;display:block}',
-
-    '.login-card .dr-crack-overlay .dr-crack-main{',
-    'stroke:rgba(255,220,220,0.95);stroke-width:1.8;fill:none;',
-    'stroke-linecap:round;stroke-linejoin:round;',
-    'filter:drop-shadow(0 0 2px rgba(239,68,68,0.9)) drop-shadow(0 0 6px rgba(185,28,28,0.5));',
-    'stroke-dasharray:1200;stroke-dashoffset:1200}',
-    '.login-card.login-fail-glow .dr-crack-overlay .dr-crack-main{',
-    'animation:drCrackDraw .55s cubic-bezier(.2,.7,.2,1) forwards}',
-    '.login-card.login-fail-healing .dr-crack-overlay .dr-crack-main{animation:none;stroke-dashoffset:0;opacity:0.15}',
-
-    '.login-card .dr-crack-overlay .dr-crack-branch{',
-    'stroke:rgba(255,200,200,0.75);stroke-width:1.15;fill:none;',
-    'stroke-linecap:round;stroke-linejoin:round;',
-    'filter:drop-shadow(0 0 1.5px rgba(239,68,68,0.7));',
-    'stroke-dasharray:400;stroke-dashoffset:400}',
-    '.login-card.login-fail-glow .dr-crack-overlay .dr-crack-branch{',
-    'animation:drCrackDraw .5s cubic-bezier(.2,.7,.2,1) .12s forwards}',
-    '.login-card.login-fail-healing .dr-crack-overlay .dr-crack-branch{animation:none;stroke-dashoffset:0;opacity:0.1}',
-
-    '.login-card .dr-crack-overlay .dr-crack-hair{',
-    'stroke:rgba(255,230,230,0.55);stroke-width:0.7;fill:none;',
-    'stroke-linecap:round;',
-    'filter:drop-shadow(0 0 1px rgba(248,113,113,0.5));',
-    'stroke-dasharray:200;stroke-dashoffset:200}',
-    '.login-card.login-fail-glow .dr-crack-overlay .dr-crack-hair{',
-    'animation:drCrackDraw .45s ease-out .22s forwards}',
-    '.login-card.login-fail-healing .dr-crack-overlay .dr-crack-hair{animation:none;opacity:0}',
-
-    '.login-card .dr-crack-overlay .dr-crack-flash{',
-    'fill:url(#drCrackFlash);opacity:0}',
-    '.login-card.login-fail-glow .dr-crack-overlay .dr-crack-flash{',
-    'animation:drCrackFlash .4s ease-out forwards}',
-
-    '@keyframes drCrackDraw{to{stroke-dashoffset:0}}',
-    '@keyframes drCrackFlash{0%{opacity:0.45}40%{opacity:0.2}100%{opacity:0}}',
 
     'html[data-theme="light"] .login-screen,html[data-theme="light"] #login-screen{',
     'background:radial-gradient(ellipse 90% 60% at 50% -10%,rgba(109,94,245,0.16),transparent 55%),',
@@ -100,13 +58,6 @@
     'html[data-theme="light"] .login-card.login-fail-healing,html[data-theme="light"] #login-screen .login-card.login-fail-healing{',
     'border-color:rgba(109,94,245,0.55)!important;',
     'box-shadow:0 0 28px rgba(109,94,245,0.7),0 0 56px rgba(139,92,246,0.45),0 0 80px rgba(124,58,237,0.25),0 10px 32px rgba(91,76,224,0.15)!important}',
-
-    'html[data-theme="light"] .login-card .dr-crack-overlay .dr-crack-main{',
-    'stroke:rgba(127,29,29,0.9);filter:drop-shadow(0 0 2px rgba(185,28,28,0.8))}',
-    'html[data-theme="light"] .login-card .dr-crack-overlay .dr-crack-branch{',
-    'stroke:rgba(153,27,27,0.75)}',
-    'html[data-theme="light"] .login-card .dr-crack-overlay .dr-crack-hair{',
-    'stroke:rgba(185,28,28,0.5)}',
 
     'html[data-theme="light"] .login-brand h1{color:#1a1a2e!important}',
     'html[data-theme="light"] .login-brand p,',
@@ -167,50 +118,8 @@
     '#login-screen .login-card,.login-card{position:relative;z-index:3}'
   ].join('');
 
-  var CRACK_SVG =
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 560" preserveAspectRatio="none" aria-hidden="true">' +
-    '<defs>' +
-    '<radialGradient id="drCrackFlash" cx="48%" cy="42%" r="55%">' +
-    '<stop offset="0%" stop-color="rgba(255,180,180,0.55)"/>' +
-    '<stop offset="45%" stop-color="rgba(239,68,68,0.2)"/>' +
-    '<stop offset="100%" stop-color="rgba(239,68,68,0)"/>' +
-    '</radialGradient>' +
-    '</defs>' +
-    '<rect class="dr-crack-flash" x="0" y="0" width="400" height="560"/>' +
-    '<path class="dr-crack-main" d="M198 8 L188 72 L205 118 L172 168 L218 228 L155 295 L210 355 L178 420 L202 480 L190 552"/>' +
-    '<path class="dr-crack-main" d="M188 72 L112 48 L58 95 L28 140"/>' +
-    '<path class="dr-crack-main" d="M188 72 L268 38 L328 78 L372 55"/>' +
-    '<path class="dr-crack-branch" d="M205 118 L278 105 L335 140 L378 120"/>' +
-    '<path class="dr-crack-branch" d="M205 118 L130 145 L72 125 L35 175"/>' +
-    '<path class="dr-crack-branch" d="M172 168 L95 155 L48 210 L18 195"/>' +
-    '<path class="dr-crack-branch" d="M172 168 L245 185 L310 160 L355 195"/>' +
-    '<path class="dr-crack-branch" d="M218 228 L295 245 L350 220 L388 255"/>' +
-    '<path class="dr-crack-branch" d="M218 228 L145 255 L85 235 L42 280"/>' +
-    '<path class="dr-crack-branch" d="M155 295 L88 320 L45 300 L12 345"/>' +
-    '<path class="dr-crack-branch" d="M155 295 L230 318 L290 295 L340 330"/>' +
-    '<path class="dr-crack-branch" d="M210 355 L280 375 L330 350 L375 390"/>' +
-    '<path class="dr-crack-branch" d="M210 355 L135 385 L75 360 L30 410"/>' +
-    '<path class="dr-crack-branch" d="M178 420 L250 445 L310 420 L360 460"/>' +
-    '<path class="dr-crack-branch" d="M178 420 L110 450 L55 430 L20 480"/>' +
-    '<path class="dr-crack-hair" d="M112 48 L90 25 L70 40"/>' +
-    '<path class="dr-crack-hair" d="M268 38 L290 18 L310 32"/>' +
-    '<path class="dr-crack-hair" d="M278 105 L300 88 L318 102"/>' +
-    '<path class="dr-crack-hair" d="M95 155 L70 140 L55 155"/>' +
-    '<path class="dr-crack-hair" d="M245 185 L265 170 L280 185"/>' +
-    '<path class="dr-crack-hair" d="M295 245 L315 230 L330 245"/>' +
-    '<path class="dr-crack-hair" d="M145 255 L125 270 L110 255"/>' +
-    '<path class="dr-crack-hair" d="M88 320 L65 335 L50 320"/>' +
-    '<path class="dr-crack-hair" d="M230 318 L250 305 L265 320"/>' +
-    '<path class="dr-crack-hair" d="M280 375 L300 360 L315 375"/>' +
-    '<path class="dr-crack-hair" d="M135 385 L115 400 L100 385"/>' +
-    '<path class="dr-crack-hair" d="M250 445 L270 430 L285 445"/>' +
-    '<path class="dr-crack-hair" d="M110 450 L90 465 L75 450"/>' +
-    '<path class="dr-crack-hair" d="M202 480 L225 495 L240 480"/>' +
-    '<path class="dr-crack-hair" d="M202 480 L175 500 L160 485"/>' +
-    '</svg>';
-
   var healTimer = null;
-  var lastFailAt = 0;
+  var pendingSubmit = false;
 
   function injectCss() {
     var el = document.getElementById('dr-login-theme-css');
@@ -222,17 +131,8 @@
     el.textContent = CSS;
   }
 
-  function ensureCrackOverlay(card) {
-    if (!card) return null;
-    var ov = card.querySelector('.dr-crack-overlay');
-    if (!ov) {
-      ov = document.createElement('div');
-      ov.className = 'dr-crack-overlay';
-      ov.setAttribute('aria-hidden', 'true');
-      ov.innerHTML = CRACK_SVG;
-      card.appendChild(ov);
-    }
-    return ov;
+  function getCard() {
+    return document.querySelector('#login-screen .login-card, .login-card');
   }
 
   function isLoginVisible() {
@@ -287,30 +187,38 @@
       });
   }
 
+  function removeCrackOverlays() {
+    document.querySelectorAll('.dr-crack-overlay').forEach(function (el) {
+      try { el.remove(); } catch (e) {}
+    });
+  }
+
   function healCard(card) {
     if (!card) return;
-    card.classList.remove('login-fail-glow');
+    card.classList.remove('login-fail-glow', 'login-fail-shake');
     card.classList.add('login-fail-healing');
     clearErrorMessages();
     setTimeout(function () {
       card.classList.remove('login-fail-healing');
-      var ov = card.querySelector('.dr-crack-overlay');
-      if (ov) {
-        var html = ov.innerHTML;
-        ov.innerHTML = '';
-        ov.innerHTML = html;
-      }
-    }, 950);
+    }, 500);
   }
 
-  function triggerFail(card) {
+  function playShake(card) {
     if (!card) return;
-    ensureCrackOverlay(card);
-    card.classList.remove('login-fail-healing');
-    card.classList.remove('login-fail-glow');
+    card.classList.remove('login-fail-shake');
     void card.offsetWidth;
+    card.classList.add('login-fail-shake');
+    setTimeout(function () {
+      card.classList.remove('login-fail-shake');
+    }, 550);
+  }
+
+  function triggerFail(card, withShake) {
+    if (!card) return;
+    removeCrackOverlays();
+    card.classList.remove('login-fail-healing');
     card.classList.add('login-fail-glow');
-    lastFailAt = Date.now();
+    if (withShake) playShake(card);
     if (healTimer) clearTimeout(healTimer);
     healTimer = setTimeout(function () {
       healCard(card);
@@ -318,42 +226,104 @@
     }, 3000);
   }
 
-  function syncFailGlow() {
-    var card = document.querySelector('#login-screen .login-card, .login-card');
-    if (!card) return;
-    ensureCrackOverlay(card);
-    var hasErr = !!document.querySelector(
+  function hasLoginError() {
+    return !!document.querySelector(
       '#login-screen .login-error, .login-form .login-error, .login-card .login-error'
     );
-    if (hasErr) {
-      if (!card.classList.contains('login-fail-glow') || Date.now() - lastFailAt > 500) {
-        triggerFail(card);
-      }
-    }
+  }
+
+  function onPossibleFail(fromSubmit) {
+    var card = getCard();
+    if (!card) return;
+    if (!hasLoginError()) return;
+    triggerFail(card, !!fromSubmit);
   }
 
   function watchLoginErrors() {
     var root = document.getElementById('login-screen') || document.body;
     if (!root || root.__drFailGlowObs) return;
+
+    document.addEventListener('submit', function (ev) {
+      var form = ev.target;
+      if (!form) return;
+      if (!(form.classList && form.classList.contains('login-form')) &&
+          !(form.closest && form.closest('.login-card'))) return;
+      pendingSubmit = true;
+      setTimeout(function () {
+        if (pendingSubmit && hasLoginError()) {
+          onPossibleFail(true);
+          pendingSubmit = false;
+        }
+      }, 80);
+      setTimeout(function () {
+        if (pendingSubmit && hasLoginError()) {
+          onPossibleFail(true);
+          pendingSubmit = false;
+        }
+      }, 350);
+      setTimeout(function () {
+        if (pendingSubmit && hasLoginError()) {
+          onPossibleFail(true);
+          pendingSubmit = false;
+        } else {
+          pendingSubmit = false;
+        }
+      }, 900);
+    }, true);
+
+    document.addEventListener('click', function (ev) {
+      var t = ev.target;
+      if (!t) return;
+      var btn = t.closest ? t.closest('button[type="submit"], .btn-primary, button.btn') : null;
+      if (!btn || !btn.closest || !btn.closest('.login-card, #login-screen')) return;
+      pendingSubmit = true;
+      setTimeout(function () {
+        if (pendingSubmit && hasLoginError()) {
+          onPossibleFail(true);
+          pendingSubmit = false;
+        }
+      }, 100);
+      setTimeout(function () {
+        if (pendingSubmit && hasLoginError()) {
+          onPossibleFail(true);
+          pendingSubmit = false;
+        }
+      }, 400);
+      setTimeout(function () {
+        if (pendingSubmit && hasLoginError()) {
+          onPossibleFail(true);
+          pendingSubmit = false;
+        } else {
+          pendingSubmit = false;
+        }
+      }, 1000);
+    }, true);
+
     try {
-      var obs = new MutationObserver(function () { syncFailGlow(); });
+      var obs = new MutationObserver(function () {
+        if (hasLoginError()) {
+          var card = getCard();
+          if (card && !card.classList.contains('login-fail-glow')) {
+            if (pendingSubmit) {
+              onPossibleFail(true);
+              pendingSubmit = false;
+            } else {
+              triggerFail(card, false);
+            }
+          }
+        }
+      });
       obs.observe(root, { childList: true, subtree: true, characterData: true });
       root.__drFailGlowObs = obs;
     } catch (e) {}
-    document.addEventListener('submit', function () {
-      setTimeout(syncFailGlow, 50);
-      setTimeout(syncFailGlow, 300);
-      setTimeout(syncFailGlow, 800);
-      setTimeout(syncFailGlow, 1500);
-    }, true);
-    setInterval(syncFailGlow, 1500);
-    syncFailGlow();
+
+    removeCrackOverlays();
   }
 
   function refresh() {
     injectCss();
     ensureLoginToggle();
-    syncFailGlow();
+    removeCrackOverlays();
   }
 
   injectCss();
@@ -365,6 +335,7 @@
   setInterval(function () {
     if (isLoginVisible()) ensureLoginToggle();
     else removeLoginToggle();
+    removeCrackOverlays();
   }, 3000);
 
   window.DRLoginTheme = {
