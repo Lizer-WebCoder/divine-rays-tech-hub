@@ -1,12 +1,16 @@
 /**
  * Divine Rays — Ticket audit log panel + idle escalation UI
- * Requires: private-notes-audit-sla.sql in Supabase
+ * Requires: private-notes-audit-sla.sql / fix scripts in Supabase
  * Credit: Boyz at the Back LRK · All Rights Reserved
  */
 (function () {
   'use strict';
   if (window.__DR_AUDIT_SLA) return;
   window.__DR_AUDIT_SLA = 1;
+
+  var syncing = false;
+  var debounceTimer = null;
+  var lastTicketId = null;
 
   function sb() {
     try { if (window.DR && window.DR.sb) return window.DR.sb(); } catch (e) {}
@@ -33,11 +37,11 @@
     } catch (e) {}
     var c = document.getElementById('toast-container');
     if (!c) return;
-    var e = document.createElement('div');
-    e.className = 'toast ' + (t || 'info');
-    e.textContent = m;
-    c.appendChild(e);
-    setTimeout(function () { try { e.remove(); } catch (x) {} }, 4000);
+    var el = document.createElement('div');
+    el.className = 'toast ' + (t || 'info');
+    el.textContent = m;
+    c.appendChild(el);
+    setTimeout(function () { try { el.remove(); } catch (x) {} }, 4000);
   }
 
   function injectCss() {
@@ -79,7 +83,7 @@
   function ensureAuditPanel() {
     if (!isStaff()) return null;
     var detail = document.getElementById('ticket-detail') || document.getElementById('view-detail');
-    if (!detail || !(detail.offsetParent || detail.getClientRects().length)) return null;
+    if (!detail) return null;
     var panel = document.getElementById('dr-audit-panel');
     if (panel) return panel;
     panel = document.createElement('div');
@@ -91,7 +95,10 @@
     if (comments) detail.insertBefore(panel, comments);
     else detail.appendChild(panel);
     var btn = document.getElementById('dr-audit-refresh');
-    if (btn) btn.addEventListener('click', function () { loadAudit(); });
+    if (btn && !btn._drBound) {
+      btn._drBound = true;
+      btn.addEventListener('click', function () { loadAudit(); });
+    }
     return panel;
   }
 
@@ -104,11 +111,12 @@
     bar = document.createElement('div');
     bar.id = 'dr-idle-bar';
     bar.innerHTML = '<span id="dr-idle-msg"></span><button type="button" id="dr-idle-escalate">Escalate idle tickets</button>';
-    var meta = detail.querySelector('.detail-meta') || detail.firstChild;
+    var meta = detail.querySelector('.detail-meta');
     if (meta && meta.parentNode) meta.parentNode.insertBefore(bar, meta.nextSibling);
     else detail.insertBefore(bar, detail.firstChild);
     var btn = document.getElementById('dr-idle-escalate');
-    if (btn) {
+    if (btn && !btn._drBound) {
+      btn._drBound = true;
       btn.addEventListener('click', async function () {
         var client = sb();
         if (!client) return;
@@ -121,7 +129,7 @@
           loadIdleHint();
           loadAudit();
         } catch (e) {
-          toast((e && e.message) || 'Escalation failed — run private-notes-audit-sla.sql', 'error');
+          toast((e && e.message) || 'Escalation failed — run SQL fix in Supabase', 'error');
         }
         btn.disabled = false;
         btn.textContent = 'Escalate idle tickets';
@@ -150,7 +158,7 @@
         .order('created_at', { ascending: false })
         .limit(40);
       if (r.error) {
-        list.innerHTML = '<span class="meta">Activity log not ready — run private-notes-audit-sla.sql in Supabase</span>';
+        list.innerHTML = '<span class="meta">Activity log not ready — run audit SQL in Supabase</span>';
         return;
       }
       var rows = r.data || [];
@@ -219,28 +227,59 @@
   }
 
   function sync() {
-    injectCss();
-    if (!isStaff()) return;
-    ensureAuditPanel();
-    ensureIdleBar();
-    loadAudit();
-    loadIdleHint();
+    if (syncing) return;
+    syncing = true;
+    try {
+      injectCss();
+      if (!isStaff()) return;
+      var tid = currentTicketId();
+      var detail = document.getElementById('ticket-detail') || document.getElementById('view-detail');
+      if (!detail) {
+        lastTicketId = null;
+        return;
+      }
+      ensureAuditPanel();
+      ensureIdleBar();
+      if (tid && tid !== lastTicketId) {
+        lastTicketId = tid;
+        loadAudit();
+        loadIdleHint();
+      } else if (tid) {
+        loadAudit();
+      }
+    } finally {
+      syncing = false;
+    }
+  }
+
+  function scheduleSync() {
+    if (debounceTimer) clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(function () {
+      debounceTimer = null;
+      sync();
+    }, 400);
   }
 
   injectCss();
-  setTimeout(sync, 800);
-  setTimeout(sync, 2500);
+  setTimeout(sync, 1000);
+  setTimeout(sync, 3000);
+
   setInterval(function () {
-    if (isStaff() && document.getElementById('ticket-detail')) {
+    if (!isStaff()) return;
+    var detail = document.getElementById('ticket-detail');
+    if (!detail) return;
+    var tid = currentTicketId();
+    if (tid && tid !== lastTicketId) {
+      scheduleSync();
+    }
+  }, 2000);
+
+  setInterval(function () {
+    if (isStaff() && currentTicketId()) {
       loadAudit();
       loadIdleHint();
     }
-  }, 12000);
-
-  try {
-    var mo = new MutationObserver(function () { sync(); });
-    mo.observe(document.body, { childList: true, subtree: true });
-  } catch (e) {}
+  }, 20000);
 
   window.DRAuditSla = { refresh: sync, loadAudit: loadAudit };
 })();
