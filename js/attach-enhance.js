@@ -1,6 +1,6 @@
 /**
  * Divine Rays — stable attachments (no flicker) + uploader name + caption
- * Credit: Lizzz · All Rights Reserved
+ * Credit: Boyz at the Back LRK · All Rights Reserved
  */
 (function () {
   'use strict';
@@ -9,18 +9,37 @@
   window.__DR_ATTACH = 1;
 
   var STYLE = [
-    '.attach-panel{margin:1rem 0;padding:1rem 1.15rem;border-radius:12px;border:1px solid var(--border,#2e2e42);background:var(--surface,#1a1a24)}',
-    '.attach-panel h4{margin:0 0 .35rem;font-size:.95rem;color:var(--text,#eeeef6)}',
-    '.attach-list{display:flex;flex-direction:column;gap:.45rem;margin-bottom:.75rem}',
-    '.attach-row{display:flex;align-items:flex-start;justify-content:space-between;gap:.75rem;padding:.55rem .65rem;border-radius:8px;background:rgba(0,0,0,.2);border:1px solid var(--border,#2e2e42);font-size:.88rem;transition:none!important}',
-    '.attach-row a{color:#a78bfa;text-decoration:none;word-break:break-all}',
+    '.attach-panel{margin:1rem 0;padding:1.15rem 1.25rem;border-radius:14px;border:1px solid rgba(139,124,247,.28);background:rgba(26,24,42,.72);box-shadow:0 6px 20px rgba(0,0,0,.18);backdrop-filter:blur(8px)}',
+    '.attach-panel h4{margin:0 0 .35rem;font-size:.95rem;font-weight:700;color:#c4b5fd}',
+    '.attach-panel .kb-sub{color:#9898b0;font-size:.82rem;line-height:1.4}',
+    '.attach-list{display:flex;flex-direction:column;gap:.5rem;margin-bottom:.85rem}',
+    '.attach-row{display:flex;align-items:flex-start;justify-content:space-between;gap:.75rem;padding:.6rem .75rem;border-radius:10px;background:rgba(0,0,0,.22);border:1px solid rgba(139,124,247,.18);font-size:.88rem}',
+    '.attach-row a{color:#a78bfa;text-decoration:none;word-break:break-all;font-weight:600}',
     '.attach-row a:hover{text-decoration:underline}',
     '.attach-meta{font-size:.75rem;color:#9898b0;margin-top:.2rem}',
     '.attach-caption{font-size:.82rem;color:var(--text,#eeeef6);margin-top:.25rem;line-height:1.35}',
-    '.attach-upload{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center}',
-    '.attach-upload input[type=file]{font-size:.82rem;max-width:100%;color:var(--text-muted,#9898b0)}',
-    '.attach-upload input[type=text],#attach-caption{flex:1 1 180px;min-width:140px;padding:.4rem .55rem;border-radius:8px;border:1px solid var(--border,#2e2e42);background:var(--bg,#0c0c12);color:var(--text,#eeeef6);font:inherit;font-size:.85rem}',
-    '.attach-thumb{max-width:72px;max-height:72px;border-radius:6px;object-fit:cover;margin-right:.5rem;flex-shrink:0}'
+    '.attach-upload{display:flex;flex-wrap:wrap;gap:.55rem;align-items:center}',
+    '.attach-file-wrap{position:relative;display:inline-flex;align-items:center;gap:.5rem;flex-wrap:wrap}',
+    '.attach-file-wrap input[type=file]{position:absolute;width:.1px;height:.1px;opacity:0;overflow:hidden;z-index:-1}',
+    '.attach-choose{display:inline-flex;align-items:center;gap:.4rem;padding:.45rem .9rem;border-radius:10px;border:1px solid rgba(139,124,247,.4);background:linear-gradient(135deg,rgba(124,106,240,.28),rgba(124,106,240,.12));color:#e9e5ff;font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit;transition:border-color .15s,box-shadow .15s,transform .15s}',
+    '.attach-choose:hover{border-color:rgba(167,139,250,.65);box-shadow:0 4px 14px rgba(109,94,245,.2);transform:translateY(-1px)}',
+    '.attach-choose:active{transform:translateY(0)}',
+    '.attach-fname{font-size:.82rem;color:#c4b5fd;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:.35rem .65rem;border-radius:8px;background:rgba(139,124,247,.12);border:1px solid rgba(139,124,247,.2)}',
+    '.attach-fname.is-empty{color:#9898b0;background:transparent;border-style:dashed}',
+    '.attach-upload input[type=text],#attach-caption{flex:1 1 160px;min-width:140px;padding:.5rem .7rem;border-radius:10px;border:1px solid rgba(139,124,247,.28);background:rgba(12,12,20,.55);color:#eeeef6;font:inherit;font-size:.85rem}',
+    '.attach-upload input[type=text]:focus,#attach-caption:focus{outline:none;border-color:rgba(167,139,250,.6);box-shadow:0 0 0 3px rgba(109,94,245,.15)}',
+    '#btn-attach-upload{padding:.45rem 1rem;border-radius:10px;border:none;background:linear-gradient(135deg,#8b7cf7,#6d5ef5);color:#fff;font-weight:700;font-size:.85rem;cursor:pointer;font-family:inherit;box-shadow:0 4px 12px rgba(109,94,245,.25)}',
+    '#btn-attach-upload:hover{filter:brightness(1.08)}',
+    '#btn-attach-upload:disabled{opacity:.55;cursor:not-allowed;filter:none}',
+    '.attach-thumb{max-width:72px;max-height:72px;border-radius:6px;object-fit:cover;margin-right:.5rem;flex-shrink:0}',
+    'html[data-theme="light"] .attach-panel{background:rgba(255,255,255,.94)!important;border-color:rgba(109,94,245,.22)!important;box-shadow:0 6px 20px rgba(109,94,245,.08)}',
+    'html[data-theme="light"] .attach-panel h4{color:#5b21b6!important}',
+    'html[data-theme="light"] .attach-panel .kb-sub,html[data-theme="light"] .attach-meta{color:#4b5563!important}',
+    'html[data-theme="light"] .attach-row{background:#f5f3ff!important;border-color:rgba(109,94,245,.15)!important}',
+    'html[data-theme="light"] .attach-choose{background:linear-gradient(135deg,rgba(109,94,245,.14),rgba(109,94,245,.06));color:#4c1d95;border-color:rgba(109,94,245,.35)}',
+    'html[data-theme="light"] .attach-fname{color:#5b21b6;background:rgba(109,94,245,.08);border-color:rgba(109,94,245,.2)}',
+    'html[data-theme="light"] .attach-fname.is-empty{color:#6b7280}',
+    'html[data-theme="light"] .attach-upload input[type=text],html[data-theme="light"] #attach-caption{background:#f8f7ff!important;border-color:rgba(109,94,245,.25)!important;color:#1e1b4b!important}'
   ].join('');
 
   var currentId = null;
@@ -71,12 +90,16 @@
     panel.className = 'attach-panel';
     panel.innerHTML =
       '<h4>Attachments</h4>' +
-      '<p class="kb-sub" style="margin:0 0 .5rem">Upload screenshots, PDFs, or logs (max 10 MB). Optional comment is shown with the file.</p>' +
+      '<p class="kb-sub" style="margin:0 0 .65rem">Upload screenshots, PDFs, or logs (max 10 MB). Optional comment is shown with the file.</p>' +
       '<div class="attach-list" id="attach-list"><span class="kb-sub">No files yet</span></div>' +
       '<div class="attach-upload">' +
+      '<div class="attach-file-wrap">' +
       '<input type="file" id="attach-file" accept="image/*,.pdf,.txt,.log,.zip,application/pdf" />' +
+      '<label for="attach-file" class="attach-choose" id="attach-choose-btn">📎 Choose file</label>' +
+      '<span class="attach-fname is-empty" id="attach-fname">No file chosen</span>' +
+      '</div>' +
       '<input type="text" id="attach-caption" placeholder="Comment (optional)…" maxlength="500" />' +
-      '<button type="button" class="btn btn-secondary btn-sm" id="btn-attach-upload">Upload</button>' +
+      '<button type="button" id="btn-attach-upload">Upload</button>' +
       '</div>';
     if (beforeEl && beforeEl.parentNode === host) {
       host.insertBefore(panel, beforeEl);
@@ -85,6 +108,25 @@
     }
     var btn = document.getElementById('btn-attach-upload');
     if (btn) btn.onclick = upload;
+    var fin = document.getElementById('attach-file');
+    var fname = document.getElementById('attach-fname');
+    if (fin && !fin._drBound) {
+      fin._drBound = true;
+      fin.addEventListener('change', function () {
+        var f = fin.files && fin.files[0];
+        if (fname) {
+          if (f) {
+            fname.textContent = f.name;
+            fname.classList.remove('is-empty');
+            fname.title = f.name;
+          } else {
+            fname.textContent = 'No file chosen';
+            fname.classList.add('is-empty');
+            fname.title = '';
+          }
+        }
+      });
+    }
     return panel;
   }
 
@@ -101,105 +143,61 @@
     } catch (e) {}
   }
 
-  function uploaderLabel(a) {
-    if (a.uploader && (a.uploader.full_name || a.uploader.username)) {
-      return a.uploader.full_name || a.uploader.username;
+  function renderList(rows) {
+    var list = document.getElementById('attach-list');
+    if (!list) return;
+    if (!rows || !rows.length) {
+      list.innerHTML = '<span class="kb-sub">No files yet</span>';
+      return;
     }
-    if (a.uploaded_by && nameCache[a.uploaded_by]) return nameCache[a.uploaded_by];
-    var me = profile();
-    if (me && a.uploaded_by && me.id === a.uploaded_by) {
-      return me.full_name || me.username || 'You';
-    }
-    return a.uploaded_by ? 'User' : 'Unknown';
+    list.innerHTML = rows.map(function (row) {
+      var who = nameCache[row.uploaded_by] || 'User';
+      var size = fmtSize(row.file_size);
+      var cap = row.caption ? '<div class="attach-caption">' + esc(row.caption) + '</div>' : '';
+      var meta = esc(who) + (size ? ' · ' + size : '');
+      var link = row.public_url || row.file_path || '#';
+      var name = esc(row.file_name || 'file');
+      var thumb = '';
+      if (row.file_name && /\.(png|jpe?g|gif|webp)$/i.test(row.file_name) && row.public_url) {
+        thumb = '<img class="attach-thumb" src="' + esc(row.public_url) + '" alt="" />';
+      }
+      return (
+        '<div class="attach-row">' +
+        '<div style="display:flex;align-items:flex-start;gap:.5rem;min-width:0;flex:1">' +
+        thumb +
+        '<div style="min-width:0">' +
+        '<a href="' + esc(link) + '" target="_blank" rel="noopener">' + name + '</a>' +
+        '<div class="attach-meta">' + meta + '</div>' +
+        cap +
+        '</div></div></div>'
+      );
+    }).join('');
   }
 
-  async function load(ticketId, force) {
-    var list = document.getElementById('attach-list');
-    if (!list || !ticketId) return;
-    currentId = ticketId;
+  async function loadAttachments(ticketId) {
+    if (!ticketId) return;
     var client = sb();
     if (!client) return;
-
     try {
       var r = await client
         .from('ticket_attachments')
-        .select('*, uploader:profiles!uploaded_by(full_name,username)')
+        .select('*')
         .eq('ticket_id', ticketId)
         .order('created_at', { ascending: false });
-
-      var rows = r.data;
       if (r.error) {
-        var r2 = await client
-          .from('ticket_attachments')
-          .select('*')
-          .eq('ticket_id', ticketId)
-          .order('created_at', { ascending: false });
-        if (r2.error) {
-          if (!list.querySelector('.attach-row')) {
-            list.innerHTML = '<span class="kb-sub">Run ticket SQL in Supabase (ticket_attachments)</span>';
-          }
-          return;
-        }
-        rows = r2.data || [];
-        await resolveNames(rows.map(function (a) { return a.uploaded_by; }));
-      }
-
-      rows = rows || [];
-      var sig = rows.map(function (a) {
-        return a.id + ':' + (a.caption || '') + ':' + (a.file_name || '');
-      }).join('|');
-      if (!force && sig === lastSig && list.querySelector('.attach-row')) return;
-      lastSig = sig;
-
-      if (!rows.length) {
-        list.innerHTML = '<span class="kb-sub">No files yet</span>';
+        var list = document.getElementById('attach-list');
+        if (list) list.innerHTML = '<span class="kb-sub">Attachments unavailable</span>';
         return;
       }
-
-      var html = '';
-      for (var i = 0; i < rows.length; i++) {
-        var a = rows[i];
-        var url = '';
-        try {
-          var signed = await client.storage.from('ticket-files').createSignedUrl(a.file_path, 3600);
-          if (signed && signed.data && signed.data.signedUrl) url = signed.data.signedUrl;
-        } catch (e) {}
-        var name = uploaderLabel(a);
-        var when = '';
-        try {
-          when = new Date(a.created_at).toLocaleString(undefined, {
-            month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-          });
-        } catch (e2) {}
-        var isImg = (a.mime_type || '').indexOf('image/') === 0 ||
-          /\.(png|jpe?g|gif|webp)$/i.test(a.file_name || '');
-        var thumb = (isImg && url)
-          ? '<img class="attach-thumb" src="' + esc(url) + '" alt="" />'
-          : '';
-        var link = url
-          ? '<a href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(a.file_name) + '</a>'
-          : '<span>' + esc(a.file_name) + '</span>';
-        var cap = a.caption
-          ? '<div class="attach-caption">' + esc(a.caption) + '</div>'
-          : '';
-        html +=
-          '<div class="attach-row" data-aid="' + esc(a.id) + '">' +
-          '<div style="display:flex;align-items:flex-start;gap:.5rem;min-width:0;flex:1">' +
-          thumb +
-          '<div style="min-width:0">' +
-          link +
-          '<div class="attach-meta">Uploaded by <strong>' + esc(name) + '</strong>' +
-          (when ? ' · ' + esc(when) : '') +
-          (a.file_size ? ' · ' + esc(fmtSize(a.file_size)) : '') +
-          '</div>' +
-          cap +
-          '</div></div></div>';
-      }
-      list.innerHTML = html;
+      var rows = r.data || [];
+      var ids = rows.map(function (x) { return x.uploaded_by; }).filter(Boolean);
+      await resolveNames(ids);
+      var sig = rows.map(function (x) { return x.id; }).join(',');
+      if (sig === lastSig) return;
+      lastSig = sig;
+      renderList(rows);
     } catch (e) {
-      if (!list.querySelector('.attach-row')) {
-        list.innerHTML = '<span class="kb-sub">Could not load attachments</span>';
-      }
+      console.warn('[attach]', e);
     }
   }
 
@@ -207,144 +205,117 @@
     var input = document.getElementById('attach-file');
     var capEl = document.getElementById('attach-caption');
     var file = input && input.files && input.files[0];
-    var caption = (capEl && capEl.value || '').trim();
+    var caption = (capEl && capEl.value) || '';
     if (!file) {
       toast('Choose a file first', 'error');
       return;
     }
     if (file.size > 10 * 1024 * 1024) {
-      toast('Max 10 MB', 'error');
+      toast('File too large (max 10 MB)', 'error');
       return;
     }
-    if (!currentId) {
+    var tid = currentId || window.__drOpenTicketId;
+    if (!tid) {
       toast('Open a ticket first', 'error');
       return;
     }
     var client = sb();
-    var p = profile();
-    if (!client || !p || !p.id) {
-      toast('Not signed in', 'error');
-      return;
-    }
+    if (!client) return;
+    var me = profile();
     var btn = document.getElementById('btn-attach-upload');
-    if (btn) { btn.disabled = true; btn.textContent = 'Uploading…'; }
-    var safe = (file.name || 'file').replace(/[^\w.\-]+/g, '_');
-    var path = currentId + '/' + Date.now() + '_' + safe;
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Uploading…';
+    }
     try {
-      var up = await client.storage.from('ticket-files').upload(path, file, {
+      var safe = (file.name || 'file').replace(/[^\w.\-]+/g, '_');
+      var path = tid + '/' + Date.now() + '_' + safe;
+      var up = await client.storage.from('ticket-attachments').upload(path, file, {
         cacheControl: '3600',
         upsert: false
       });
       if (up.error) throw up.error;
-
-      var row = {
-        ticket_id: currentId,
-        uploaded_by: p.id,
+      var pub = client.storage.from('ticket-attachments').getPublicUrl(path);
+      var publicUrl = (pub && pub.data && pub.data.publicUrl) || null;
+      var ins = await client.from('ticket_attachments').insert({
+        ticket_id: tid,
+        uploaded_by: me && me.id,
         file_name: file.name,
         file_path: path,
         file_size: file.size,
-        mime_type: file.type || null
-      };
-      if (caption) row.caption = caption;
-
-      var ins = await client.from('ticket_attachments').insert(row);
-      if (ins.error && caption) {
-        delete row.caption;
-        ins = await client.from('ticket_attachments').insert(row);
-      }
+        public_url: publicUrl,
+        caption: caption || null
+      }).select().single();
       if (ins.error) throw ins.error;
-
-      if (caption) {
-        try {
+      input.value = '';
+      if (capEl) capEl.value = '';
+      var fn = document.getElementById('attach-fname');
+      if (fn) { fn.textContent = 'No file chosen'; fn.classList.add('is-empty'); fn.title = ''; }
+      lastSig = '';
+      await loadAttachments(tid);
+      toast('File uploaded', 'success');
+      try {
+        if (caption) {
           await client.from('comments').insert({
-            ticket_id: currentId,
-            author_id: p.id,
+            ticket_id: tid,
+            author_id: me && me.id,
             body: '📎 Uploaded “' + file.name + '”: ' + caption,
             is_internal: false
           });
-        } catch (e) {
-          try {
-            await client.from('comments').insert({
-              ticket_id: currentId,
-              author_id: p.id,
-              body: '📎 Uploaded “' + file.name + '”: ' + caption
-            });
-          } catch (e2) {}
+        } else {
+          await client.from('comments').insert({
+            ticket_id: tid,
+            author_id: me && me.id,
+            body: '📎 Uploaded “' + file.name + '”',
+            is_internal: false
+          });
         }
-        try {
-          if (window.DRCommentsLive && window.DRCommentsLive.refresh) {
-            window.DRCommentsLive.refresh();
-          }
-        } catch (e3) {}
-      }
-
-      toast('File uploaded', 'success');
-      if (input) input.value = '';
-      if (capEl) capEl.value = '';
-      lastSig = '';
-      await load(currentId, true);
+      } catch (e2) {}
     } catch (e) {
+      console.warn('[attach upload]', e);
       toast((e && e.message) || 'Upload failed', 'error');
-    } finally {
-      if (btn) { btn.disabled = false; btn.textContent = 'Upload'; }
+    }
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Upload';
     }
   }
 
-  async function resolveTicketIdFromDom(root) {
-    if (!root) return null;
-    var idEl = root.querySelector('.ticket-id');
-    var num = idEl ? idEl.textContent.trim() : '';
-    if (!num) {
-      var m = (root.textContent || '').match(new RegExp('DR-\\d+'));
-      num = m ? m[0] : '';
-    }
-    if (!num) return null;
-    var client = sb();
-    if (!client) return null;
-    try {
-      var r = await client.from('tickets').select('id,ticket_number')
-        .or('ticket_number.eq.' + num + ',number.eq.' + num)
-        .limit(1);
-      if (r.data && r.data[0]) return r.data[0].id;
-      var r2 = await client.from('tickets').select('id').ilike('ticket_number', num).limit(1);
-      return r2.data && r2.data[0] && r2.data[0].id;
-    } catch (e) {
-      return null;
-    }
+  function ticketIdFromDom() {
+    if (window.__drOpenTicketId) return window.__drOpenTicketId;
+    var d = document.getElementById('ticket-detail');
+    if (d && d.getAttribute('data-ticket-id')) return d.getAttribute('data-ticket-id');
+    var c = document.getElementById('cust-ticket-detail');
+    if (c && c.getAttribute('data-ticket-id')) return c.getAttribute('data-ticket-id');
+    return null;
   }
 
-  async function syncAgent() {
-    var detail = document.getElementById('ticket-detail');
-    var view = document.getElementById('view-detail');
-    if (!detail || !(detail.textContent || '').trim()) return;
-    var host = view || detail.parentNode;
-    var comments = (host && host.querySelector('.comments-section')) || detail.querySelector('.comments-section');
+  function sync() {
+    css();
+    var tid = ticketIdFromDom();
+    var detail = document.getElementById('ticket-detail') || document.getElementById('view-detail') || document.getElementById('cust-ticket-detail');
+    if (!detail) return;
+    var comments = detail.querySelector('.comments-section');
+    var host = detail;
     ensurePanel(host || detail, comments);
-    var id = await resolveTicketIdFromDom(detail);
-    if (id) await load(id, false);
     var btn = document.getElementById('btn-attach-upload');
     if (btn) btn.onclick = upload;
+    if (tid && tid !== currentId) {
+      currentId = tid;
+      lastSig = '';
+      loadAttachments(tid);
+    } else if (tid) {
+      loadAttachments(tid);
+    }
   }
 
-  async function syncCustomer() {
-    var detail = document.getElementById('cust-ticket-detail');
-    if (!detail || !(detail.textContent || '').trim()) return;
-    var host = document.getElementById('ctab-detail') || detail.parentNode;
-    var comments = host && host.querySelector('.comments-section');
-    ensurePanel(host || detail, comments);
-    var id = await resolveTicketIdFromDom(detail);
-    if (id) await load(id, false);
-    var btn = document.getElementById('btn-attach-upload');
-    if (btn) btn.onclick = upload;
-  }
+  setTimeout(sync, 900);
+  setTimeout(sync, 2500);
+  setInterval(function () {
+    if (document.getElementById('ticket-detail') || document.getElementById('cust-ticket-detail')) {
+      sync();
+    }
+  }, 8000);
 
-  function tick() {
-    syncAgent().catch(function () {});
-    syncCustomer().catch(function () {});
-  }
-
-  setInterval(tick, 4000);
-  setTimeout(tick, 800);
-  setTimeout(tick, 2500);
-  window.DRAttach = { refresh: function () { lastSig = ''; tick(); }, load: load };
+  window.DRAttach = { refresh: sync, load: loadAttachments };
 })();
