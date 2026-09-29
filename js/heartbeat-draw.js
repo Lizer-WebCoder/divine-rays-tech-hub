@@ -128,12 +128,12 @@
     '100%{stroke-dashoffset:0}',
     '}',
     '@keyframes drEcgGlowPulse{',
-    '0%,100%{opacity:0.55}',
-    '50%{opacity:0.95}',
+    '0%,100%{opacity:0.5}',
+    '50%{opacity:0.7}',
     '}',
     '@keyframes drEcgCorePulse{',
-    '0%,100%{opacity:0.92}',
-    '50%{opacity:1}',
+    '0%,100%{opacity:0.9}',
+    '50%{opacity:0.98}',
     '}',
     '@media (prefers-reduced-motion:reduce){',
     '#dr-lifeline .dr-spin-cw,#dr-lifeline .dr-spin-ccw,#dr-lifeline .dr-spin-cw-fast,#dr-lifeline .dr-spin-ccw-slow{animation:none!important}',
@@ -148,7 +148,7 @@
       el.id = CSS_ID;
       document.head.appendChild(el);
     }
-    el.textContent = CSS;
+    if (el.textContent !== CSS) el.textContent = CSS;
   }
 
   var ECG_PATTERNS = [
