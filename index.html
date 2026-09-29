@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.4.1" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.4.2" />
   <style>
     html,body{margin:0;background:#0c0c14;color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
     #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae}
@@ -32,7 +32,7 @@
     var AGENT_LIGHT = 'eb1cb3fce7ee8b83ef7cf9a75288ac1bfc6e2ab3';
     var LIGHT_V2 = 'b7f180cbce2760adead2810d31925d7b791d4bb9';
     var CSAT_AV = SAFE;
-    var LOGIN_SHA = 'c764fecbdf9638ad16d606448231df6af7668254';
+    var LOGIN_SHA = 'a2d32166867f754af7788761ecef468ee6340555';
     var TICKET_AV = 'cf9f7468e03f64f3cf44cac7de5e7262056d094e';
     var ACCT_SHA = '3e823d24458da24dbe01ee176f6c7ef0b45d77d8';
     var LF_SHA = '7209a771d5e80c5e85f96bf08e37161b6f7cc8a3';
@@ -50,7 +50,7 @@
       'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + PIN + '/index.html',
       'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PIN + '/index.html'
     ];
-    var ver = '8.4.1';
+    var ver = '8.4.2';
     var BUST = String(Date.now());
     try {
       if (navigator.serviceWorker) {
@@ -229,7 +229,7 @@
       }, 500);
       function applyV8Once() {
         document.querySelectorAll('.version').forEach(function (el) {
-          if (el.textContent.indexOf('8.4.1') === -1) el.textContent = 'v' + ver;
+          if (el.textContent.indexOf('8.4.2') === -1) el.textContent = 'v' + ver;
         });
         var lt = document.getElementById('dr-login-theme');
         if (lt && lt.parentNode) lt.parentNode.removeChild(lt);
@@ -244,11 +244,13 @@
         if (window.DRCreditFix && window.DRCreditFix.refresh) try { window.DRCreditFix.refresh(); } catch (e) {}
         if (window.DRKbLayout && window.DRKbLayout.refresh) try { window.DRKbLayout.refresh(); } catch (e) {}
         if (window.DREndUserLabel && window.DREndUserLabel.refresh) try { window.DREndUserLabel.refresh(); } catch (e) {}
+        if (window.DRLoginTheme && window.DRLoginTheme.refresh) try { window.DRLoginTheme.refresh(); } catch (e) {}
       }
       applyV8Once();
       setTimeout(applyV8Once, 800);
       setTimeout(applyV8Once, 2500);
       window.switchLoginTab = switchLoginTab; window.showForm = showForm; wireTabs();
+      if (window.DRLoginTheme && window.DRLoginTheme.refresh) try { window.DRLoginTheme.refresh(); } catch (e) {}
     } catch (err) {
       console.error(err);
       if (document.getElementById('boot')) document.getElementById('boot').textContent = 'Load error: ' + (err.message || err);
