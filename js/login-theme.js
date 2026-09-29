@@ -98,7 +98,7 @@
     'box-shadow:0 6px 18px rgba(91,76,224,0.35)!important;',
     'font-weight:600!important}',
 
-    'html[data-theme="light"] .login-switch,',
+    'html[data-theme="light"] .login-switch{color:#4a4a66!important}',
     'html[data-theme="light"] .login-switch a{color:#5b4fd4!important}',
     'html[data-theme="light"] .login-error{',
     'background:rgba(248,113,113,0.12)!important;border-color:rgba(248,113,113,0.35)!important}',
@@ -114,6 +114,8 @@
     'background:#fff;color:#4c3fd4;border-color:#c4b5fd;',
     'box-shadow:0 4px 16px rgba(30,30,60,.1)}',
 
+    '.login-switch{color:#9898b0!important}',
+    '.login-switch a{color:#c4b5fd!important}',
     '#login-screen,.login-screen{position:relative;z-index:2}',
     '#login-screen .login-card,.login-card{position:relative;z-index:3}'
   ].join('');
