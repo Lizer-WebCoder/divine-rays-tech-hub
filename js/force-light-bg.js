@@ -1,6 +1,6 @@
 /**
  * Divine Rays — larger nearer honeycomb (pointy-top regular mesh)
- * Other effects unchanged · Credit: Boyz at the Back
+ * Login + admin/agent portal · Credit: Boyz at the Back
  */
 (function () {
   'use strict';
@@ -61,8 +61,10 @@
 
   function ambientCss() {
     var light = isLight();
-    var hexOp = light ? '0.62' : '0.32';
-    var netOp = light ? '0.85' : '0.52';
+    var onLogin = loginVisible();
+    // Slightly softer on portal so cards/sidebar stay readable
+    var hexOp = onLogin ? (light ? '0.62' : '0.32') : (light ? '0.42' : '0.22');
+    var netOp = onLogin ? (light ? '0.85' : '0.52') : (light ? '0.55' : '0.35');
     var particle = light ? 'rgba(91,33,182,0.75)' : 'rgba(233,213,255,0.6)';
     var vignette = light
       ? 'radial-gradient(ellipse 40% 38% at 50% 48%, transparent 22%, rgba(200,185,240,0.35) 100%)'
@@ -73,8 +75,13 @@
       'position:absolute!important;inset:0!important;z-index:0!important;',
       'pointer-events:none!important;overflow:hidden!important;display:none',
       '}',
-      'body.is-login #' + LAYER_ID + '{display:block!important}',
-      'body.is-portal #' + LAYER_ID + '{display:none!important}',
+      // Login: layer sits inside #login-screen
+      'body.is-login #' + LAYER_ID + '{display:block!important;position:absolute!important}',
+      // Portal: fixed full-viewport behind agent/admin UI
+      'body.is-portal #' + LAYER_ID + '{',
+      'display:block!important;position:fixed!important;inset:0!important;',
+      'width:100%!important;height:100%!important;z-index:0!important',
+      '}',
       '#' + LAYER_ID + ' .dr-honeycomb{position:absolute;inset:-5%;width:110%;height:110%;opacity:' + hexOp + '}',
       '#' + LAYER_ID + ' .dr-honeycomb svg{width:100%;height:100%;display:block}',
       '#' + LAYER_ID + ' .dr-network{position:absolute;inset:0;opacity:' + netOp + '}',
@@ -88,7 +95,17 @@
       '@keyframes drParticle{0%{transform:translate(0,0) scale(1);opacity:0.25}40%{opacity:0.9}100%{transform:translate(8px,-36px) scale(0.65);opacity:0.08}}',
       '#' + LAYER_ID + ' .dr-pulse{stroke-dasharray:4 10;animation:drTrace 14s linear infinite}',
       '@keyframes drTrace{from{stroke-dashoffset:0}to{stroke-dashoffset:-280}}',
-      '@media (prefers-reduced-motion:reduce){#' + LAYER_ID + ' .dr-particles span,#' + LAYER_ID + ' .dr-pulse{animation:none!important}}'
+      '@media (prefers-reduced-motion:reduce){#' + LAYER_ID + ' .dr-particles span,#' + LAYER_ID + ' .dr-pulse{animation:none!important}}',
+      // Keep portal chrome readable above honeycomb
+      'body.is-portal #portal-agent .sidebar,',
+      'body.is-portal #portal-agent .mode-bar,',
+      'body.is-portal .mode-bar{position:relative;z-index:2}',
+      'body.is-portal #portal-agent .main,',
+      'body.is-portal #portal-agent main.main,',
+      'body.is-portal #portal-customer .main{position:relative;z-index:1;background:transparent!important}',
+      'body.is-portal #portal-agent,',
+      'body.is-portal #portal-customer,',
+      'body.is-portal .app-shell{background:transparent!important;background-image:none!important}'
     ].join('');
   }
 
@@ -264,23 +281,28 @@
   }
 
   function ensureAmbient() {
+    var onLogin = loginVisible();
     var login = document.getElementById('login-screen') || document.querySelector('.login-screen');
     var layer = document.getElementById(LAYER_ID);
-    if (!loginVisible() || !login) {
-      if (layer) layer.style.display = 'none';
-      lastAmbientKey = '';
-      return;
-    }
+
     if (!layer) {
       layer = document.createElement('div');
       layer.id = LAYER_ID;
       layer.setAttribute('aria-hidden', 'true');
     }
-    if (layer.parentNode !== login) {
-      login.insertBefore(layer, login.firstChild);
+
+    // Parent: login screen when on login, otherwise document.body for portal
+    var parent = onLogin && login ? login : document.body;
+    if (layer.parentNode !== parent) {
+      if (onLogin && login) {
+        login.insertBefore(layer, login.firstChild);
+      } else {
+        document.body.insertBefore(layer, document.body.firstChild);
+      }
     }
+
     var light = isLight();
-    var key = (light ? 'L' : 'D') + '-login-v10';
+    var key = (light ? 'L' : 'D') + (onLogin ? '-login' : '-portal') + '-v11';
     if (key === lastAmbientKey && layer.childNodes.length) {
       layer.style.display = 'block';
       return;
@@ -361,6 +383,11 @@
       setTimeout(apply, 250);
       setTimeout(apply, 700);
     }
+  }, true);
+
+  // Re-apply when agent/admin portal becomes active (after login)
+  document.addEventListener('click', function () {
+    setTimeout(apply, 400);
   }, true);
 
   window.DRForceLightBg = { refresh: apply };
