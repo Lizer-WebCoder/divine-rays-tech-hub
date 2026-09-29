@@ -246,11 +246,11 @@
     }, 400);
   }
 
-  function triggerFail(card, withShake) {
+  function triggerFail(card) {
     if (!card) return;
     card.classList.remove('login-fail-healing');
     card.classList.add('login-fail-glow');
-    if (withShake) {
+    if (arguments.length > 1 && arguments[1]) {
       card.classList.remove('login-fail-shake');
       void card.offsetWidth;
       card.classList.add('login-fail-shake');
@@ -345,10 +345,11 @@
       body += fieldPasswordConfirm('reg-cust-password', 'reg-cust-password-confirm', 'Confirm Password', 'required minlength="4" autocomplete="new-password"');
       body += '<div class="form-row">';
       body += fieldSelect('reg-cust-gender', 'Gender', [
-        { v: '', t: 'Select...' }, 'Male', 'Female', 'Non-binary', 'Prefer not to say'
+        { v: '', t: 'Select...' }, 'Male', 'Female', 'Prefer not to say'
       ], true);
       body += fieldSelect('reg-cust-role', 'Role', [
-        { v: 'customer', t: 'End-User', s: true }
+        { v: '', t: 'Select...' },
+        'Admin Staff', 'Medtech', 'Radtech', 'Nurse', 'Doctor', 'Cashier', 'Medical Staff'
       ], true);
       body += '</div>';
       body += fieldSelect('reg-cust-branch', 'Branch', [
@@ -365,232 +366,151 @@
     card.innerHTML =
       '<div class="reg-title">' + title + '</div>' +
       '<p class="reg-sub">' + sub + '</p>' +
-      '<form id="' + formId + '" class="login-form active">' + body + '</form>';
+      '<form id="' + formId + '" class="login-form">' + body + '</form>';
     return card;
   }
 
-  function wirePasswordFeatures(root) {
-    root = root || document;
-    root.querySelectorAll('.dr-pass-toggle').forEach(function (btn) {
-      if (btn.__drPassBound) return;
-      btn.__drPassBound = true;
-      btn.addEventListener('click', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        var id = btn.getAttribute('data-dr-pass-target');
-        var inp = id ? document.getElementById(id) : null;
-        if (!inp) return;
-        var show = inp.type === 'password';
-        inp.type = show ? 'text' : 'password';
-        btn.textContent = show ? '🙈' : '👁';
-        btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
-        btn.setAttribute('title', show ? 'Hide password' : 'Show password');
-      });
-    });
-
-    function checkPasswordLength(inp) {
-      if (!inp) return true;
-      var minAttr = inp.getAttribute('minlength');
-      var min = minAttr ? parseInt(minAttr, 10) : 0;
-      if (!min || isNaN(min)) min = 0;
-      var val = inp.value || '';
-      var hint = document.querySelector('[data-dr-len-hint="' + inp.id + '"]');
-      var card = inp.closest ? inp.closest('.login-card') : null;
-      inp.classList.remove('dr-pass-mismatch', 'dr-pass-match-ok');
-      if (hint) {
-        hint.classList.remove('is-ok', 'is-bad');
-        hint.textContent = '';
-      }
-      try { inp.setCustomValidity(''); } catch (e) {}
-      if (!val) return true;
-      if (val.length < min) {
-        var msg = 'Password must be at least ' + min + ' characters';
-        try { inp.setCustomValidity(msg); } catch (e) {}
-        inp.classList.add('dr-pass-mismatch');
-        if (hint) {
-          hint.textContent = msg;
-          hint.classList.add('is-bad');
-        }
-        if (card) {
-          card.classList.remove('login-fail-healing');
-          card.classList.add('login-fail-glow');
-        }
-        return false;
-      }
-      return true;
-    }
-
-    function checkMatch(confirmEl) {
-      if (!confirmEl) return true;
-      var passId = confirmEl.getAttribute('data-dr-match-for');
-      var passEl = passId ? document.getElementById(passId) : null;
-      var hint = document.querySelector('[data-dr-match-hint="' + confirmEl.id + '"]');
-      var card = confirmEl.closest ? confirmEl.closest('.login-card') : null;
-      var pv = passEl ? (passEl.value || '') : '';
-      var cv = confirmEl.value || '';
-      confirmEl.classList.remove('dr-pass-mismatch', 'dr-pass-match-ok');
-      if (hint) {
-        hint.classList.remove('is-ok', 'is-bad');
-        hint.textContent = '';
-      }
-      if (!cv) {
-        if (card) card.classList.remove('login-fail-glow', 'login-fail-shake');
-        return !pv ? true : false;
-      }
-      if (pv === cv) {
-        confirmEl.classList.add('dr-pass-match-ok');
-        if (hint) {
-          hint.textContent = 'Passwords match';
-          hint.classList.add('is-ok');
-        }
-        if (card) card.classList.remove('login-fail-glow', 'login-fail-shake');
-        return true;
-      }
-      confirmEl.classList.add('dr-pass-mismatch');
-      if (hint) {
-        hint.textContent = 'Passwords do not match';
-        hint.classList.add('is-bad');
-      }
-      if (card) {
-        card.classList.remove('login-fail-healing');
-        card.classList.add('login-fail-glow');
-      }
-      return false;
-    }
-
-    root.querySelectorAll('input[data-dr-match-for]').forEach(function (confirmEl) {
-      if (confirmEl.__drMatchBound) return;
-      confirmEl.__drMatchBound = true;
-      var passId = confirmEl.getAttribute('data-dr-match-for');
-      var passEl = passId ? document.getElementById(passId) : null;
-      var onInput = function () { checkMatch(confirmEl); };
-      confirmEl.addEventListener('input', onInput);
-      confirmEl.addEventListener('blur', onInput);
-      if (passEl) {
-        passEl.addEventListener('input', onInput);
-        passEl.addEventListener('blur', onInput);
-      }
-      var form = confirmEl.closest('form');
-      if (form && !form.__drMatchSubmitBound) {
-        form.__drMatchSubmitBound = true;
-        form.addEventListener('submit', function (ev) {
-          if (!checkMatch(confirmEl)) {
-            ev.preventDefault();
-            ev.stopPropagation();
-            try { confirmEl.focus(); } catch (e) {}
-          }
-        }, true);
-      }
-    });
-
-    root.querySelectorAll('input[type="password"][minlength]').forEach(function (inp) {
-      if (inp.__drLenBound) return;
-      if (inp.getAttribute('data-dr-match-for')) return;
-      inp.__drLenBound = true;
-      var onLen = function () { checkPasswordLength(inp); };
-      inp.addEventListener('input', onLen);
-      inp.addEventListener('blur', onLen);
-      inp.addEventListener('invalid', function (ev) {
-        ev.preventDefault();
-        checkPasswordLength(inp);
-        try { inp.focus(); } catch (e) {}
-      });
-      var form = inp.closest('form');
-      if (form && !form.__drLenSubmitBound) {
-        form.__drLenSubmitBound = true;
-        form.addEventListener('submit', function (ev) {
-          var bad = false;
-          form.querySelectorAll('input[type="password"][minlength]').forEach(function (p) {
-            if (p.getAttribute('data-dr-match-for')) return;
-            if (!checkPasswordLength(p)) bad = true;
-          });
-          if (bad) {
-            ev.preventDefault();
-            ev.stopPropagation();
-          }
-        }, true);
-      }
-    });
-  }
-
   function ensureRegisterCards() {
-    var screen = document.getElementById('login-screen') || document.querySelector('.login-screen');
-    if (!screen) return;
-    var mainCard = screen.querySelector('.login-card:not(.login-card-register)');
-    if (!mainCard) return;
+    var root = document.getElementById('login-screen') || document.querySelector('.login-screen') || document.body;
+    if (!root) return;
 
-    ['register-customer', 'register-agent'].forEach(function (id) {
-      var f = document.getElementById(id);
-      if (f && mainCard.contains(f)) {
-        try { f.remove(); } catch (e) {}
+    ['customer', 'agent'].forEach(function (kind) {
+      var id = kind === 'agent' ? 'dr-register-card-agent' : 'dr-register-card-customer';
+      var existing = document.getElementById(id);
+      if (existing) {
+        // Rebuild to pick up option changes
+        var parent = existing.parentNode;
+        var wasOpen = existing.classList.contains('is-open');
+        existing.remove();
+        var neu = buildRegisterCard(kind);
+        if (wasOpen) neu.classList.add('is-open');
+        if (parent) parent.appendChild(neu);
+        else root.appendChild(neu);
+      } else {
+        var card = buildRegisterCard(kind);
+        root.appendChild(card);
       }
     });
-
-    function needsRebuild(cardId, confirmId, lenHintId) {
-      var c = document.getElementById(cardId);
-      if (!c) return true;
-      if (!document.getElementById(confirmId)) return true;
-      if (lenHintId && !document.querySelector('[data-dr-len-hint="' + lenHintId + '"]')) return true;
-      return false;
-    }
-    if (needsRebuild('dr-register-card-customer', 'reg-cust-password-confirm', 'reg-cust-password')) {
-      var oldC = document.getElementById('dr-register-card-customer');
-      if (oldC) try { oldC.remove(); } catch (e) {}
-      screen.appendChild(buildRegisterCard('customer'));
-    }
-    if (needsRebuild('dr-register-card-agent', 'reg-agent-password-confirm', 'reg-agent-password')) {
-      var oldA = document.getElementById('dr-register-card-agent');
-      if (oldA) try { oldA.remove(); } catch (e) {}
-      screen.appendChild(buildRegisterCard('agent'));
-    }
-
-    screen.querySelectorAll('[data-dr-show]').forEach(function (a) {
-      if (a.__drBound) return;
-      a.__drBound = true;
-      a.addEventListener('click', function (e) {
-        e.preventDefault();
-        showFormPanel(a.getAttribute('data-dr-show'));
-      });
-    });
-
-    wirePasswordFeatures(screen);
   }
 
   function showFormPanel(id) {
-    ensureRegisterCards();
-    var isRegCust = id === 'register-customer';
-    var isRegAgent = id === 'register-agent';
-    var isReg = isRegCust || isRegAgent;
-    var mainCard = document.querySelector('#login-screen .login-card:not(.login-card-register), .login-card:not(.login-card-register)');
-    var regCust = document.getElementById('dr-register-card-customer');
-    var regAgent = document.getElementById('dr-register-card-agent');
-    if (mainCard) mainCard.classList.toggle('is-hidden-for-reg', isReg);
-    if (regCust) regCust.classList.toggle('is-open', isRegCust);
-    if (regAgent) regAgent.classList.toggle('is-open', isRegAgent);
-    document.querySelectorAll('form.login-form').forEach(function (f) {
-      if (f.id === 'login-customer' || f.id === 'login-agent') {
-        f.classList.toggle('active', f.id === id);
-      }
+    id = id || '';
+    var isReg = id.indexOf('register') !== -1;
+    var isAgent = id.indexOf('agent') !== -1;
+
+    document.querySelectorAll('.login-card-register').forEach(function (c) {
+      c.classList.remove('is-open');
     });
-    var tab = (id || '').indexOf('agent') !== -1 ? 'agent' : 'customer';
-    document.querySelectorAll('.ltab').forEach(function (b) {
-      b.classList.toggle('active', b.getAttribute('data-ltab') === tab);
+    document.querySelectorAll('.login-card:not(.login-card-register)').forEach(function (c) {
+      c.classList.toggle('is-hidden-for-reg', isReg);
     });
+
+    if (isReg) {
+      var cardId = isAgent ? 'dr-register-card-agent' : 'dr-register-card-customer';
+      var card = document.getElementById(cardId);
+      if (card) card.classList.add('is-open');
+    }
+
+    if (window.switchLoginTab) {
+      try { window.switchLoginTab(isAgent ? 'agent' : 'customer'); } catch (e) {}
+    }
   }
 
   function overrideShowForm() {
+    if (window.__drShowFormOverridden) return;
+    window.__drShowFormOverridden = true;
+    var orig = window.showForm;
     window.showForm = function (id) {
       showFormPanel(id);
-    };
-    window.switchLoginTab = function (tab) {
-      showFormPanel(tab === 'agent' ? 'login-agent' : 'login-customer');
+      if (typeof orig === 'function') {
+        try { orig(id); } catch (e) {}
+      }
     };
   }
 
+  function wirePasswordFeatures(root) {
+    if (!root) return;
+    root.querySelectorAll('.dr-pass-toggle').forEach(function (btn) {
+      if (btn.__drWired) return;
+      btn.__drWired = true;
+      btn.addEventListener('click', function () {
+        var tid = btn.getAttribute('data-dr-pass-target');
+        var inp = document.getElementById(tid);
+        if (!inp) return;
+        if (inp.type === 'password') {
+          inp.type = 'text';
+          btn.textContent = '🙈';
+          btn.setAttribute('aria-label', 'Hide password');
+          btn.title = 'Hide password';
+        } else {
+          inp.type = 'password';
+          btn.textContent = '👁';
+          btn.setAttribute('aria-label', 'Show password');
+          btn.title = 'Show password';
+        }
+      });
+    });
+
+    function checkMatch(confirmId) {
+      var conf = document.getElementById(confirmId);
+      if (!conf) return;
+      var passId = conf.getAttribute('data-dr-match-for');
+      var pass = document.getElementById(passId);
+      var hint = document.querySelector('[data-dr-match-hint="' + confirmId + '"]');
+      if (!pass || !hint) return;
+      var pv = pass.value || '';
+      var cv = conf.value || '';
+      conf.classList.remove('dr-pass-mismatch', 'dr-pass-match-ok');
+      if (!cv) {
+        hint.textContent = '';
+        hint.className = 'dr-pass-match';
+        return;
+      }
+      if (pv === cv) {
+        conf.classList.add('dr-pass-match-ok');
+        hint.textContent = 'Passwords match';
+        hint.className = 'dr-pass-match is-ok';
+      } else {
+        conf.classList.add('dr-pass-mismatch');
+        hint.textContent = 'Passwords do not match';
+        hint.className = 'dr-pass-match is-bad';
+      }
+    }
+
+    root.querySelectorAll('input[data-dr-match-for]').forEach(function (inp) {
+      if (inp.__drMatchWired) return;
+      inp.__drMatchWired = true;
+      var passId = inp.getAttribute('data-dr-match-for');
+      var pass = document.getElementById(passId);
+      function run() { checkMatch(inp.id); }
+      inp.addEventListener('input', run);
+      if (pass) pass.addEventListener('input', run);
+    });
+
+    root.querySelectorAll('[data-dr-len-hint]').forEach(function (hint) {
+      var id = hint.getAttribute('data-dr-len-hint');
+      var inp = document.getElementById(id);
+      if (!inp || hint.__drLenWired) return;
+      hint.__drLenWired = true;
+      function runLen() {
+        var v = inp.value || '';
+        if (!v) { hint.textContent = ''; return; }
+        var min = parseInt(inp.getAttribute('minlength') || '0', 10);
+        if (min && v.length < min) {
+          hint.textContent = 'At least ' + min + ' characters';
+          hint.className = 'dr-pass-match is-bad';
+        } else {
+          hint.textContent = '';
+          hint.className = 'dr-pass-match';
+        }
+      }
+      inp.addEventListener('input', runLen);
+    });
+  }
+
   function watchLoginErrors() {
-    var root = document.body;
-    if (!root || root.__drFailGlowBound) return;
-    root.__drFailGlowBound = true;
+    var root = document.getElementById('login-screen') || document.body;
+    if (!root || root.__drFailGlowObs) return;
 
     document.addEventListener('submit', function (ev) {
       var form = ev.target;
