@@ -1,6 +1,6 @@
 /**
  * Divine Rays — larger nearer honeycomb (pointy-top regular mesh)
- * Login + admin/agent portal · Credit: Boyz at the Back
+ * Login + agent/admin + end-user portal · Credit: Boyz at the Back
  */
 (function () {
   'use strict';
@@ -62,7 +62,6 @@
   function ambientCss() {
     var light = isLight();
     var onLogin = loginVisible();
-    // Slightly softer on portal so cards/sidebar stay readable
     var hexOp = onLogin ? (light ? '0.62' : '0.32') : (light ? '0.42' : '0.22');
     var netOp = onLogin ? (light ? '0.85' : '0.52') : (light ? '0.55' : '0.35');
     var particle = light ? 'rgba(91,33,182,0.75)' : 'rgba(233,213,255,0.6)';
@@ -75,9 +74,7 @@
       'position:absolute!important;inset:0!important;z-index:0!important;',
       'pointer-events:none!important;overflow:hidden!important;display:none',
       '}',
-      // Login: layer sits inside #login-screen
       'body.is-login #' + LAYER_ID + '{display:block!important;position:absolute!important}',
-      // Portal: fixed full-viewport behind agent/admin UI
       'body.is-portal #' + LAYER_ID + '{',
       'display:block!important;position:fixed!important;inset:0!important;',
       'width:100%!important;height:100%!important;z-index:0!important',
@@ -96,21 +93,22 @@
       '#' + LAYER_ID + ' .dr-pulse{stroke-dasharray:4 10;animation:drTrace 14s linear infinite}',
       '@keyframes drTrace{from{stroke-dashoffset:0}to{stroke-dashoffset:-280}}',
       '@media (prefers-reduced-motion:reduce){#' + LAYER_ID + ' .dr-particles span,#' + LAYER_ID + ' .dr-pulse{animation:none!important}}',
-      // Keep portal chrome readable above honeycomb
       'body.is-portal #portal-agent .sidebar,',
       'body.is-portal #portal-agent .mode-bar,',
       'body.is-portal .mode-bar{position:relative;z-index:2}',
       'body.is-portal #portal-agent .main,',
       'body.is-portal #portal-agent main.main,',
-      'body.is-portal #portal-customer .main{position:relative;z-index:1;background:transparent!important}',
+      'body.is-portal #portal-customer .main,',
+      'body.is-portal #portal-customer main.customer-main,',
+      'body.is-portal #portal-customer .customer-main{position:relative;z-index:1;background:transparent!important;background-image:none!important}',
       'body.is-portal #portal-agent,',
       'body.is-portal #portal-customer,',
+      'body.is-portal #portal-customer.active,',
       'body.is-portal .app-shell{background:transparent!important;background-image:none!important}'
     ].join('');
   }
 
   function honeycombSvg(stroke) {
-    // Larger / nearer pointy-top honeycomb — regular geometry, fills any resolution
     var R = 48;
     var SQ3 = Math.sqrt(3);
     var horiz = SQ3 * R;
@@ -291,7 +289,6 @@
       layer.setAttribute('aria-hidden', 'true');
     }
 
-    // Parent: login screen when on login, otherwise document.body for portal
     var parent = onLogin && login ? login : document.body;
     if (layer.parentNode !== parent) {
       if (onLogin && login) {
@@ -302,7 +299,7 @@
     }
 
     var light = isLight();
-    var key = (light ? 'L' : 'D') + (onLogin ? '-login' : '-portal') + '-v11';
+    var key = (light ? 'L' : 'D') + (onLogin ? '-login' : '-portal') + '-v12';
     if (key === lastAmbientKey && layer.childNodes.length) {
       layer.style.display = 'block';
       return;
@@ -344,8 +341,12 @@
     body.style.setProperty('background-size', 'cover', 'important');
     document.documentElement.style.setProperty('background-color', solid, 'important');
     document.documentElement.style.setProperty('background-image', grad, 'important');
-    ['#portal-agent','#portal-agent.active','#portal-customer','#portal-customer.active',
-     '#portal-agent .main','#portal-agent main.main','#portal-customer .main','.app-shell'
+    [
+      '#portal-agent','#portal-agent.active',
+      '#portal-customer','#portal-customer.active',
+      '#portal-agent .main','#portal-agent main.main',
+      '#portal-customer .main','#portal-customer main.customer-main',
+      '#portal-customer .customer-main','.app-shell'
     ].forEach(function (sel) {
       document.querySelectorAll(sel).forEach(function (el) {
         el.style.setProperty('background-color', 'transparent', 'important');
@@ -385,7 +386,6 @@
     }
   }, true);
 
-  // Re-apply when agent/admin portal becomes active (after login)
   document.addEventListener('click', function () {
     setTimeout(apply, 400);
   }, true);
