@@ -143,6 +143,7 @@
       document.querySelectorAll('.version').forEach(function (el) { el.textContent = 'v' + ver; });
       wireTabs();
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LOGIN_SHA + '/js/login-theme.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@cd9aa3895463590b94aac1aa0e9c2017b265bd53/js/login-nav-fix.js?v=' + ver);
       if (window.DRLoginTheme && window.DRLoginTheme.refresh) try { window.DRLoginTheme.refresh(); } catch (e) {}
       var scriptSrcs = [];
       doc.querySelectorAll('script[src]').forEach(function (sc) {
