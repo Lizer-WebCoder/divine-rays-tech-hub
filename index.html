@@ -173,7 +173,7 @@
       });
       for (var j = 0; j < scriptSrcs.length; j++) await loadScript(scriptSrcs[j]);
       var OVERLAY_SHA = 'b1c9c88a081d448fb0b0a9388b02a37c156a2421';
-      var JS_SHA = 'ca6f1cc7aaa5196e4e2c3aa96c23d052d39a30c3';
+      var JS_SHA = 'c43d2fe52bcf887709115d3ec6a302201211f8f5';
       var THEME_SHA = '9bacf8a4e1ffcce4f506cfc609a6a3574fdb1835';
       loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + OVERLAY_SHA + '/css/v8-overlay.css?v=' + ver);
       loadCss('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + POLISH_SHA + '/css/ui-polish-v9.css?v=' + ver);
@@ -218,6 +218,7 @@
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@7d6d66cbe63fda91cf71d64bbddd1af80f3adfc3/js/design-system-v10.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + UX_DASH_SHA + '/js/ux-dashboard-detail.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + KB_FULL_SHA + '/js/kb-layout-fix.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@ae1c65cbf88001f77ffe6f5e31b779d42e0af562/js/ux-session-polish.js?v=' + ver);
       if (window.DRLoginTheme && window.DRLoginTheme.refresh) try { window.DRLoginTheme.refresh(); } catch (e) {}
       window.switchLoginTab = switchLoginTab; window.showForm = showForm; wireTabs();
       if (window.DRLoginTheme && window.DRLoginTheme.refresh) try { window.DRLoginTheme.refresh(); } catch (e) {}
