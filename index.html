@@ -137,7 +137,7 @@
         else if (node.nodeType === 3) bodyHtml += node.textContent;
       });
       bodyHtml = bodyHtml.replace(/>v7\.[0-9.]+</g, '>v' + ver + '<').replace(/v7\.6\.7/g, 'v' + ver);
-      bodyHtml = bodyHtml.replace(/Lizzz?\s*[·•\-]\s*All Rights Reserved/gi, 'Boyz at the Back LRK · All Rights Reserved');
+      bodyHtml = bodyHtml.replace(/Lizzz?\s*[·•\-]\s*All Rights Reserved/gi, 'Boyz at the Back · All Rights Reserved');
       bodyHtml = bodyHtml.replace(/>Customer</g, '>End-User<').replace(/Create Customer Account/g, 'Create End-User Account').replace(/\(Customer\)/g, '(End-User)').replace(/>Customers</g, '>End-Users<');
       document.body.innerHTML = bodyHtml;
       document.querySelectorAll('.version').forEach(function (el) { el.textContent = 'v' + ver; });
