@@ -386,6 +386,8 @@
     if (t && (t.id === 'btn-theme' || t.id === 'dr-login-theme' ||
         (t.classList && t.classList.contains('btn-theme')) ||
         (t.closest && (t.closest('form.login-form') || t.closest('#login-screen'))))) {
+      lastBgKey = '';
+      lastAmbientKey = '';
       setTimeout(apply, 30);
       setTimeout(apply, 250);
       setTimeout(apply, 700);
