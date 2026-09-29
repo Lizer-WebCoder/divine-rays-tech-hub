@@ -1,12 +1,12 @@
 /**
  * Divine Rays — unified credit text (centered)
- * Credit: Boyz at the Back LRK · All Rights Reserved
+ * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
   window.__DR_CREDIT_FIX = 1;
 
-  var TEXT = 'Boyz at the Back LRK · All Rights Reserved';
+  var TEXT = 'Boyz at the Back · All Rights Reserved';
 
   function apply() {
     try {
