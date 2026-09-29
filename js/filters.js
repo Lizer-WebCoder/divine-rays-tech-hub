@@ -4,7 +4,7 @@
  */
 (function () {
   'use strict';
-  window.__DR_FILTERS_V4 = 1;
+  window.__DR_FILTERS_V5 = 1;
 
   function toast(msg, type) {
     if (window.DR && DR.toast) return DR.toast(msg, type);
@@ -244,14 +244,39 @@
     var container = document.getElementById('ticket-list');
     if (!container) return;
 
-    if (refetch && window.DR && typeof DR.renderTicketList === 'function') {
-      var existing = getTickets();
-      if (!existing.length) {
-        try { DR.renderTicketList(); return; } catch (e) {}
+    var all = getTickets();
+    if ((!all || !all.length) && window.DR && typeof DR.fetchTickets === 'function') {
+      if (!window.__drFiltersFetching) {
+        window.__drFiltersFetching = true;
+        var lf0 = getLF();
+        var f = {};
+        if (lf0.mode === 'my' && window.DR.getProfile) {
+          try {
+            var p = DR.getProfile();
+            if (p && p.id) f.assignedTo = p.id;
+          } catch (e) {}
+        } else if (lf0.mode === 'unassigned') {
+          f.unassigned = true;
+        }
+        Promise.resolve(DR.fetchTickets(f)).then(function (tickets) {
+          window.__drFiltersFetching = false;
+          if (window.DR && typeof DR.setAllTickets === 'function') {
+            DR.setAllTickets(tickets || []);
+          }
+          window.allTicketsCache = tickets || [];
+          applyTicketFilters(false);
+        }).catch(function () {
+          window.__drFiltersFetching = false;
+          container.innerHTML = '<div class="empty-state"><p>Could not load tickets. Try refresh.</p></div>';
+        });
       }
+      return;
     }
 
-    var all = getTickets();
+    if (refetch && window.DR && typeof DR.renderTicketList === 'function') {
+      try { DR.renderTicketList(); return; } catch (e) {}
+    }
+
     var names = getNames();
     var filtered = all.filter(function (t) {
       return matchesStatus(t.status, lf.status) &&
@@ -286,8 +311,14 @@
     if (!pageItems.length) {
       var stillLoading = !all.length && /loading/i.test(container.textContent || '');
       if (stillLoading) {
-        setTimeout(function () { applyTicketFilters(false); }, 600);
-        return;
+        window.__drFilterRetry = (window.__drFilterRetry || 0) + 1;
+        if (window.__drFilterRetry < 12) {
+          setTimeout(function () { applyTicketFilters(false); }, 500);
+          return;
+        }
+        window.__drFilterRetry = 0;
+      } else {
+        window.__drFilterRetry = 0;
       }
       container.innerHTML =
         '<div class="empty-state"><p>' +
@@ -296,6 +327,7 @@
       return;
     }
 
+    window.__drFilterRetry = 0;
     container.innerHTML = pageItems.map(function (t) {
       return cardHtml(t, names);
     }).join('');
