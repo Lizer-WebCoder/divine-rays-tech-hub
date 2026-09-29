@@ -12,6 +12,7 @@
   var CSS_ID = 'dr-login-ambient-css';
   var LAYER_ID = 'dr-login-ambient';
   var lastAmbientKey = '';
+  var lastBgKey = '';
 
   var LOGIN_DARK =
     'radial-gradient(ellipse 120% 80% at 50% 50%, rgba(139,92,246,0.28), transparent 60%),' +
@@ -336,36 +337,40 @@
       body.classList.toggle('is-login', onLogin);
       body.classList.toggle('is-portal', !onLogin);
     } catch (e) {}
-    body.style.setProperty('background-color', solid, 'important');
-    body.style.setProperty('background-image', grad, 'important');
-    body.style.setProperty('background-attachment', 'fixed', 'important');
-    body.style.setProperty('background-size', 'cover', 'important');
-    document.documentElement.style.setProperty('background-color', solid, 'important');
-    document.documentElement.style.setProperty('background-image', grad, 'important');
-    [
-      '#portal-agent','#portal-agent.active',
-      '#portal-customer','#portal-customer.active',
-      '#portal-agent .main','#portal-agent main.main',
-      '#portal-customer .main','#portal-customer main.customer-main',
-      '#portal-customer .customer-main','.app-shell'
-    ].forEach(function (sel) {
-      document.querySelectorAll(sel).forEach(function (el) {
-        el.style.setProperty('background-color', 'transparent', 'important');
-        el.style.setProperty('background-image', 'none', 'important');
+    var bgKey = (light ? 'L' : 'D') + (onLogin ? '-login' : '-portal') + '|' + solid;
+    if (bgKey !== lastBgKey) {
+      lastBgKey = bgKey;
+      body.style.setProperty('background-color', solid, 'important');
+      body.style.setProperty('background-image', grad, 'important');
+      body.style.setProperty('background-attachment', 'fixed', 'important');
+      body.style.setProperty('background-size', 'cover', 'important');
+      document.documentElement.style.setProperty('background-color', solid, 'important');
+      document.documentElement.style.setProperty('background-image', grad, 'important');
+      [
+        '#portal-agent','#portal-agent.active',
+        '#portal-customer','#portal-customer.active',
+        '#portal-agent .main','#portal-agent main.main',
+        '#portal-customer .main','#portal-customer main.customer-main',
+        '#portal-customer .customer-main','.app-shell'
+      ].forEach(function (sel) {
+        document.querySelectorAll(sel).forEach(function (el) {
+          el.style.setProperty('background-color', 'transparent', 'important');
+          el.style.setProperty('background-image', 'none', 'important');
+        });
       });
-    });
-    document.querySelectorAll('#login-screen, .login-screen').forEach(function (el) {
-      if (onLogin) {
-        el.style.setProperty('background-color', solid, 'important');
-        el.style.setProperty('background-image', grad, 'important');
-        el.style.setProperty('background-attachment', 'fixed', 'important');
-        el.style.setProperty('background-size', 'cover', 'important');
-        el.style.setProperty('position', 'relative', 'important');
-        el.style.setProperty('overflow', 'hidden', 'important');
-      } else {
-        el.style.setProperty('background', 'transparent', 'important');
-      }
-    });
+      document.querySelectorAll('#login-screen, .login-screen').forEach(function (el) {
+        if (onLogin) {
+          el.style.setProperty('background-color', solid, 'important');
+          el.style.setProperty('background-image', grad, 'important');
+          el.style.setProperty('background-attachment', 'fixed', 'important');
+          el.style.setProperty('background-size', 'cover', 'important');
+          el.style.setProperty('position', 'relative', 'important');
+          el.style.setProperty('overflow', 'hidden', 'important');
+        } else {
+          el.style.setProperty('background', 'transparent', 'important');
+        }
+      });
+    }
     injectCss();
     ensureAmbient();
   }
