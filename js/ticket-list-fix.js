@@ -1,13 +1,11 @@
 /**
- * Divine Rays — ticket list spacing (force) + initials chip
- * Credit: Lizzz · All Rights Reserved
+ * Divine Rays — ticket list spacing + avatar chip (stable, no flicker)
+ * Credit: Boyz at the Back
  */
 (function () {
   'use strict';
-  if (window.__DR_TICKET_LIST_FIX) {
-    try { delete window.__DR_TICKET_LIST_FIX; } catch (e) {}
-  }
-  window.__DR_TICKET_LIST_FIX = 1;
+  if (window.__DR_TICKET_LIST_FIX_V2) return;
+  window.__DR_TICKET_LIST_FIX_V2 = 1;
 
   var CSS = [
     '.ticket-list{display:flex!important;flex-direction:column!important;gap:0.6rem!important}',
@@ -36,26 +34,21 @@
   function initialsFrom(name) {
     name = String(name || '').trim();
     if (!name) return '?';
-    var parts = name.split(/[\s@._-]+/).filter(Boolean);
-    if (parts.length >= 2) {
-      return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
-    }
+    var parts = name.split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
     return name.slice(0, 2).toUpperCase();
   }
 
-  function ensureChip(card, label) {
-    var chip = card.querySelector('.ticket-av');
-    if (!chip) {
-      chip = document.createElement('div');
-      chip.className = 'ticket-av';
-      card.insertBefore(chip, card.firstChild);
-    }
-    chip.textContent = label;
-    return chip;
+  function ensureChip(card, initials) {
+    if (card.querySelector('.ticket-av')) return;
+    var av = document.createElement('div');
+    av.className = 'ticket-av';
+    av.textContent = initials || '?';
+    card.insertBefore(av, card.firstChild);
   }
 
   function spaceMeta(meta) {
-    if (!meta || meta.getAttribute('data-dr-spaced') === '1') return;
+    if (meta.getAttribute('data-dr-spaced') === '1') return;
     var spans = Array.prototype.slice.call(meta.querySelectorAll(':scope > span'));
     if (spans.length < 2) return;
     var parts = spans.map(function (sp) {
@@ -79,55 +72,46 @@
     meta.setAttribute('data-dr-spaced', '1');
   }
 
+  function polishCard(card) {
+    if (card.getAttribute('data-dr-polished') === '1') return;
+    var meta = card.querySelector('.ticket-meta');
+    var requester = '';
+    if (meta) {
+      var spans = meta.querySelectorAll('span');
+      for (var i = 0; i < spans.length; i++) {
+        var tx = (spans[i].textContent || '').trim();
+        if (tx && !/^DR-/i.test(tx) && !spans[i].classList.contains('ticket-id') && !spans[i].classList.contains('meta-sep')) {
+          requester = tx;
+          break;
+        }
+      }
+    }
+    if (!card.querySelector('.ticket-av') && requester) {
+      ensureChip(card, initialsFrom(requester));
+    }
+    if (meta) spaceMeta(meta);
+    card.setAttribute('data-dr-polished', '1');
+  }
+
+  var _timer = null;
   function polish() {
     injectCss();
-    document.querySelectorAll('.ticket-card').forEach(function (card) {
-      var meta = card.querySelector('.ticket-meta');
-      if (meta && !meta.querySelector('.meta-sep')) {
-        meta.removeAttribute('data-dr-spaced');
-      }
+    document.querySelectorAll('.ticket-card').forEach(polishCard);
+  }
 
-      var requester = '';
-      if (meta) {
-        var spans = meta.querySelectorAll('span');
-        if (spans.length >= 2 && !(spans[1].textContent || '').match(/^DR-/i)) {
-          requester = (spans[1].textContent || '').trim();
-        }
-      }
-
-      Array.prototype.slice.call(card.childNodes).forEach(function (node) {
-        if (node.nodeType === 3) {
-          var t = (node.textContent || '').trim();
-          if (/^[A-Za-z]{1,3}$/.test(t)) {
-            ensureChip(card, t.toUpperCase());
-            node.textContent = '';
-          }
-        }
-      });
-      var first = card.firstElementChild;
-      if (first && first.children.length === 0 && !first.classList.contains('ticket-av') && !first.classList.contains('badges')) {
-        var only = (first.textContent || '').trim();
-        if (/^[A-Za-z]{1,3}$/.test(only)) {
-          first.className = 'ticket-av';
-          first.textContent = only.toUpperCase();
-        }
-      }
-      if (!card.querySelector('.ticket-av') && requester) {
-        ensureChip(card, initialsFrom(requester));
-      }
-
-      if (meta) spaceMeta(meta);
-    });
+  function schedule() {
+    if (_timer) clearTimeout(_timer);
+    _timer = setTimeout(polish, 80);
   }
 
   injectCss();
   polish();
-  setInterval(polish, 1500);
   var list = document.getElementById('ticket-list');
   if (list) {
     try {
-      new MutationObserver(function () { polish(); }).observe(list, { childList: true, subtree: true });
+      new MutationObserver(function () { schedule(); }).observe(list, { childList: true });
     } catch (e) {}
   }
+  setInterval(polish, 8000);
   window.DRTicketListFix = { refresh: polish };
 })();
