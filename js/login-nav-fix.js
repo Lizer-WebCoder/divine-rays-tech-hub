@@ -1,11 +1,12 @@
 /**
  * Divine Rays — fix Sign in / Create account navigation
+ * Only handles links — never form submit buttons
  * Credit: Boyz at the Back
  */
 (function () {
   'use strict';
-  if (window.__DR_LOGIN_NAV_FIX) return;
-  window.__DR_LOGIN_NAV_FIX = 1;
+  if (window.__DR_LOGIN_NAV_FIX_V2) return;
+  window.__DR_LOGIN_NAV_FIX_V2 = 1;
 
   function go(id) {
     id = id || 'login-customer';
@@ -53,7 +54,7 @@
     var target = document.getElementById(id);
     if (target) target.classList.add('active');
 
-    if (!isReg && window.switchLoginTab) {
+    if (window.switchLoginTab) {
       try { window.switchLoginTab(isAgent ? 'agent' : 'customer'); } catch (e) {}
     }
   }
@@ -62,11 +63,24 @@
     'click',
     function (e) {
       var el = e.target;
-      if (!el) return;
-      var a = el.closest ? el.closest('a, button, [data-dr-show]') : null;
+      if (!el || !el.closest) return;
+
+      // Never intercept real form submit / primary buttons
+      var btn = el.closest('button, input[type="submit"], input[type="button"]');
+      if (btn) {
+        var showBtn = btn.getAttribute('data-dr-show');
+        if (showBtn && btn.type !== 'submit' && btn.getAttribute('type') !== 'submit') {
+          e.preventDefault();
+          e.stopPropagation();
+          go(showBtn);
+        }
+        return;
+      }
+
+      var a = el.closest('a, [data-dr-show]');
       if (!a) return;
 
-      var show = a.getAttribute && a.getAttribute('data-dr-show');
+      var show = a.getAttribute('data-dr-show');
       if (show) {
         e.preventDefault();
         e.stopPropagation();
@@ -74,35 +88,48 @@
         return;
       }
 
-      var text = (a.textContent || '').replace(/\s+/g, ' ').trim().toLowerCase();
-      var href = (a.getAttribute && a.getAttribute('href')) || '';
-      var onclick = (a.getAttribute && a.getAttribute('onclick')) || '';
+      if (a.tagName !== 'A') return;
 
-      if (text === 'sign in' || text.indexOf('sign in') !== -1 || /showForm\(['"]login-/.test(onclick)) {
+      var text = (a.textContent || '').replace(/\s+/g, ' ').trim().toLowerCase();
+      var href = a.getAttribute('href') || '';
+      var onclick = a.getAttribute('onclick') || '';
+
+      // Exact link labels only — not "Sign In as Agent"
+      var isSignInLink =
+        text === 'sign in' ||
+        (text.indexOf('sign in') !== -1 && text.indexOf('as agent') === -1 && text.indexOf('as end') === -1) ||
+        /showForm\(['"]login-/.test(onclick);
+
+      if (isSignInLink) {
         e.preventDefault();
         e.stopPropagation();
-        var onAgent = !!(a.closest && (a.closest('#dr-register-card-agent') || a.closest('#register-agent') || a.closest('[data-ltab="agent"]')));
+        var onAgent = !!(
+          a.closest('#dr-register-card-agent') ||
+          a.closest('#register-agent') ||
+          document.querySelector('.ltab.active[data-ltab="agent"]')
+        );
         go(onAgent ? 'login-agent' : 'login-customer');
         return;
       }
 
-      if (
+      var isCreateLink =
         text.indexOf('create an account') !== -1 ||
-        text.indexOf('create account') !== -1 ||
+        text.indexOf('create agent account') !== -1 ||
+        text.indexOf('create end-user') !== -1 ||
         /showForm\(['"]register-/.test(onclick) ||
-        /showForm\(['"]register-/.test(href)
-      ) {
+        /showForm\(['"]register-/.test(href);
+
+      if (isCreateLink) {
         e.preventDefault();
         e.stopPropagation();
         var agentTab =
-          !!(a.closest && a.closest('[data-ltab="agent"]')) ||
-          !!(document.querySelector('.ltab.active[data-ltab="agent"]'));
+          !!(document.querySelector('.ltab.active[data-ltab="agent"]')) ||
+          text.indexOf('agent') !== -1;
         go(agentTab ? 'register-agent' : 'register-customer');
       }
     },
     true
   );
 
-  // Expose for debugging
   window.DRLoginNavFix = { go: go };
 })();
