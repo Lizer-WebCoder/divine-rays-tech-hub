@@ -744,11 +744,18 @@
     var hint = scope.querySelector
       ? scope.querySelector('[data-dr-email-hint="' + input.id + '"]')
       : null;
+    var submitBtn = form ? form.querySelector('button[type="submit"]') : null;
     if (taken) {
       input.classList.add('dr-email-taken');
+      input.setAttribute('data-email-taken', '1');
       if (hint) {
         hint.textContent = 'Email already exists. Please use another email.';
         hint.className = 'dr-email-hint is-bad';
+      }
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.style.opacity = '0.55';
+        submitBtn.style.cursor = 'not-allowed';
       }
       var card = input.closest ? input.closest('.login-card-register, .login-card') : null;
       if (card) {
@@ -758,9 +765,15 @@
       }
     } else {
       input.classList.remove('dr-email-taken');
+      input.removeAttribute('data-email-taken');
       if (hint) {
         hint.textContent = '';
         hint.className = 'dr-email-hint';
+      }
+      if (submitBtn && !form.querySelector('.dr-pass-mismatch')) {
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = '';
+        submitBtn.style.cursor = '';
       }
       var card2 = input.closest ? input.closest('.login-card-register, .login-card') : null;
       if (card2 && !card2.querySelector('.dr-pass-mismatch') && !card2.querySelector('.dr-email-taken')) {
@@ -859,18 +872,7 @@
         e.preventDefault();
         e.stopPropagation();
         if (typeof form.reportValidity === 'function' && !form.reportValidity()) return;
-        var emailInput = form.querySelector('#reg-cust-email, input[type="email"]');
-        if (emailInput && emailInput.classList.contains('dr-email-taken')) {
-          var cardE = form.closest('.login-card-register') || form.closest('.login-card');
-          if (cardE) triggerFail(cardE, true);
-          return;
-        }
-        if (emailInput && isEmailTakenLocal(emailInput.value)) {
-          setEmailTakenUI(emailInput, true);
-          var cardE2 = form.closest('.login-card-register') || form.closest('.login-card');
-          if (cardE2) triggerFail(cardE2, true);
-          return;
-        }
+
         var mismatch = form.querySelector('.dr-pass-mismatch');
         if (mismatch) {
           var card = form.closest('.login-card-register') || form.closest('.login-card');
@@ -884,8 +886,69 @@
           if (card2) triggerFail(card2, true);
           return;
         }
-        if (emailInput && emailInput.value) rememberRegisteredEmail(emailInput.value);
-        showSuccessModal();
+
+        var emailInput = form.querySelector('#reg-cust-email, input[type="email"]');
+        var emailVal = emailInput ? (emailInput.value || '').trim() : '';
+
+        function blockEmail() {
+          if (emailInput) setEmailTakenUI(emailInput, true);
+          var cardE = form.closest('.login-card-register') || form.closest('.login-card');
+          if (cardE) triggerFail(cardE, true);
+        }
+
+        function finishOk() {
+          if (emailInput && emailInput.getAttribute('data-email-taken') === '1') {
+            blockEmail();
+            return;
+          }
+          if (emailInput && isEmailTakenLocal(emailVal)) {
+            blockEmail();
+            return;
+          }
+          if (emailVal) rememberRegisteredEmail(emailVal);
+          showSuccessModal();
+        }
+
+        if (!emailInput || !emailVal) {
+          finishOk();
+          return;
+        }
+
+        if (emailInput.classList.contains('dr-email-taken') || emailInput.getAttribute('data-email-taken') === '1') {
+          blockEmail();
+          return;
+        }
+        if (isEmailTakenLocal(emailVal)) {
+          blockEmail();
+          return;
+        }
+
+        var submitBtn = form.querySelector('button[type="submit"]');
+        if (submitBtn) { submitBtn.disabled = true; }
+        isEmailTakenRemote(emailVal).then(function (taken) {
+          if (taken) {
+            rememberRegisteredEmail(emailVal);
+            blockEmail();
+            return;
+          }
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = '';
+            submitBtn.style.cursor = '';
+          }
+          finishOk();
+        }).catch(function () {
+          if (isEmailTakenLocal(emailVal)) {
+            blockEmail();
+            return;
+          }
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = '';
+            submitBtn.style.cursor = '';
+          }
+          finishOk();
+        });
       });
     });
   }
