@@ -1,26 +1,29 @@
 /**
- * Divine Rays — exclusive login vs portal (no merge)
- * Rule: if any portal is .active OR app-shell is shown → hide login.
- * If neither portal active and shell hidden → show login only.
- * Does NOT strip portal.active on a timer.
+ * Divine Rays — exclusive login vs portal (safe, no freeze)
+ * NO MutationObserver (that caused Page Unresponsive).
+ * Light, re-entry-safe checks only.
  * Credit: Boyz at the Back LRK · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_LOGIN_EXCLUSIVE_V1) return;
-  window.__DR_LOGIN_EXCLUSIVE_V1 = 1;
+  if (window.__DR_LOGIN_EXCLUSIVE_V2) return;
+  window.__DR_LOGIN_EXCLUSIVE_V2 = 1;
+
+  var busy = false;
+  var lastMode = '';
 
   var CSS = [
-    'body:has(#portal-agent.active) #login-screen,',
-    'body:has(#portal-customer.active) #login-screen,',
-    'body:has(#app-shell:not([hidden]):not(.is-hidden)) #login-screen{',
+    'body.dr-in #login-screen{',
     'display:none!important;visibility:hidden!important;height:0!important;',
-    'max-height:0!important;overflow:hidden!important;pointer-events:none!important;',
+    'overflow:hidden!important;pointer-events:none!important;',
     'position:absolute!important;left:-9999px!important;opacity:0!important}',
-
-    'body:not(:has(#portal-agent.active)):not(:has(#portal-customer.active)) #app-shell[hidden],',
-    'body:not(:has(#portal-agent.active)):not(:has(#portal-customer.active)) #app-shell.is-hidden{',
-    'display:none!important}'
+    'body.dr-out #app-shell{',
+    'display:none!important;visibility:hidden!important;height:0!important;',
+    'overflow:hidden!important;pointer-events:none!important}',
+    'body.dr-out #login-screen{',
+    'display:flex!important;visibility:visible!important;opacity:1!important;',
+    'pointer-events:auto!important;position:relative!important;left:auto!important;',
+    'height:auto!important;min-height:100vh!important}'
   ].join('');
 
   function inject() {
@@ -28,155 +31,126 @@
     if (!el) {
       el = document.createElement('style');
       el.id = 'dr-login-exclusive-css';
-      document.head.appendChild(el);
+      (document.head || document.documentElement).appendChild(el);
     }
-    el.textContent = CSS;
+    if (el.textContent !== CSS) el.textContent = CSS;
   }
 
   function portalOn() {
-    var pa = document.getElementById('portal-agent');
-    var pc = document.getElementById('portal-customer');
-    return (
-      (pa && pa.classList.contains('active')) ||
-      (pc && pc.classList.contains('active'))
-    );
-  }
-
-  function shellOn() {
-    var shell = document.getElementById('app-shell');
-    if (!shell) return false;
-    return !shell.hidden && !shell.classList.contains('is-hidden');
-  }
-
-  function hideLogin() {
-    var login = document.getElementById('login-screen');
-    if (!login) return;
-    login.hidden = true;
-    login.classList.add('is-hidden');
-    login.style.setProperty('display', 'none', 'important');
-    login.style.setProperty('visibility', 'hidden', 'important');
-    login.style.setProperty('pointer-events', 'none', 'important');
-  }
-
-  function showLogin() {
-    var login = document.getElementById('login-screen');
-    if (!login) return;
-    login.hidden = false;
-    login.classList.remove('is-hidden');
-    login.style.removeProperty('display');
-    login.style.removeProperty('visibility');
-    login.style.removeProperty('pointer-events');
-    login.style.removeProperty('height');
-    login.style.removeProperty('opacity');
-    login.style.removeProperty('position');
-    login.style.removeProperty('left');
-  }
-
-  function hideShell() {
-    var shell = document.getElementById('app-shell');
-    if (!shell) return;
-    shell.hidden = true;
-    shell.classList.add('is-hidden');
-  }
-
-  function showShell() {
-    var shell = document.getElementById('app-shell');
-    if (!shell) return;
-    shell.hidden = false;
-    shell.classList.remove('is-hidden');
-    shell.style.removeProperty('display');
-    shell.style.removeProperty('visibility');
+    try {
+      var pa = document.getElementById('portal-agent');
+      var pc = document.getElementById('portal-customer');
+      return (
+        (pa && pa.classList.contains('active')) ||
+        (pc && pc.classList.contains('active'))
+      );
+    } catch (e) {
+      return false;
+    }
   }
 
   function exclusive() {
-    inject();
-    if (portalOn()) {
-      hideLogin();
-      showShell();
-      document.body.classList.add('dr-logged-in');
-      document.body.classList.remove('dr-logged-out');
-      return;
-    }
-    if (shellOn() && !portalOn()) {
-      hideShell();
-      showLogin();
-      document.body.classList.add('dr-logged-out');
-      document.body.classList.remove('dr-logged-in');
-      return;
-    }
-    hideShell();
-    showLogin();
-    document.body.classList.add('dr-logged-out');
-    document.body.classList.remove('dr-logged-in');
+    if (busy) return;
+    busy = true;
+    try {
+      inject();
+      var on = portalOn();
+      var mode = on ? 'in' : 'out';
+      if (mode === lastMode) {
+        busy = false;
+        return;
+      }
+      lastMode = mode;
+      if (on) {
+        document.body.classList.add('dr-in');
+        document.body.classList.remove('dr-out');
+        var login = document.getElementById('login-screen');
+        if (login) {
+          login.hidden = true;
+          login.classList.add('is-hidden');
+        }
+        var shell = document.getElementById('app-shell');
+        if (shell) {
+          shell.hidden = false;
+          shell.classList.remove('is-hidden');
+        }
+      } else {
+        document.body.classList.add('dr-out');
+        document.body.classList.remove('dr-in');
+        var shell2 = document.getElementById('app-shell');
+        if (shell2) {
+          shell2.hidden = true;
+          shell2.classList.add('is-hidden');
+        }
+        var login2 = document.getElementById('login-screen');
+        if (login2) {
+          login2.hidden = false;
+          login2.classList.remove('is-hidden');
+        }
+      }
+    } catch (e) {}
+    busy = false;
   }
 
-  function onLogoutClick() {
-    var pa = document.getElementById('portal-agent');
-    var pc = document.getElementById('portal-customer');
-    if (pa) pa.classList.remove('active');
-    if (pc) pc.classList.remove('active');
+  function forceOut() {
     try {
-      sessionStorage.removeItem('dr_app_mode');
+      var pa = document.getElementById('portal-agent');
+      var pc = document.getElementById('portal-customer');
+      if (pa) pa.classList.remove('active');
+      if (pc) pc.classList.remove('active');
+      document.body.classList.remove('dr-tl-on');
+      try {
+        sessionStorage.removeItem('dr_app_mode');
+      } catch (e) {}
+      lastMode = '';
+      exclusive();
     } catch (e) {}
-    document.body.classList.remove('dr-tl-on');
-    hideShell();
-    showLogin();
-    document.body.classList.add('dr-logged-out');
-    document.body.classList.remove('dr-logged-in');
-    setTimeout(exclusive, 100);
-    setTimeout(exclusive, 500);
   }
 
   inject();
-  exclusive();
-  setTimeout(exclusive, 500);
-  setTimeout(exclusive, 1500);
-  setTimeout(exclusive, 3500);
-
-  try {
-    var obs = new MutationObserver(function () {
-      exclusive();
-    });
-    if (document.body) {
-      obs.observe(document.body, {
-        attributes: true,
-        subtree: true,
-        attributeFilter: ['class', 'hidden']
-      });
-    }
-  } catch (e) {}
-
-  setInterval(exclusive, 2500);
+  document.body.classList.add('dr-out');
+  setTimeout(exclusive, 400);
+  setTimeout(exclusive, 1200);
+  setTimeout(exclusive, 3000);
+  setTimeout(exclusive, 6000);
+  setInterval(exclusive, 4000);
 
   document.addEventListener(
     'click',
     function (e) {
-      var t = e.target;
-      if (!t || !t.closest) return;
-      if (t.closest('#btn-logout')) {
-        onLogoutClick();
-      }
-      var txt = (t.textContent || '').toLowerCase();
-      if (txt.indexOf('sign in') !== -1 && t.tagName === 'BUTTON') {
-        setTimeout(exclusive, 800);
-        setTimeout(exclusive, 2000);
-      }
+      try {
+        var t = e.target;
+        if (!t || !t.closest) return;
+        if (t.closest('#btn-logout')) {
+          setTimeout(forceOut, 0);
+          setTimeout(forceOut, 400);
+        }
+        var txt = ((t.textContent || '') + '').toLowerCase();
+        if (txt.indexOf('sign in') !== -1 && t.tagName === 'BUTTON') {
+          lastMode = '';
+          setTimeout(exclusive, 1000);
+          setTimeout(exclusive, 2500);
+        }
+      } catch (err) {}
     },
     true
   );
 
-  try {
-    var client = (window.DR && window.DR.supabase) || window.sb;
-    if (client && client.auth && client.auth.onAuthStateChange) {
-      client.auth.onAuthStateChange(function (event) {
-        if (event === 'SIGNED_OUT') onLogoutClick();
-        if (event === 'SIGNED_IN') {
-          setTimeout(exclusive, 500);
-          setTimeout(exclusive, 2000);
-        }
-      });
-    }
-  } catch (e) {}
+  setTimeout(function () {
+    try {
+      var client = (window.DR && window.DR.supabase) || window.sb;
+      if (client && client.auth && client.auth.onAuthStateChange) {
+        client.auth.onAuthStateChange(function (event) {
+          if (event === 'SIGNED_OUT') forceOut();
+          if (event === 'SIGNED_IN') {
+            lastMode = '';
+            setTimeout(exclusive, 800);
+            setTimeout(exclusive, 2500);
+          }
+        });
+      }
+    } catch (e) {}
+  }, 1500);
 
-  window.DRLoginShellSep = { sync: exclusive, forceLogout: onLogoutClick };
+  window.DRLoginShellSep = { sync: exclusive, forceLogout: forceOut };
 })();
