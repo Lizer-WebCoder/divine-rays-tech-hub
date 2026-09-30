@@ -1,13 +1,15 @@
 /**
- * Divine Rays — login ↔ shell separator + force login on logout
+ * Divine Rays — login/shell separator (stable, non-destructive)
+ * Does NOT strip portal.active on a timer. Only forces UI on real logout.
  * Credit: Boyz at the Back LRK · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_LOGIN_SHELL_SEP_V3) return;
-  window.__DR_LOGIN_SHELL_SEP_V3 = 1;
+  if (window.__DR_LOGIN_SHELL_SEP_V4) return;
+  window.__DR_LOGIN_SHELL_SEP_V4 = 1;
 
   var forceOutUntil = 0;
+  var bootGraceUntil = Date.now() + 5000;
 
   var CSS = [
     'body.dr-logged-out #app-shell,',
@@ -21,15 +23,13 @@
     'body.dr-logged-out #portal-customer,',
     'body.dr-logged-out .mode-bar{',
     'display:none!important;visibility:hidden!important;pointer-events:none!important;',
-    'height:0!important;max-height:0!important;overflow:hidden!important;',
-    'opacity:0!important}',
+    'height:0!important;max-height:0!important;overflow:hidden!important;opacity:0!important}',
 
     'body.dr-logged-out #login-screen,',
     'body.dr-logged-out .login-screen{',
     'display:flex!important;visibility:visible!important;height:auto!important;',
     'min-height:100vh!important;overflow:visible!important;pointer-events:auto!important;',
-    'position:relative!important;left:auto!important;opacity:1!important;',
-    'z-index:500!important}',
+    'position:relative!important;left:auto!important;opacity:1!important;z-index:500!important}',
 
     'body.dr-logged-in #login-screen,',
     'body.dr-logged-in .login-screen{',
@@ -57,23 +57,15 @@
     el.textContent = CSS;
   }
 
-  function clearProfiles() {
-    try {
-      window.currentProfile = null;
-      window.__drProfile = null;
-      window.__drFullLoaded = false;
-      window.__drBooting = false;
-      if (window.DR) {
-        try { window.DR.currentProfile = null; } catch (e) {}
-        if (typeof window.DR.setProfile === 'function') {
-          try { window.DR.setProfile(null); } catch (e) {}
-        }
-      }
-    } catch (e) {}
+  function portalActive() {
+    var pa = document.getElementById('portal-agent');
+    var pc = document.getElementById('portal-customer');
+    if (pa && pa.classList.contains('active')) return 'agent';
+    if (pc && pc.classList.contains('active')) return 'customer';
+    return null;
   }
 
   function liveProfile() {
-    if (Date.now() < forceOutUntil) return null;
     try {
       if (window.DR && typeof window.DR.getProfile === 'function') {
         var p = window.DR.getProfile();
@@ -89,19 +81,20 @@
     return null;
   }
 
-  function portalActive() {
-    if (Date.now() < forceOutUntil) return null;
-    var pa = document.getElementById('portal-agent');
-    var pc = document.getElementById('portal-customer');
-    if (pa && pa.classList.contains('active')) return 'agent';
-    if (pc && pc.classList.contains('active')) return 'customer';
-    return null;
+  function shellVisible() {
+    var shell = document.getElementById('app-shell');
+    if (!shell) return false;
+    if (shell.hidden || shell.classList.contains('is-hidden')) return false;
+    return true;
   }
 
   function isLoggedInState() {
     if (Date.now() < forceOutUntil) return false;
     if (portalActive()) return true;
     if (liveProfile()) return true;
+    if (Date.now() < bootGraceUntil && shellVisible() && !document.body.classList.contains('dr-logged-out')) {
+      return true;
+    }
     return false;
   }
 
@@ -119,12 +112,6 @@
       shell.classList.remove('is-hidden');
       shell.style.removeProperty('display');
     }
-    document.querySelectorAll('.mode-bar').forEach(function (bar) {
-      bar.style.removeProperty('display');
-      bar.style.removeProperty('visibility');
-      bar.style.removeProperty('opacity');
-      bar.style.removeProperty('height');
-    });
   }
 
   function setLoggedOut() {
@@ -135,57 +122,49 @@
     if (shell) {
       shell.hidden = true;
       shell.classList.add('is-hidden');
-      shell.style.setProperty('display', 'none', 'important');
     }
 
-    var pa = document.getElementById('portal-agent');
-    var pc = document.getElementById('portal-customer');
-    if (pa) {
-      pa.classList.remove('active');
-      pa.style.setProperty('display', 'none', 'important');
+    if (Date.now() < forceOutUntil) {
+      var pa = document.getElementById('portal-agent');
+      var pc = document.getElementById('portal-customer');
+      if (pa) pa.classList.remove('active');
+      if (pc) pc.classList.remove('active');
     }
-    if (pc) {
-      pc.classList.remove('active');
-      pc.style.setProperty('display', 'none', 'important');
-    }
-
-    document.querySelectorAll('.mode-bar').forEach(function (bar) {
-      bar.style.setProperty('display', 'none', 'important');
-      bar.style.setProperty('visibility', 'hidden', 'important');
-    });
 
     var login = document.getElementById('login-screen') || document.querySelector('.login-screen');
     if (login) {
       login.hidden = false;
       login.classList.remove('is-hidden');
-      login.style.cssText = '';
-      login.style.setProperty('display', 'flex', 'important');
-      login.style.setProperty('visibility', 'visible', 'important');
-      login.style.setProperty('opacity', '1', 'important');
-      login.style.setProperty('z-index', '500', 'important');
+      login.style.removeProperty('display');
+      login.style.removeProperty('visibility');
+      login.style.removeProperty('opacity');
+      login.style.removeProperty('height');
+      login.style.removeProperty('left');
+      login.style.removeProperty('position');
     }
 
     var any = document.querySelector('form.login-form.active');
     if (!any) {
       var lc = document.getElementById('login-customer');
-      if (lc) {
-        document.querySelectorAll('form.login-form').forEach(function (f) {
-          f.classList.remove('active');
-        });
-        lc.classList.add('active');
-        lc.style.setProperty('display', 'block', 'important');
-      }
+      if (lc) lc.classList.add('active');
     }
   }
 
   function forceLogoutUI() {
-    forceOutUntil = Date.now() + 4000;
-    clearProfiles();
+    forceOutUntil = Date.now() + 5000;
+    try {
+      window.currentProfile = null;
+      window.__drProfile = null;
+      if (window.DR) {
+        try { window.DR.currentProfile = null; } catch (e) {}
+        if (typeof window.DR.setProfile === 'function') {
+          try { window.DR.setProfile(null); } catch (e) {}
+        }
+      }
+    } catch (e) {}
     setLoggedOut();
-    setTimeout(setLoggedOut, 50);
-    setTimeout(setLoggedOut, 200);
-    setTimeout(setLoggedOut, 600);
-    setTimeout(setLoggedOut, 1500);
+    setTimeout(setLoggedOut, 100);
+    setTimeout(setLoggedOut, 400);
   }
 
   function sync() {
@@ -200,30 +179,41 @@
   inject();
   document.body.classList.add('dr-logged-out');
   document.body.classList.remove('dr-logged-in');
-  sync();
-  setTimeout(sync, 300);
-  setTimeout(sync, 1000);
-  setTimeout(sync, 2500);
-  setInterval(sync, 2000);
+
+  setTimeout(sync, 600);
+  setTimeout(sync, 2000);
+  setTimeout(function () {
+    bootGraceUntil = Date.now() + 2000;
+    sync();
+  }, 4500);
+
+  setInterval(function () {
+    inject();
+    var logged = isLoggedInState();
+    if (logged) {
+      if (!document.body.classList.contains('dr-logged-in')) setLoggedIn();
+    } else if (Date.now() >= forceOutUntil) {
+      if (!portalActive() && !liveProfile()) {
+        if (!document.body.classList.contains('dr-logged-out')) setLoggedOut();
+      }
+    }
+  }, 3000);
 
   document.addEventListener(
     'click',
     function (e) {
       var t = e.target;
       if (!t || !t.closest) return;
-      var btn = t.closest('#btn-logout, [data-action="logout"], button.logout, a.logout');
-      var txt = ((t.textContent || '') + ' ' + (t.id || '') + ' ' + (btn ? btn.id || '' : '')).toLowerCase();
-      var isLogout =
-        !!btn ||
-        txt.indexOf('logout') !== -1 ||
-        txt.indexOf('log out') !== -1 ||
-        txt.indexOf('sign out') !== -1;
-      if (isLogout) {
+      var btn = t.closest('#btn-logout, [data-action="logout"]');
+      var txt = ((t.textContent || '') + ' ' + (t.id || '')).toLowerCase();
+      if (btn || txt.indexOf('logout') !== -1 || txt.indexOf('sign out') !== -1) {
         forceLogoutUI();
       }
-      if (/sign in|create an account/.test(txt)) {
-        setTimeout(sync, 500);
-        setTimeout(sync, 1500);
+      if (txt.indexOf('sign in') !== -1) {
+        forceOutUntil = 0;
+        bootGraceUntil = Date.now() + 8000;
+        setTimeout(sync, 800);
+        setTimeout(sync, 2000);
       }
     },
     true
@@ -232,26 +222,26 @@
   function wireAuth() {
     try {
       var client =
-        (window.DR && window.DR.sb && window.DR.sb()) ||
         (window.DR && window.DR.supabase) ||
         window.__drSb ||
         window.sb;
       if (!client || !client.auth || !client.auth.onAuthStateChange) return;
-      if (window.__DR_SHELL_AUTH_WIRED) return;
-      window.__DR_SHELL_AUTH_WIRED = 1;
+      if (window.__DR_SHELL_AUTH_WIRED_V4) return;
+      window.__DR_SHELL_AUTH_WIRED_V4 = 1;
       client.auth.onAuthStateChange(function (event, session) {
         if (event === 'SIGNED_OUT' || !session) {
           forceLogoutUI();
         } else if (event === 'SIGNED_IN') {
           forceOutUntil = 0;
-          setTimeout(sync, 300);
-          setTimeout(sync, 1200);
+          bootGraceUntil = Date.now() + 8000;
+          setTimeout(sync, 400);
+          setTimeout(sync, 1500);
         }
       });
     } catch (e) {}
   }
-  setTimeout(wireAuth, 500);
-  setTimeout(wireAuth, 2000);
+  setTimeout(wireAuth, 800);
+  setTimeout(wireAuth, 2500);
 
   window.DRLoginShellSep = { sync: sync, forceLogout: forceLogoutUI };
 })();
