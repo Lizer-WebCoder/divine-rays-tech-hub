@@ -393,22 +393,12 @@
 
     var body = '';
     if (isAgent) {
-      body += fieldInput('reg-agent-name', 'Full Name', 'text', 'required');
-      body += fieldInput('reg-agent-email', 'Work Email', 'email', 'required');
       body += fieldInput('reg-agent-username', 'Username', 'text', 'required autocomplete="username"');
       body += fieldPassword('reg-agent-password', 'Password', 'required minlength="6" autocomplete="new-password"');
       body += fieldPasswordConfirm('reg-agent-password', 'reg-agent-password-confirm', 'Confirm Password', 'required minlength="6" autocomplete="new-password"');
-      body += '<div class="form-row">';
-      body += fieldSelect('reg-agent-gender', 'Gender', [
-        { v: '', t: 'Select...' }, 'Male', 'Female', 'Non-binary', 'Prefer not to say'
-      ], true);
       body += fieldSelect('reg-agent-role', 'Role', [
-        { v: 'agent', t: 'Agent', s: true }, { v: 'admin', t: 'Admin' }
-      ], true);
-      body += '</div>';
-      body += fieldSelect('reg-agent-branch', 'Branch', [
-        { v: '', t: 'Select branch...' },
-        'Head Office', 'North Branch', 'South Branch', 'East Branch', 'West Branch', 'Remote / WFH'
+        { v: '', t: '', s: true },
+        'Owner', 'Admin', 'IT Tech Support'
       ], true);
       body += '<button type="submit" class="btn btn-primary btn-full" disabled style="opacity:0.55;cursor:not-allowed">Create Agent Account</button>';
       body += '<p class="login-switch">Already have an account? <a href="javascript:void(0)" data-dr-show="login-agent">Sign in</a></p>';
@@ -443,7 +433,7 @@
     var card = document.createElement('div');
     card.id = cardId;
     card.className = 'login-card login-card-register';
-    card.setAttribute('data-dr-ver', 'v6');
+    card.setAttribute('data-dr-ver', 'v7');
     card.innerHTML =
       '<div class="reg-title">' + title + '</div>' +
       '<p class="reg-sub">' + sub + '</p>' +
@@ -474,7 +464,7 @@
     var host = login.querySelector('.login-inner') || login;
     ['dr-register-card-agent', 'dr-register-card-customer'].forEach(function (cid) {
       var el = document.getElementById(cid);
-      if (el && el.getAttribute('data-dr-ver') !== 'v6') {
+      if (el && el.getAttribute('data-dr-ver') !== 'v7') {
         try { el.parentNode.removeChild(el); } catch (e) {}
       }
     });
