@@ -1,53 +1,52 @@
 /**
- * Divine Rays — Sign in / Create account navigation (safe)
- * Never hides the main login card — register forms live inside it.
+ * Divine Rays — Sign in / Create account navigation
+ * Login card = login only; Create End-User / Agent cards = registration only.
  * Credit: Boyz at the Back LRK · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_LOGIN_NAV_FIX_V3) return;
-  window.__DR_LOGIN_NAV_FIX_V3 = 1;
+  if (window.__DR_LOGIN_NAV_FIX_V4) return;
+  window.__DR_LOGIN_NAV_FIX_V4 = 1;
 
-  function ensureLoginVisible() {
+  function mainLoginCard() {
+    return document.querySelector(
+      '#login-screen .login-card:not(.login-card-register), .login-card:not(.login-card-register)'
+    );
+  }
+
+  function ensureScreenVisible() {
     var login = document.getElementById('login-screen') || document.querySelector('.login-screen');
-    if (login) {
-      login.hidden = false;
-      login.classList.remove('is-hidden', 'is-hidden-for-reg');
-      login.style.removeProperty('display');
-      login.style.removeProperty('visibility');
-      login.style.removeProperty('height');
-      login.style.removeProperty('overflow');
-      login.style.removeProperty('pointer-events');
-    }
-    document.querySelectorAll('.login-card').forEach(function (c) {
-      c.classList.remove('is-hidden-for-reg');
-      if (c.style && c.style.display === 'none') {
-        c.style.removeProperty('display');
+    if (!login) return;
+    login.hidden = false;
+    login.classList.remove('is-hidden');
+    login.style.removeProperty('display');
+    login.style.removeProperty('visibility');
+    login.style.removeProperty('height');
+    login.style.removeProperty('overflow');
+    login.style.removeProperty('pointer-events');
+  }
+
+  function hideShellRegisterForms() {
+    ['register-customer', 'register-agent'].forEach(function (id) {
+      var f = document.getElementById(id);
+      if (f) {
+        f.classList.remove('active');
+        f.style.setProperty('display', 'none', 'important');
       }
     });
   }
 
-  function go(id) {
-    id = id || 'login-customer';
-    ensureLoginVisible();
-
-    try {
-      if (window.DRLoginTheme && typeof window.DRLoginTheme.showForm === 'function') {
-        window.DRLoginTheme.showForm(id);
-      }
-    } catch (e) {}
-    try {
-      if (typeof window.showForm === 'function' && window.showForm !== go) {
-        // avoid recursion if we assigned showForm = go
-      }
-    } catch (e) {}
-
-    var isAgent = id.indexOf('agent') !== -1;
-
+  function showRegister(kind) {
+    ensureScreenVisible();
+    var isAgent = kind === 'agent';
+    var loginCard = mainLoginCard();
+    if (loginCard) {
+      loginCard.classList.add('is-hidden-for-reg');
+      loginCard.style.setProperty('display', 'none', 'important');
+    }
     document.querySelectorAll('.login-card-register').forEach(function (c) {
       var want = isAgent ? 'dr-register-card-agent' : 'dr-register-card-customer';
-      var open = id.indexOf('register') !== -1 && c.id === want;
-      if (open) {
+      if (c.id === want) {
         c.classList.add('is-open');
         c.style.setProperty('display', 'block', 'important');
       } else {
@@ -55,10 +54,50 @@
         c.style.setProperty('display', 'none', 'important');
       }
     });
+    hideShellRegisterForms();
+    document.querySelectorAll('form.login-form').forEach(function (f) {
+      if (f.id === 'login-customer' || f.id === 'login-agent') {
+        f.classList.remove('active');
+      }
+    });
+    document.querySelectorAll('.ltab').forEach(function (b) {
+      b.classList.toggle('active', b.getAttribute('data-ltab') === (isAgent ? 'agent' : 'customer'));
+    });
+    try {
+      if (window.DRLoginTheme && window.DRLoginTheme.showRegister) {
+        window.DRLoginTheme.showRegister(isAgent ? 'agent' : 'customer');
+      }
+    } catch (e) {}
+  }
+
+  function showLogin(id) {
+    ensureScreenVisible();
+    id = id || 'login-customer';
+    if (id.indexOf('register') !== -1) {
+      id = id.indexOf('agent') !== -1 ? 'login-agent' : 'login-customer';
+    }
+    var isAgent = id.indexOf('agent') !== -1;
+
+    document.querySelectorAll('.login-card-register').forEach(function (c) {
+      c.classList.remove('is-open');
+      c.style.setProperty('display', 'none', 'important');
+    });
+
+    var loginCard = mainLoginCard();
+    if (loginCard) {
+      loginCard.classList.remove('is-hidden-for-reg');
+      loginCard.style.removeProperty('display');
+    }
+
+    hideShellRegisterForms();
 
     document.querySelectorAll('form.login-form').forEach(function (f) {
       f.classList.remove('active');
-      f.style.removeProperty('display');
+      if (f.id === 'register-customer' || f.id === 'register-agent') {
+        f.style.setProperty('display', 'none', 'important');
+      } else {
+        f.style.removeProperty('display');
+      }
     });
     var target = document.getElementById(id);
     if (target) {
@@ -70,8 +109,23 @@
       b.classList.toggle('active', b.getAttribute('data-ltab') === (isAgent ? 'agent' : 'customer'));
     });
     try {
-      if (window.switchLoginTab) window.switchLoginTab(isAgent ? 'agent' : 'customer');
+      if (window.DRLoginTheme && window.DRLoginTheme.showLogin) {
+        window.DRLoginTheme.showLogin(id);
+      }
     } catch (e) {}
+  }
+
+  function go(id) {
+    id = id || 'login-customer';
+    if (id.indexOf('register-agent') !== -1 || id === 'register-agent') {
+      showRegister('agent');
+      return;
+    }
+    if (id.indexOf('register-customer') !== -1 || id === 'register-customer' || id.indexOf('register') !== -1) {
+      showRegister(id.indexOf('agent') !== -1 ? 'agent' : 'customer');
+      return;
+    }
+    showLogin(id);
   }
 
   document.addEventListener(
@@ -80,7 +134,7 @@
       var el = e.target;
       if (!el || !el.closest) return;
 
-      var btn = el.closest('button, input[type="submit"], input[type="button"]');
+      var btn = el.closest('button[data-dr-show]');
       if (btn) {
         var showBtn = btn.getAttribute('data-dr-show');
         if (showBtn && btn.type !== 'submit' && btn.getAttribute('type') !== 'submit') {
@@ -145,7 +199,17 @@
   );
 
   function repair() {
-    ensureLoginVisible();
+    ensureScreenVisible();
+    var regOpen = document.querySelector('.login-card-register.is-open');
+    if (regOpen) {
+      var loginCard = mainLoginCard();
+      if (loginCard) {
+        loginCard.classList.add('is-hidden-for-reg');
+        loginCard.style.setProperty('display', 'none', 'important');
+      }
+      hideShellRegisterForms();
+      return;
+    }
     var anyActive = document.querySelector('form.login-form.active');
     if (!anyActive) {
       var lc = document.getElementById('login-customer');
@@ -155,6 +219,7 @@
       }
     }
   }
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', repair);
   } else {
@@ -163,7 +228,7 @@
   setTimeout(repair, 300);
   setTimeout(repair, 1200);
 
-  window.DRLoginNavFix = { go: go, repair: repair };
+  window.DRLoginNavFix = { go: go, repair: repair, showRegister: showRegister, showLogin: showLogin };
   window.showForm = function (id) {
     go(id);
   };
