@@ -145,7 +145,7 @@
       document.querySelectorAll('.version').forEach(function (el) { el.textContent = 'v' + ver; });
       wireTabs();
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LOGIN_SHA + '/js/login-theme.js?v=' + ver);
-      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@4d1b10a43a46329bb7288029ba1d83cda15e75dd/js/login-nav-fix.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@95c45f2ba9257d487ce98827ea61e7226a1f4ab5/js/login-nav-fix.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@c43678072005010eb5e638448ed39303477ab84b/js/login-shell-sep.js?v=' + ver);
       var scriptSrcs = [];
       doc.querySelectorAll('script[src]').forEach(function (sc) {
@@ -222,7 +222,12 @@
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@ae1c65cbf88001f77ffe6f5e31b779d42e0af562/js/ux-session-polish.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@69f387f1a929098e701996d42c25a44178b813aa/js/ui-flicker-fix.js?v=' + ver);
       if (window.DRLoginTheme && window.DRLoginTheme.refresh) try { window.DRLoginTheme.refresh(); } catch (e) {}
-      window.switchLoginTab = switchLoginTab; window.showForm = showForm; wireTabs();
+      window.switchLoginTab = switchLoginTab; wireTabs();
+      if (window.DRLoginNavFix && window.DRLoginNavFix.go) {
+        window.showForm = function (id) { window.DRLoginNavFix.go(id); };
+      } else {
+        window.showForm = showForm;
+      }
       if (window.DRLoginNavFix && window.DRLoginNavFix.repair) try { window.DRLoginNavFix.repair(); } catch (e) {}
       if (window.DRLoginShellSep && window.DRLoginShellSep.sync) try { window.DRLoginShellSep.sync(); } catch (e) {}
       if (window.DRLoginTheme && window.DRLoginTheme.refresh) try { window.DRLoginTheme.refresh(); } catch (e) {}
