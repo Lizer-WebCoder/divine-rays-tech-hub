@@ -400,9 +400,11 @@
       body += '<button type="submit" class="btn btn-primary btn-full">Create Agent Account</button>';
       body += '<p class="login-switch">Already have an account? <a href="javascript:void(0)" data-dr-show="login-agent">Sign in</a></p>';
     } else {
-      body += fieldInput('reg-cust-name', 'Full Name', 'text', 'required');
+      body += '<div class="form-row">';
+      body += fieldInput('reg-cust-firstname', 'First Name', 'text', 'required autocomplete="given-name"');
+      body += fieldInput('reg-cust-lastname', 'Last Name', 'text', 'required autocomplete="family-name"');
+      body += '</div>';
       body += fieldInput('reg-cust-email', 'Email', 'email', 'required autocomplete="email"');
-      body += fieldInput('reg-cust-username', 'Username', 'text', 'required autocomplete="username"');
       body += fieldPassword('reg-cust-password', 'Password', 'required minlength="4" autocomplete="new-password"');
       body += fieldPasswordConfirm('reg-cust-password', 'reg-cust-password-confirm', 'Confirm Password', 'required minlength="4" autocomplete="new-password"');
       body += '<div class="form-row">';
@@ -426,7 +428,7 @@
     var card = document.createElement('div');
     card.id = cardId;
     card.className = 'login-card login-card-register';
-    card.setAttribute('data-dr-ver', 'v3');
+    card.setAttribute('data-dr-ver', 'v4');
     card.innerHTML =
       '<div class="reg-title">' + title + '</div>' +
       '<p class="reg-sub">' + sub + '</p>' +
@@ -457,7 +459,7 @@
     var host = login.querySelector('.login-inner') || login;
     ['dr-register-card-agent', 'dr-register-card-customer'].forEach(function (cid) {
       var el = document.getElementById(cid);
-      if (el && el.getAttribute('data-dr-ver') !== 'v3') {
+      if (el && el.getAttribute('data-dr-ver') !== 'v4') {
         try { el.parentNode.removeChild(el); } catch (e) {}
       }
     });
