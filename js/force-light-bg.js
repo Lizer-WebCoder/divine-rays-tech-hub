@@ -21,12 +21,11 @@
     'linear-gradient(180deg, #2e1260 0%, #1c0a45 40%, #120830 70%, #0a0518 100%)';
 
   var LOGIN_LIGHT =
-    'radial-gradient(ellipse 90% 70% at 8% 12%, rgba(139,92,246,0.42), transparent 58%),' +
-    'radial-gradient(ellipse 100% 70% at 50% 0%, rgba(167,139,250,0.35), transparent 55%),' +
+    'radial-gradient(ellipse 100% 70% at 50% 0%, rgba(139,92,246,0.38), transparent 55%),' +
     'radial-gradient(ellipse 80% 55% at 15% 85%, rgba(124,58,237,0.28), transparent 50%),' +
     'radial-gradient(ellipse 75% 50% at 90% 20%, rgba(167,139,250,0.32), transparent 48%),' +
     'radial-gradient(ellipse 60% 45% at 50% 100%, rgba(91,33,182,0.2), transparent 55%),' +
-    'linear-gradient(160deg, #e4d8ff 0%, #dccff8 22%, #d0c0f2 48%, #c4b0ea 72%, #b9a4e4 100%)';
+    'linear-gradient(165deg, #e8deff 0%, #d9ccf7 28%, #cbb8f0 55%, #bba6e8 78%, #ae96e0 100%)';
 
   var PORTAL_DARK =
     'radial-gradient(ellipse 80% 50% at 70% 20%, rgba(109,94,245,0.18), transparent 55%),' +
@@ -332,12 +331,12 @@
     var light = isLight();
     var onLogin = loginVisible();
     var grad = onLogin ? (light ? LOGIN_LIGHT : LOGIN_DARK) : light ? PORTAL_LIGHT : PORTAL_DARK;
-    var solid = onLogin ? (light ? '#d0c0f2' : '#120830') : light ? '#ebe8f6' : '#0c0c14';
+    var solid = onLogin ? (light ? '#cbb8f0' : '#120830') : light ? '#ebe8f6' : '#0c0c14';
     try {
       body.classList.toggle('is-login', onLogin);
       body.classList.toggle('is-portal', !onLogin);
     } catch (e) {}
-    var bgKey = (light ? 'L' : 'D') + (onLogin ? '-login' : '-portal') + '|' + solid;
+    var bgKey = (light ? 'L' : 'D') + (onLogin ? '-login' : '-portal') + '|' + solid + '|' + grad.slice(0, 40);
     if (bgKey !== lastBgKey) {
       lastBgKey = bgKey;
       body.style.setProperty('background-color', solid, 'important');
