@@ -358,16 +358,16 @@
       body += fieldPasswordConfirm('reg-cust-password', 'reg-cust-password-confirm', 'Confirm Password', 'required minlength="4" autocomplete="new-password"');
       body += '<div class="form-row">';
       body += fieldSelect('reg-cust-gender', 'Gender', [
-        { v: 'Male', t: 'Male', s: true }, 'Female', 'Prefer not to say'
+        { v: '', t: '', s: true }, 'Male', 'Female', 'Prefer not to say'
       ], true);
       body += fieldSelect('reg-cust-role', 'Role', [
-        { v: 'Admin Staff', t: 'Admin Staff', s: true },
-        'Medtech', 'Radtech', 'Nurse', 'Doctor', 'Cashier', 'Medical Staff'
+        { v: '', t: '', s: true },
+        'Admin Staff', 'Medtech', 'Radtech', 'Nurse', 'Doctor', 'Cashier', 'Medical Staff'
       ], true);
       body += '</div>';
       body += fieldSelect('reg-cust-branch', 'Branch', [
-        { v: 'Abucay', t: 'Abucay', s: true },
-        'Avenida', 'Palo - Pawing', 'Palo - Naga-naga', 'Burauen', 'Carigara', 'Kananga', 'Ormoc',
+        { v: '', t: '', s: true },
+        'Abucay', 'Avenida', 'Palo - Pawing', 'Palo - Naga-naga', 'Burauen', 'Carigara', 'Kananga', 'Ormoc',
         'Abuyog', 'Baybay', 'Sogod', 'Maasin', 'Catbalogan', 'Calbayog', 'Catarman'
       ], true);
       body += '<button type="submit" class="btn btn-primary btn-full">Create End-User Account</button>';
@@ -377,7 +377,7 @@
     var card = document.createElement('div');
     card.id = cardId;
     card.className = 'login-card login-card-register';
-    card.setAttribute('data-dr-ver', 'v2');
+    card.setAttribute('data-dr-ver', 'v3');
     card.innerHTML =
       '<div class="reg-title">' + title + '</div>' +
       '<p class="reg-sub">' + sub + '</p>' +
@@ -408,7 +408,7 @@
     var host = login.querySelector('.login-inner') || login;
     ['dr-register-card-agent', 'dr-register-card-customer'].forEach(function (cid) {
       var el = document.getElementById(cid);
-      if (el && el.getAttribute('data-dr-ver') !== 'v2') {
+      if (el && el.getAttribute('data-dr-ver') !== 'v3') {
         try { el.parentNode.removeChild(el); } catch (e) {}
       }
     });
