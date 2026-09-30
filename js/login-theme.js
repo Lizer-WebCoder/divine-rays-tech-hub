@@ -410,7 +410,7 @@
         { v: '', t: 'Select branch...' },
         'Head Office', 'North Branch', 'South Branch', 'East Branch', 'West Branch', 'Remote / WFH'
       ], true);
-      body += '<button type="submit" class="btn btn-primary btn-full">Create Agent Account</button>';
+      body += '<button type="submit" class="btn btn-primary btn-full" disabled style="opacity:0.55;cursor:not-allowed">Create Agent Account</button>';
       body += '<p class="login-switch">Already have an account? <a href="javascript:void(0)" data-dr-show="login-agent">Sign in</a></p>';
     } else {
       body += '<div class="form-row">';
@@ -436,14 +436,14 @@
         'Abucay', 'Avenida', 'Palo - Pawing', 'Palo - Naga-naga', 'Burauen', 'Carigara', 'Kananga', 'Ormoc',
         'Abuyog', 'Baybay', 'Sogod', 'Maasin', 'Catbalogan', 'Calbayog', 'Catarman'
       ], true);
-      body += '<button type="submit" class="btn btn-primary btn-full">Create End-User Account</button>';
+      body += '<button type="submit" class="btn btn-primary btn-full" disabled style="opacity:0.55;cursor:not-allowed">Create End-User Account</button>';
       body += '<p class="login-switch">Already have an account? <a href="javascript:void(0)" data-dr-show="login-customer">Sign in</a></p>';
     }
 
     var card = document.createElement('div');
     card.id = cardId;
     card.className = 'login-card login-card-register';
-    card.setAttribute('data-dr-ver', 'v5');
+    card.setAttribute('data-dr-ver', 'v6');
     card.innerHTML =
       '<div class="reg-title">' + title + '</div>' +
       '<p class="reg-sub">' + sub + '</p>' +
@@ -474,7 +474,7 @@
     var host = login.querySelector('.login-inner') || login;
     ['dr-register-card-agent', 'dr-register-card-customer'].forEach(function (cid) {
       var el = document.getElementById(cid);
-      if (el && el.getAttribute('data-dr-ver') !== 'v5') {
+      if (el && el.getAttribute('data-dr-ver') !== 'v6') {
         try { el.parentNode.removeChild(el); } catch (e) {}
       }
     });
@@ -672,6 +672,8 @@
         } else {
           setSubmitLocked(false);
         }
+        var formGlow = confirm.closest ? confirm.closest('form') : null;
+        if (formGlow) updateRegisterSubmitState(formGlow);
       }
       function resolvePass() {
         var s = (confirm.closest && (confirm.closest('form') || confirm.closest('.login-card-register') || confirm.closest('.login-card'))) || document;
@@ -814,6 +816,7 @@
         card2.classList.remove('login-fail-glow');
       }
     }
+    if (form) updateRegisterSubmitState(form);
   }
 
   function wireEmailCheck() {
@@ -897,6 +900,52 @@
     m.classList.add('is-open');
   }
 
+  function isRegisterFormComplete(form) {
+    if (!form) return false;
+    var required = form.querySelectorAll('input[required], select[required]');
+    for (var i = 0; i < required.length; i++) {
+      var el = required[i];
+      var val = (el.value || '').trim();
+      if (!val) return false;
+    }
+    if (form.querySelector('.dr-email-taken, [data-email-taken="1"]')) return false;
+    if (form.querySelector('.dr-pass-mismatch')) return false;
+    var pass = form.querySelector('input[type="password"]');
+    var confirm = form.querySelector('input[data-dr-match-for]');
+    if (pass && confirm) {
+      if (!pass.value || !confirm.value || pass.value !== confirm.value) return false;
+    }
+    return true;
+  }
+
+  function updateRegisterSubmitState(form) {
+    if (!form) return;
+    var btn = form.querySelector('button[type="submit"]');
+    if (!btn) return;
+    var ok = isRegisterFormComplete(form);
+    btn.disabled = !ok;
+    if (ok) {
+      btn.style.opacity = '';
+      btn.style.cursor = '';
+    } else {
+      btn.style.opacity = '0.55';
+      btn.style.cursor = 'not-allowed';
+    }
+  }
+
+  function wireFormCompleteness() {
+    ['dr-register-form-customer', 'dr-register-form-agent'].forEach(function (fid) {
+      var form = document.getElementById(fid);
+      if (!form || form.__drCompleteWired) return;
+      form.__drCompleteWired = 1;
+      function run() { updateRegisterSubmitState(form); }
+      form.addEventListener('input', run);
+      form.addEventListener('change', run);
+      form.addEventListener('keyup', run);
+      run();
+    });
+  }
+
   function wireRegisterSubmit() {
     ['dr-register-form-customer', 'dr-register-form-agent'].forEach(function (fid) {
       var form = document.getElementById(fid);
@@ -906,6 +955,12 @@
         e.preventDefault();
         e.stopPropagation();
         if (typeof form.reportValidity === 'function' && !form.reportValidity()) return;
+        if (!isRegisterFormComplete(form)) {
+          updateRegisterSubmitState(form);
+          var cardInc = form.closest('.login-card-register') || form.closest('.login-card');
+          if (cardInc) triggerFail(cardInc, true);
+          return;
+        }
 
         var pass = form.querySelector('input[type="password"]');
         var confirm = form.querySelector('input[data-dr-match-for]');
@@ -1002,6 +1057,7 @@
     wirePasswordMatch();
     wireEmailCheck();
     wireRegisterSubmit();
+    wireFormCompleteness();
     removeCrackOverlays();
     patchShowForm();
   }
@@ -1019,6 +1075,7 @@
     wirePasswordMatch();
     wireEmailCheck();
     wireRegisterSubmit();
+    wireFormCompleteness();
     patchShowForm();
   }, 2000);
   wireFailDetection();
