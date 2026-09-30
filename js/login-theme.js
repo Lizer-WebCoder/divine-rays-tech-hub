@@ -554,20 +554,41 @@
       var passId = confirm.getAttribute('data-dr-match-for');
       var pass = passId ? document.getElementById(passId) : null;
       var hint = document.querySelector('[data-dr-match-hint="' + confirm.id + '"]');
+      function cardFor(el) {
+        return el.closest ? el.closest('.login-card-register, .login-card') : null;
+      }
+      function setCardMatchGlow(ok) {
+        var card = cardFor(confirm);
+        if (!card) return;
+        if (ok) {
+          card.classList.remove('login-fail-glow', 'login-fail-shake');
+          card.classList.add('login-fail-healing');
+          setTimeout(function () {
+            card.classList.remove('login-fail-healing');
+          }, 400);
+        } else {
+          card.classList.remove('login-fail-healing');
+          card.classList.add('login-fail-glow');
+        }
+      }
       function check() {
         if (!pass || !confirm.value) {
           if (hint) { hint.textContent = ''; hint.className = 'dr-pass-match'; }
           confirm.classList.remove('dr-pass-mismatch', 'dr-pass-match-ok');
+          var card = cardFor(confirm);
+          if (card) card.classList.remove('login-fail-glow', 'login-fail-shake', 'login-fail-healing');
           return;
         }
         if (confirm.value === pass.value) {
           if (hint) { hint.textContent = 'Passwords match'; hint.className = 'dr-pass-match is-ok'; }
           confirm.classList.remove('dr-pass-mismatch');
           confirm.classList.add('dr-pass-match-ok');
+          setCardMatchGlow(true);
         } else {
           if (hint) { hint.textContent = 'Passwords do not match'; hint.className = 'dr-pass-match is-bad'; }
           confirm.classList.add('dr-pass-mismatch');
           confirm.classList.remove('dr-pass-match-ok');
+          setCardMatchGlow(false);
         }
       }
       confirm.addEventListener('input', check);
