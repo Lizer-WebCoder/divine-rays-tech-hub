@@ -321,6 +321,44 @@
     }
     var next = ambientCss();
     if (el.textContent !== next) el.textContent = next;
+    injectBgLock();
+  }
+
+  function injectBgLock() {
+    var light = isLight();
+    var onLogin = loginVisible();
+    var grad = onLogin ? (light ? LOGIN_LIGHT : LOGIN_DARK) : light ? PORTAL_LIGHT : PORTAL_DARK;
+    var solid = onLogin ? (light ? '#c4b0ea' : '#120830') : light ? '#ebe8f6' : '#0c0c14';
+    var id = 'dr-force-bg-lock';
+    var el = document.getElementById(id);
+    if (!el) {
+      el = document.createElement('style');
+      el.id = id;
+      document.head.appendChild(el);
+    }
+    if (el.parentNode === document.head) document.head.appendChild(el);
+    var css;
+    if (onLogin) {
+      css = [
+        'html,body,#login-screen,.login-screen{',
+        'background-color:' + solid + '!important;',
+        'background-image:' + grad + '!important;',
+        'background-attachment:fixed!important;',
+        'background-size:cover!important',
+        '}'
+      ].join('');
+    } else {
+      css = [
+        'html,body{',
+        'background-color:' + solid + '!important;',
+        'background-image:' + grad + '!important;',
+        'background-attachment:fixed!important;',
+        'background-size:cover!important',
+        '}',
+        '#login-screen,.login-screen{background:transparent!important}'
+      ].join('');
+    }
+    if (el.textContent !== css) el.textContent = css;
   }
 
   function apply() {
