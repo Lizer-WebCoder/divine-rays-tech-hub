@@ -56,9 +56,7 @@
     '#login-screen .login-card-register form.login-form{display:block!important}',
 
     'html[data-theme="light"] .login-screen,html[data-theme="light"] #login-screen{',
-    'background:radial-gradient(ellipse 90% 60% at 50% -10%,rgba(109,94,245,0.16),transparent 55%),',
-    'radial-gradient(ellipse 50% 40% at 100% 100%,rgba(167,139,250,0.12),transparent 50%),',
-    'linear-gradient(165deg,#f6f4fc 0%,#efeaf8 45%,#e8e2f5 100%)!important}',
+    'background:transparent!important;background-image:none!important}',
 
     'html[data-theme="light"] .login-card,html[data-theme="light"] #login-screen .login-card,',
     'html[data-theme="light"] .login-card-register,html[data-theme="light"] #login-screen .login-card-register{',
@@ -372,221 +370,175 @@
   }
 
   function ensureRegisterCards() {
-    var root = document.getElementById('login-screen') || document.querySelector('.login-screen') || document.body;
-    if (!root) return;
-
-    ['customer', 'agent'].forEach(function (kind) {
-      var id = kind === 'agent' ? 'dr-register-card-agent' : 'dr-register-card-customer';
-      if (document.getElementById(id)) return;
-      var card = buildRegisterCard(kind);
-      root.appendChild(card);
-    });
+    var login = document.getElementById('login-screen') || document.querySelector('.login-screen');
+    if (!login) return;
+    var host = login.querySelector('.login-inner') || login;
+    if (!document.getElementById('dr-register-card-agent')) {
+      host.appendChild(buildRegisterCard('agent'));
+    }
+    if (!document.getElementById('dr-register-card-customer')) {
+      host.appendChild(buildRegisterCard('customer'));
+    }
   }
 
-  function showFormPanel(id) {
-    id = id || '';
-    var isReg = id.indexOf('register') !== -1;
-    var isAgent = id.indexOf('agent') !== -1;
-
+  function showRegister(kind) {
+    ensureRegisterCards();
+    var loginCard = getCard();
+    if (loginCard) loginCard.classList.add('is-hidden-for-reg');
     document.querySelectorAll('.login-card-register').forEach(function (c) {
       c.classList.remove('is-open');
     });
-    document.querySelectorAll('.login-card:not(.login-card-register)').forEach(function (c) {
-      c.classList.toggle('is-hidden-for-reg', isReg);
+    var id = kind === 'agent' ? 'dr-register-card-agent' : 'dr-register-card-customer';
+    var card = document.getElementById(id);
+    if (card) card.classList.add('is-open');
+  }
+
+  function showLogin(formId) {
+    document.querySelectorAll('.login-card-register').forEach(function (c) {
+      c.classList.remove('is-open');
     });
-
-    if (isReg) {
-      var cardId = isAgent ? 'dr-register-card-agent' : 'dr-register-card-customer';
-      var card = document.getElementById(cardId);
-      if (card) card.classList.add('is-open');
-    }
-
-    if (window.switchLoginTab) {
-      try { window.switchLoginTab(isAgent ? 'agent' : 'customer'); } catch (e) {}
-    }
+    var loginCard = getCard();
+    if (loginCard) loginCard.classList.remove('is-hidden-for-reg');
+    if (formId && window.showForm) try { window.showForm(formId); } catch (e) {}
   }
 
-  function overrideShowForm() {
-    if (window.__drShowFormOverridden) return;
-    window.__drShowFormOverridden = true;
-    var orig = window.showForm;
-    window.showForm = function (id) {
-      showFormPanel(id);
-      if (typeof orig === 'function') {
-        try { orig(id); } catch (e) {}
+  function wireRegisterLinks() {
+    document.querySelectorAll('[data-dr-show]').forEach(function (a) {
+      if (a.__drShowWired) return;
+      a.__drShowWired = 1;
+      a.addEventListener('click', function (e) {
+        e.preventDefault();
+        var t = a.getAttribute('data-dr-show') || '';
+        if (t.indexOf('register') !== -1) {
+          showRegister(t.indexOf('agent') !== -1 ? 'agent' : 'customer');
+        } else {
+          showLogin(t);
+        }
+      });
+    });
+    document.querySelectorAll('a[href="#register-customer"], a[href="#register-agent"]').forEach(function (a) {
+      if (a.__drRegWired) return;
+      a.__drRegWired = 1;
+      a.addEventListener('click', function (e) {
+        e.preventDefault();
+        showRegister(a.getAttribute('href').indexOf('agent') !== -1 ? 'agent' : 'customer');
+      });
+    });
+    document.querySelectorAll('.login-switch a').forEach(function (a) {
+      if (a.__drSwitchWired || a.getAttribute('data-dr-show')) return;
+      var href = (a.getAttribute('href') || '') + ' ' + (a.textContent || '');
+      if (/create|register|sign up/i.test(href)) {
+        a.__drSwitchWired = 1;
+        a.addEventListener('click', function (e) {
+          e.preventDefault();
+          var tab = document.querySelector('.ltab.active');
+          var kind = tab && tab.getAttribute('data-ltab') === 'agent' ? 'agent' : 'customer';
+          showRegister(kind);
+        });
       }
-    };
+    });
   }
 
-  function wirePasswordFeatures(root) {
-    if (!root) return;
-    root.querySelectorAll('.dr-pass-toggle').forEach(function (btn) {
-      if (btn.__drWired) return;
-      btn.__drWired = true;
+  function wireFailDetection() {
+    document.addEventListener('submit', function (e) {
+      var form = e.target;
+      if (!form || !form.classList || !form.classList.contains('login-form')) return;
+      pendingSubmit = true;
+      setTimeout(function () {
+        if (pendingSubmit && hasLoginError()) onPossibleFail(true);
+        pendingSubmit = false;
+      }, 80);
+      setTimeout(function () {
+        if (hasLoginError()) onPossibleFail(true);
+      }, 300);
+      setTimeout(function () {
+        if (hasLoginError()) onPossibleFail(false);
+      }, 800);
+    }, true);
+
+    var obs = new MutationObserver(function () {
+      if (hasLoginError()) {
+        var card = document.querySelector('.login-card-register.is-open') || getCard();
+        if (card && !card.classList.contains('login-fail-glow')) {
+          triggerFail(card, false);
+        }
+      }
+    });
+    var login = document.getElementById('login-screen') || document.querySelector('.login-screen');
+    if (login) obs.observe(login, { childList: true, subtree: true, characterData: true });
+  }
+
+  function wirePasswordToggles() {
+    document.querySelectorAll('.dr-pass-toggle').forEach(function (btn) {
+      if (btn.__drPassWired) return;
+      btn.__drPassWired = 1;
       btn.addEventListener('click', function () {
-        var tid = btn.getAttribute('data-dr-pass-target');
-        var inp = document.getElementById(tid);
-        if (!inp) return;
-        if (inp.type === 'password') {
-          inp.type = 'text';
-          btn.textContent = '🙈';
+        var id = btn.getAttribute('data-dr-pass-target');
+        var input = id ? document.getElementById(id) : null;
+        if (!input) return;
+        if (input.type === 'password') {
+          input.type = 'text';
           btn.setAttribute('aria-label', 'Hide password');
           btn.title = 'Hide password';
         } else {
-          inp.type = 'password';
-          btn.textContent = '👁';
+          input.type = 'password';
           btn.setAttribute('aria-label', 'Show password');
           btn.title = 'Show password';
         }
       });
     });
-
-    function checkMatch(confirmId) {
-      var conf = document.getElementById(confirmId);
-      if (!conf) return;
-      var passId = conf.getAttribute('data-dr-match-for');
-      var pass = document.getElementById(passId);
-      var hint = document.querySelector('[data-dr-match-hint="' + confirmId + '"]');
-      if (!pass || !hint) return;
-      var pv = pass.value || '';
-      var cv = conf.value || '';
-      conf.classList.remove('dr-pass-mismatch', 'dr-pass-match-ok');
-      if (!cv) {
-        hint.textContent = '';
-        hint.className = 'dr-pass-match';
-        return;
-      }
-      if (pv === cv) {
-        conf.classList.add('dr-pass-match-ok');
-        hint.textContent = 'Passwords match';
-        hint.className = 'dr-pass-match is-ok';
-      } else {
-        conf.classList.add('dr-pass-mismatch');
-        hint.textContent = 'Passwords do not match';
-        hint.className = 'dr-pass-match is-bad';
-      }
-    }
-
-    root.querySelectorAll('input[data-dr-match-for]').forEach(function (inp) {
-      if (inp.__drMatchWired) return;
-      inp.__drMatchWired = true;
-      var passId = inp.getAttribute('data-dr-match-for');
-      var pass = document.getElementById(passId);
-      function run() { checkMatch(inp.id); }
-      inp.addEventListener('input', run);
-      if (pass) pass.addEventListener('input', run);
-    });
-
-    root.querySelectorAll('[data-dr-len-hint]').forEach(function (hint) {
-      var id = hint.getAttribute('data-dr-len-hint');
-      var inp = document.getElementById(id);
-      if (!inp || hint.__drLenWired) return;
-      hint.__drLenWired = true;
-      function runLen() {
-        var v = inp.value || '';
-        if (!v) { hint.textContent = ''; return; }
-        var min = parseInt(inp.getAttribute('minlength') || '0', 10);
-        if (min && v.length < min) {
-          hint.textContent = 'At least ' + min + ' characters';
-          hint.className = 'dr-pass-match is-bad';
-        } else {
-          hint.textContent = '';
-          hint.className = 'dr-pass-match';
-        }
-      }
-      inp.addEventListener('input', runLen);
-    });
   }
 
-  function watchLoginErrors() {
-    var root = document.getElementById('login-screen') || document.body;
-    if (!root || root.__drFailGlowObs) return;
-
-    document.addEventListener('submit', function (ev) {
-      var form = ev.target;
-      if (!form) return;
-      if (!(form.classList && form.classList.contains('login-form')) &&
-          !(form.closest && form.closest('.login-card'))) return;
-      pendingSubmit = true;
-      [80, 350, 900].forEach(function (ms, i) {
-        setTimeout(function () {
-          if (pendingSubmit && hasLoginError()) {
-            onPossibleFail(true);
-            pendingSubmit = false;
-          } else if (i === 2) {
-            pendingSubmit = false;
-          }
-        }, ms);
-      });
-    }, true);
-
-    document.addEventListener('click', function (ev) {
-      var t = ev.target;
-      if (!t) return;
-      var btn = t.closest ? t.closest('button[type="submit"], .btn-primary, button.btn') : null;
-      if (!btn || !btn.closest || !btn.closest('.login-card, #login-screen')) return;
-      pendingSubmit = true;
-      [100, 400, 1000].forEach(function (ms, i) {
-        setTimeout(function () {
-          if (pendingSubmit && hasLoginError()) {
-            onPossibleFail(true);
-            pendingSubmit = false;
-          } else if (i === 2) {
-            pendingSubmit = false;
-          }
-        }, ms);
-      });
-    }, true);
-
-    try {
-      var obs = new MutationObserver(function () {
-        if (hasLoginError()) {
-          var card = document.querySelector('.login-card-register.is-open') || getCard();
-          if (card && !card.classList.contains('login-fail-glow')) {
-            if (pendingSubmit) {
-              onPossibleFail(true);
-              pendingSubmit = false;
-            } else {
-              triggerFail(card, false);
-            }
-          }
+  function wirePasswordMatch() {
+    document.querySelectorAll('input[data-dr-match-for]').forEach(function (confirm) {
+      if (confirm.__drMatchWired) return;
+      confirm.__drMatchWired = 1;
+      var passId = confirm.getAttribute('data-dr-match-for');
+      var pass = passId ? document.getElementById(passId) : null;
+      var hint = document.querySelector('[data-dr-match-hint="' + confirm.id + '"]');
+      function check() {
+        if (!pass || !confirm.value) {
+          if (hint) { hint.textContent = ''; hint.className = 'dr-pass-match'; }
+          confirm.classList.remove('dr-pass-mismatch', 'dr-pass-match-ok');
+          return;
         }
-      });
-      obs.observe(root, { childList: true, subtree: true, characterData: true });
-      root.__drFailGlowObs = obs;
-    } catch (e) {}
-
-    removeCrackOverlays();
+        if (confirm.value === pass.value) {
+          if (hint) { hint.textContent = 'Passwords match'; hint.className = 'dr-pass-match is-ok'; }
+          confirm.classList.remove('dr-pass-mismatch');
+          confirm.classList.add('dr-pass-match-ok');
+        } else {
+          if (hint) { hint.textContent = 'Passwords do not match'; hint.className = 'dr-pass-match is-bad'; }
+          confirm.classList.add('dr-pass-mismatch');
+          confirm.classList.remove('dr-pass-match-ok');
+        }
+      }
+      confirm.addEventListener('input', check);
+      if (pass) pass.addEventListener('input', check);
+    });
   }
 
   function refresh() {
     injectCss();
     ensureLoginToggle();
-    removeCrackOverlays();
     ensureRegisterCards();
-    overrideShowForm();
-    wirePasswordFeatures(document);
+    wireRegisterLinks();
+    wirePasswordToggles();
+    wirePasswordMatch();
+    removeCrackOverlays();
   }
 
   injectCss();
-  ensureLoginToggle();
-  ensureRegisterCards();
-  overrideShowForm();
-  watchLoginErrors();
-  setTimeout(refresh, 200);
-  setTimeout(refresh, 800);
-  setTimeout(refresh, 2000);
+  setTimeout(refresh, 50);
+  setTimeout(refresh, 300);
+  setTimeout(refresh, 1000);
   setInterval(function () {
-    if (isLoginVisible()) ensureLoginToggle();
-    else removeLoginToggle();
-    removeCrackOverlays();
+    ensureLoginToggle();
     ensureRegisterCards();
-    overrideShowForm();
-  }, 3000);
+    wireRegisterLinks();
+    wirePasswordToggles();
+    wirePasswordMatch();
+  }, 2000);
+  wireFailDetection();
 
-  window.DRLoginTheme = {
-    refresh: refresh,
-    removeLoginToggle: removeLoginToggle,
-    showForm: showFormPanel
-  };
+  window.DRLoginTheme = { refresh: refresh, showRegister: showRegister, showLogin: showLogin };
 })();
