@@ -157,6 +157,12 @@
     'border-color:rgba(248,113,113,0.85)!important;box-shadow:0 0 0 1px rgba(239,68,68,0.35)!important}',
     '#login-screen .dr-pass-wrap input.dr-pass-match-ok, .dr-pass-wrap input.dr-pass-match-ok{',
     'border-color:rgba(74,222,128,0.7)!important}',
+
+    /* Hide shell-embedded register forms; only use separate register cards */
+    '#login-screen form#register-customer,',
+    '#login-screen form#register-agent,',
+    '.login-card form#register-customer,',
+    '.login-card form#register-agent{display:none!important}',
   ].join('');
 
   var healTimer = null;
@@ -310,7 +316,7 @@
   function buildRegisterCard(kind) {
     var isAgent = kind === 'agent';
     var cardId = isAgent ? 'dr-register-card-agent' : 'dr-register-card-customer';
-    var formId = isAgent ? 'register-agent' : 'register-customer';
+    var formId = isAgent ? 'dr-register-form-agent' : 'dr-register-form-customer';
     var title = isAgent ? 'Create Agent Account' : 'Create End-User Account';
     var sub = isAgent ? 'Tech Support registration' : 'End-User registration';
 
@@ -384,22 +390,74 @@
   function showRegister(kind) {
     ensureRegisterCards();
     var loginCard = getCard();
-    if (loginCard) loginCard.classList.add('is-hidden-for-reg');
+    if (loginCard) {
+      loginCard.classList.add('is-hidden-for-reg');
+      loginCard.style.setProperty('display', 'none', 'important');
+    }
     document.querySelectorAll('.login-card-register').forEach(function (c) {
       c.classList.remove('is-open');
+      c.style.removeProperty('display');
     });
     var id = kind === 'agent' ? 'dr-register-card-agent' : 'dr-register-card-customer';
     var card = document.getElementById(id);
-    if (card) card.classList.add('is-open');
+    if (card) {
+      card.classList.add('is-open');
+      card.style.setProperty('display', 'block', 'important');
+    }
+    ['register-customer', 'register-agent'].forEach(function (fid) {
+      var f = document.getElementById(fid);
+      if (f) {
+        f.classList.remove('active');
+        f.style.setProperty('display', 'none', 'important');
+      }
+    });
   }
 
   function showLogin(formId) {
     document.querySelectorAll('.login-card-register').forEach(function (c) {
       c.classList.remove('is-open');
+      c.style.setProperty('display', 'none', 'important');
     });
     var loginCard = getCard();
-    if (loginCard) loginCard.classList.remove('is-hidden-for-reg');
-    if (formId && window.showForm) try { window.showForm(formId); } catch (e) {}
+    if (loginCard) {
+      loginCard.classList.remove('is-hidden-for-reg');
+      loginCard.style.removeProperty('display');
+    }
+    var target = formId || 'login-customer';
+    if (target.indexOf('register') !== -1) {
+      target = target.indexOf('agent') !== -1 ? 'login-agent' : 'login-customer';
+    }
+    document.querySelectorAll('form.login-form').forEach(function (f) {
+      f.classList.remove('active');
+      if (f.id === 'register-customer' || f.id === 'register-agent') {
+        f.style.setProperty('display', 'none', 'important');
+      }
+    });
+    var f = document.getElementById(target);
+    if (f) {
+      f.classList.add('active');
+      f.style.removeProperty('display');
+    }
+    var tab = target.indexOf('agent') !== -1 ? 'agent' : 'customer';
+    document.querySelectorAll('.ltab').forEach(function (b) {
+      b.classList.toggle('active', b.getAttribute('data-ltab') === tab);
+    });
+  }
+
+  function patchShowForm() {
+    var prev = window.showForm;
+    window.showForm = function (id) {
+      id = id || '';
+      if (id.indexOf('register-customer') !== -1 || id === 'register-customer') {
+        showRegister('customer');
+        return;
+      }
+      if (id.indexOf('register-agent') !== -1 || id === 'register-agent') {
+        showRegister('agent');
+        return;
+      }
+      showLogin(id);
+    };
   }
 
   function wireRegisterLinks() {
@@ -525,9 +583,11 @@
     wirePasswordToggles();
     wirePasswordMatch();
     removeCrackOverlays();
+    patchShowForm();
   }
 
   injectCss();
+  patchShowForm();
   setTimeout(refresh, 50);
   setTimeout(refresh, 300);
   setTimeout(refresh, 1000);
@@ -537,6 +597,7 @@
     wireRegisterLinks();
     wirePasswordToggles();
     wirePasswordMatch();
+    patchShowForm();
   }, 2000);
   wireFailDetection();
 
