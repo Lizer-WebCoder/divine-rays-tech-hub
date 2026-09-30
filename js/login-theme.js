@@ -65,7 +65,7 @@
 
     'html[data-theme="light"] .login-card,html[data-theme="light"] #login-screen .login-card,',
     'html[data-theme="light"] .login-card-register,html[data-theme="light"] #login-screen .login-card-register{',
-    'background:rgba(255,255,255,0.22)!important;',
+    'background:rgba(255,255,255,0.88)!important;',
     'backdrop-filter:blur(18px)!important;-webkit-backdrop-filter:blur(18px)!important;',
     'border:1px solid rgba(109,94,245,0.55)!important;',
     'box-shadow:0 0 28px rgba(109,94,245,0.7),0 0 56px rgba(139,92,246,0.45),0 0 80px rgba(124,58,237,0.25),0 10px 32px rgba(30,30,60,0.08)!important;',
