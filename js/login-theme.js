@@ -634,6 +634,22 @@
       function cardFor(el) {
         return el.closest ? el.closest('.login-card-register, .login-card') : null;
       }
+      function setSubmitLocked(locked) {
+        var form = confirm.closest ? confirm.closest('form') : null;
+        if (!form) return;
+        var emailTaken = form.querySelector('.dr-email-taken, [data-email-taken="1"]');
+        var btn = form.querySelector('button[type="submit"]');
+        if (!btn) return;
+        if (locked || emailTaken) {
+          btn.disabled = true;
+          btn.style.opacity = '0.55';
+          btn.style.cursor = 'not-allowed';
+        } else {
+          btn.disabled = false;
+          btn.style.opacity = '';
+          btn.style.cursor = '';
+        }
+      }
       function setCardMatchGlow(state) {
         var card = cardFor(confirm);
         if (!card) return;
@@ -641,8 +657,12 @@
         card.classList.remove('login-fail-glow', 'login-fail-shake', 'login-fail-healing', 'login-pass-ok');
         if (state === 'bad') {
           card.classList.add('login-fail-glow');
+          setSubmitLocked(true);
         } else if (state === 'ok') {
           card.classList.add('login-pass-ok');
+          setSubmitLocked(false);
+        } else {
+          setSubmitLocked(false);
         }
       }
       function resolvePass() {
@@ -658,7 +678,13 @@
         if (!p || !confirm.value) {
           if (hint) { hint.textContent = ''; hint.className = 'dr-pass-match'; }
           confirm.classList.remove('dr-pass-mismatch', 'dr-pass-match-ok');
-          setCardMatchGlow('clear');
+          if (p && p.value && !confirm.value) {
+            setCardMatchGlow('bad');
+            if (hint) { hint.textContent = ''; hint.className = 'dr-pass-match'; }
+            confirm.classList.remove('dr-pass-mismatch');
+          } else {
+            setCardMatchGlow('clear');
+          }
           return;
         }
         if (confirm.value === p.value) {
@@ -873,17 +899,23 @@
         e.stopPropagation();
         if (typeof form.reportValidity === 'function' && !form.reportValidity()) return;
 
-        var mismatch = form.querySelector('.dr-pass-mismatch');
-        if (mismatch) {
-          var card = form.closest('.login-card-register') || form.closest('.login-card');
-          if (card) triggerFail(card, true);
-          return;
-        }
         var pass = form.querySelector('input[type="password"]');
         var confirm = form.querySelector('input[data-dr-match-for]');
-        if (pass && confirm && pass.value && confirm.value && pass.value !== confirm.value) {
-          var card2 = form.closest('.login-card-register') || form.closest('.login-card');
-          if (card2) triggerFail(card2, true);
+        var mismatch = form.querySelector('.dr-pass-mismatch');
+        if (mismatch || (pass && confirm && (!confirm.value || pass.value !== confirm.value))) {
+          if (confirm && pass && pass.value && confirm.value && pass.value !== confirm.value) {
+            confirm.classList.add('dr-pass-mismatch');
+            var h = form.querySelector('[data-dr-match-hint="' + confirm.id + '"]');
+            if (h) { h.textContent = 'Passwords do not match'; h.className = 'dr-pass-match is-bad'; }
+          }
+          var card = form.closest('.login-card-register') || form.closest('.login-card');
+          if (card) triggerFail(card, true);
+          var btnLock = form.querySelector('button[type="submit"]');
+          if (btnLock) {
+            btnLock.disabled = true;
+            btnLock.style.opacity = '0.55';
+            btnLock.style.cursor = 'not-allowed';
+          }
           return;
         }
 
