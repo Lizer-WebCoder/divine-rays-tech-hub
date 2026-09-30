@@ -5,8 +5,8 @@
  */
 (function () {
   'use strict';
-  if (window.__DR_LOGIN_NAV_FIX_V4) return;
-  window.__DR_LOGIN_NAV_FIX_V4 = 1;
+  if (window.__DR_LOGIN_NAV_FIX_V5) return;
+  window.__DR_LOGIN_NAV_FIX_V5 = 1;
 
   function mainLoginCard() {
     return document.querySelector(
@@ -87,6 +87,8 @@
     if (loginCard) {
       loginCard.classList.remove('is-hidden-for-reg');
       loginCard.style.removeProperty('display');
+      loginCard.style.removeProperty('visibility');
+      loginCard.style.removeProperty('opacity');
     }
 
     hideShellRegisterForms();
@@ -210,23 +212,105 @@
       hideShellRegisterForms();
       return;
     }
+    // Registration not open — always restore login card (fixes logout / Tech Support tab)
+    var loginCard = mainLoginCard();
+    if (loginCard) {
+      loginCard.classList.remove('is-hidden-for-reg');
+      loginCard.style.removeProperty('display');
+      loginCard.style.removeProperty('visibility');
+      loginCard.style.removeProperty('opacity');
+    }
+    document.querySelectorAll('.login-card-register').forEach(function (c) {
+      c.classList.remove('is-open');
+      c.style.setProperty('display', 'none', 'important');
+    });
+    hideShellRegisterForms();
+    var agentActive = document.querySelector('.ltab.active[data-ltab="agent"]');
+    var targetId = agentActive ? 'login-agent' : 'login-customer';
     var anyActive = document.querySelector('form.login-form.active');
-    if (!anyActive) {
-      var lc = document.getElementById('login-customer');
-      if (lc) {
-        lc.classList.add('active');
-        lc.style.setProperty('display', 'block', 'important');
+    if (!anyActive || (anyActive.id !== 'login-agent' && anyActive.id !== 'login-customer')) {
+      document.querySelectorAll('form.login-form').forEach(function (f) {
+        f.classList.remove('active');
+        if (f.id === 'register-customer' || f.id === 'register-agent') {
+          f.style.setProperty('display', 'none', 'important');
+        }
+      });
+      var target = document.getElementById(targetId);
+      if (target) {
+        target.classList.add('active');
+        target.style.setProperty('display', 'block', 'important');
       }
     }
   }
 
+  function wireTabs() {
+    document.querySelectorAll('.ltab').forEach(function (btn) {
+      if (btn.__drNavTabWired) return;
+      btn.__drNavTabWired = 1;
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var tab = btn.getAttribute('data-ltab') === 'agent' ? 'agent' : 'customer';
+        showLogin(tab === 'agent' ? 'login-agent' : 'login-customer');
+      }, true);
+    });
+  }
+
+  function onLogoutRestore() {
+    document.querySelectorAll('.login-card-register').forEach(function (c) {
+      c.classList.remove('is-open');
+      c.style.setProperty('display', 'none', 'important');
+    });
+    var loginCard = mainLoginCard();
+    if (loginCard) {
+      loginCard.classList.remove('is-hidden-for-reg');
+      loginCard.style.removeProperty('display');
+    }
+    hideShellRegisterForms();
+    showLogin('login-customer');
+  }
+
+  try {
+    var mo = new MutationObserver(function () {
+      if (document.body && document.body.classList.contains('dr-logged-out')) {
+        onLogoutRestore();
+      }
+    });
+    if (document.body) {
+      mo.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    }
+  } catch (e) {}
+
+  document.addEventListener('click', function (e) {
+    var t = e.target;
+    if (!t || !t.closest) return;
+    var logout = t.closest('#btn-logout, [data-action="logout"], button.logout, a.logout');
+    if (logout) {
+      setTimeout(onLogoutRestore, 50);
+      setTimeout(onLogoutRestore, 300);
+      setTimeout(onLogoutRestore, 800);
+    }
+  }, true);
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', repair);
+    document.addEventListener('DOMContentLoaded', function () { repair(); wireTabs(); });
   } else {
     repair();
+    wireTabs();
   }
-  setTimeout(repair, 300);
-  setTimeout(repair, 1200);
+  setTimeout(function () { repair(); wireTabs(); }, 300);
+  setTimeout(function () { repair(); wireTabs(); }, 1200);
+  setInterval(function () {
+    wireTabs();
+    var regOpen = document.querySelector('.login-card-register.is-open');
+    if (!regOpen) {
+      var loginCard = mainLoginCard();
+      if (loginCard && (loginCard.classList.contains('is-hidden-for-reg') ||
+          (loginCard.style && loginCard.style.display === 'none'))) {
+        repair();
+      }
+    }
+  }, 1500);
 
   window.DRLoginNavFix = { go: go, repair: repair, showRegister: showRegister, showLogin: showLogin };
   window.showForm = function (id) {
