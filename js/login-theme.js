@@ -176,7 +176,6 @@
     '.login-card form#register-customer,',
     '.login-card form#register-agent{display:none!important}',
 
-    /* Dropdown chevron on selects (Gender / Role / Branch) */
     '#login-screen select,.login-form select,.login-card-register select{',
     '-webkit-appearance:none!important;appearance:none!important;',
     'background-repeat:no-repeat!important;',
@@ -190,6 +189,27 @@
     'html[data-theme="light"] .login-form select,',
     'html[data-theme="light"] .login-card-register select{',
     "background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5L6 8l3.5-3.5' fill='none' stroke='%236d5ef5' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E\")!important}",
+
+    '#dr-success-modal{',
+    'position:fixed!important;inset:0!important;z-index:100000!important;',
+    'display:none!important;align-items:center!important;justify-content:center!important;',
+    'background:rgba(12,10,24,0.55)!important;backdrop-filter:blur(6px)!important}',
+    '#dr-success-modal.is-open{display:flex!important}',
+    '#dr-success-modal .dr-success-box{',
+    'background:rgba(26,22,40,0.95)!important;border:1px solid rgba(167,139,250,0.5)!important;',
+    'border-radius:16px!important;padding:1.75rem 1.5rem!important;max-width:320px!important;width:90%!important;',
+    'text-align:center!important;box-shadow:0 0 32px rgba(139,92,246,0.45)!important;color:#eeeef6!important}',
+    '#dr-success-modal .dr-success-box h3{margin:0 0 .5rem!important;font-size:1.2rem!important;font-weight:700!important;color:#c4b5fd!important}',
+    '#dr-success-modal .dr-success-box p{margin:0 0 1.25rem!important;font-size:.9rem!important;opacity:.85!important}',
+    '#dr-success-modal .dr-success-ok{',
+    'display:inline-block!important;min-width:110px!important;padding:.55rem 1.25rem!important;',
+    'border:none!important;border-radius:10px!important;cursor:pointer!important;font-weight:600!important;',
+    'background:linear-gradient(135deg,#6d5ef5,#8b7cf8)!important;color:#fff!important;',
+    'box-shadow:0 6px 18px rgba(91,76,224,0.35)!important;font-family:inherit!important}',
+    'html[data-theme="light"] #dr-success-modal .dr-success-box{',
+    'background:rgba(255,255,255,0.96)!important;color:#1a1a2e!important;',
+    'border-color:rgba(109,94,245,0.4)!important}',
+    'html[data-theme="light"] #dr-success-modal .dr-success-box h3{color:#5b4fd4!important}',
   ].join('');
 
   var healTimer = null;
@@ -650,6 +670,63 @@
     });
   }
 
+  function ensureSuccessModal() {
+    var m = document.getElementById('dr-success-modal');
+    if (m) return m;
+    m = document.createElement('div');
+    m.id = 'dr-success-modal';
+    m.innerHTML =
+      '<div class="dr-success-box" role="dialog" aria-modal="true" aria-labelledby="dr-success-title">' +
+      '<h3 id="dr-success-title">Successfully created!</h3>' +
+      '<p>Your account has been created. Click Ok to sign in.</p>' +
+      '<button type="button" class="dr-success-ok">Ok</button>' +
+      '</div>';
+    document.body.appendChild(m);
+    m.querySelector('.dr-success-ok').addEventListener('click', function () {
+      m.classList.remove('is-open');
+      showLogin('login-customer');
+    });
+    m.addEventListener('click', function (e) {
+      if (e.target === m) {
+        m.classList.remove('is-open');
+        showLogin('login-customer');
+      }
+    });
+    return m;
+  }
+
+  function showSuccessModal() {
+    var m = ensureSuccessModal();
+    m.classList.add('is-open');
+  }
+
+  function wireRegisterSubmit() {
+    ['dr-register-form-customer', 'dr-register-form-agent'].forEach(function (fid) {
+      var form = document.getElementById(fid);
+      if (!form || form.__drRegSubmitWired) return;
+      form.__drRegSubmitWired = 1;
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (typeof form.reportValidity === 'function' && !form.reportValidity()) return;
+        var mismatch = form.querySelector('.dr-pass-mismatch');
+        if (mismatch) {
+          var card = form.closest('.login-card-register') || form.closest('.login-card');
+          if (card) triggerFail(card, true);
+          return;
+        }
+        var pass = form.querySelector('input[type="password"]');
+        var confirm = form.querySelector('input[data-dr-match-for]');
+        if (pass && confirm && pass.value && confirm.value && pass.value !== confirm.value) {
+          var card2 = form.closest('.login-card-register') || form.closest('.login-card');
+          if (card2) triggerFail(card2, true);
+          return;
+        }
+        showSuccessModal();
+      });
+    });
+  }
+
   function refresh() {
     injectCss();
     ensureLoginToggle();
@@ -657,6 +734,7 @@
     wireRegisterLinks();
     wirePasswordToggles();
     wirePasswordMatch();
+    wireRegisterSubmit();
     removeCrackOverlays();
     patchShowForm();
   }
@@ -672,6 +750,7 @@
     wireRegisterLinks();
     wirePasswordToggles();
     wirePasswordMatch();
+    wireRegisterSubmit();
     patchShowForm();
   }, 2000);
   wireFailDetection();
