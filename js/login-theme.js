@@ -16,7 +16,7 @@
     'backdrop-filter:blur(16px)!important;-webkit-backdrop-filter:blur(16px)!important;',
     'border:1px solid rgba(167,139,250,0.45)!important;',
     'box-shadow:0 0 24px rgba(139,92,246,0.55),0 0 48px rgba(124,58,237,0.35),0 12px 40px rgba(0,0,0,0.25)!important;',
-    'transition:box-shadow .5s ease,border-color .5s ease,opacity .3s ease,transform .3s ease!important}',
+    'transition:box-shadow .25s ease,border-color .25s ease,opacity .3s ease,transform .3s ease!important}',
 
     '.login-card.login-fail-glow,#login-screen .login-card.login-fail-glow{',
     'border-color:rgba(248,113,113,0.9)!important;',
@@ -26,6 +26,11 @@
     'animation:drCardShake .5s ease-out}',
 
     '.login-card.login-fail-healing,#login-screen .login-card.login-fail-healing{',
+    'border-color:rgba(167,139,250,0.45)!important;',
+    'box-shadow:0 0 24px rgba(139,92,246,0.55),0 0 48px rgba(124,58,237,0.35),0 12px 40px rgba(0,0,0,0.25)!important}',
+
+    '.login-card.login-pass-ok,#login-screen .login-card.login-pass-ok,',
+    '.login-card-register.login-pass-ok,#login-screen .login-card-register.login-pass-ok{',
     'border-color:rgba(167,139,250,0.45)!important;',
     'box-shadow:0 0 24px rgba(139,92,246,0.55),0 0 48px rgba(124,58,237,0.35),0 12px 40px rgba(0,0,0,0.25)!important}',
 
@@ -71,6 +76,11 @@
     'box-shadow:0 0 26px rgba(239,68,68,0.8),0 0 56px rgba(220,38,38,0.55),0 10px 32px rgba(185,28,28,0.15)!important}',
 
     'html[data-theme="light"] .login-card.login-fail-healing,html[data-theme="light"] #login-screen .login-card.login-fail-healing{',
+    'border-color:rgba(109,94,245,0.55)!important;',
+    'box-shadow:0 0 28px rgba(109,94,245,0.7),0 0 56px rgba(139,92,246,0.45),0 0 80px rgba(124,58,237,0.25),0 10px 32px rgba(30,30,60,0.08)!important}',
+
+    'html[data-theme="light"] .login-card.login-pass-ok,html[data-theme="light"] #login-screen .login-card.login-pass-ok,',
+    'html[data-theme="light"] .login-card-register.login-pass-ok,html[data-theme="light"] #login-screen .login-card-register.login-pass-ok{',
     'border-color:rgba(109,94,245,0.55)!important;',
     'box-shadow:0 0 28px rgba(109,94,245,0.7),0 0 56px rgba(139,92,246,0.45),0 0 80px rgba(124,58,237,0.25),0 10px 32px rgba(30,30,60,0.08)!important}',
 
@@ -158,7 +168,6 @@
     '#login-screen .dr-pass-wrap input.dr-pass-match-ok, .dr-pass-wrap input.dr-pass-match-ok{',
     'border-color:rgba(74,222,128,0.7)!important}',
 
-    /* Hide shell-embedded register forms; only use separate register cards */
     '#login-screen form#register-customer,',
     '#login-screen form#register-agent,',
     '.login-card form#register-customer,',
@@ -252,7 +261,7 @@
 
   function triggerFail(card) {
     if (!card) return;
-    card.classList.remove('login-fail-healing');
+    card.classList.remove('login-fail-healing', 'login-pass-ok');
     card.classList.add('login-fail-glow');
     if (arguments.length > 1 && arguments[1]) {
       card.classList.remove('login-fail-shake');
@@ -445,7 +454,6 @@
   }
 
   function patchShowForm() {
-    var prev = window.showForm;
     window.showForm = function (id) {
       id = id || '';
       if (id.indexOf('register-customer') !== -1 || id === 'register-customer') {
@@ -557,42 +565,42 @@
       function cardFor(el) {
         return el.closest ? el.closest('.login-card-register, .login-card') : null;
       }
-      function setCardMatchGlow(ok) {
+      function setCardMatchGlow(state) {
         var card = cardFor(confirm);
         if (!card) return;
-        if (ok) {
-          card.classList.remove('login-fail-glow', 'login-fail-shake');
-          card.classList.add('login-fail-healing');
-          setTimeout(function () {
-            card.classList.remove('login-fail-healing');
-          }, 400);
-        } else {
-          card.classList.remove('login-fail-healing');
+        if (healTimer) { clearTimeout(healTimer); healTimer = null; }
+        card.classList.remove('login-fail-glow', 'login-fail-shake', 'login-fail-healing', 'login-pass-ok');
+        if (state === 'bad') {
           card.classList.add('login-fail-glow');
+        } else if (state === 'ok') {
+          card.classList.add('login-pass-ok');
         }
       }
       function check() {
         if (!pass || !confirm.value) {
           if (hint) { hint.textContent = ''; hint.className = 'dr-pass-match'; }
           confirm.classList.remove('dr-pass-mismatch', 'dr-pass-match-ok');
-          var card = cardFor(confirm);
-          if (card) card.classList.remove('login-fail-glow', 'login-fail-shake', 'login-fail-healing');
+          setCardMatchGlow('clear');
           return;
         }
         if (confirm.value === pass.value) {
           if (hint) { hint.textContent = 'Passwords match'; hint.className = 'dr-pass-match is-ok'; }
           confirm.classList.remove('dr-pass-mismatch');
           confirm.classList.add('dr-pass-match-ok');
-          setCardMatchGlow(true);
+          setCardMatchGlow('ok');
         } else {
           if (hint) { hint.textContent = 'Passwords do not match'; hint.className = 'dr-pass-match is-bad'; }
           confirm.classList.add('dr-pass-mismatch');
           confirm.classList.remove('dr-pass-match-ok');
-          setCardMatchGlow(false);
+          setCardMatchGlow('bad');
         }
       }
       confirm.addEventListener('input', check);
-      if (pass) pass.addEventListener('input', check);
+      confirm.addEventListener('keyup', check);
+      if (pass) {
+        pass.addEventListener('input', check);
+        pass.addEventListener('keyup', check);
+      }
     });
   }
 
