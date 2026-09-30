@@ -33,15 +33,21 @@ html[data-theme="light"] #portal-customer,
 html[data-theme="light"] #portal-customer.active,
 html[data-theme="light"] #portal-agent .main,
 html[data-theme="light"] #portal-agent main.main,
-html[data-theme="light"] #portal-customer .main,
-html[data-theme="light"] .login-screen,
-html[data-theme="light"] #login-screen {
+html[data-theme="light"] #portal-customer .main {
   background-color: #ffffff !important;
   background-image:
     radial-gradient(ellipse 90% 55% at 50% -15%, rgba(109, 94, 245, 0.28), transparent 58%),
     radial-gradient(ellipse 50% 40% at 100% 100%, rgba(167, 139, 250, 0.14), transparent 50%),
     radial-gradient(ellipse 40% 35% at 0% 80%, rgba(124, 106, 240, 0.1), transparent 45%) !important;
   background-attachment: fixed !important;
+  color: #1a1a2e !important;
+}
+
+/* Login background owned by force-light-bg.js — do not override */
+html[data-theme="light"] .login-screen,
+html[data-theme="light"] #login-screen {
+  background-color: transparent !important;
+  background-image: none !important;
   color: #1a1a2e !important;
 }
 
