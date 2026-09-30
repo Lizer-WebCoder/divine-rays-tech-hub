@@ -1,12 +1,11 @@
 /**
- * Divine Rays Tech Log — Phase 1: mode switch + empty shell
- * Borrow & Return (UI only — no DB yet)
+ * Divine Rays Tech Log — Phase 1 shell + mode switch
  * Credit: Boyz at the Back LRK · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_TECH_LOG_V1) return;
-  window.__DR_TECH_LOG_V1 = 1;
+  if (window.__DR_TECH_LOG_V2) return;
+  window.__DR_TECH_LOG_V2 = 1;
 
   var MODE_KEY = 'dr_app_mode';
   var MODE_SUPPORT = 'support';
@@ -14,18 +13,19 @@
 
   var CSS = [
     '#dr-tech-log-root{display:none;min-height:calc(100vh - 49px);padding:1.25rem 1.5rem 2rem;box-sizing:border-box;position:relative;z-index:5}',
-    'body.dr-mode-techlog #dr-tech-log-root{display:block!important}',
-    'body.dr-mode-techlog #portal-agent,',
-    'body.dr-mode-techlog #portal-customer{',
+    'body.dr-mode-techlog.dr-logged-in #dr-tech-log-root{display:block!important}',
+    'body.dr-mode-techlog.dr-logged-in #portal-agent,',
+    'body.dr-mode-techlog.dr-logged-in #portal-customer{',
     'display:none!important;visibility:hidden!important;pointer-events:none!important;',
     'height:0!important;overflow:hidden!important}',
-    'body.dr-mode-techlog .mode-brand strong{letter-spacing:0.01em}',
+    'body.dr-logged-out #dr-tech-log-root,',
+    'body.dr-logged-out #btn-switch-techlog,',
+    'body.dr-logged-out #btn-switch-support{display:none!important;visibility:hidden!important}',
     '#btn-switch-techlog,#btn-switch-support{',
     'border-radius:999px!important;font-weight:600!important;font-size:0.78rem!important;',
     'padding:0.35rem 0.85rem!important;white-space:nowrap!important;cursor:pointer!important}',
     '#btn-switch-techlog{',
-    'background:linear-gradient(135deg,#7c6af0,#5b4ce0)!important;color:#fff!important;',
-    'border:none!important}',
+    'background:linear-gradient(135deg,#7c6af0,#5b4ce0)!important;color:#fff!important;border:none!important}',
     '#btn-switch-support{',
     'background:rgba(109,94,245,0.15)!important;color:#c4b5fd!important;',
     'border:1px solid rgba(167,139,250,0.35)!important}',
@@ -86,11 +86,11 @@
   }
 
   function isLoggedInShell() {
+    if (document.body.classList.contains('dr-logged-out')) return false;
     var shell = document.getElementById('app-shell');
     if (!shell) return false;
     if (shell.hidden || shell.classList.contains('is-hidden')) return false;
-    if (document.body.classList.contains('dr-logged-out')) return false;
-    return true;
+    return document.body.classList.contains('dr-logged-in');
   }
 
   function ensureRoot() {
@@ -105,26 +105,25 @@
       '<div class="dr-tl-hero">' +
       '<span class="dr-tl-badge">Divine Rays Tech Log</span>' +
       '<h1>Borrow & Return</h1>' +
-      '<p>Track equipment check-out and return across branches. This is the Tech Log shell — asset lists and borrow records come next.</p>' +
+      '<p>Track equipment check-out and return across branches. Asset lists and borrow records come next.</p>' +
       '</div>' +
       '<div class="dr-tl-grid">' +
-      '<div class="dr-tl-card"><h3>My borrows</h3><p>Items you currently have checked out. Coming in the next phase.</p></div>' +
-      '<div class="dr-tl-card"><h3>Open loans</h3><p>Staff view of all active borrows. Coming soon.</p></div>' +
-      '<div class="dr-tl-card"><h3>Asset inventory</h3><p>Catalog of devices and tools available to borrow. Coming soon.</p></div>' +
+      '<div class="dr-tl-card"><h3>My borrows</h3><p>Items you currently have checked out.</p></div>' +
+      '<div class="dr-tl-card"><h3>Open loans</h3><p>Staff view of all active borrows.</p></div>' +
+      '<div class="dr-tl-card"><h3>Asset inventory</h3><p>Catalog of devices and tools available to borrow.</p></div>' +
       '</div>' +
-      '<div class="dr-tl-soon">Phase 1 — UI shell only. Database tables will be added next.</div>' +
+      '<div class="dr-tl-soon">Phase 1 — UI shell. Run sql/tech-log-schema.sql then Phase 3 will wire live data.</div>' +
       '</div>';
     var bar = shell.querySelector('.mode-bar');
-    if (bar && bar.nextSibling) {
-      shell.insertBefore(root, bar.nextSibling);
-    } else {
-      shell.appendChild(root);
-    }
+    if (bar && bar.nextSibling) shell.insertBefore(root, bar.nextSibling);
+    else shell.appendChild(root);
     return root;
   }
 
   function ensureButtons() {
-    var bar = document.querySelector('#app-shell .mode-bar .user-info') ||
+    if (!isLoggedInShell()) return;
+    var bar =
+      document.querySelector('#app-shell .mode-bar .user-info') ||
       document.querySelector('.mode-bar .user-info');
     if (!bar) return;
 
@@ -140,7 +139,6 @@
       });
       bar.insertBefore(b1, bar.firstChild);
     }
-
     if (!document.getElementById('btn-switch-support')) {
       var b2 = document.createElement('button');
       b2.type = 'button';
@@ -158,22 +156,27 @@
   function updateBrand(mode) {
     var strong = document.querySelector('.mode-bar .mode-brand strong');
     if (!strong) return;
-    if (mode === MODE_TECHLOG) {
-      strong.textContent = 'Divine Rays Tech Log';
-    } else {
-      strong.textContent = 'Divine Rays Tech Hub';
-    }
+    strong.textContent = mode === MODE_TECHLOG ? 'Divine Rays Tech Log' : 'Divine Rays Tech Hub';
   }
 
   function updateButtons(mode) {
     var toLog = document.getElementById('btn-switch-techlog');
     var toSup = document.getElementById('btn-switch-support');
+    if (!isLoggedInShell()) {
+      if (toLog) toLog.style.display = 'none';
+      if (toSup) toSup.style.display = 'none';
+      return;
+    }
     if (toLog) toLog.style.display = mode === MODE_TECHLOG ? 'none' : '';
     if (toSup) toSup.style.display = mode === MODE_TECHLOG ? '' : 'none';
   }
 
   function applyMode(mode) {
     if (mode !== MODE_TECHLOG) mode = MODE_SUPPORT;
+    if (!isLoggedInShell()) {
+      document.body.classList.remove('dr-mode-techlog');
+      return;
+    }
     setMode(mode);
     injectCss();
     ensureRoot();
@@ -186,7 +189,6 @@
       document.body.classList.add('dr-mode-support');
       document.body.classList.remove('dr-mode-techlog');
     }
-
     updateBrand(mode);
     updateButtons(mode);
 
@@ -197,14 +199,10 @@
       var pc = document.getElementById('portal-customer');
       if (pa) pa.style.removeProperty('display');
       if (pc) pc.style.removeProperty('display');
-      if (window.DRPortalGuard && window.DRPortalGuard.sync) {
-        try { window.DRPortalGuard.sync(); } catch (e) {}
-      }
     } else {
       var root2 = document.getElementById('dr-tech-log-root');
       if (root2) root2.style.display = 'block';
     }
-
     window.DRTechLog = window.DRTechLog || {};
     window.DRTechLog.mode = mode;
   }
@@ -213,6 +211,7 @@
     injectCss();
     if (!isLoggedInShell()) {
       document.body.classList.remove('dr-mode-techlog');
+      updateButtons(MODE_SUPPORT);
       return;
     }
     ensureRoot();
@@ -221,17 +220,17 @@
   }
 
   injectCss();
-  setTimeout(tick, 400);
-  setTimeout(tick, 1200);
-  setTimeout(tick, 3000);
+  setTimeout(tick, 600);
+  setTimeout(tick, 1800);
+  setTimeout(tick, 4000);
   setInterval(function () {
-    if (!isLoggedInShell()) return;
-    ensureButtons();
-    if (!document.getElementById('btn-switch-techlog')) ensureButtons();
-    if (getMode() === MODE_TECHLOG && !document.body.classList.contains('dr-mode-techlog')) {
-      applyMode(MODE_TECHLOG);
+    if (!isLoggedInShell()) {
+      document.body.classList.remove('dr-mode-techlog');
+      return;
     }
-  }, 2500);
+    ensureButtons();
+    updateButtons(getMode());
+  }, 3000);
 
   window.DRTechLog = {
     mode: getMode(),
