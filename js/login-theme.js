@@ -201,17 +201,14 @@
     'text-align:center!important;box-shadow:0 0 32px rgba(139,92,246,0.45)!important;color:#eeeef6!important}',
     '#dr-success-modal .dr-success-check{',
     'width:64px!important;height:64px!important;margin:0 auto 1rem!important;border-radius:50%!important;',
-    'background:rgba(34,197,94,0.15)!important;border:2px solid #22c55e!important;',
+    'background:rgba(34,197,94,0.18)!important;border:2.5px solid #22c55e!important;',
     'display:flex!important;align-items:center!important;justify-content:center!important;',
     'animation:drCheckPop .45s cubic-bezier(.22,1.2,.36,1) both!important}',
-    '#dr-success-modal .dr-success-check svg{width:34px!important;height:34px!important;display:block!important}',
-    '#dr-success-modal .dr-success-check .dr-check-path{',
-    'stroke:#22c55e!important;stroke-width:3.5!important;fill:none!important;',
-    'stroke-linecap:round!important;stroke-linejoin:round!important;',
-    'stroke-dasharray:48!important;stroke-dashoffset:48!important;',
-    'animation:drCheckDraw .5s ease-out .2s forwards!important}',
+    '#dr-success-modal .dr-success-check .dr-check-mark{',
+    'color:#22c55e!important;font-size:2rem!important;font-weight:800!important;line-height:1!important;',
+    'display:block!important;animation:drCheckMarkIn .4s ease-out .15s both!important}',
     '@keyframes drCheckPop{0%{transform:scale(0);opacity:0}70%{transform:scale(1.12);opacity:1}100%{transform:scale(1);opacity:1}}',
-    '@keyframes drCheckDraw{to{stroke-dashoffset:0}}',
+    '@keyframes drCheckMarkIn{0%{transform:scale(0);opacity:0}60%{transform:scale(1.2);opacity:1}100%{transform:scale(1);opacity:1}}',
     '#dr-success-modal .dr-success-box h3{margin:0 0 .5rem!important;font-size:1.2rem!important;font-weight:700!important;color:#c4b5fd!important}',
     '#dr-success-modal .dr-success-box p{margin:0 0 1.25rem!important;font-size:.9rem!important;opacity:.85!important}',
     'html[data-theme="light"] #dr-success-modal .dr-success-check{background:rgba(34,197,94,0.12)!important}',
@@ -692,9 +689,7 @@
     m.innerHTML =
       '<div class="dr-success-box" role="dialog" aria-modal="true" aria-labelledby="dr-success-title">' +
       '<div class="dr-success-check" aria-hidden="true">' +
-      '<svg viewBox="0 0 40 40">' +
-      '<path class="dr-check-path" d="M10 20.5 L17.5 28 L30 13"/>' +
-      '</svg></div>' +
+      '<span class="dr-check-mark">\u2713</span></div>' +
       '<h3 id="dr-success-title">Successfully created!</h3>' +
       '<p>Your account has been created. Click Ok to sign in.</p>' +
       '<button type="button" class="dr-success-ok">Ok</button>' +
@@ -716,16 +711,16 @@
   function showSuccessModal() {
     var m = ensureSuccessModal();
     var check = m.querySelector('.dr-success-check');
-    var path = m.querySelector('.dr-check-path');
+    var mark = m.querySelector('.dr-check-mark');
     if (check) {
       check.style.animation = 'none';
       void check.offsetWidth;
       check.style.animation = '';
     }
-    if (path) {
-      path.style.animation = 'none';
-      void path.offsetWidth;
-      path.style.animation = '';
+    if (mark) {
+      mark.style.animation = 'none';
+      void mark.offsetWidth;
+      mark.style.animation = '';
     }
     m.classList.add('is-open');
   }
