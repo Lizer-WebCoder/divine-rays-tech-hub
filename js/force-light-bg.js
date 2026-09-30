@@ -12,20 +12,18 @@
   var CSS_ID = 'dr-login-ambient-css';
   var LAYER_ID = 'dr-login-ambient';
   var lastAmbientKey = '';
-  var lastBgKey = '';
 
   var LOGIN_DARK =
-    'radial-gradient(ellipse 120% 80% at 50% 50%, rgba(139,92,246,0.28), transparent 60%),' +
-    'radial-gradient(ellipse 70% 50% at 20% 20%, rgba(167,139,250,0.2), transparent 50%),' +
-    'radial-gradient(ellipse 70% 50% at 80% 80%, rgba(91,33,182,0.25), transparent 50%),' +
-    'linear-gradient(180deg, #2e1260 0%, #1c0a45 40%, #120830 70%, #0a0518 100%)';
+    'radial-gradient(ellipse 100% 70% at 50% 45%, rgba(124,58,237,0.35), transparent 55%),' +
+    'radial-gradient(ellipse 70% 50% at 15% 20%, rgba(139,92,246,0.22), transparent 50%),' +
+    'radial-gradient(ellipse 70% 50% at 85% 80%, rgba(91,33,182,0.28), transparent 50%),' +
+    'linear-gradient(180deg, #2a1058 0%, #1a0a3e 35%, #120830 65%, #0a0518 100%)';
 
   var LOGIN_LIGHT =
-    'radial-gradient(ellipse 100% 70% at 50% 0%, rgba(139,92,246,0.38), transparent 55%),' +
-    'radial-gradient(ellipse 80% 55% at 15% 85%, rgba(124,58,237,0.28), transparent 50%),' +
-    'radial-gradient(ellipse 75% 50% at 90% 20%, rgba(167,139,250,0.32), transparent 48%),' +
-    'radial-gradient(ellipse 60% 45% at 50% 100%, rgba(91,33,182,0.2), transparent 55%),' +
-    'linear-gradient(165deg, #e8deff 0%, #d9ccf7 28%, #cbb8f0 55%, #bba6e8 78%, #ae96e0 100%)';
+    'radial-gradient(ellipse 120% 80% at 50% 40%, rgba(167,139,250,0.35), transparent 65%),' +
+    'radial-gradient(ellipse 80% 60% at 20% 80%, rgba(139,92,246,0.22), transparent 55%),' +
+    'radial-gradient(ellipse 70% 50% at 85% 15%, rgba(196,181,253,0.28), transparent 50%),' +
+    'linear-gradient(165deg, #ddd0f8 0%, #d0c0f2 30%, #c4b0ea 55%, #b8a4e4 80%, #ad98de 100%)';
 
   var PORTAL_DARK =
     'radial-gradient(ellipse 80% 50% at 70% 20%, rgba(109,94,245,0.18), transparent 55%),' +
@@ -331,45 +329,41 @@
     var light = isLight();
     var onLogin = loginVisible();
     var grad = onLogin ? (light ? LOGIN_LIGHT : LOGIN_DARK) : light ? PORTAL_LIGHT : PORTAL_DARK;
-    var solid = onLogin ? (light ? '#cbb8f0' : '#120830') : light ? '#ebe8f6' : '#0c0c14';
+    var solid = onLogin ? (light ? '#c4b0ea' : '#120830') : light ? '#ebe8f6' : '#0c0c14';
     try {
       body.classList.toggle('is-login', onLogin);
       body.classList.toggle('is-portal', !onLogin);
     } catch (e) {}
-    var bgKey = (light ? 'L' : 'D') + (onLogin ? '-login' : '-portal') + '|' + solid + '|' + grad.slice(0, 40);
-    if (bgKey !== lastBgKey) {
-      lastBgKey = bgKey;
-      body.style.setProperty('background-color', solid, 'important');
-      body.style.setProperty('background-image', grad, 'important');
-      body.style.setProperty('background-attachment', 'fixed', 'important');
-      body.style.setProperty('background-size', 'cover', 'important');
-      document.documentElement.style.setProperty('background-color', solid, 'important');
-      document.documentElement.style.setProperty('background-image', grad, 'important');
-      [
-        '#portal-agent','#portal-agent.active',
-        '#portal-customer','#portal-customer.active',
-        '#portal-agent .main','#portal-agent main.main',
-        '#portal-customer .main','#portal-customer main.customer-main',
-        '#portal-customer .customer-main','.app-shell'
-      ].forEach(function (sel) {
-        document.querySelectorAll(sel).forEach(function (el) {
-          el.style.setProperty('background-color', 'transparent', 'important');
-          el.style.setProperty('background-image', 'none', 'important');
-        });
+    body.style.setProperty('background-color', solid, 'important');
+    body.style.setProperty('background-image', grad, 'important');
+    body.style.setProperty('background-attachment', 'fixed', 'important');
+    body.style.setProperty('background-size', 'cover', 'important');
+    document.documentElement.style.setProperty('background-color', solid, 'important');
+    document.documentElement.style.setProperty('background-image', grad, 'important');
+    [
+      '#portal-agent','#portal-agent.active',
+      '#portal-customer','#portal-customer.active',
+      '#portal-agent .main','#portal-agent main.main',
+      '#portal-customer .main','#portal-customer main.customer-main',
+      '#portal-customer .customer-main','.app-shell'
+    ].forEach(function (sel) {
+      document.querySelectorAll(sel).forEach(function (el) {
+        el.style.setProperty('background-color', 'transparent', 'important');
+        el.style.setProperty('background-image', 'none', 'important');
       });
-      document.querySelectorAll('#login-screen, .login-screen').forEach(function (el) {
-        if (onLogin) {
-          el.style.setProperty('background-color', solid, 'important');
-          el.style.setProperty('background-image', grad, 'important');
-          el.style.setProperty('background-attachment', 'fixed', 'important');
-          el.style.setProperty('background-size', 'cover', 'important');
-          el.style.setProperty('position', 'relative', 'important');
-          el.style.setProperty('overflow', 'hidden', 'important');
-        } else {
-          el.style.setProperty('background', 'transparent', 'important');
-        }
-      });
-    }
+    });
+    document.querySelectorAll('#login-screen, .login-screen').forEach(function (el) {
+      if (onLogin) {
+        el.style.setProperty('background-color', solid, 'important');
+        el.style.setProperty('background-image', grad, 'important');
+        el.style.setProperty('background-attachment', 'fixed', 'important');
+        el.style.setProperty('background-size', 'cover', 'important');
+        el.style.setProperty('position', 'relative', 'important');
+        el.style.setProperty('overflow', 'hidden', 'important');
+      } else {
+        el.style.setProperty('background', 'transparent', 'important');
+      }
+    });
     injectCss();
     ensureAmbient();
   }
@@ -385,7 +379,6 @@
     if (t && (t.id === 'btn-theme' || t.id === 'dr-login-theme' ||
         (t.classList && t.classList.contains('btn-theme')) ||
         (t.closest && (t.closest('form.login-form') || t.closest('#login-screen'))))) {
-      lastBgKey = '';
       lastAmbientKey = '';
       setTimeout(apply, 30);
       setTimeout(apply, 250);
