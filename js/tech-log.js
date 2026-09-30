@@ -1,14 +1,16 @@
 /**
- * Divine Rays Tech Log v4 — exclusive full-screen mode
- * Hides ALL Support UI (portal + FABs) while Tech Log is on.
+ * Divine Rays Tech Log v5 — single mode toggle button
+ * Support: "Switch to Tech Log"
+ * Tech Log: "Switch to Tech Support"
  * Credit: Boyz at the Back LRK · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_TECH_LOG_V4) return;
-  window.__DR_TECH_LOG_V4 = 1;
+  if (window.__DR_TECH_LOG_V5) return;
+  window.__DR_TECH_LOG_V5 = 1;
 
   var MODE_KEY = 'dr_app_mode';
+  var onTechLog = false;
 
   var CSS = [
     '#dr-tech-log-root{display:none;padding:1.25rem 1.5rem 2.5rem;box-sizing:border-box;position:relative;z-index:30;min-height:calc(100vh - 52px);background:transparent}',
@@ -38,10 +40,11 @@
     'display:none!important;visibility:hidden!important;pointer-events:none!important;',
     'opacity:0!important;height:0!important;max-height:0!important;overflow:hidden!important}',
 
-    '#btn-switch-techlog,#btn-switch-support{',
-    'border-radius:999px;font-weight:600;font-size:0.78rem;padding:0.35rem 0.85rem;cursor:pointer;border:none}',
-    '#btn-switch-techlog{background:linear-gradient(135deg,#7c6af0,#5b4ce0);color:#fff}',
-    '#btn-switch-support{background:rgba(109,94,245,0.15);color:#c4b5fd;border:1px solid rgba(167,139,250,0.35)}',
+    '#btn-mode-toggle{',
+    'border-radius:999px;font-weight:600;font-size:0.78rem;padding:0.35rem 0.9rem;cursor:pointer;border:none;',
+    'background:linear-gradient(135deg,#7c6af0,#5b4ce0);color:#fff}',
+    'body.dr-tl-on #btn-mode-toggle{',
+    'background:rgba(109,94,245,0.18);color:#c4b5fd;border:1px solid rgba(167,139,250,0.4)}',
     '.dr-tl-shell{max-width:960px;margin:0 auto}',
     '.dr-tl-hero{background:rgba(26,26,36,0.88);border:1px solid rgba(139,124,247,0.28);border-radius:16px;padding:1.5rem;margin-bottom:1.25rem}',
     '.dr-tl-hero h1{margin:0 0 0.35rem;font-size:1.45rem;color:#eeeef6}',
@@ -133,50 +136,52 @@
       '<div class="dr-tl-card"><h3>Open loans</h3><p>Staff overview of active borrows.</p></div>' +
       '<div class="dr-tl-card"><h3>Asset inventory</h3><p>Devices and tools available to borrow.</p></div>' +
       '</div>' +
-      '<div class="dr-tl-soon">Support is fully hidden in this mode. Click <strong>Back to Support</strong> to return.</div>' +
+      '<div class="dr-tl-soon">Support is fully hidden in this mode. Use the button above to switch back to Tech Support.</div>' +
       '</div>';
     var bar = shell.querySelector('.mode-bar');
     if (bar && bar.nextSibling) shell.insertBefore(root, bar.nextSibling);
     else shell.appendChild(root);
   }
 
-  function ensureButtons() {
+  function syncToggleLabel() {
+    var btn = document.getElementById('btn-mode-toggle');
+    if (!btn) return;
+    btn.textContent = onTechLog ? 'Switch to Tech Support' : 'Switch to Tech Log';
+  }
+
+  function ensureButton() {
     if (!shellReady()) return;
     var bar =
       document.querySelector('#app-shell .mode-bar .user-info') ||
       document.querySelector('.mode-bar .user-info');
     if (!bar) return;
-    if (!document.getElementById('btn-switch-techlog')) {
-      var b1 = document.createElement('button');
-      b1.type = 'button';
-      b1.id = 'btn-switch-techlog';
-      b1.textContent = 'Switch to Tech Log';
-      b1.addEventListener('click', function (e) {
+
+    ['btn-switch-techlog', 'btn-switch-support'].forEach(function (id) {
+      var old = document.getElementById(id);
+      if (old && old.parentNode) old.parentNode.removeChild(old);
+    });
+
+    if (!document.getElementById('btn-mode-toggle')) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.id = 'btn-mode-toggle';
+      btn.addEventListener('click', function (e) {
         e.preventDefault();
-        goTechLog();
+        if (onTechLog) goSupport();
+        else goTechLog();
       });
-      bar.insertBefore(b1, bar.firstChild);
+      bar.insertBefore(btn, bar.firstChild);
     }
-    if (!document.getElementById('btn-switch-support')) {
-      var b2 = document.createElement('button');
-      b2.type = 'button';
-      b2.id = 'btn-switch-support';
-      b2.textContent = 'Back to Support';
-      b2.style.display = 'none';
-      b2.addEventListener('click', function (e) {
-        e.preventDefault();
-        goSupport();
-      });
-      bar.insertBefore(b2, bar.firstChild);
-    }
+    syncToggleLabel();
   }
 
   function goTechLog() {
     if (!shellReady()) return;
     try { sessionStorage.setItem(MODE_KEY, 'techlog'); } catch (e) {}
+    onTechLog = true;
     injectCss();
     ensureRoot();
-    ensureButtons();
+    ensureButton();
     document.body.classList.add('dr-tl-on');
     hideSupportDeep();
     var root = document.getElementById('dr-tech-log-root');
@@ -186,30 +191,26 @@
     }
     var brand = document.querySelector('.mode-bar .mode-brand strong');
     if (brand) brand.textContent = 'Divine Rays Tech Log';
-    var a = document.getElementById('btn-switch-techlog');
-    var b = document.getElementById('btn-switch-support');
-    if (a) a.style.display = 'none';
-    if (b) b.style.display = '';
+    syncToggleLabel();
   }
 
   function goSupport() {
     try { sessionStorage.setItem(MODE_KEY, 'support'); } catch (e) {}
+    onTechLog = false;
     document.body.classList.remove('dr-tl-on');
     showSupportDeep();
     var root = document.getElementById('dr-tech-log-root');
     if (root) root.style.display = 'none';
     var brand = document.querySelector('.mode-bar .mode-brand strong');
     if (brand) brand.textContent = 'Divine Rays Tech Hub';
-    var a = document.getElementById('btn-switch-techlog');
-    var b = document.getElementById('btn-switch-support');
-    if (a) a.style.display = '';
-    if (b) b.style.display = 'none';
+    ensureButton();
+    syncToggleLabel();
   }
 
   function init() {
     injectCss();
     if (!shellReady()) return;
-    ensureButtons();
+    ensureButton();
     try { sessionStorage.setItem(MODE_KEY, 'support'); } catch (e) {}
     goSupport();
   }
@@ -218,8 +219,8 @@
   setTimeout(init, 2500);
   setInterval(function () {
     if (!shellReady()) return;
-    ensureButtons();
-    if (document.body.classList.contains('dr-tl-on')) hideSupportDeep();
+    ensureButton();
+    if (onTechLog) hideSupportDeep();
   }, 4000);
 
   window.DRTechLog = { goTechLog: goTechLog, goSupport: goSupport };
