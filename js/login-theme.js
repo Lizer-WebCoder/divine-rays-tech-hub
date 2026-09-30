@@ -105,10 +105,13 @@
     'html[data-theme="light"] #login-screen .form-group label{',
     'color:#3d3d55!important;font-weight:600!important}',
     'html[data-theme="light"] .login-form input,',
-    'html[data-theme="light"] .login-form select,',
-    'html[data-theme="light"] #login-screen input,',
-    'html[data-theme="light"] #login-screen select{',
+    'html[data-theme="light"] #login-screen input{',
     'background:#fff!important;color:#1a1a2e!important;',
+    'border:1px solid rgba(124,106,240,0.28)!important;',
+    'box-shadow:0 1px 2px rgba(30,30,60,0.04)!important}',
+    'html[data-theme="light"] .login-form select,',
+    'html[data-theme="light"] #login-screen select{',
+    'background-color:#fff!important;color:#1a1a2e!important;',
     'border:1px solid rgba(124,106,240,0.28)!important;',
     'box-shadow:0 1px 2px rgba(30,30,60,0.04)!important}',
     'html[data-theme="light"] .login-form input:focus,',
@@ -172,6 +175,21 @@
     '#login-screen form#register-agent,',
     '.login-card form#register-customer,',
     '.login-card form#register-agent{display:none!important}',
+
+    /* Dropdown chevron on selects (Gender / Role / Branch) */
+    '#login-screen select,.login-form select,.login-card-register select{',
+    '-webkit-appearance:none!important;appearance:none!important;',
+    'background-repeat:no-repeat!important;',
+    'background-position:right 0.85rem center!important;',
+    'background-size:12px 12px!important;',
+    'padding-right:2.35rem!important;',
+    'cursor:pointer!important;',
+    "background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5L6 8l3.5-3.5' fill='none' stroke='%23c4b5fd' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E\")!important}",
+
+    'html[data-theme="light"] #login-screen select,',
+    'html[data-theme="light"] .login-form select,',
+    'html[data-theme="light"] .login-card-register select{',
+    "background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5L6 8l3.5-3.5' fill='none' stroke='%236d5ef5' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E\")!important}",
   ].join('');
 
   var healTimer = null;
