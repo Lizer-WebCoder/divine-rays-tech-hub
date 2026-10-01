@@ -42,10 +42,17 @@
     'font-size:0.75rem;font-weight:600;background:rgba(109,94,245,0.2);color:#c4b5fd}',
     'html[data-theme="light"] #view-staff-admin .staff-card .role-pill{color:#5b4fd4}',
 
-    /* End-Users view cleanup */
+    /* End-Users view cleanup — topbar ticket filters */
     'body.dr-view-endusers .dr-list-toolbar-right{display:none!important}',
     'body.dr-view-endusers #dr-list-toolbar-right{display:none!important}',
     'body.dr-view-endusers .dr-list-toolbar-left p{display:none!important}',
+    'body.dr-view-endusers #filter-status{display:none!important}',
+    'body.dr-view-endusers #filter-priority{display:none!important}',
+    'body.dr-view-endusers #filter-sort{display:none!important}',
+    'body.dr-view-endusers #btn-clear-filters{display:none!important}',
+    'body.dr-view-endusers #filter-limit{display:none!important}',
+    'body.dr-view-endusers .dr-limit-wrap{display:none!important}',
+    'body.dr-view-endusers #search-input{display:none!important}',
     '#view-admin .admin-stats .stat-card:has(#admin-stat-users){display:none!important}',
     '#view-admin .admin-stats .stat-card:has(#admin-stat-agents){display:none!important}',
     '#view-admin .admin-stats .stat-card:has(#admin-stat-admins){display:none!important}',
@@ -194,7 +201,17 @@
     try { document.body.classList.remove('dr-view-list', 'dr-view-dashboard'); } catch (e) {}
     var hint = document.querySelector('#view-admin .admin-hint');
     if (hint) hint.textContent = 'Manage users, roles and badge.';
-    /* Ensure End-Users label on the remaining stat card */
+    /* Hide topbar ticket filters (All Statuses / Priorities / Newest / Clear) */
+    ['filter-status', 'filter-priority', 'filter-sort', 'btn-clear-filters', 'filter-limit', 'search-input'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) {
+        el.style.setProperty('display', 'none', 'important');
+        el.setAttribute('data-dr-eu-hide', '1');
+      }
+    });
+    document.querySelectorAll('.dr-limit-wrap').forEach(function (w) {
+      w.style.setProperty('display', 'none', 'important');
+    });
     var cust = document.getElementById('admin-stat-customers');
     if (cust) {
       var card = cust.closest ? cust.closest('.stat-card') : null;
@@ -203,7 +220,6 @@
         if (lab) lab.textContent = 'End-Users';
       }
     }
-    /* Hide non End-Users stat cards without :has support fallback */
     ['admin-stat-users', 'admin-stat-agents', 'admin-stat-admins'].forEach(function (id) {
       var el = document.getElementById(id);
       if (!el) return;
@@ -214,6 +230,19 @@
       var keep = cust.closest ? cust.closest('.stat-card') : cust.parentNode;
       if (keep && keep.style) keep.style.display = '';
     }
+  }
+
+  function restoreTopbarFilters() {
+    ['filter-status', 'filter-priority', 'filter-sort', 'btn-clear-filters', 'filter-limit', 'search-input'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el && el.getAttribute('data-dr-eu-hide') === '1') {
+        el.style.removeProperty('display');
+        el.removeAttribute('data-dr-eu-hide');
+      }
+    });
+    document.querySelectorAll('.dr-limit-wrap').forEach(function (w) {
+      w.style.removeProperty('display');
+    });
   }
 
   function openEndUsers() {
@@ -234,6 +263,7 @@
 
   function openAdminStaff() {
     try { document.body.classList.remove('dr-view-endusers'); } catch (e) {}
+    restoreTopbarFilters();
     clearNavActive();
     var sub = document.getElementById('nav-users-admin');
     var parent = document.getElementById('nav-users-toggle');
@@ -308,6 +338,7 @@
       if (eu) eu.classList.remove('active');
       if (ad) ad.classList.remove('active');
       try { document.body.classList.remove('dr-view-endusers'); } catch (err) {}
+      restoreTopbarFilters();
     }, true);
   }
 
@@ -324,6 +355,10 @@
     transformNav();
     syncVisibility();
     ensureStaffView();
+    var va = document.getElementById('view-admin');
+    if (va && va.classList.contains('active')) {
+      polishEndUsersChrome();
+    }
   }
 
   tick();
