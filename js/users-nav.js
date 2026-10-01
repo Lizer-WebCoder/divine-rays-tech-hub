@@ -40,7 +40,16 @@
     '#view-staff-admin .staff-card .role-pill{',
     'display:inline-block;margin-top:0.45rem;padding:0.15rem 0.55rem;border-radius:999px;',
     'font-size:0.75rem;font-weight:600;background:rgba(109,94,245,0.2);color:#c4b5fd}',
-    'html[data-theme="light"] #view-staff-admin .staff-card .role-pill{color:#5b4fd4}'
+    'html[data-theme="light"] #view-staff-admin .staff-card .role-pill{color:#5b4fd4}',
+
+    /* End-Users view cleanup */
+    'body.dr-view-endusers .dr-list-toolbar-right{display:none!important}',
+    'body.dr-view-endusers #dr-list-toolbar-right{display:none!important}',
+    'body.dr-view-endusers .dr-list-toolbar-left p{display:none!important}',
+    '#view-admin .admin-stats .stat-card:has(#admin-stat-users){display:none!important}',
+    '#view-admin .admin-stats .stat-card:has(#admin-stat-agents){display:none!important}',
+    '#view-admin .admin-stats .stat-card:has(#admin-stat-admins){display:none!important}',
+    '#view-admin .admin-stats{grid-template-columns:minmax(180px,320px)!important;max-width:320px}'
   ].join('');
 
   function injectCss() {
@@ -180,6 +189,33 @@
     }).join('');
   }
 
+  function polishEndUsersChrome() {
+    try { document.body.classList.add('dr-view-endusers'); } catch (e) {}
+    try { document.body.classList.remove('dr-view-list', 'dr-view-dashboard'); } catch (e) {}
+    var hint = document.querySelector('#view-admin .admin-hint');
+    if (hint) hint.textContent = 'Manage users, roles and badge.';
+    /* Ensure End-Users label on the remaining stat card */
+    var cust = document.getElementById('admin-stat-customers');
+    if (cust) {
+      var card = cust.closest ? cust.closest('.stat-card') : null;
+      if (card) {
+        var lab = card.querySelector('.stat-label');
+        if (lab) lab.textContent = 'End-Users';
+      }
+    }
+    /* Hide non End-Users stat cards without :has support fallback */
+    ['admin-stat-users', 'admin-stat-agents', 'admin-stat-admins'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      var card2 = el.closest ? el.closest('.stat-card') : el.parentNode;
+      if (card2 && card2.style) card2.style.display = 'none';
+    });
+    if (cust) {
+      var keep = cust.closest ? cust.closest('.stat-card') : cust.parentNode;
+      if (keep && keep.style) keep.style.display = '';
+    }
+  }
+
   function openEndUsers() {
     clearNavActive();
     var sub = document.getElementById('nav-users-endusers');
@@ -188,12 +224,16 @@
     if (parent) parent.classList.add('active');
     showView('view-admin');
     setPageTitle('End-Users');
+    polishEndUsersChrome();
     if (typeof window.renderAdminUsers === 'function') {
       try { window.renderAdminUsers(); } catch (e) {}
     }
+    setTimeout(polishEndUsersChrome, 50);
+    setTimeout(polishEndUsersChrome, 300);
   }
 
   function openAdminStaff() {
+    try { document.body.classList.remove('dr-view-endusers'); } catch (e) {}
     clearNavActive();
     var sub = document.getElementById('nav-users-admin');
     var parent = document.getElementById('nav-users-toggle');
@@ -267,6 +307,7 @@
       var ad = document.getElementById('nav-users-admin');
       if (eu) eu.classList.remove('active');
       if (ad) ad.classList.remove('active');
+      try { document.body.classList.remove('dr-view-endusers'); } catch (err) {}
     }, true);
   }
 
