@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.5.19" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.5.20" />
   <style>
     html,body{margin:0;background:#0c0c14;color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
     #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae;flex-direction:column;gap:0.75rem;padding:1.5rem;text-align:center}
@@ -130,7 +130,11 @@
       setTimeout(function () {
         loadScript(CDN + FIX_SHA + '/js/admin.js');
         loadScript(CDN + FIX_SHA + '/js/users-nav.js');
-        loadScript(CDN + FIX_SHA + '/js/users-admin-approval-ui.js');
+        /* Block external approval UI — handled inline to avoid Status flash */
+        try {
+          window.__DR_USERS_ADMIN_APPROVAL_UI_V2 = 1;
+          window.__DR_USERS_ADMIN_APPROVAL_UI = 1;
+        } catch (eA) {}
       }, 2800);
 
       setTimeout(function () {
@@ -143,8 +147,8 @@
       }, 4000);
 
       setTimeout(function () {
-        if (window.__DR_INLINE_ADMIN_FIX_V3) return;
-        window.__DR_INLINE_ADMIN_FIX_V3 = 1;
+        if (window.__DR_INLINE_ADMIN_FIX_V4) return;
+        window.__DR_INLINE_ADMIN_FIX_V4 = 1;
         window.__DR_INLINE_ADMIN_FIX = 1;
 
         var DEVS = { kirzhian: 1, jamesjerlow123: 1 };
@@ -370,17 +374,7 @@
               actionHtml = '';
             } else if (st === 'approved') {
               statusHtml = '<span class="badge badge-role-admin">Approved</span>';
-              actionHtml = vDev
-                ? '<button type="button" class="btn btn-ghost btn-sm dr-inline-deny" data-id="' +
-                  esc(u.id) +
-                  '" data-username="' +
-                  esc(u.username) +
-                  '" data-email="' +
-                  esc(u.email || '') +
-                  '" data-name="' +
-                  esc(u.full_name || u.username) +
-                  '">Denied</button>'
-                : '';
+              actionHtml = '';
             } else {
               statusHtml = '<span class="badge badge-role-pending">Pending</span>';
               actionHtml = vDev
@@ -405,8 +399,13 @@
 
             cells[4].classList.add('admin-status-cell');
             cells[5].classList.add('admin-actions-cell');
-            cells[4].innerHTML = statusHtml;
-            cells[5].innerHTML = '<div class="admin-actions">' + actionHtml + '</div>';
+            if ((cells[4].innerHTML || '').replace(/\s+/g, ' ').trim() !== statusHtml.replace(/\s+/g, ' ').trim()) {
+              cells[4].innerHTML = statusHtml;
+            }
+            var actWrap = '<div class="admin-actions">' + actionHtml + '</div>';
+            if ((cells[5].innerHTML || '').replace(/\s+/g, ' ').trim() !== actWrap.replace(/\s+/g, ' ').trim()) {
+              cells[5].innerHTML = actWrap;
+            }
           });
 
           box.querySelectorAll('.dr-inline-approve').forEach(function (btn) {
@@ -450,8 +449,12 @@
         polishAdminTable();
         setInterval(function () {
           forceUsersNav();
+          var box =
+            document.getElementById('admin-users-list') ||
+            document.getElementById('staff-admin-list');
+          if (!box || !box.querySelector('tbody tr')) return;
           polishAdminTable();
-        }, 2500);
+        }, 5000);
 
         document.addEventListener(
           'click',
