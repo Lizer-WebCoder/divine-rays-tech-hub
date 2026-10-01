@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.5.9" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.6.0" />
   <style>
     html,body{margin:0;background:#0c0c14;color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
     #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae}
@@ -56,7 +56,7 @@
       'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + PIN + '/index.html',
       'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PIN + '/index.html'
     ];
-    var ver = '8.5.9';
+    var ver = '8.6.0';
     var BUST = String(Date.now());
     try {
       if (navigator.serviceWorker) {
@@ -142,7 +142,6 @@
       bodyHtml = bodyHtml.replace(/Lizzz?\s*[·•\-]\s*All Rights Reserved/gi, 'Boyz at the Back LRK · All Rights Reserved');
       bodyHtml = bodyHtml.replace(/>Customer</g, '>End-User<').replace(/Create Customer Account/g, 'Create End-User Account').replace(/\(Customer\)/g, '(End-User)').replace(/>Customers</g, '>End-Users<');
       document.body.innerHTML = bodyHtml;
-      /* instant login flash suppress if session token exists */
       try {
         var __hasSess = false;
         for (var __i = 0; __i < localStorage.length; __i++) {
@@ -227,7 +226,7 @@
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + STABLE + '/js/layout-fix.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@49062e232bcd560ed8e409f70e7c109d2eb9ae94/js/csat.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + ATTACH_SHA + '/js/attach-enhance.js?v=' + ver);
-      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@7a09542332b8227930871a5a055162c570a3fdb7/js/csat-dashboard.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@a3e5717a4bf4c2ae36690e8f3fada8a91cb8689c/js/csat-dashboard.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@875b2f5b1c8293bb219943429c01020f28114d5b/js/ticket-list-fix.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LIVE_SHA + '/js/comments-live.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + REMOTE_SHA + '/js/remote-session.js?v=' + ver);
@@ -242,7 +241,7 @@
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LF_SHA + '/js/light-force.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + FORCE_BG_SHA + '/js/force-light-bg.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + HB_SHA + '/js/heartbeat-draw.js?v=' + ver);
-      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@385582c1cc3bf2e7bb0e2a128a0ef52765a2e70c/js/team-sep.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@b88ae0a99e123f01472d628c2659697ec034b17d/js/team-sep.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@655a1f16fb5792f66ec0eb61f789bc5687b5b945/js/agent-views.js?v=' + ver);
       window.__DR_DESIGN_CSS = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@81ec3b324f3257bc82166e57b817fb3223113e6c/css/design-system-v10.css?v=' + ver;
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@7d6d66cbe63fda91cf71d64bbddd1af80f3adfc3/js/design-system-v10.js?v=' + ver);
