@@ -1,11 +1,11 @@
 /**
- * Divine Rays — team board light mode separation overlay
- * Credit: Boyz at the Back
+ * Divine Rays — team board separation (stable, no flicker)
+ * Credit: Boyz at the Back LRK · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_TEAM_SEP) return;
-  window.__DR_TEAM_SEP = 1;
+  if (window.__DR_TEAM_SEP_V2) return;
+  window.__DR_TEAM_SEP_V2 = 1;
 
   var CSS = [
     '.agent-perf,#agent-perf-list,#agent-perf-list.team-board,.team-board{',
@@ -38,20 +38,26 @@
     'html[data-theme="light"] .tower-name{color:#1e1b4b!important}'
   ].join('');
 
+  var wrapTimer = null;
+  var lastWrapAt = 0;
+
   function inject() {
     var el = document.getElementById('dr-team-sep-css');
     if (!el) {
       el = document.createElement('style');
       el.id = 'dr-team-sep-css';
       document.head.appendChild(el);
+      el.textContent = CSS;
     }
-    el.textContent = CSS;
   }
 
   function wrapEachPerson() {
+    var now = Date.now();
+    if (now - lastWrapAt < 800) return;
     var box = document.getElementById('agent-perf-list');
     if (!box || !box.classList.contains('team-board')) return;
     var kids = Array.prototype.slice.call(box.children);
+    var did = false;
     kids.forEach(function (h) {
       if (!h.classList || !h.classList.contains('chart-title')) return;
       if ((h.textContent || '').indexOf('Each person') === -1) return;
@@ -67,10 +73,27 @@
       desc.textContent = 'Individual workload and ratings';
       panel.appendChild(desc);
       panel.appendChild(cards);
+      did = true;
     });
+    if (did) lastWrapAt = now;
+  }
+
+  function scheduleWrap() {
+    if (wrapTimer) return;
+    wrapTimer = setTimeout(function () {
+      wrapTimer = null;
+      wrapEachPerson();
+    }, 400);
   }
 
   inject();
-  wrapEachPerson();
-  setInterval(function () { inject(); wrapEachPerson(); }, 2000);
+  setTimeout(wrapEachPerson, 600);
+  setTimeout(wrapEachPerson, 1800);
+  setInterval(scheduleWrap, 5000);
+
+  var target = document.getElementById('app-shell') || document.body;
+  try {
+    var mo = new MutationObserver(function () { scheduleWrap(); });
+    mo.observe(target, { childList: true, subtree: true });
+  } catch (e) {}
 })();
