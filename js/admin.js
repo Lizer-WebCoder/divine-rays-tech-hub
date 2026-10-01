@@ -1,7 +1,7 @@
 /**
  * Divine Rays Tech Hub — Admin module
  * Edit name/username, delete users, send password reset
- * Uses DRDialog (purple) for confirmations
+ * Users list modes: endusers (customers only) | staff (admin/agent only)
  * Credit: Boyz at the Back LRK · All Rights Reserved
  */
 (function () {
@@ -125,9 +125,13 @@
     toast('Password reset email sent', 'success');
   }
 
-  async function renderAdminUsers() {
+  async function renderAdminUsers(mode) {
     var profile = DR().getProfile && DR().getProfile();
     if (!profile || profile.role !== 'admin') { toast('Admin only', 'error'); return; }
+    if (mode === 'endusers' || mode === 'staff') {
+      window.__DR_USERS_LIST_MODE = mode;
+    }
+    var listMode = window.__DR_USERS_LIST_MODE || 'staff';
     ensureModal();
     var box = document.getElementById('admin-users-list');
     if (!box) return;
@@ -136,6 +140,12 @@
     var q = ((document.getElementById('admin-search') || {}).value || '').toLowerCase().trim();
     var roleFilter = (document.getElementById('admin-filter-role') || {}).value || '';
     var filtered = users.filter(function (u) {
+      var r = String(u.role || '').toLowerCase();
+      if (listMode === 'endusers') {
+        if (r !== 'customer') return false;
+      } else {
+        if (r === 'customer') return false;
+      }
       if (roleFilter && u.role !== roleFilter) return false;
       if (!q) return true;
       return ((u.full_name || '') + ' ' + (u.username || '') + ' ' + (u.email || '') + ' ' + (u.role || '') + ' ' + (u.staff_role || '')).toLowerCase().indexOf(q) !== -1;
@@ -148,7 +158,9 @@
     el = document.getElementById('admin-stat-agents'); if (el) el.textContent = counts.agent;
     el = document.getElementById('admin-stat-admins'); if (el) el.textContent = counts.admin;
     if (!filtered.length) {
-      box.innerHTML = '<p class="empty-state" style="padding:1rem">No users found.</p>';
+      box.innerHTML = '<p class="empty-state" style="padding:1rem">' +
+        (listMode === 'endusers' ? 'No end-users found.' : 'No staff accounts found.') +
+        '</p>';
       return;
     }
     if (!document.getElementById('dr-admin-table-align-css')) {
@@ -164,7 +176,8 @@
         '.admin-table th:nth-child(1),.admin-table td:nth-child(1){text-align:left;vertical-align:middle}' +
         '.admin-table .admin-status-cell,.admin-table .admin-actions-cell{text-align:center!important}' +
         '.admin-table .admin-status-cell .badge{display:inline-flex;align-items:center;justify-content:center}' +
-        '.admin-table .admin-actions-cell .admin-actions{display:inline-flex!important;align-items:center;justify-content:center;gap:0.35rem;flex-wrap:wrap}';
+        '.admin-table .admin-actions-cell .admin-actions{display:inline-flex!important;align-items:center;justify-content:center;gap:0.35rem;flex-wrap:wrap}' +
+        '.badge-role-customer{background:rgba(96,165,250,0.2)!important;color:#60a5fa!important}';
       document.head.appendChild(st);
     }
     box.innerHTML =
@@ -174,18 +187,30 @@
       filtered.map(function (u) {
         var mine = profile && u.id === profile.id;
         var roleSelect = '<select class="admin-role-select" data-id="' + u.id + '"' + (mine ? ' disabled' : '') + '>' +
-          ['customer', 'agent', 'admin'].map(function (r) {
-            return '<option value="' + r + '"' + (u.role === r ? ' selected' : '') + '>' + r + '</option>';
+          [{ v: 'customer', l: 'End-User' }, { v: 'agent', l: 'IT Tech Support' }, { v: 'admin', l: 'Admin' }].map(function (opt) {
+            return '<option value="' + opt.v + '"' + (u.role === opt.v ? ' selected' : '') + '>' + opt.l + '</option>';
           }).join('') + '</select>';
-        var actions = '<div class="admin-actions">' + roleSelect +
-          '<button type="button" class="btn btn-ghost btn-sm admin-btn-edit" data-id="' + u.id + '">Edit</button>' +
-          (mine ? '' : '<button type="button" class="btn btn-danger btn-sm admin-btn-del" data-id="' + u.id +
-            '" data-name="' + esc(u.full_name || u.username || 'user') + '">Delete</button>') +
-          '</div>';
+        var actions;
+        if (listMode === 'endusers') {
+          actions = '<div class="admin-actions">' +
+            '<button type="button" class="btn btn-ghost btn-sm admin-btn-edit" data-id="' + u.id + '">Edit</button>' +
+            (mine ? '' : '<button type="button" class="btn btn-danger btn-sm admin-btn-del" data-id="' + u.id +
+              '" data-name="' + esc(u.full_name || u.username || 'user') + '">Delete</button>') +
+            '</div>';
+        } else {
+          actions = '<div class="admin-actions">' + roleSelect +
+            '<button type="button" class="btn btn-ghost btn-sm admin-btn-edit" data-id="' + u.id + '">Edit</button>' +
+            (mine ? '' : '<button type="button" class="btn btn-danger btn-sm admin-btn-del" data-id="' + u.id +
+              '" data-name="' + esc(u.full_name || u.username || 'user') + '">Delete</button>') +
+            '</div>';
+        }
+        var rLow = String(u.role || '').toLowerCase();
+        var roleText = rLow === 'customer' ? 'End-User' : (u.staff_role || u.role || '—');
+        var roleCls = rLow === 'customer' ? 'badge badge-role-customer' : ('badge badge-role-' + esc(u.role));
         return '<tr' + (mine ? ' class="mine"' : '') + ' data-id="' + esc(u.id) + '">' +
           '<td>' + esc(u.full_name || 'User') + (mine ? ' <span class="you-tag">you</span>' : '') + '</td>' +
           '<td>' + esc(u.username || '—') + '</td>' +
-          '<td><span class="badge badge-role-' + esc(u.role) + '">' + esc(u.role) + '</span></td>' +
+          '<td><span class="' + roleCls + '">' + esc(roleText) + '</span></td>' +
           '<td>' + fmt(u.created_at) + '</td>' +
           '<td class="admin-status-cell"></td>' +
           '<td class="admin-actions-cell">' + actions + '</td></tr>';
@@ -193,6 +218,7 @@
       '</tbody></table>' +
       '<p class="admin-hint" style="margin-top:0.75rem">Delete removes the profile. To fully remove login, also delete the user in Supabase → Authentication → Users.</p>';
     window.__adminUsersCache = users;
+    window.__adminUsersListMode = listMode;
     box.querySelectorAll('.admin-role-select').forEach(function (sel) {
       sel.addEventListener('change', async function () {
         var id = sel.getAttribute('data-id'), role = sel.value;
