@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.5.11" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.5.12" />
   <style>
     html,body{margin:0;background:#0c0c14;color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
     #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae}
@@ -19,7 +19,7 @@
   <script>
   (async function () {
     var SHELL_SHA = '6d66f6b647cf6f4c7340536dab472409bd1de5d6';
-    var TEAM_BOARD_SHA = '6d66f6b647cf6f4c7340536dab472409bd1de5d6';
+    var TEAM_BOARD_SHA = '6f7d941cf16542de5868a7ed0abaacae83f4d133';
     var TEAM_SEP_SHA = '85337adc33ac049cdbf1317bbc20388b4f774739';
     var BUST = String(Date.now());
     var urls = [
@@ -37,7 +37,6 @@
       }
       if (!html) throw new Error('Could not load app shell');
 
-      // Rewrite pins inside the loaded shell so team-board / team-sep stay stable
       html = html.replace(
         /var EXTRA_FILES = \[[^\]]*\];/,
         "var EXTRA_FILES = ['email-notify.js','ticket-plus.js','ticket-plus-fix.js','status-lock.js','polish-fixes.js','saved-views.js','kb.js','team-board.js'];\n    var TEAM_BOARD_SHA = '" + TEAM_BOARD_SHA + "';"
@@ -55,18 +54,19 @@
         'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + TEAM_SEP_SHA + '/js/team-sep.js'
       );
 
-      // Execute the restored shell by replacing document
       document.open();
       document.write(html);
       document.close();
 
-      // After shell boots, force-load stable team-board once more
       setTimeout(function () {
         var s = document.createElement('script');
         s.src = withBust('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + TEAM_BOARD_SHA + '/js/team-board.js');
         s.async = false;
         document.body.appendChild(s);
-      }, 2500);
+      }, 2000);
+      setTimeout(function () {
+        if (window.DR_TEAM && window.DR_TEAM.refresh) try { window.DR_TEAM.refresh(); } catch (e) {}
+      }, 3500);
     } catch (err) {
       console.error(err);
       var boot = document.getElementById('boot');
