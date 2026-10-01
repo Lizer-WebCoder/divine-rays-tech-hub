@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.5.20" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.5.21" />
   <style>
     html,body{margin:0;background:#0c0c14;color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
     #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae;flex-direction:column;gap:0.75rem;padding:1.5rem;text-align:center}
@@ -33,7 +33,7 @@
     var TEAM_BOARD_SHA = '6f7d941cf16542de5868a7ed0abaacae83f4d133';
     var TEAM_SEP_SHA = '85337adc33ac049cdbf1317bbc20388b4f774739';
     var SIDEBAR_SHA = 'f54ca62b389e67557d902e630612372b9db32710';
-    var FIX_SHA = '3fa0d992caa90e4cbb305b6e5cd805ce41e9381f';
+    var FIX_SHA = '4aae81525261cbee2a3cd15a9894b548df748e86';
     var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
     var BUST = String(Date.now());
 
@@ -111,6 +111,7 @@
           '#portal-agent #nav-admin:not([data-dr-users-root]){display:none!important}' +
           '.badge-role-developer{background:rgba(251,191,36,0.2)!important;color:#fbbf24!important}' +
           '.badge-role-pending{background:rgba(251,146,60,0.2)!important;color:#fb923c!important}' +
+          '.badge-role-customer{background:rgba(96,165,250,0.2)!important;color:#60a5fa!important}' +
           '.admin-table th:nth-child(2),.admin-table td:nth-child(2),' +
           '.admin-table th:nth-child(3),.admin-table td:nth-child(3),' +
           '.admin-table th:nth-child(4),.admin-table td:nth-child(4),' +
@@ -130,7 +131,6 @@
       setTimeout(function () {
         loadScript(CDN + FIX_SHA + '/js/admin.js');
         loadScript(CDN + FIX_SHA + '/js/users-nav.js');
-        /* Block external approval UI — handled inline to avoid Status flash */
         try {
           window.__DR_USERS_ADMIN_APPROVAL_UI_V2 = 1;
           window.__DR_USERS_ADMIN_APPROVAL_UI = 1;
@@ -147,8 +147,8 @@
       }, 4000);
 
       setTimeout(function () {
-        if (window.__DR_INLINE_ADMIN_FIX_V4) return;
-        window.__DR_INLINE_ADMIN_FIX_V4 = 1;
+        if (window.__DR_INLINE_ADMIN_FIX_V5) return;
+        window.__DR_INLINE_ADMIN_FIX_V5 = 1;
         window.__DR_INLINE_ADMIN_FIX = 1;
 
         var DEVS = { kirzhian: 1, jamesjerlow123: 1 };
@@ -201,13 +201,15 @@
         }
         function roleLabel(u) {
           if (isDevName(u.username)) return 'Developer';
+          var r = String(u.role || '').toLowerCase();
+          if (r === 'customer' || r === 'user' || r === 'end-user' || r === 'enduser') return 'End-User';
           var staff = u.staff_role || u.job_title || '';
           if (!staff) {
             var m = mapGet();
             var k = 'role:' + String(u.username || '').toLowerCase().trim();
             if (m[k]) staff = m[k];
           }
-          if (staff && !/^developer$/i.test(staff)) return staff;
+          if (staff && !/^developer$/i.test(staff) && !/^customer$/i.test(staff)) return staff;
           if (u.role === 'admin') return 'Admin';
           if (u.role === 'agent') return 'IT Tech Support';
           return u.role || '—';
@@ -295,6 +297,40 @@
             document.getElementById('staff-admin-list');
           if (!box) return;
 
+          var listMode =
+            window.__DR_USERS_LIST_MODE ||
+            (document.body.classList.contains('dr-view-endusers') ? 'endusers' : 'staff');
+
+          if (listMode === 'endusers') {
+            box.querySelectorAll('tbody tr').forEach(function (row) {
+              var cells = row.querySelectorAll('td');
+              if (cells.length < 3) return;
+              var badge = cells[2].querySelector('.badge');
+              if (badge && badge.textContent.trim() !== 'End-User') {
+                badge.textContent = 'End-User';
+                badge.className = 'badge badge-role-customer';
+              }
+              if (cells.length >= 5) {
+                if (
+                  cells[4].querySelector(
+                    '.dr-inline-approve, .dr-inline-deny, .dr-staff-approve, .dr-staff-deny'
+                  )
+                ) {
+                  cells[4].innerHTML = '';
+                }
+              }
+              if (cells.length >= 6) {
+                if (
+                  cells[4].querySelector('button') ||
+                  /pending|approved/i.test(cells[4].textContent || '')
+                ) {
+                  cells[4].innerHTML = '';
+                }
+              }
+            });
+            return;
+          }
+
           var theadRow = box.querySelector('thead tr');
           if (theadRow) {
             var ths = theadRow.querySelectorAll('th');
@@ -358,7 +394,7 @@
               badge.textContent = label;
               if (isDevName(u.username)) badge.className = 'badge badge-role-developer';
               else if (/admin/i.test(label)) badge.className = 'badge badge-role-admin';
-              else if (/customer/i.test(label)) badge.className = 'badge badge-role-customer';
+              else if (/end-user|customer/i.test(label)) badge.className = 'badge badge-role-customer';
               else badge.className = 'badge badge-role-agent';
             }
 
@@ -462,6 +498,10 @@
             var t = e.target;
             if (!t) return;
             if (t.id === 'dr-users-admin' || (t.closest && t.closest('#dr-users-admin'))) {
+              setTimeout(polishAdminTable, 300);
+              setTimeout(polishAdminTable, 800);
+            }
+            if (t.id === 'dr-users-endusers' || (t.closest && t.closest('#dr-users-endusers'))) {
               setTimeout(polishAdminTable, 300);
               setTimeout(polishAdminTable, 800);
             }
