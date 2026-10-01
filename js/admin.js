@@ -22,10 +22,15 @@
   async function fetchAllProfiles() {
     var client = sb();
     if (!client) return [];
-    var r = await client.from('profiles').select('id,full_name,role,username,email,created_at').order('created_at', { ascending: false });
+    /* Prefer staff_role so Admin UI can show chosen label (Admin / Owner / IT Tech Support) */
+    var r = await client.from('profiles').select('id,full_name,role,username,email,created_at,staff_role').order('created_at', { ascending: false });
     if (r.error) {
-      var r2 = await client.from('profiles').select('id,full_name,role,username,created_at').order('created_at', { ascending: false });
-      return r2.error ? [] : (r2.data || []);
+      var r2 = await client.from('profiles').select('id,full_name,role,username,email,created_at').order('created_at', { ascending: false });
+      if (r2.error) {
+        var r3 = await client.from('profiles').select('id,full_name,role,username,created_at').order('created_at', { ascending: false });
+        return r3.error ? [] : (r3.data || []);
+      }
+      return r2.data || [];
     }
     return r.data || [];
   }
@@ -134,7 +139,7 @@
     var filtered = users.filter(function (u) {
       if (roleFilter && u.role !== roleFilter) return false;
       if (!q) return true;
-      return ((u.full_name || '') + ' ' + (u.username || '') + ' ' + (u.email || '') + ' ' + (u.role || '')).toLowerCase().indexOf(q) !== -1;
+      return ((u.full_name || '') + ' ' + (u.username || '') + ' ' + (u.email || '') + ' ' + (u.role || '') + ' ' + (u.staff_role || '')).toLowerCase().indexOf(q) !== -1;
     });
     var counts = { customer: 0, agent: 0, admin: 0 };
     users.forEach(function (u) { if (counts[u.role] !== undefined) counts[u.role]++; });
@@ -160,7 +165,7 @@
           (mine ? '' : '<button type="button" class="btn btn-danger btn-sm admin-btn-del" data-id="' + u.id +
             '" data-name="' + esc(u.full_name || u.username || 'user') + '">Delete</button>') +
           '</div>';
-        return '<tr' + (mine ? ' class="mine"' : '') + '><td>' + esc(u.full_name || 'User') + (mine ? ' <span class="you-tag">you</span>' : '') +
+        return '<tr' + (mine ? ' class="mine"' : '') + ' data-id="' + esc(u.id) + '"><td>' + esc(u.full_name || 'User') + (mine ? ' <span class="you-tag">you</span>' : '') +
           '</td><td>' + esc(u.username || '—') + '</td><td><span class="badge badge-role-' + esc(u.role) + '">' + esc(u.role) +
           '</span></td><td>' + fmt(u.created_at) + '</td><td>' + actions + '</td></tr>';
       }).join('') +

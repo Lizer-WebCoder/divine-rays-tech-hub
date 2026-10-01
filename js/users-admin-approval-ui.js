@@ -3,6 +3,7 @@
  * - Exact Developer usernames only (kirzhian, jamesjerlow123)
  * - New staff default Pending
  * - Actions: Pending badge + Approve / Denied (Developer only)
+ * - Role column shows chosen staff_role (Admin / Owner / IT Tech Support)
  * - Denied deletes profile row
  * Credit: Boyz at the Back
  */
@@ -83,6 +84,7 @@
     if (em && m['e:' + em] === 'approved') return 'approved';
     if (un && m['pending:' + un] === 'pending') return 'pending';
     if (em && m['pending:' + em] === 'pending') return 'pending';
+    /* New staff (agent/admin) default to pending until a Developer approves */
     if (u && (u.role === 'admin' || u.role === 'agent')) return 'pending';
     return 'pending';
   }
@@ -177,6 +179,40 @@
       '</div>';
   }
 
+  function findUserForRow(row, cells, cache) {
+    var u = null;
+    var uid = row.getAttribute('data-id') || '';
+    if (uid) {
+      for (var i = 0; i < cache.length; i++) {
+        if (cache[i] && cache[i].id === uid) {
+          u = cache[i];
+          break;
+        }
+      }
+    }
+    if (!u) {
+      var uname = cells[1] ? (cells[1].textContent || '').trim() : '';
+      for (var j = 0; j < cache.length; j++) {
+        if (cache[j] && String(cache[j].username || '') === uname) {
+          u = cache[j];
+          break;
+        }
+      }
+    }
+    if (!u) {
+      var uname2 = cells[1] ? (cells[1].textContent || '').trim() : '';
+      u = {
+        id: uid || '',
+        username: uname2,
+        full_name: cells[0] ? (cells[0].textContent || '').replace(/\byou\b|\bsuper\b/gi, '').trim() : '',
+        role: 'agent'
+      };
+      var anyBtn = row.querySelector('[data-id]');
+      if (anyBtn) u.id = anyBtn.getAttribute('data-id') || u.id;
+    }
+    return u;
+  }
+
   function polishTable() {
     var box =
       document.getElementById('staff-admin-list') ||
@@ -188,41 +224,28 @@
     rows.forEach(function (row) {
       var cells = row.querySelectorAll('td');
       if (cells.length < 5) return;
-      var uname = (cells[1].textContent || '').trim();
-      var u = null;
-      for (var i = 0; i < cache.length; i++) {
-        if (cache[i] && String(cache[i].username || '') === uname) {
-          u = cache[i];
-          break;
+      var u = findUserForRow(row, cells, cache);
+
+      /* Role column: never show Developer unless exact username is a Developer */
+      var roleBadge = cells[2].querySelector('.badge');
+      if (roleBadge) {
+        var label = roleLabel(u);
+        roleBadge.textContent = label;
+        if (isDev(u)) {
+          roleBadge.className = 'badge badge-role-developer';
+        } else if (/pending/i.test(getStatus(u))) {
+          roleBadge.className = 'badge badge-role-pending';
+        } else if (/admin/i.test(label)) {
+          roleBadge.className = 'badge badge-role-admin';
+        } else {
+          roleBadge.className = 'badge badge-role-agent';
         }
-      }
-      if (!u) {
-        /* synthesize from row for pending display */
-        u = {
-          id: row.getAttribute('data-id') || '',
-          username: uname,
-          full_name: (cells[0].textContent || '').replace(/\byou\b|\bsuper\b/gi, '').trim(),
-          role: 'agent'
-        };
-        /* try data-id from buttons */
-        var anyBtn = row.querySelector('[data-id]');
-        if (anyBtn) u.id = anyBtn.getAttribute('data-id') || u.id;
       }
 
-      /* Fix wrong Developer badge from username substring matches */
-      if (!isDev(u)) {
-        var roleBadge = cells[2].querySelector('.badge');
-        if (roleBadge && /developer/i.test(roleBadge.textContent || '')) {
-          roleBadge.textContent = roleLabel(u);
-          roleBadge.className = 'badge badge-role-pending';
-        } else if (roleBadge) {
-          roleBadge.textContent = roleLabel(u);
-        }
-        /* remove super tag */
-        cells[0].querySelectorAll('.you-tag').forEach(function (t) {
-          if (/super/i.test(t.textContent || '')) t.remove();
-        });
-      }
+      /* Clean accidental "super" tags in name */
+      cells[0].querySelectorAll('.you-tag').forEach(function (t) {
+        if (/super/i.test(t.textContent || '')) t.remove();
+      });
 
       rebuildActionsCell(cells[4], u, viewerDev);
     });
@@ -273,7 +296,6 @@
         } else if (window.DR && window.DR.toast) {
           window.DR.toast('Account denied and removed', 'success');
         }
-        /* remove row immediately */
         var tr = btn.closest('tr');
         if (tr) tr.remove();
         polishTable();
@@ -281,7 +303,6 @@
     });
   }
 
-  /* Also fix isDeveloperUser on window if users-nav exposed internals — patch DOM periodically */
   function tick() {
     polishTable();
   }

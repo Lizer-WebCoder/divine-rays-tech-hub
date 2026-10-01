@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.5.14" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.5.15" />
   <style>
     html,body{margin:0;background:#0c0c14;color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
     #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae}
@@ -22,6 +22,9 @@
     var TEAM_BOARD_SHA = '6f7d941cf16542de5868a7ed0abaacae83f4d133';
     var TEAM_SEP_SHA = '85337adc33ac049cdbf1317bbc20388b4f774739';
     var SIDEBAR_SHA = 'f54ca62b389e67557d902e630612372b9db32710';
+    /* Pin latest admin + approval UI so staff_role + Approve/Denied buttons work */
+    var ADMIN_SHA = 'main';
+    var APPROVAL_UI_SHA = 'main';
     var BUST = String(Date.now());
     var urls = [
       'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + SHELL_SHA + '/index.html',
@@ -73,10 +76,15 @@
         loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + SIDEBAR_SHA + '/js/sidebar-design.js');
         loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + TEAM_BOARD_SHA + '/js/team-board.js');
         loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + TEAM_SEP_SHA + '/js/team-sep.js');
+        /* Override shell admin.js (staff_role select) + load approval UI (Approve/Denied buttons) */
+        loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + ADMIN_SHA + '/js/admin.js');
+        loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + APPROVAL_UI_SHA + '/js/users-admin-approval-ui.js');
+        loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + APPROVAL_UI_SHA + '/js/users-admin-approval-ui.js');
       }, 1600);
       setTimeout(function () {
         if (window.DRSidebarDesign && window.DRSidebarDesign.refresh) try { window.DRSidebarDesign.refresh(); } catch (e) {}
         if (window.DR_TEAM && window.DR_TEAM.refresh) try { window.DR_TEAM.refresh(); } catch (e) {}
+        if (typeof window.renderAdminUsers === 'function') try { window.renderAdminUsers(); } catch (e2) {}
       }, 3000);
     } catch (err) {
       console.error(err);
