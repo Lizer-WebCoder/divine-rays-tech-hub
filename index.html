@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.5.4" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.5.1" />
   <style>
     html,body{margin:0;background:#0c0c14;color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
     #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae}
@@ -56,7 +56,7 @@
       'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + PIN + '/index.html',
       'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PIN + '/index.html'
     ];
-    var ver = '8.5.4';
+    var ver = '8.5.1';
     var BUST = String(Date.now());
     try {
       if (navigator.serviceWorker) {
@@ -146,7 +146,7 @@
       wireTabs();
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LOGIN_SHA + '/js/login-theme.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@53075dc4be0b55535441de4c7adbb9a51cbf5e26/js/agent-reg-success.js?v=' + ver);
-      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@49fc598fecdb5d8b528f19bc165cbc6f7589bbbd/js/agent-username-auth.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@6bda2f9462db707c0d35d191f4ab42695a5fed01/js/agent-username-auth.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@233f36150987e8576aab9114d1ca329bf09fa6a0/js/login-nav-fix.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@8afd47c0aa694ef7483f413d2ad7c15ea2be7b30/js/login-shell-sep.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@e02059987af1d6a696163540eebcc88326f3400e/js/dr-dialog.js?v=' + ver);
@@ -227,8 +227,8 @@
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@53aba5366d53c7fc6c8208ecb594eeeb10d46e2f/js/admin.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@f30eb5cef7dd3961b279401e92e6cb5188c9f5fb/js/tech-log.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@2f6e074663bcc3db76c6663aa06b03f5bc11d3b6/js/tech-log-ui.js?v=' + ver);
-      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@07711f2178580e857cf6d4ea8dfc99aff6f15afe/js/canned-replies.js?v=' + ver);
-      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@910b2ffba037e5926610ca013f778e0b7937bf21/js/ticket-claim-lock.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@f789df90ba3e09855b75d5ef79cc68ff2a0a1812/js/canned-replies.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@f1b23d4317e48a7d9801e4fe834d4c25dfb78c83/js/ticket-claim-lock.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@2d61796e6dd45fc70f9e9f21e4eeb5e6980c2c23/js/msg-popup.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@2a3c434aeef8cbb03bcb25cefc1a886a4b2f5feb/js/users-nav.js?v=' + ver);
       if (window.DRLoginTheme && window.DRLoginTheme.refresh) try { window.DRLoginTheme.refresh(); } catch (e) {}
