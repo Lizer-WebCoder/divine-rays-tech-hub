@@ -1,5 +1,5 @@
 /**
- * Divine Rays — continuous gears + ECG (10s draw, soft neon glow)
+ * Divine Rays — continuous gears + ECG (resolution-based draw, soft neon glow)
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
@@ -199,6 +199,24 @@
     return box;
   }
 
+  /* Constant visual speed (px/s). Duration scales with screen width so the line always reaches the right edge. */
+  var ECG_SPEED_PX_PER_SEC = 110;
+  var ECG_VIEWBOX_W = 720;
+  var lastEcgWidth = 0;
+
+  function ecgDurationSec(box, pathLen) {
+    var w = 0;
+    try { w = (box && box.clientWidth) || window.innerWidth || 1200; } catch (e) { w = 1200; }
+    if (w < 320) w = 320;
+    var scale = w / ECG_VIEWBOX_W;
+    var screenLen = (pathLen > 0 ? pathLen : ECG_VIEWBOX_W) * scale;
+    var travel = Math.max(w, screenLen * 0.85);
+    var sec = travel / ECG_SPEED_PX_PER_SEC;
+    if (sec < 4) sec = 4;
+    if (sec > 40) sec = 40;
+    return sec;
+  }
+
   function runEcgCycle() {
     if (ecgTimer) {
       clearTimeout(ecgTimer);
@@ -222,6 +240,8 @@
     try {
       len = paths[paths.length - 1].getTotalLength() || 1600;
     } catch (e) {}
+    var dur = ecgDurationSec(box, len);
+    lastEcgWidth = box.clientWidth || 0;
     for (var i = 0; i < paths.length; i++) {
       var p = paths[i];
       p.style.setProperty('--dr-len', len);
@@ -230,18 +250,19 @@
       p.style.animation = 'none';
     }
     void box.getBoundingClientRect();
+    var durCss = dur.toFixed(2) + 's';
     for (var j = 0; j < paths.length; j++) {
       var pj = paths[j];
       if (pj.classList.contains('dr-ecg-core')) {
-        pj.style.animation = 'drEcgDraw 10s linear forwards, drEcgCorePulse 2.4s ease-in-out infinite';
+        pj.style.animation = 'drEcgDraw ' + durCss + ' linear forwards, drEcgCorePulse 2.4s ease-in-out infinite';
       } else {
-        pj.style.animation = 'drEcgDraw 10s linear forwards, drEcgGlowPulse 2.4s ease-in-out infinite';
+        pj.style.animation = 'drEcgDraw ' + durCss + ' linear forwards, drEcgGlowPulse 2.4s ease-in-out infinite';
       }
     }
     ecgTimer = setTimeout(function () {
       ecgIndex = (ecgIndex + 1) % ECG_PATTERNS.length;
       if (loginVisible()) runEcgCycle();
-    }, 10000);
+    }, Math.round(dur * 1000) + 40);
   }
 
   function ensureGears(force) {
@@ -328,6 +349,21 @@
   setInterval(function () {
     tick(false);
   }, 2000);
+
+  if (!window.__drEcgResizeWired) {
+    window.__drEcgResizeWired = 1;
+    var resizeT = null;
+    window.addEventListener('resize', function () {
+      if (resizeT) clearTimeout(resizeT);
+      resizeT = setTimeout(function () {
+        var box = document.getElementById(BOX_ID);
+        var w = box ? box.clientWidth : 0;
+        if (Math.abs(w - lastEcgWidth) > 40 && loginVisible()) {
+          runEcgCycle();
+        }
+      }, 200);
+    });
+  }
 
   window.DRHeartbeatDraw = {
     refresh: function () { tick(false); },
