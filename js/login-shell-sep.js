@@ -1,13 +1,13 @@
 /**
- * Divine Rays — exclusive login vs portal (safe, no freeze)
- * NO MutationObserver (that caused Page Unresponsive).
- * Light, re-entry-safe checks only.
+ * Divine Rays — exclusive login vs portal v3
+ * Treats Tech Log mode (body.dr-tl-on) as logged-in.
+ * NO MutationObserver.
  * Credit: Boyz at the Back LRK · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_LOGIN_EXCLUSIVE_V2) return;
-  window.__DR_LOGIN_EXCLUSIVE_V2 = 1;
+  if (window.__DR_LOGIN_EXCLUSIVE_V3) return;
+  window.__DR_LOGIN_EXCLUSIVE_V3 = 1;
 
   var busy = false;
   var lastMode = '';
@@ -38,6 +38,10 @@
 
   function portalOn() {
     try {
+      if (document.body.classList.contains('dr-tl-on')) return true;
+      try {
+        if (sessionStorage.getItem('dr_app_mode') === 'techlog') return true;
+      } catch (e) {}
       var pa = document.getElementById('portal-agent');
       var pc = document.getElementById('portal-customer');
       return (
