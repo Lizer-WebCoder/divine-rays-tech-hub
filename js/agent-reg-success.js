@@ -9,7 +9,7 @@
   window.__DR_AGENT_REG_SUCCESS = 1;
 
   var AGENT_MSG =
-    'Your account has been created, request has been sent to the Admin to approve your account first.';
+    'Your account has been successfully created. A request has been sent to the Administrator for approval. Please wait for your account to be approved.';
 
   function isAgentRegisterForm(form) {
     if (!form) return false;
