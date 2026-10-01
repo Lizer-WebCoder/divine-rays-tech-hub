@@ -2,7 +2,7 @@
  * Divine Rays — Agent/Admin auth
  * Register: Username + Email + Password + Role
  * Login: Username OR Email + Password
- * End-User unchanged (email + password only)
+ * Email taken: same red glow + message as End-User register
  * Credit: Boyz at the Back
  */
 (function () {
@@ -15,6 +15,146 @@
       if (window.DR && window.DR.sb) return window.DR.sb();
     } catch (e) {}
     return null;
+  }
+
+  function getRegisteredEmails() {
+    try {
+      return JSON.parse(localStorage.getItem('dr_registered_emails') || '[]') || [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function rememberRegisteredEmail(email) {
+    var e = String(email || '').trim().toLowerCase();
+    if (!e) return;
+    var list = getRegisteredEmails();
+    if (list.indexOf(e) === -1) {
+      list.push(e);
+      try {
+        localStorage.setItem('dr_registered_emails', JSON.stringify(list));
+      } catch (err) {}
+    }
+  }
+
+  function isEmailTakenLocal(email) {
+    var e = String(email || '').trim().toLowerCase();
+    if (!e) return false;
+    return getRegisteredEmails().indexOf(e) !== -1;
+  }
+
+  async function isEmailTakenRemote(email) {
+    var e = String(email || '').trim().toLowerCase();
+    if (!e || e.indexOf('@') === -1) return false;
+    var client = sb();
+    if (!client) return false;
+    try {
+      var r = await client.from('profiles').select('id').ilike('email', e).limit(1);
+      if (r && !r.error && r.data && r.data.length) return true;
+    } catch (err) {}
+    try {
+      var r2 = await client.from('profiles').select('id').eq('email', e).limit(1);
+      if (r2 && !r2.error && r2.data && r2.data.length) return true;
+    } catch (err2) {}
+    return false;
+  }
+
+  function setAgentEmailTakenUI(input, taken) {
+    if (!input) return;
+    var form = input.closest ? input.closest('form') : null;
+    var scope = form || (input.closest && input.closest('.login-card-register')) || document;
+    var hint = scope.querySelector
+      ? scope.querySelector('[data-dr-email-hint="' + input.id + '"]')
+      : null;
+    var submitBtn = form ? form.querySelector('button[type="submit"]') : null;
+    var card = input.closest ? input.closest('.login-card-register, .login-card') : null;
+
+    if (taken) {
+      input.classList.add('dr-email-taken');
+      input.setAttribute('data-email-taken', '1');
+      if (hint) {
+        hint.textContent = 'Email already exists. Please use another email.';
+        hint.className = 'dr-email-hint is-bad';
+      }
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.style.opacity = '0.55';
+        submitBtn.style.cursor = 'not-allowed';
+      }
+      if (card) {
+        card.classList.remove('login-pass-ok', 'login-fail-healing');
+        card.classList.add('login-fail-glow');
+      }
+    } else {
+      input.classList.remove('dr-email-taken');
+      input.removeAttribute('data-email-taken');
+      if (hint) {
+        hint.textContent = '';
+        hint.className = 'dr-email-hint';
+      }
+      if (submitBtn && form && !form.querySelector('.dr-pass-mismatch')) {
+        /* only unlock if form is otherwise complete */
+        var complete = true;
+        form.querySelectorAll('input[required], select[required]').forEach(function (el) {
+          if (!(el.value || '').trim()) complete = false;
+        });
+        if (complete) {
+          submitBtn.disabled = false;
+          submitBtn.style.opacity = '';
+          submitBtn.style.cursor = '';
+        }
+      }
+      if (card && !card.querySelector('.dr-pass-mismatch') && !card.querySelector('.dr-email-taken')) {
+        card.classList.remove('login-fail-glow');
+      }
+    }
+  }
+
+  function wireAgentEmailCheck(form) {
+    var input = form && form.querySelector('#reg-agent-email');
+    if (!input || input.__drAgentEmailWired) return;
+    input.__drAgentEmailWired = 1;
+
+    /* ensure hint element */
+    var group = input.closest ? input.closest('.form-group') : input.parentNode;
+    if (group && !group.querySelector('[data-dr-email-hint="reg-agent-email"]')) {
+      var p = document.createElement('p');
+      p.className = 'dr-email-hint';
+      p.setAttribute('data-dr-email-hint', 'reg-agent-email');
+      p.setAttribute('aria-live', 'polite');
+      group.appendChild(p);
+    }
+
+    var timer = null;
+    function run() {
+      var val = (input.value || '').trim();
+      if (!val || val.indexOf('@') === -1 || val.indexOf('.') === -1) {
+        setAgentEmailTakenUI(input, false);
+        return;
+      }
+      if (isEmailTakenLocal(val)) {
+        setAgentEmailTakenUI(input, true);
+        return;
+      }
+      isEmailTakenRemote(val).then(function (taken) {
+        if ((input.value || '').trim().toLowerCase() !== val.toLowerCase()) return;
+        if (taken) {
+          rememberRegisteredEmail(val);
+          setAgentEmailTakenUI(input, true);
+        } else {
+          setAgentEmailTakenUI(input, false);
+        }
+      }).catch(function () {
+        setAgentEmailTakenUI(input, isEmailTakenLocal(val));
+      });
+    }
+    function schedule() {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(run, 350);
+    }
+    input.addEventListener('input', schedule);
+    input.addEventListener('blur', run);
+    input.addEventListener('change', run);
   }
 
   function patchAgentLoginLabels() {
@@ -40,7 +180,16 @@
       existing.setAttribute('required', 'required');
       existing.setAttribute('type', 'email');
       var g = existing.closest ? existing.closest('.form-group') : existing.parentNode;
-      if (g) g.style.display = '';
+      if (g) {
+        g.style.display = '';
+        if (!g.querySelector('[data-dr-email-hint="reg-agent-email"]')) {
+          var p = document.createElement('p');
+          p.className = 'dr-email-hint';
+          p.setAttribute('data-dr-email-hint', 'reg-agent-email');
+          p.setAttribute('aria-live', 'polite');
+          g.appendChild(p);
+        }
+      }
       return existing;
     }
     var un = form.querySelector('#reg-agent-username');
@@ -49,7 +198,8 @@
     group.className = 'form-group';
     group.innerHTML =
       '<label for="reg-agent-email">Email</label>' +
-      '<input type="email" id="reg-agent-email" required autocomplete="email" placeholder="you@company.com" />';
+      '<input type="email" id="reg-agent-email" required autocomplete="email" placeholder="you@company.com" />' +
+      '<p class="dr-email-hint" data-dr-email-hint="reg-agent-email" aria-live="polite"></p>';
     if (unGroup && unGroup.parentNode) {
       if (unGroup.nextSibling) unGroup.parentNode.insertBefore(group, unGroup.nextSibling);
       else unGroup.parentNode.appendChild(group);
@@ -63,6 +213,7 @@
     var form = document.getElementById('dr-register-form-agent');
     if (!form) return;
     ensureAgentEmailField(form);
+    wireAgentEmailCheck(form);
     var un = form.querySelector('#reg-agent-username');
     if (un) {
       un.setAttribute('type', 'text');
@@ -92,6 +243,21 @@
     if (email.indexOf('@') === -1) return { error: 'Please enter a valid email address' };
     if (password.length < 6) return { error: 'Password must be at least 6 characters' };
 
+    if (emEl && (emEl.classList.contains('dr-email-taken') || emEl.getAttribute('data-email-taken') === '1')) {
+      setAgentEmailTakenUI(emEl, true);
+      return { error: 'Email already exists. Please use another email.' };
+    }
+    if (isEmailTakenLocal(email)) {
+      setAgentEmailTakenUI(emEl, true);
+      return { error: 'Email already exists. Please use another email.' };
+    }
+    var takenRemote = await isEmailTakenRemote(email);
+    if (takenRemote) {
+      rememberRegisteredEmail(email);
+      setAgentEmailTakenUI(emEl, true);
+      return { error: 'Email already exists. Please use another email.' };
+    }
+
     var role = 'agent';
     var rLow = roleRaw.toLowerCase();
     if (rLow === 'admin' || rLow === 'owner') role = 'admin';
@@ -118,7 +284,15 @@
         }
       }
     });
-    if (r.error) return { error: r.error.message || 'Registration failed' };
+    if (r.error) {
+      var msg = r.error.message || 'Registration failed';
+      if (/already|registered|exists/i.test(msg)) {
+        rememberRegisteredEmail(email);
+        setAgentEmailTakenUI(emEl, true);
+        return { error: 'Email already exists. Please use another email.' };
+      }
+      return { error: msg };
+    }
     var user = r.data && r.data.user;
     if (user) {
       try {
@@ -140,6 +314,8 @@
         } catch (e2) {}
       }
     }
+
+    rememberRegisteredEmail(email);
 
     try {
       var key = 'dr_staff_approval';
@@ -201,6 +377,12 @@
         e.stopPropagation();
         e.stopImmediatePropagation();
 
+        var emEl = form.querySelector('#reg-agent-email');
+        if (emEl && (emEl.classList.contains('dr-email-taken') || emEl.getAttribute('data-email-taken') === '1')) {
+          setAgentEmailTakenUI(emEl, true);
+          return;
+        }
+
         var pass = form.querySelector('#reg-agent-password');
         var confirm = form.querySelector('#reg-agent-password-confirm');
         if (pass && confirm && pass.value !== confirm.value) {
@@ -220,6 +402,10 @@
             btn.style.opacity = '';
           }
           if (res.error) {
+            if (/email already exists/i.test(res.error)) {
+              /* UI already set */
+              return;
+            }
             if (window.DR && window.DR.toast) window.DR.toast(res.error, 'error');
             else alert(res.error);
             return;
