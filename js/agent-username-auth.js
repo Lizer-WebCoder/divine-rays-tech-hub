@@ -11,10 +11,54 @@
   window.__DR_AGENT_USERNAME_AUTH = 1;
 
   function sb() {
+    /* 1) App export */
     try {
-      if (window.DR && window.DR.sb) return window.DR.sb();
-    } catch (e) {}
+      if (window.DR && typeof window.DR.sb === 'function') {
+        var c = window.DR.sb();
+        if (c) return c;
+      }
+    } catch (e0) {}
+    /* 2) Cached client */
+    try {
+      if (window.__drSb) return window.__drSb;
+      if (window.__drAgentSb) return window.__drAgentSb;
+    } catch (e1) {}
+    /* 3) Build from DR_CONFIG + supabase-js */
+    try {
+      var cfg = window.DR_CONFIG || {};
+      var url = cfg.SUPABASE_URL;
+      var key = cfg.SUPABASE_ANON_KEY;
+      if (url && key && window.supabase && typeof window.supabase.createClient === 'function') {
+        window.__drAgentSb = window.supabase.createClient(url, key, {
+          auth: { persistSession: true, autoRefreshToken: true }
+        });
+        return window.__drAgentSb;
+      }
+    } catch (e2) {}
     return null;
+  }
+
+  function ensureSupabaseReady() {
+    return new Promise(function (resolve) {
+      if (sb()) {
+        resolve(sb());
+        return;
+      }
+      var tries = 0;
+      var t = setInterval(function () {
+        tries++;
+        var c = sb();
+        if (c) {
+          clearInterval(t);
+          resolve(c);
+          return;
+        }
+        if (tries >= 40) {
+          clearInterval(t);
+          resolve(null);
+        }
+      }, 100);
+    });
   }
 
   function getRegisteredEmails() {
@@ -93,7 +137,6 @@
         hint.className = 'dr-email-hint';
       }
       if (submitBtn && form && !form.querySelector('.dr-pass-mismatch')) {
-        /* only unlock if form is otherwise complete */
         var complete = true;
         form.querySelectorAll('input[required], select[required]').forEach(function (el) {
           if (!(el.value || '').trim()) complete = false;
@@ -115,7 +158,6 @@
     if (!input || input.__drAgentEmailWired) return;
     input.__drAgentEmailWired = 1;
 
-    /* ensure hint element */
     var group = input.closest ? input.closest('.form-group') : input.parentNode;
     if (group && !group.querySelector('[data-dr-email-hint="reg-agent-email"]')) {
       var p = document.createElement('p');
@@ -150,7 +192,7 @@
     }
     function schedule() {
       if (timer) clearTimeout(timer);
-      timer = setTimeout(run, 350);
+      timer = setTimeout(run, 120);
     }
     input.addEventListener('input', schedule);
     input.addEventListener('blur', run);
@@ -251,6 +293,15 @@
       setAgentEmailTakenUI(emEl, true);
       return { error: 'Email already exists. Please use another email.' };
     }
+
+    var client = await ensureSupabaseReady();
+    if (!client) {
+      return {
+        error:
+          'Connection not ready. Please wait a moment and try again (refresh the page if this keeps happening).'
+      };
+    }
+
     var takenRemote = await isEmailTakenRemote(email);
     if (takenRemote) {
       rememberRegisteredEmail(email);
@@ -262,9 +313,6 @@
     var rLow = roleRaw.toLowerCase();
     if (rLow === 'admin' || rLow === 'owner') role = 'admin';
     else if (rLow.indexOf('tech') !== -1 || rLow === 'it tech support') role = 'agent';
-
-    var client = sb();
-    if (!client) return { error: 'Supabase not configured' };
 
     try {
       var byUser = await client.from('profiles').select('id').eq('username', username).maybeSingle();
@@ -387,6 +435,7 @@
         var confirm = form.querySelector('#reg-agent-password-confirm');
         if (pass && confirm && pass.value !== confirm.value) {
           if (window.DR && window.DR.toast) window.DR.toast('Passwords do not match', 'error');
+          else alert('Passwords do not match');
           return;
         }
 
@@ -402,11 +451,9 @@
             btn.style.opacity = '';
           }
           if (res.error) {
-            if (/email already exists/i.test(res.error)) {
-              /* UI already set */
-              return;
-            }
+            if (/email already exists/i.test(res.error)) return;
             if (window.DR && window.DR.toast) window.DR.toast(res.error, 'error');
+            else if (window.DRDialog && window.DRDialog.alert) window.DRDialog.alert(res.error);
             else alert(res.error);
             return;
           }
