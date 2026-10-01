@@ -1,11 +1,12 @@
 /**
- * Hide login flash on refresh when session already exists
+ * Hide login flash on refresh when session already exists (v2)
+ * Do NOT unhide app-shell — app.js trySession only boots when shell is still hidden.
  * Credit: Boyz at the Back LRK · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_SESSION_BOOT_GUARD) return;
-  window.__DR_SESSION_BOOT_GUARD = 1;
+  if (window.__DR_SESSION_BOOT_GUARD_V2) return;
+  window.__DR_SESSION_BOOT_GUARD_V2 = 1;
 
   function hasStoredSession() {
     try {
@@ -24,19 +25,15 @@
     return false;
   }
 
-  function hideLoginShowBoot() {
+  function hideLoginOnly() {
     var login = document.getElementById('login-screen');
-    var shell = document.getElementById('app-shell');
     if (login) {
       login.hidden = true;
       login.classList.add('is-hidden');
       login.style.setProperty('display', 'none', 'important');
       login.style.setProperty('visibility', 'hidden', 'important');
     }
-    if (shell) {
-      shell.hidden = false;
-      shell.classList.remove('is-hidden');
-    }
+    /* Do NOT touch #app-shell.hidden — trySession requires it hidden to boot */
     var overlay = document.getElementById('dr-session-boot-overlay');
     if (!overlay) {
       overlay = document.createElement('div');
@@ -67,24 +64,28 @@
       clearOverlay();
       return;
     }
-    if (hasStoredSession()) hideLoginShowBoot();
+    if (hasStoredSession()) hideLoginOnly();
   }
 
   if (hasStoredSession()) {
-    hideLoginShowBoot();
+    hideLoginOnly();
   }
 
   var n = 0;
   var timer = setInterval(function () {
     tick();
     n++;
-    if (n > 40 || portalActive()) {
+    if (portalActive()) {
       clearInterval(timer);
-      if (portalActive()) clearOverlay();
-      else {
-        clearOverlay();
+      clearOverlay();
+      return;
+    }
+    if (n > 80) {
+      clearInterval(timer);
+      clearOverlay();
+      if (!hasStoredSession()) {
         var login = document.getElementById('login-screen');
-        if (login && !portalActive()) {
+        if (login) {
           login.hidden = false;
           login.classList.remove('is-hidden');
           login.style.removeProperty('display');
@@ -94,5 +95,5 @@
     }
   }, 250);
 
-  window.DRSessionBootGuard = { clear: clearOverlay, hideLogin: hideLoginShowBoot };
+  window.DRSessionBootGuard = { clear: clearOverlay, hideLogin: hideLoginOnly };
 })();
