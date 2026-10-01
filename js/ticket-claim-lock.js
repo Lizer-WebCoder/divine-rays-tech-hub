@@ -1,20 +1,23 @@
 /**
- * Divine Rays — ticket claim lock
- * Only the assigned agent/admin can edit a claimed ticket.
- * Claim of an already-assigned ticket shows a warning with assignee name.
- * Additive only — does not rewrite core ticket handlers.
+ * Divine Rays — ticket claim lock v2
+ * Only the assigned agent can edit a claimed ticket.
+ * Debounced observers — no main-thread freeze.
  * Credit: Boyz at the Back LRK · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_CLAIM_LOCK_V1) return;
-  window.__DR_CLAIM_LOCK_V1 = 1;
+  if (window.__DR_CLAIM_LOCK_V2) return;
+  window.__DR_CLAIM_LOCK_V2 = 1;
 
   var nameCache = {};
   var lastTicketId = null;
   var lastAssigneeId = null;
   var lastAssigneeName = '';
   var locked = false;
+  var applying = false;
+  var refreshTimer = null;
+  var bindTimer = null;
+  var lastRefreshAt = 0;
 
   function sb() {
     try {
@@ -97,13 +100,16 @@
     }
     var t = getTicketFromCache();
     var client = sb();
-    var ticketId = t && t.id;
-    if (!ticketId) {
+    if (!t || !t.id) {
       var pt = document.getElementById('page-title');
       var num = pt && pt.textContent ? pt.textContent.trim() : '';
       if (client && num && num.indexOf('DR-') === 0) {
         try {
-          var r0 = await client.from('tickets').select('id,assigned_to,assignee_id,ticket_number,status,title').eq('ticket_number', num).maybeSingle();
+          var r0 = await client
+            .from('tickets')
+            .select('id,assigned_to,assignee_id,ticket_number,status,title')
+            .eq('ticket_number', num)
+            .maybeSingle();
           if (r0.data) t = r0.data;
         } catch (e) {}
       }
@@ -119,7 +125,11 @@
     var assigneeId = t.assigned_to || t.assignee_id || null;
     if (!assigneeId && client) {
       try {
-        var r = await client.from('tickets').select('id,assigned_to,assignee_id,ticket_number,status').eq('id', t.id).maybeSingle();
+        var r = await client
+          .from('tickets')
+          .select('id,assigned_to,assignee_id,ticket_number,status')
+          .eq('id', t.id)
+          .maybeSingle();
         if (r.data) {
           t = Object.assign({}, t, r.data);
           assigneeId = r.data.assigned_to || r.data.assignee_id || null;
@@ -148,6 +158,7 @@
   function setDisabled(el, on) {
     if (!el) return;
     if (on) {
+      if (el.getAttribute('data-dr-claim-lock') === '1') return;
       el.setAttribute('disabled', 'disabled');
       el.style.setProperty('opacity', '0.55', 'important');
       el.style.setProperty('pointer-events', 'none', 'important');
@@ -161,7 +172,9 @@
   }
 
   function ensureBanner(state) {
-    var actions = document.querySelector('#portal-agent .agent-actions') || document.querySelector('#view-detail .agent-actions');
+    var actions =
+      document.querySelector('#portal-agent .agent-actions') ||
+      document.querySelector('#view-detail .agent-actions');
     if (!actions) return;
     var existing = document.getElementById('dr-claim-lock-banner');
     if (!state || !state.locked) {
@@ -190,37 +203,47 @@
   }
 
   function applyLockUi(state) {
-    var on = !!(state && state.locked);
-    setDisabled(document.getElementById('assign-agent'), on);
-    setDisabled(document.getElementById('quick-status'), on);
-    setDisabled(document.getElementById('btn-claim'), on);
-    setDisabled(document.getElementById('btn-save-meta'), on);
-    setDisabled(document.getElementById('btn-delete-ticket'), on);
-    setDisabled(document.getElementById('btn-remote-session'), on);
-    setDisabled(document.querySelector('#comment-form button[type="submit"]'), on);
-    setDisabled(document.getElementById('comment-text'), on);
-    setDisabled(document.getElementById('comment-internal'), on);
-    setDisabled(document.querySelector('#view-detail input[type="file"]'), on);
-    document.querySelectorAll('#view-detail .btn').forEach(function (b) {
-      var id = b.id || '';
-      var txt = (b.textContent || '').toLowerCase();
-      if (id === 'btn-back' || txt.indexOf('back') !== -1) return;
-      if (on && (txt.indexOf('upload') !== -1 || txt.indexOf('save') !== -1 || txt.indexOf('claim') !== -1 || txt.indexOf('delete') !== -1 || txt.indexOf('remote') !== -1)) {
-        setDisabled(b, true);
-      }
-    });
-    ensureBanner(state);
+    if (applying) return;
+    applying = true;
+    try {
+      var on = !!(state && state.locked);
+      setDisabled(document.getElementById('assign-agent'), on);
+      setDisabled(document.getElementById('quick-status'), on);
+      setDisabled(document.getElementById('btn-claim'), on);
+      setDisabled(document.getElementById('btn-save-meta'), on);
+      setDisabled(document.getElementById('btn-delete-ticket'), on);
+      setDisabled(document.getElementById('btn-remote-session'), on);
+      setDisabled(document.querySelector('#comment-form button[type="submit"]'), on);
+      setDisabled(document.getElementById('comment-text'), on);
+      setDisabled(document.getElementById('comment-internal'), on);
+      setDisabled(document.querySelector('#view-detail input[type="file"]'), on);
+      ensureBanner(state);
+    } finally {
+      applying = false;
+    }
   }
 
   async function refresh() {
-    if (!document.getElementById('view-detail') || !document.getElementById('view-detail').classList.contains('active')) {
+    var detail = document.getElementById('view-detail');
+    if (!detail || !detail.classList.contains('active')) {
       locked = false;
       var b = document.getElementById('dr-claim-lock-banner');
       if (b) b.remove();
       return;
     }
+    var now = Date.now();
+    if (now - lastRefreshAt < 400) return;
+    lastRefreshAt = now;
     var state = await loadTicketState();
     applyLockUi(state);
+  }
+
+  function scheduleRefresh() {
+    if (refreshTimer) return;
+    refreshTimer = setTimeout(function () {
+      refreshTimer = null;
+      refresh();
+    }, 350);
   }
 
   function bindClaimGuard() {
@@ -234,7 +257,6 @@
         if (!state) return;
         var p = me();
         if (!p) return;
-
         if (state.assigneeId && state.assigneeId !== p.id) {
           e.preventDefault();
           e.stopImmediatePropagation();
@@ -247,7 +269,6 @@
             { title: 'Already claimed', icon: '⚠' }
           );
           applyLockUi(state);
-          return;
         }
       },
       true
@@ -318,35 +339,81 @@
               '.\n\nOnly they can change the status.',
             { title: 'Ticket locked', icon: '⚠' }
           );
-          refresh();
+          scheduleRefresh();
         }
       },
       true
     );
   }
 
-  function bindAll() {
+  function bindGuardsOnly() {
     if (!isStaff()) return;
     bindClaimGuard();
     bindSaveGuard();
     bindAssignGuard();
     bindStatusGuard();
-    refresh();
+  }
+
+  function scheduleBind() {
+    if (bindTimer) return;
+    bindTimer = setTimeout(function () {
+      bindTimer = null;
+      if (applying) return;
+      bindGuardsOnly();
+      scheduleRefresh();
+    }, 300);
   }
 
   function boot() {
-    var shell = document.getElementById('app-shell') || document.body;
-    var mo = new MutationObserver(function () {
-      bindAll();
+    var target =
+      document.getElementById('view-detail') ||
+      document.getElementById('portal-agent') ||
+      document.getElementById('app-shell') ||
+      document.body;
+
+    var mo = new MutationObserver(function (mutations) {
+      if (applying) return;
+      var relevant = false;
+      for (var i = 0; i < mutations.length; i++) {
+        var m = mutations[i];
+        if (m.type === 'childList') {
+          var skip = false;
+          if (m.addedNodes) {
+            for (var j = 0; j < m.addedNodes.length; j++) {
+              var n = m.addedNodes[j];
+              if (n && n.id === 'dr-claim-lock-banner') skip = true;
+            }
+          }
+          if (!skip) relevant = true;
+        } else if (m.type === 'attributes' && m.attributeName === 'class') {
+          relevant = true;
+        }
+      }
+      if (relevant) scheduleBind();
     });
-    mo.observe(shell, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
-    setInterval(bindAll, 2000);
-    setTimeout(bindAll, 900);
-    setTimeout(bindAll, 2200);
+
+    mo.observe(target, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['class']
+    });
+
+    setInterval(function () {
+      if (applying) return;
+      var detail = document.getElementById('view-detail');
+      if (detail && detail.classList.contains('active')) {
+        bindGuardsOnly();
+        scheduleRefresh();
+      }
+    }, 4000);
+
+    setTimeout(scheduleBind, 1000);
+    setTimeout(scheduleBind, 2500);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
-  else setTimeout(boot, 400);
+  else setTimeout(boot, 500);
 
   window.DRClaimLock = { refresh: refresh, loadTicketState: loadTicketState };
 })();
