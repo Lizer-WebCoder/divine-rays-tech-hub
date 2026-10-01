@@ -27,7 +27,7 @@
     <div>Loading Divine Rays Tech Hub…</div>
     <div class="hint" id="boot-hint"></div>
   </div>
-  <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@ef8e65b3aa0d5dc3f47582009780a0d385b38616/js/staff-ticket-notifs.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@27bb5dc251b415fd29133bae32d85ba8513bed89/js/staff-ticket-notifs.js"></script>
   <script>
   (async function () {
     var SHELL_SHA = '6d66f6b647cf6f4c7340536dab472409bd1de5d6';
@@ -35,7 +35,6 @@
     var TEAM_SEP_SHA = '85337adc33ac049cdbf1317bbc20388b4f774739';
     var SIDEBAR_SHA = 'f54ca62b389e67557d902e630612372b9db32710';
     var FIX_SHA = '4aae81525261cbee2a3cd15a9894b548df748e86';
-    /* Fixed pending-approval toast: single bubble, 5s, stack-capped */
     var APPROVAL_GATE_SHA = '84d171441507aa1e87b3d34b1d98311aa7519072';
     var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
     var BUST = String(Date.now());
@@ -88,7 +87,6 @@
           "';"
       );
 
-      /* Swap pinned agent-approval-gate.js to the fixed version */
       html = html.replace(
         /divine-rays-tech-hub@[a-f0-9]+\/js\/agent-approval-gate\.js/g,
         'divine-rays-tech-hub@' + APPROVAL_GATE_SHA + '/js/agent-approval-gate.js'
@@ -108,7 +106,7 @@
       setTimeout(function () {
         loadScript(CDN + FIX_SHA + '/js/admin.js');
         loadScript(CDN + FIX_SHA + '/js/users-nav.js');
-        loadScript(CDN + 'ef8e65b3aa0d5dc3f47582009780a0d385b38616' + '/js/staff-ticket-notifs.js');
+        loadScript(CDN + '27bb5dc251b415fd29133bae32d85ba8513bed89' + '/js/staff-ticket-notifs.js');
       }, 2800);
 
       setTimeout(function () {
