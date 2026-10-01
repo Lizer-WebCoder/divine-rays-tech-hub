@@ -1,13 +1,15 @@
 /**
  * Divine Rays — Agent approval gate + staff role label
  * - Newly registered Agent/Admin cannot enter portal until approved
- * - Roles column shows chosen label (Owner / Admin / IT Tech Support)
+ * - Staff (agent/admin) default to PENDING unless explicitly approved
+ * - Developers (kirzhian, jamesjerlow123) always allowed
  * - Pending login: one toast only, 5s, stack-capped (max 3 visible)
  * Credit: Boyz at the Back
  */
 (function () {
   'use strict';
-  if (window.__DR_AGENT_APPROVAL_GATE) return;
+  if (window.__DR_AGENT_APPROVAL_GATE_V3) return;
+  window.__DR_AGENT_APPROVAL_GATE_V3 = 1;
   window.__DR_AGENT_APPROVAL_GATE = 1;
 
   var APPROVAL_KEY = 'dr_staff_approval';
@@ -15,6 +17,7 @@
     'Your account is pending Administrator approval. Please wait until a Developer/Admin approves your account.';
   var TOAST_MS = 5000;
   var MAX_TOASTS = 3;
+  var DEVS = { kirzhian: 1, jamesjerlow123: 1 };
   var _pendingToastEl = null;
   var _pendingToastTimer = null;
   var _gateBusy = false;
@@ -58,6 +61,10 @@
     return false;
   }
 
+  function isDeveloperUsername(username) {
+    return !!DEVS[String(username || '').toLowerCase().trim()];
+  }
+
   function sb() {
     try {
       if (window.DR && typeof window.DR.sb === 'function') {
@@ -80,7 +87,6 @@
     return c;
   }
 
-  /** Keep at most MAX_TOASTS visible; remove oldest immediately when over limit. */
   function trimToastStack() {
     var c = document.getElementById('toast-container');
     if (!c) return;
@@ -93,16 +99,10 @@
     }
   }
 
-  /**
-   * Single pending-approval toast: never stacks duplicates.
-   * Reuses one element; resets 5s timer on each Sign in click.
-   * If other toasts already exist and total would exceed MAX, drop oldest.
-   */
   function showPendingToast(msg) {
     var text = msg || PENDING_MSG;
     var c = ensureToastContainer();
 
-    /* Remove any other pending-approval toasts so only one remains */
     Array.prototype.slice.call(c.querySelectorAll('.toast')).forEach(function (el) {
       if (el !== _pendingToastEl && (el.textContent || '').indexOf('pending Administrator approval') !== -1) {
         try {
@@ -118,14 +118,11 @@
       _pendingToastEl.style.cssText =
         'pointer-events:auto;padding:0.85rem 1.1rem;border-radius:14px;' +
         'background:rgba(28,22,42,0.96);border:1px solid rgba(167,139,250,0.35);' +
-        'color:#eeeef6;font-size:0.9rem;line-height:1.45;box-shadow:0 12px 32px rgba(0,0,0,0.45);' +
-        'animation:drToastIn .2s ease;';
+        'color:#eeeef6;font-size:0.9rem;line-height:1.45;box-shadow:0 12px 32px rgba(0,0,0,0.45);';
       c.appendChild(_pendingToastEl);
     }
 
     _pendingToastEl.textContent = text;
-
-    /* Cap stack: if already 4+ (including this), fade oldest non-pending first, then oldest */
     trimToastStack();
 
     if (_pendingToastTimer) clearTimeout(_pendingToastTimer);
@@ -150,11 +147,13 @@
         box.style.display = '';
       }
     } catch (e) {}
-
-    /* Dedicated single toast — do NOT call DR.toast (that stacks) */
     showPendingToast(msg);
   }
 
+  /**
+   * Returns true if login must be blocked.
+   * Staff (agent/admin) are blocked unless explicitly approved or Developer.
+   */
   async function checkPendingAndBlock(user, profile, loginHint) {
     if (!user) return false;
     var meta = user.user_metadata || {};
@@ -163,15 +162,23 @@
     var username =
       (meta.username || (profile && profile.username) || loginHint || '').toString().toLowerCase().trim();
 
-    /* Explicitly approved */
+    if (isDeveloperUsername(username)) return false;
+
+    /* Explicitly approved in metadata or local map */
     if (meta.approval_status === 'approved' || meta.approved === true) return false;
     if (isApproved(uid, username, email)) return false;
+
+    var role = String(meta.role || (profile && profile.role) || '').toLowerCase();
+    var isStaff = role === 'agent' || role === 'admin';
 
     /* Explicitly pending */
     if (meta.approval_status === 'pending' || meta.approved === false) return true;
     if (isMarkedPending(uid, username, email)) return true;
 
-    /* No marker = legacy account → allow */
+    /* Staff with no approval marker → treat as pending (new accounts) */
+    if (isStaff) return true;
+
+    /* Customers / others → allow */
     return false;
   }
 
@@ -197,95 +204,125 @@
         ls.style.display = '';
         ls.hidden = false;
       }
-      var shell = document.getElementById('app-shell');
-      if (shell) {
-        /* keep shell if present but do not navigate away */
-      }
     } catch (e2) {}
   }
 
-  /* Intercept agent login after auth succeeds.
-     Debounced so rapid "Sign in as Agent" clicks show one toast, not a stack. */
+  function blockPendingSession(user, profile, loginHint) {
+    return checkPendingAndBlock(user, profile, loginHint).then(function (pending) {
+      if (!pending) return false;
+      _gateBusy = true;
+      return forceSignOut().then(function () {
+        stayOnLoginScreen();
+        showAgentError(PENDING_MSG);
+        setTimeout(function () {
+          _gateBusy = false;
+        }, 600);
+        return true;
+      });
+    });
+  }
+
+  /* After auth succeeds, poll briefly for session then block if pending.
+     Do NOT stopPropagation — login handlers must still run. */
   function wireLoginGate() {
     var form = document.getElementById('login-agent');
-    if (!form || form.__drApprovalGate) return;
-    form.__drApprovalGate = 1;
+    if (!form || form.__drApprovalGateV3) return;
+    form.__drApprovalGateV3 = 1;
 
     form.addEventListener(
       'submit',
-      function (ev) {
-        try {
-          if (ev && typeof ev.preventDefault === 'function') ev.preventDefault();
-          if (ev && typeof ev.stopPropagation === 'function') ev.stopPropagation();
-        } catch (ePrev) {}
-
-        /* If we just showed pending within 800ms, still refresh the single toast on click */
+      function () {
         if (Date.now() - _lastPendingShow < 800 && _pendingToastEl && _pendingToastEl.parentNode) {
           showPendingToast(PENDING_MSG);
           return;
         }
-
         if (_gateBusy) {
-          /* Still allow toast refresh on click while busy */
           showPendingToast(PENDING_MSG);
           return;
         }
 
         var tries = 0;
-        var t = setInterval(async function () {
+        var t = setInterval(function () {
           tries++;
-          try {
-            var client = sb();
-            if (!client) {
-              if (tries > 30) clearInterval(t);
-              return;
-            }
-            var sess = await client.auth.getSession();
-            var session = sess && sess.data && sess.data.session;
-            if (!session || !session.user) {
-              if (tries > 30) clearInterval(t);
-              return;
-            }
-            var user = session.user;
-            var loginHint = '';
+          (async function () {
             try {
-              var inp =
-                document.getElementById('agent-username') ||
-                document.getElementById('agent-user');
-              loginHint = inp ? (inp.value || '').trim() : '';
-            } catch (e0) {}
+              var client = sb();
+              if (!client) {
+                if (tries > 40) clearInterval(t);
+                return;
+              }
+              var sess = await client.auth.getSession();
+              var session = sess && sess.data && sess.data.session;
+              if (!session || !session.user) {
+                if (tries > 40) clearInterval(t);
+                return;
+              }
+              var user = session.user;
+              var loginHint = '';
+              try {
+                var inp =
+                  document.getElementById('agent-username') ||
+                  document.getElementById('agent-user');
+                loginHint = inp ? (inp.value || '').trim() : '';
+              } catch (e0) {}
 
-            var profile = null;
-            try {
-              var pr = await client.from('profiles').select('*').eq('id', user.id).maybeSingle();
-              profile = pr && pr.data;
-            } catch (e1) {}
+              var profile = null;
+              try {
+                var pr = await client.from('profiles').select('*').eq('id', user.id).maybeSingle();
+                profile = pr && pr.data;
+              } catch (e1) {}
 
-            var pending = await checkPendingAndBlock(user, profile, loginHint);
-            if (pending) {
               clearInterval(t);
-              _gateBusy = true;
-              await forceSignOut();
-              stayOnLoginScreen();
-              showAgentError(PENDING_MSG);
-              setTimeout(function () {
-                _gateBusy = false;
-              }, 600);
-              return;
+              await blockPendingSession(user, profile, loginHint);
+            } catch (err) {
+              if (tries > 40) clearInterval(t);
             }
-            clearInterval(t);
-          } catch (err) {
-            if (tries > 30) clearInterval(t);
-          }
-        }, 150);
+          })();
+        }, 120);
       },
       true
     );
   }
 
-  /* Admin table: show staff_role / job_title when present */
+  /* Also guard session restore / loadFullAppThen path */
+  function wireSessionGuard() {
+    if (window.__drApprovalSessionGuard) return;
+    window.__drApprovalSessionGuard = 1;
+    var n = 0;
+    var iv = setInterval(function () {
+      n++;
+      (async function () {
+        try {
+          if (window.__drBooting) return;
+          var client = sb();
+          if (!client) return;
+          var sess = await client.auth.getSession();
+          var session = sess && sess.data && sess.data.session;
+          if (!session || !session.user) return;
+          var user = session.user;
+          var meta = user.user_metadata || {};
+          var role = String(meta.role || '').toLowerCase();
+          var profile = null;
+          try {
+            var pr = await client.from('profiles').select('*').eq('id', user.id).maybeSingle();
+            profile = pr && pr.data;
+            if (profile && profile.role) role = String(profile.role).toLowerCase();
+          } catch (e1) {}
+          if (role !== 'agent' && role !== 'admin') return;
+          var blocked = await checkPendingAndBlock(user, profile, meta.username || '');
+          if (blocked) {
+            await forceSignOut();
+            stayOnLoginScreen();
+            showAgentError(PENDING_MSG);
+          }
+        } catch (e) {}
+      })();
+      if (n > 25) clearInterval(iv);
+    }, 400);
+  }
+
   function polishRoleCells() {
-    var box = document.getElementById('admin-users-list');
+    var box = document.getElementById('admin-users-list') || document.getElementById('staff-admin-list');
     if (!box) return;
     box.querySelectorAll('tbody tr, .admin-user-row, tr').forEach(function (row) {
       if (row.__drRolePolished) return;
@@ -298,16 +335,6 @@
         for (var i = 0; i < cache.length; i++) {
           if (cache[i] && cache[i].id === uid) {
             user = cache[i];
-            break;
-          }
-        }
-      }
-      if (!user && cache.length) {
-        var cells = row.querySelectorAll('td');
-        var uname = cells[1] ? (cells[1].textContent || '').trim() : '';
-        for (var j = 0; j < cache.length; j++) {
-          if (cache[j] && (cache[j].username === uname || cache[j].full_name === uname)) {
-            user = cache[j];
             break;
           }
         }
@@ -355,11 +382,13 @@
       map['role:' + String(username).toLowerCase().trim()] = label;
       setApprovalMap(map);
     },
-    showPendingToast: showPendingToast
+    showPendingToast: showPendingToast,
+    checkPendingAndBlock: checkPendingAndBlock
   };
 
   function tick() {
     wireLoginGate();
+    wireSessionGuard();
     patchAdminRender();
     polishRoleCells();
   }
