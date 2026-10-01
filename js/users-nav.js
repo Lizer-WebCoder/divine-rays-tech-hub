@@ -6,7 +6,8 @@
  */
 (function () {
   'use strict';
-  if (window.__DR_USERS_NAV_V2) return;
+  if (window.__DR_USERS_NAV_V3) return;
+  window.__DR_USERS_NAV_V3 = 1;
   window.__DR_USERS_NAV_V2 = 1;
   window.__DR_USERS_NAV = 1;
 
@@ -26,13 +27,13 @@
       '#dr-users-sub{display:none;padding:0.25rem 0 0.5rem 1.25rem}' +
       '#dr-users-sub.open{display:block}' +
       '#dr-users-sub .nav-btn{width:100%;text-align:left;margin:0.15rem 0}' +
-      /* Never show a top-level standalone Admin tab (Users submenu covers it) */
       '#portal-agent .nav-btn.nav-admin:not([data-dr-users-root]),' +
       '#portal-agent .nav-btn[data-view="admin"]:not([data-dr-users-root]){display:none!important}' +
       'body.dr-view-endusers #filter-status,body.dr-view-endusers #filter-priority,body.dr-view-endusers #filter-sort,body.dr-view-endusers #btn-clear-filters{display:none!important}' +
       'body.dr-view-admin-staff #filter-status,body.dr-view-admin-staff #filter-priority,body.dr-view-admin-staff #filter-sort,body.dr-view-admin-staff #btn-clear-filters{display:none!important}' +
       '.badge-role-developer{background:rgba(251,191,36,0.2)!important;color:#fbbf24!important}' +
-      '.badge-role-pending{background:rgba(251,146,60,0.2)!important;color:#fb923c!important}';
+      '.badge-role-pending{background:rgba(251,146,60,0.2)!important;color:#fb923c!important}' +
+      '.badge-role-customer{background:rgba(96,165,250,0.2)!important;color:#60a5fa!important}';
     document.head.appendChild(el);
   }
 
@@ -106,6 +107,7 @@
   function openEndUsers() {
     document.body.classList.add('dr-view-endusers');
     document.body.classList.remove('dr-view-admin-staff');
+    window.__DR_USERS_LIST_MODE = 'endusers';
     var sub = document.getElementById('dr-users-sub');
     if (sub) sub.classList.add('open');
     try {
@@ -125,13 +127,14 @@
     var pt = document.getElementById('page-title');
     if (pt) pt.textContent = 'Users · End-Users';
     if (typeof window.renderAdminUsers === 'function') {
-      try { window.renderAdminUsers(); } catch (e2) {}
+      try { window.renderAdminUsers('endusers'); } catch (e2) {}
     }
   }
 
   function openAdminStaff() {
     document.body.classList.add('dr-view-admin-staff');
     document.body.classList.remove('dr-view-endusers');
+    window.__DR_USERS_LIST_MODE = 'staff';
     var sub = document.getElementById('dr-users-sub');
     if (sub) sub.classList.add('open');
     try {
@@ -151,7 +154,7 @@
     var pt = document.getElementById('page-title');
     if (pt) pt.textContent = 'Users · Admin';
     if (typeof window.renderAdminUsers === 'function') {
-      try { window.renderAdminUsers(); } catch (e2) {}
+      try { window.renderAdminUsers('staff'); } catch (e2) {}
     }
   }
 
