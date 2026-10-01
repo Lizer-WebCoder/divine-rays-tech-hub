@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.5.18" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.5.19" />
   <style>
     html,body{margin:0;background:#0c0c14;color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
     #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae;flex-direction:column;gap:0.75rem;padding:1.5rem;text-align:center}
@@ -33,8 +33,7 @@
     var TEAM_BOARD_SHA = '6f7d941cf16542de5868a7ed0abaacae83f4d133';
     var TEAM_SEP_SHA = '85337adc33ac049cdbf1317bbc20388b4f774739';
     var SIDEBAR_SHA = 'f54ca62b389e67557d902e630612372b9db32710';
-    /* Pinned commit — jsDelivr serves correct JS MIME; never use @main */
-    var FIX_SHA = 'ca1855f7da3fe40f8b34a33cbeaae1ded2ebcea5';
+    var FIX_SHA = '3fa0d992caa90e4cbb305b6e5cd805ce41e9381f';
     var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
     var BUST = String(Date.now());
 
@@ -103,7 +102,6 @@
       document.close();
       clearTimeout(bootTimer);
 
-      /* Inline critical CSS: hide standalone Admin tab immediately */
       (function injectHideAdminCss() {
         var el = document.createElement('style');
         el.id = 'dr-hide-admin-nav';
@@ -112,7 +110,14 @@
           '#portal-agent .nav-btn[data-view="admin"]:not([data-dr-users-root]),' +
           '#portal-agent #nav-admin:not([data-dr-users-root]){display:none!important}' +
           '.badge-role-developer{background:rgba(251,191,36,0.2)!important;color:#fbbf24!important}' +
-          '.badge-role-pending{background:rgba(251,146,60,0.2)!important;color:#fb923c!important}';
+          '.badge-role-pending{background:rgba(251,146,60,0.2)!important;color:#fb923c!important}' +
+          '.admin-table th:nth-child(2),.admin-table td:nth-child(2),' +
+          '.admin-table th:nth-child(3),.admin-table td:nth-child(3),' +
+          '.admin-table th:nth-child(4),.admin-table td:nth-child(4),' +
+          '.admin-table th:nth-child(5),.admin-table td:nth-child(5),' +
+          '.admin-table th:nth-child(6),.admin-table td:nth-child(6){text-align:center!important;vertical-align:middle!important}' +
+          '.admin-table .admin-status-cell,.admin-table .admin-actions-cell{text-align:center!important}' +
+          '.admin-table .admin-actions{display:inline-flex!important;align-items:center;justify-content:center;gap:0.35rem;flex-wrap:wrap}';
         (document.head || document.documentElement).appendChild(el);
       })();
 
@@ -122,7 +127,6 @@
         loadScript(CDN + TEAM_SEP_SHA + '/js/team-sep.js');
       }, 1800);
 
-      /* Load fixed modules from pinned commit (correct MIME via jsDelivr) */
       setTimeout(function () {
         loadScript(CDN + FIX_SHA + '/js/admin.js');
         loadScript(CDN + FIX_SHA + '/js/users-nav.js');
@@ -138,14 +142,9 @@
         } catch (e2) {}
       }, 4000);
 
-      /*
-       * Inline safety net — runs even if external scripts fail.
-       * 1) Force Admin nav → Users only
-       * 2) Role column = staff_role (not Developer unless exact username)
-       * 3) Actions = Approve / Denied for non-developer staff when viewer is Developer
-       */
       setTimeout(function () {
-        if (window.__DR_INLINE_ADMIN_FIX) return;
+        if (window.__DR_INLINE_ADMIN_FIX_V3) return;
+        window.__DR_INLINE_ADMIN_FIX_V3 = 1;
         window.__DR_INLINE_ADMIN_FIX = 1;
 
         var DEVS = { kirzhian: 1, jamesjerlow123: 1 };
@@ -251,12 +250,10 @@
             }
           }
           if (!root) return;
-
           root.setAttribute('data-dr-users-root', '1');
           root.classList.remove('is-hidden');
           root.style.display = '';
           if (root.getAttribute('data-view') === 'admin') root.setAttribute('data-view', 'users');
-
           var ico = root.querySelector('.dr-nav-ico, svg');
           var lab = root.querySelector('[data-dr-users-label]');
           if (!lab) {
@@ -267,7 +264,6 @@
             root.appendChild(lab);
           }
           lab.textContent = 'Users';
-
           document.querySelectorAll('#portal-agent .nav-btn').forEach(function (btn) {
             if (btn === root || btn.getAttribute('data-dr-users-root')) return;
             if (btn.closest('#dr-users-sub')) return;
@@ -278,7 +274,6 @@
               btn.classList.add('is-hidden');
             }
           });
-
           if (!document.getElementById('dr-users-sub') && root.parentNode) {
             var sub = document.createElement('div');
             sub.id = 'dr-users-sub';
@@ -295,15 +290,41 @@
             document.getElementById('admin-users-list') ||
             document.getElementById('staff-admin-list');
           if (!box) return;
+
+          var theadRow = box.querySelector('thead tr');
+          if (theadRow) {
+            var ths = theadRow.querySelectorAll('th');
+            if (ths.length === 5) {
+              ths[4].textContent = 'Status';
+              var thA = document.createElement('th');
+              thA.textContent = 'Actions';
+              theadRow.appendChild(thA);
+            } else if (ths.length >= 6) {
+              ths[4].textContent = 'Status';
+              ths[5].textContent = 'Actions';
+            }
+          }
+
           var rows = box.querySelectorAll('tbody tr');
           if (!rows.length) return;
+
+          rows.forEach(function (row) {
+            var cells = row.querySelectorAll('td');
+            if (cells.length === 5) {
+              var statusTd = document.createElement('td');
+              statusTd.className = 'admin-status-cell';
+              row.insertBefore(statusTd, cells[4]);
+              cells[4].classList.add('admin-actions-cell');
+            }
+          });
+          rows = box.querySelectorAll('tbody tr');
 
           var cache = window.__adminUsersCache || [];
           var vDev = viewerIsDev();
 
           rows.forEach(function (row) {
             var cells = row.querySelectorAll('td');
-            if (cells.length < 5) return;
+            if (cells.length < 6) return;
 
             var uid = row.getAttribute('data-id') || '';
             var uname = (cells[1].textContent || '').trim();
@@ -323,18 +344,17 @@
                 staff_role: '',
                 email: ''
               };
-              var btn = row.querySelector('[data-id]');
-              if (btn) u.id = btn.getAttribute('data-id') || u.id;
+              var b0 = row.querySelector('[data-id]');
+              if (b0) u.id = b0.getAttribute('data-id') || u.id;
             }
 
-            /* Role column */
             var badge = cells[2].querySelector('.badge');
             var label = roleLabel(u);
             if (badge) {
               badge.textContent = label;
               if (isDevName(u.username)) badge.className = 'badge badge-role-developer';
-              else if (getStatus(u) === 'pending') badge.className = 'badge badge-role-pending';
               else if (/admin/i.test(label)) badge.className = 'badge badge-role-admin';
+              else if (/customer/i.test(label)) badge.className = 'badge badge-role-customer';
               else badge.className = 'badge badge-role-agent';
             }
 
@@ -342,50 +362,51 @@
               if (/super/i.test(t.textContent || '')) t.remove();
             });
 
-            /* Actions column */
-            var html;
+            var st = getStatus(u);
+            var statusHtml;
+            var actionHtml;
             if (isDevName(u.username)) {
-              html = '<span class="badge badge-role-developer">Developer</span>';
-            } else if (getStatus(u) === 'approved') {
-              html =
-                '<span class="badge badge-role-admin" style="margin-right:0.35rem">Approved</span>' +
-                (vDev
-                  ? '<button type="button" class="btn btn-ghost btn-sm dr-inline-deny" data-id="' +
-                    esc(u.id) +
-                    '" data-username="' +
-                    esc(u.username) +
-                    '" data-email="' +
-                    esc(u.email || '') +
-                    '" data-name="' +
-                    esc(u.full_name || u.username) +
-                    '">Denied</button>'
-                  : '');
+              statusHtml = '<span class="badge badge-role-developer">Developer</span>';
+              actionHtml = '';
+            } else if (st === 'approved') {
+              statusHtml = '<span class="badge badge-role-admin">Approved</span>';
+              actionHtml = vDev
+                ? '<button type="button" class="btn btn-ghost btn-sm dr-inline-deny" data-id="' +
+                  esc(u.id) +
+                  '" data-username="' +
+                  esc(u.username) +
+                  '" data-email="' +
+                  esc(u.email || '') +
+                  '" data-name="' +
+                  esc(u.full_name || u.username) +
+                  '">Denied</button>'
+                : '';
             } else {
-              html =
-                '<span class="badge badge-role-pending" style="margin-right:0.35rem">Pending</span>' +
-                (vDev
-                  ? '<button type="button" class="btn btn-sm dr-inline-approve" data-id="' +
-                    esc(u.id) +
-                    '" data-username="' +
-                    esc(u.username) +
-                    '" data-email="' +
-                    esc(u.email || '') +
-                    '" style="margin-right:0.25rem">Approve</button>' +
-                    '<button type="button" class="btn btn-danger btn-sm dr-inline-deny" data-id="' +
-                    esc(u.id) +
-                    '" data-username="' +
-                    esc(u.username) +
-                    '" data-email="' +
-                    esc(u.email || '') +
-                    '" data-name="' +
-                    esc(u.full_name || u.username) +
-                    '">Denied</button>'
-                  : '<span style="opacity:0.65;font-size:0.8rem">Developer only</span>');
+              statusHtml = '<span class="badge badge-role-pending">Pending</span>';
+              actionHtml = vDev
+                ? '<button type="button" class="btn btn-sm dr-inline-approve" data-id="' +
+                  esc(u.id) +
+                  '" data-username="' +
+                  esc(u.username) +
+                  '" data-email="' +
+                  esc(u.email || '') +
+                  '">Approve</button>' +
+                  '<button type="button" class="btn btn-danger btn-sm dr-inline-deny" data-id="' +
+                  esc(u.id) +
+                  '" data-username="' +
+                  esc(u.username) +
+                  '" data-email="' +
+                  esc(u.email || '') +
+                  '" data-name="' +
+                  esc(u.full_name || u.username) +
+                  '">Denied</button>'
+                : '<span style="opacity:0.65;font-size:0.8rem">Developer only</span>';
             }
-            cells[4].innerHTML =
-              '<div class="admin-actions" style="display:flex;align-items:center;gap:0.35rem;flex-wrap:wrap;justify-content:center">' +
-              html +
-              '</div>';
+
+            cells[4].classList.add('admin-status-cell');
+            cells[5].classList.add('admin-actions-cell');
+            cells[4].innerHTML = statusHtml;
+            cells[5].innerHTML = '<div class="admin-actions">' + actionHtml + '</div>';
           });
 
           box.querySelectorAll('.dr-inline-approve').forEach(function (btn) {
