@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.5.21" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.5.22" />
   <style>
     html,body{margin:0;background:#0c0c14;color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
     #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae;flex-direction:column;gap:0.75rem;padding:1.5rem;text-align:center}
@@ -35,6 +35,8 @@
     var TEAM_SEP_SHA = '85337adc33ac049cdbf1317bbc20388b4f774739';
     var SIDEBAR_SHA = 'f54ca62b389e67557d902e630612372b9db32710';
     var FIX_SHA = '4aae81525261cbee2a3cd15a9894b548df748e86';
+    /* Fixed pending-approval toast: single bubble, 5s, stack-capped */
+    var APPROVAL_GATE_SHA = '84d171441507aa1e87b3d34b1d98311aa7519072';
     var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
     var BUST = String(Date.now());
 
@@ -84,6 +86,12 @@
         "var EXTRA_FILES = ['email-notify.js','ticket-plus.js','ticket-plus-fix.js','status-lock.js','polish-fixes.js','saved-views.js','kb.js','team-board.js'];\n    var TEAM_BOARD_SHA = '" +
           TEAM_BOARD_SHA +
           "';"
+      );
+
+      /* Swap pinned agent-approval-gate.js to the fixed version */
+      html = html.replace(
+        /divine-rays-tech-hub@[a-f0-9]+\/js\/agent-approval-gate\.js/g,
+        'divine-rays-tech-hub@' + APPROVAL_GATE_SHA + '/js/agent-approval-gate.js'
       );
 
       document.open();
