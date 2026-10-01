@@ -1,1 +1,128 @@
-SEE_FILE
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>Divine Rays Tech Hub — Support</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.5.21" />
+  <style>
+    html,body{margin:0;background:#0c0c14;color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
+    #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae;flex-direction:column;gap:0.75rem;padding:1.5rem;text-align:center}
+    #boot .hint{font-size:0.8rem;color:#6b6b80;max-width:22rem}
+  </style>
+  <script>
+  (function () {
+    try {
+      var t = localStorage.getItem('dr_theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', t);
+    } catch (e) {}
+  })();
+  </script>
+</head>
+<body>
+  <div id="boot">
+    <div>Loading Divine Rays Tech Hub…</div>
+    <div class="hint" id="boot-hint"></div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@af9eb8c43c9333a2c7387748820207495ecfb38c/js/staff-ticket-notifs.js"></script>
+  <script>
+  (async function () {
+    var SHELL_SHA = '6d66f6b647cf6f4c7340536dab472409bd1de5d6';
+    var TEAM_BOARD_SHA = '6f7d941cf16542de5868a7ed0abaacae83f4d133';
+    var TEAM_SEP_SHA = '85337adc33ac049cdbf1317bbc20388b4f774739';
+    var SIDEBAR_SHA = 'f54ca62b389e67557d902e630612372b9db32710';
+    var FIX_SHA = '4aae81525261cbee2a3cd15a9894b548df748e86';
+    var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
+    var BUST = String(Date.now());
+
+    var bootHint = document.getElementById('boot-hint');
+    var bootTimer = setTimeout(function () {
+      if (bootHint) {
+        bootHint.textContent =
+          'Still loading… Hard refresh with Ctrl+Shift+R (Cmd+Shift+R on Mac).';
+      }
+    }, 12000);
+
+    function withBust(u) {
+      return u + (u.indexOf('?') === -1 ? '?' : '&') + 'b=' + BUST;
+    }
+
+    function loadScript(src) {
+      return new Promise(function (resolve) {
+        var s = document.createElement('script');
+        s.src = withBust(src);
+        s.async = false;
+        s.onload = function () { resolve(src); };
+        s.onerror = function () { resolve(src); };
+        (document.body || document.documentElement).appendChild(s);
+      });
+    }
+
+    var urls = [
+      'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + SHELL_SHA + '/index.html',
+      CDN + SHELL_SHA + '/index.html'
+    ];
+
+    try {
+      var html = null;
+      for (var i = 0; i < urls.length; i++) {
+        try {
+          var r = await fetch(withBust(urls[i]), { cache: 'no-store', credentials: 'omit' });
+          if (r.ok) {
+            html = await r.text();
+            break;
+          }
+        } catch (e) {}
+      }
+      if (!html) throw new Error('Could not load app shell');
+
+      html = html.replace(
+        /var EXTRA_FILES = \[[^\]]*\];/,
+        "var EXTRA_FILES = ['email-notify.js','ticket-plus.js','ticket-plus-fix.js','status-lock.js','polish-fixes.js','saved-views.js','kb.js','team-board.js'];\n    var TEAM_BOARD_SHA = '" +
+          TEAM_BOARD_SHA +
+          "';"
+      );
+
+      document.open();
+      document.write(html);
+      document.close();
+      clearTimeout(bootTimer);
+
+      setTimeout(function () {
+        loadScript(CDN + SIDEBAR_SHA + '/js/sidebar-design.js');
+        loadScript(CDN + TEAM_BOARD_SHA + '/js/team-board.js');
+        loadScript(CDN + TEAM_SEP_SHA + '/js/team-sep.js');
+      }, 1800);
+
+      setTimeout(function () {
+        loadScript(CDN + FIX_SHA + '/js/admin.js');
+        loadScript(CDN + FIX_SHA + '/js/users-nav.js');
+        loadScript(CDN + 'af9eb8c43c9333a2c7387748820207495ecfb38c' + '/js/staff-ticket-notifs.js');
+      }, 2800);
+
+      setTimeout(function () {
+        try {
+          if (window.DRUsersNav && window.DRUsersNav.refresh) window.DRUsersNav.refresh();
+        } catch (e) {}
+        try {
+          if (window.DRSidebarDesign && window.DRSidebarDesign.refresh) window.DRSidebarDesign.refresh();
+        } catch (e2) {}
+      }, 4000);
+
+    } catch (err) {
+      clearTimeout(bootTimer);
+      var boot = document.getElementById('boot');
+      if (boot) {
+        boot.innerHTML =
+          '<div>Load error: ' +
+          (err.message || err) +
+          '</div><div class="hint">Hard refresh (Ctrl+Shift+R) and try again.</div>';
+      }
+    }
+  })();
+  </script>
+</body>
+</html>
