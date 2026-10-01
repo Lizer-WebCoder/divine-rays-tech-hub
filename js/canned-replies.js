@@ -1,14 +1,15 @@
 /**
- * Canned replies — agent/admin only, agent ticket comment box
- * Multi-item editor (no more --- blob). Never mounts on End-User portal.
+ * Canned replies — agent/admin only (v4)
+ * Force-migrates corrupted --- blobs; multi-item editor.
  * Credit: Boyz at the Back LRK · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_CANNED_V3) return;
-  window.__DR_CANNED_V3 = 1;
+  if (window.__DR_CANNED_V4) return;
+  window.__DR_CANNED_V4 = 1;
 
-  var KEY = 'dr_canned_replies_v1';
+  var KEY = 'dr_canned_replies_v2';
+  var OLD_KEY = 'dr_canned_replies_v1';
   var DEFAULTS = [
     'Please try restarting the device and confirm if the issue persists.',
     'We will schedule a remote session. Please install AnyDesk and share your ID.',
@@ -17,17 +18,21 @@
     'Issue resolved on our side. Kindly confirm and we will close the ticket.'
   ];
 
+  function splitBlob(s) {
+    return String(s || '')
+      .split(/\s*---+\s*/)
+      .map(function (p) { return p.trim(); })
+      .filter(Boolean);
+  }
+
   function normalizeList(arr) {
-    if (!Array.isArray(arr)) return DEFAULTS.slice();
+    if (!Array.isArray(arr) || !arr.length) return DEFAULTS.slice();
     var out = [];
     arr.forEach(function (item) {
       var s = String(item || '').trim();
       if (!s) return;
       if (s.indexOf('---') !== -1) {
-        s.split(/\s*---\s*/).forEach(function (part) {
-          part = part.trim();
-          if (part) out.push(part);
-        });
+        splitBlob(s).forEach(function (p) { out.push(p); });
       } else {
         out.push(s);
       }
@@ -46,8 +51,17 @@
   function load() {
     try {
       var a = JSON.parse(localStorage.getItem(KEY) || 'null');
-      return normalizeList(a);
+      if (Array.isArray(a) && a.length) return normalizeList(a);
     } catch (e) {}
+    try {
+      var old = JSON.parse(localStorage.getItem(OLD_KEY) || 'null');
+      if (Array.isArray(old) && old.length) {
+        var fixed = normalizeList(old);
+        save(fixed);
+        try { localStorage.removeItem(OLD_KEY); } catch (e2) {}
+        return fixed;
+      }
+    } catch (e3) {}
     return DEFAULTS.slice();
   }
 
@@ -102,7 +116,6 @@
   function openEditor() {
     var existing = document.getElementById('dr-canned-editor');
     if (existing) existing.remove();
-
     var items = load().slice();
 
     var root = document.createElement('div');
@@ -110,8 +123,7 @@
     root.setAttribute('role', 'dialog');
     root.setAttribute('aria-modal', 'true');
     root.style.cssText =
-      'position:fixed;inset:0;z-index:99998;display:flex;align-items:center;justify-content:center;' +
-      'padding:1.25rem;box-sizing:border-box';
+      'position:fixed;inset:0;z-index:99998;display:flex;align-items:center;justify-content:center;padding:1.25rem;box-sizing:border-box';
 
     var backdrop = document.createElement('div');
     backdrop.style.cssText =
@@ -124,8 +136,7 @@
       'display:flex;flex-direction:column;border-radius:20px;overflow:hidden;' +
       'background:linear-gradient(165deg,rgba(36,30,58,.98),rgba(20,16,36,.99));' +
       'border:1px solid rgba(167,139,250,.36);' +
-      'box-shadow:0 28px 72px rgba(0,0,0,.6),0 0 0 1px rgba(109,94,245,.1);' +
-      'color:#eeeef6;font-family:Inter,system-ui,sans-serif';
+      'box-shadow:0 28px 72px rgba(0,0,0,.6);color:#eeeef6;font-family:Inter,system-ui,sans-serif';
     root.appendChild(card);
 
     var head = document.createElement('div');
@@ -133,7 +144,7 @@
     head.innerHTML =
       '<div style="width:44px;height:44px;border-radius:12px;margin:0 auto .7rem;display:flex;align-items:center;justify-content:center;' +
       'background:rgba(109,94,245,.2);border:1px solid rgba(167,139,250,.4);font-size:1.25rem">💬</div>' +
-      '<div style="font-size:1.05rem;font-weight:700;letter-spacing:-.01em">Quick replies</div>' +
+      '<div style="font-size:1.05rem;font-weight:700">Quick replies</div>' +
       '<div style="font-size:.78rem;color:#9494ae;margin-top:.3rem">One reply per row · max 12</div>';
     card.appendChild(head);
 
@@ -154,7 +165,6 @@
       items.forEach(function (text, idx) {
         var row = document.createElement('div');
         row.style.cssText = 'display:flex;gap:.45rem;align-items:flex-start';
-
         var num = document.createElement('span');
         num.textContent = String(idx + 1);
         num.style.cssText =
@@ -162,7 +172,6 @@
           'display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;' +
           'background:rgba(109,94,245,.2);color:#c4b5fd;border:1px solid rgba(139,124,247,.35)';
         row.appendChild(num);
-
         var ta = document.createElement('textarea');
         ta.value = text;
         ta.rows = 2;
@@ -170,37 +179,20 @@
           'flex:1;min-height:2.6rem;resize:vertical;border-radius:10px;padding:.5rem .65rem;' +
           'font-size:.82rem;line-height:1.4;font-family:inherit;color:#eeeef6;' +
           'background:rgba(0,0,0,.25);border:1px solid rgba(167,139,250,.3);outline:none';
-        ta.oninput = function () {
-          items[idx] = ta.value;
-        };
-        ta.onfocus = function () {
-          ta.style.borderColor = 'rgba(167,139,250,.65)';
-          ta.style.boxShadow = '0 0 0 3px rgba(109,94,245,.18)';
-        };
-        ta.onblur = function () {
-          ta.style.borderColor = 'rgba(167,139,250,.3)';
-          ta.style.boxShadow = 'none';
-        };
+        ta.oninput = function () { items[idx] = ta.value; };
         row.appendChild(ta);
-
         var del = document.createElement('button');
         del.type = 'button';
         del.title = 'Remove';
         del.textContent = '×';
         del.style.cssText =
           'flex-shrink:0;width:1.7rem;height:1.7rem;margin-top:.35rem;border-radius:8px;cursor:pointer;' +
-          'border:1px solid rgba(239,68,68,.35);background:rgba(239,68,68,.12);color:#fca5a5;' +
-          'font-size:1rem;line-height:1;font-weight:700';
-        del.onclick = function () {
-          items.splice(idx, 1);
-          renderRows();
-        };
+          'border:1px solid rgba(239,68,68,.35);background:rgba(239,68,68,.12);color:#fca5a5;font-size:1rem;font-weight:700';
+        del.onclick = function () { items.splice(idx, 1); renderRows(); };
         row.appendChild(del);
-
         listWrap.appendChild(row);
       });
     }
-
     renderRows();
 
     var foot = document.createElement('div');
@@ -225,52 +217,42 @@
 
     var actions = document.createElement('div');
     actions.style.cssText = 'display:flex;gap:.55rem;justify-content:center';
-
     var cancel = document.createElement('button');
     cancel.type = 'button';
     cancel.textContent = 'Cancel';
     cancel.style.cssText =
       'flex:1;max-width:140px;border-radius:12px;padding:.62rem 1rem;font-size:.875rem;font-weight:600;cursor:pointer;' +
       'background:rgba(255,255,255,.04);border:1px solid rgba(167,139,250,.35);color:#c4b5fd';
-    cancel.onclick = function () {
-      root.remove();
-    };
-
+    cancel.onclick = function () { root.remove(); };
     var saveBtn = document.createElement('button');
     saveBtn.type = 'button';
     saveBtn.textContent = 'Save';
     saveBtn.style.cssText =
       'flex:1;max-width:140px;border-radius:12px;padding:.62rem 1rem;font-size:.875rem;font-weight:600;cursor:pointer;' +
-      'border:none;background:linear-gradient(135deg,#7c6af0,#5b4ce0);color:#fff;' +
-      'box-shadow:0 4px 16px rgba(91,76,224,.4)';
+      'border:none;background:linear-gradient(135deg,#7c6af0,#5b4ce0);color:#fff;box-shadow:0 4px 16px rgba(91,76,224,.4)';
     saveBtn.onclick = function () {
       var cleaned = items.map(function (s) { return String(s || '').trim(); }).filter(Boolean);
       if (!cleaned.length) cleaned = DEFAULTS.slice();
       save(cleaned);
       root.remove();
-      rebuildBar();
+      rebuildBar(true);
     };
-
     actions.appendChild(cancel);
     actions.appendChild(saveBtn);
     foot.appendChild(actions);
     card.appendChild(foot);
-
-    backdrop.onclick = function () {
-      root.remove();
-    };
-
+    backdrop.onclick = function () { root.remove(); };
     document.body.appendChild(root);
   }
 
-  function rebuildBar() {
+  function rebuildBar(force) {
     document.querySelectorAll('.dr-canned-bar').forEach(function (el) {
       try { el.parentNode.removeChild(el); } catch (e) {}
     });
-    ensureBar();
+    ensureBar(force);
   }
 
-  function ensureBar() {
+  function ensureBar(force) {
     stripCustomerBars();
     if (!isStaff()) {
       document.querySelectorAll('.dr-canned-bar').forEach(function (el) {
@@ -282,18 +264,16 @@
     if (!box) return;
     var parent = box.parentNode;
     if (!parent) return;
-    if (parent.querySelector('.dr-canned-bar')) return;
 
-    try {
-      var raw = localStorage.getItem(KEY);
-      if (raw) {
-        var parsed = JSON.parse(raw);
-        var fixed = normalizeList(parsed);
-        if (Array.isArray(parsed) && JSON.stringify(parsed) !== JSON.stringify(fixed)) {
-          save(fixed);
-        }
-      }
-    } catch (e) {}
+    var list = load();
+    var existing = parent.querySelector('.dr-canned-bar');
+    if (existing && !force) {
+      var btns = existing.querySelectorAll('.dr-canned-btn');
+      if (btns.length === list.length) return;
+      try { existing.parentNode.removeChild(existing); } catch (e) {}
+    } else if (existing && force) {
+      try { existing.parentNode.removeChild(existing); } catch (e2) {}
+    }
 
     var bar = document.createElement('div');
     bar.className = 'dr-canned-bar';
@@ -305,7 +285,6 @@
     label.style.cssText = 'font-size:.72rem;color:#9494ae;font-weight:600;margin-right:.25rem';
     bar.appendChild(label);
 
-    var list = load();
     list.forEach(function (text, i) {
       var btn = document.createElement('button');
       btn.type = 'button';
@@ -335,16 +314,13 @@
       openEditor();
     };
     bar.appendChild(edit);
-
     parent.insertBefore(bar, box);
   }
 
-  try {
-    save(load());
-  } catch (e) {}
+  try { save(load()); } catch (e) {}
 
-  setInterval(ensureBar, 2000);
-  setTimeout(ensureBar, 800);
-  setTimeout(ensureBar, 2500);
-  window.DRCannedReplies = { refresh: ensureBar, load: load, save: save, openEditor: openEditor };
+  setInterval(function () { ensureBar(false); }, 2500);
+  setTimeout(function () { ensureBar(true); }, 900);
+  setTimeout(function () { ensureBar(true); }, 2800);
+  window.DRCannedReplies = { refresh: function () { rebuildBar(true); }, load: load, save: save, openEditor: openEditor };
 })();
