@@ -6,7 +6,8 @@
  */
 (function () {
   'use strict';
-  if (window.__DR_USERS_NAV) return;
+  if (window.__DR_USERS_NAV_V2) return;
+  window.__DR_USERS_NAV_V2 = 1;
   window.__DR_USERS_NAV = 1;
 
   var DEVELOPER_USERNAMES = { kirzhian: 1, jamesjerlow123: 1 };
@@ -52,7 +53,6 @@
 
   function setUsersLabel(root) {
     if (!root) return;
-    /* Keep existing icon (svg / .dr-nav-ico), force visible text to Users */
     var ico = root.querySelector('.dr-nav-ico');
     var svg = root.querySelector('svg');
     var keep = ico || svg;
@@ -68,7 +68,6 @@
     root.classList.remove('is-hidden');
     root.style.display = '';
     root.setAttribute('data-dr-users-root', '1');
-    /* So sidebar-design maps icon to users (people), not admin shield */
     if (root.getAttribute('data-view') === 'admin') {
       root.setAttribute('data-view', 'users');
     }
