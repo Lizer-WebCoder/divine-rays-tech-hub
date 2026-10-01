@@ -114,6 +114,9 @@
     '}',
     '#dr-lifeline,#dr-lifeline *{pointer-events:none!important}',
     '#dr-lifeline svg{width:100%;height:100%;display:block;overflow:visible}',
+    '#dr-lifeline .dr-ecg-core,#dr-lifeline .dr-ecg-glow{',
+    'will-change:stroke-dashoffset,opacity;transform:translateZ(0);',
+    'backface-visibility:hidden;-webkit-backface-visibility:hidden}',
     '#dr-lifeline .dr-spin-cw{transform-origin:0 0;animation:drGearCW 30s linear infinite}',
     '#dr-lifeline .dr-spin-ccw{transform-origin:0 0;animation:drGearCCW 24s linear infinite}',
     '#dr-lifeline .dr-spin-cw-fast{transform-origin:0 0;animation:drGearCW 18s linear infinite}',
@@ -200,7 +203,7 @@
   }
 
   /* Constant visual speed (px/s). Duration scales with screen width so the line always reaches the right edge. */
-  var ECG_SPEED_PX_PER_SEC = 110;
+  var ECG_SPEED_PX_PER_SEC = 185;
   var ECG_VIEWBOX_W = 720;
   var lastEcgWidth = 0;
 
@@ -212,7 +215,7 @@
     var screenLen = (pathLen > 0 ? pathLen : ECG_VIEWBOX_W) * scale;
     var travel = Math.max(w, screenLen * 0.85);
     var sec = travel / ECG_SPEED_PX_PER_SEC;
-    if (sec < 4) sec = 4;
+    if (sec < 2.5) sec = 2.5;
     if (sec > 40) sec = 40;
     return sec;
   }
