@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.5.13" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.5.14" />
   <style>
     html,body{margin:0;background:#0c0c14;color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
     #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae}
@@ -21,7 +21,7 @@
     var SHELL_SHA = '6d66f6b647cf6f4c7340536dab472409bd1de5d6';
     var TEAM_BOARD_SHA = '6f7d941cf16542de5868a7ed0abaacae83f4d133';
     var TEAM_SEP_SHA = '85337adc33ac049cdbf1317bbc20388b4f774739';
-    var SIDEBAR_SHA = 'e88f3dc9f3560000e7ddd9f94eccbc33d636d337';
+    var SIDEBAR_SHA = 'f54ca62b389e67557d902e630612372b9db32710';
     var BUST = String(Date.now());
     var urls = [
       'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + SHELL_SHA + '/index.html',
@@ -69,16 +69,15 @@
       document.write(html);
       document.close();
 
-      // Force-load premium sidebar + stable team board after shell settles
       setTimeout(function () {
         loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + SIDEBAR_SHA + '/js/sidebar-design.js');
         loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + TEAM_BOARD_SHA + '/js/team-board.js');
         loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + TEAM_SEP_SHA + '/js/team-sep.js');
-      }, 1800);
+      }, 1600);
       setTimeout(function () {
         if (window.DRSidebarDesign && window.DRSidebarDesign.refresh) try { window.DRSidebarDesign.refresh(); } catch (e) {}
         if (window.DR_TEAM && window.DR_TEAM.refresh) try { window.DR_TEAM.refresh(); } catch (e) {}
-      }, 3200);
+      }, 3000);
     } catch (err) {
       console.error(err);
       var boot = document.getElementById('boot');
