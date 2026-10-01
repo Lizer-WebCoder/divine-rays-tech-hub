@@ -7,23 +7,18 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.5.17" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.5.18" />
   <style>
     html,body{margin:0;background:#0c0c14;color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
     #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae;flex-direction:column;gap:0.75rem;padding:1.5rem;text-align:center}
     #boot .hint{font-size:0.8rem;color:#6b6b80;max-width:22rem}
   </style>
   <script>
-  /* Kill any previously cached approval UI loop before shell starts */
   (function () {
-    try {
-      window.__DR_USERS_ADMIN_APPROVAL_UI = 1;
-      window.__DR_USERS_ADMIN_APPROVAL_UI_V2 = 0;
-    } catch (e) {}
     try {
       var t = localStorage.getItem('dr_theme') || 'dark';
       document.documentElement.setAttribute('data-theme', t);
-    } catch (e2) {}
+    } catch (e) {}
   })();
   </script>
 </head>
@@ -38,16 +33,16 @@
     var TEAM_BOARD_SHA = '6f7d941cf16542de5868a7ed0abaacae83f4d133';
     var TEAM_SEP_SHA = '85337adc33ac049cdbf1317bbc20388b4f774739';
     var SIDEBAR_SHA = 'f54ca62b389e67557d902e630612372b9db32710';
-    /* Exact commit — never use @main on jsDelivr (week-long cache served the freeze) */
+    /* Pinned commit — jsDelivr serves correct JS MIME; never use @main */
     var FIX_SHA = 'ca1855f7da3fe40f8b34a33cbeaae1ded2ebcea5';
+    var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
     var BUST = String(Date.now());
-    var RAW = 'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/';
 
     var bootHint = document.getElementById('boot-hint');
     var bootTimer = setTimeout(function () {
       if (bootHint) {
         bootHint.textContent =
-          'Still loading… Try a hard refresh (Ctrl+Shift+R). If this stays, clear site data for this page.';
+          'Still loading… Hard refresh with Ctrl+Shift+R (Cmd+Shift+R on Mac).';
       }
     }, 12000);
 
@@ -67,8 +62,8 @@
     }
 
     var urls = [
-      RAW + SHELL_SHA + '/index.html',
-      'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + SHELL_SHA + '/index.html'
+      'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + SHELL_SHA + '/index.html',
+      CDN + SHELL_SHA + '/index.html'
     ];
 
     try {
@@ -100,7 +95,7 @@
       );
       html = html.replace(
         /https:\/\/cdn\.jsdelivr\.net\/gh\/Lizer-WebCoder\/divine-rays-tech-hub@[a-f0-9]+\/js\/team-sep\.js/g,
-        'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + TEAM_SEP_SHA + '/js/team-sep.js'
+        CDN + TEAM_SEP_SHA + '/js/team-sep.js'
       );
 
       document.open();
@@ -108,30 +103,348 @@
       document.close();
       clearTimeout(bootTimer);
 
-      /* Non-critical UI after shell is up — raw.githubusercontent only (no @main CDN cache) */
-      setTimeout(function () {
-        loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + SIDEBAR_SHA + '/js/sidebar-design.js');
-        loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + TEAM_BOARD_SHA + '/js/team-board.js');
-        loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + TEAM_SEP_SHA + '/js/team-sep.js');
-      }, 2000);
+      /* Inline critical CSS: hide standalone Admin tab immediately */
+      (function injectHideAdminCss() {
+        var el = document.createElement('style');
+        el.id = 'dr-hide-admin-nav';
+        el.textContent =
+          '#portal-agent .nav-btn.nav-admin:not([data-dr-users-root]),' +
+          '#portal-agent .nav-btn[data-view="admin"]:not([data-dr-users-root]),' +
+          '#portal-agent #nav-admin:not([data-dr-users-root]){display:none!important}' +
+          '.badge-role-developer{background:rgba(251,191,36,0.2)!important;color:#fbbf24!important}' +
+          '.badge-role-pending{background:rgba(251,146,60,0.2)!important;color:#fb923c!important}';
+        (document.head || document.documentElement).appendChild(el);
+      })();
 
       setTimeout(function () {
-        loadScript(RAW + FIX_SHA + '/js/admin.js');
-        loadScript(RAW + FIX_SHA + '/js/users-nav.js');
-        loadScript(RAW + FIX_SHA + '/js/users-admin-approval-ui.js');
-      }, 3500);
+        loadScript(CDN + SIDEBAR_SHA + '/js/sidebar-design.js');
+        loadScript(CDN + TEAM_BOARD_SHA + '/js/team-board.js');
+        loadScript(CDN + TEAM_SEP_SHA + '/js/team-sep.js');
+      }, 1800);
+
+      /* Load fixed modules from pinned commit (correct MIME via jsDelivr) */
+      setTimeout(function () {
+        loadScript(CDN + FIX_SHA + '/js/admin.js');
+        loadScript(CDN + FIX_SHA + '/js/users-nav.js');
+        loadScript(CDN + FIX_SHA + '/js/users-admin-approval-ui.js');
+      }, 2800);
 
       setTimeout(function () {
-        try {
-          if (window.DRSidebarDesign && window.DRSidebarDesign.refresh) window.DRSidebarDesign.refresh();
-        } catch (e) {}
-        try {
-          if (window.DR_TEAM && window.DR_TEAM.refresh) window.DR_TEAM.refresh();
-        } catch (e2) {}
         try {
           if (window.DRUsersNav && window.DRUsersNav.refresh) window.DRUsersNav.refresh();
-        } catch (e3) {}
-      }, 5000);
+        } catch (e) {}
+        try {
+          if (window.DRSidebarDesign && window.DRSidebarDesign.refresh) window.DRSidebarDesign.refresh();
+        } catch (e2) {}
+      }, 4000);
+
+      /*
+       * Inline safety net — runs even if external scripts fail.
+       * 1) Force Admin nav → Users only
+       * 2) Role column = staff_role (not Developer unless exact username)
+       * 3) Actions = Approve / Denied for non-developer staff when viewer is Developer
+       */
+      setTimeout(function () {
+        if (window.__DR_INLINE_ADMIN_FIX) return;
+        window.__DR_INLINE_ADMIN_FIX = 1;
+
+        var DEVS = { kirzhian: 1, jamesjerlow123: 1 };
+        var KEY = 'dr_staff_approval';
+
+        function esc(s) {
+          return String(s == null ? '' : s)
+            .replace(/&/g, '&')
+            .replace(/</g, '<')
+            .replace(/>/g, '>')
+            .replace(/"/g, '"');
+        }
+        function mapGet() {
+          try {
+            return JSON.parse(localStorage.getItem(KEY) || '{}') || {};
+          } catch (e) {
+            return {};
+          }
+        }
+        function mapSet(m) {
+          try {
+            localStorage.setItem(KEY, JSON.stringify(m || {}));
+          } catch (e) {}
+        }
+        function isDevName(name) {
+          return !!DEVS[String(name || '').toLowerCase().trim()];
+        }
+        function profile() {
+          try {
+            return window.DR && window.DR.getProfile && window.DR.getProfile();
+          } catch (e) {
+            return null;
+          }
+        }
+        function viewerIsDev() {
+          var p = profile();
+          return p && isDevName(p.username);
+        }
+        function getStatus(u) {
+          if (isDevName(u.username)) return 'approved';
+          var m = mapGet();
+          if (u.id && m[u.id]) return m[u.id];
+          var un = String(u.username || '').toLowerCase().trim();
+          var em = String(u.email || '').toLowerCase().trim();
+          if (un && m['u:' + un] === 'approved') return 'approved';
+          if (em && m['e:' + em] === 'approved') return 'approved';
+          if (un && m['pending:' + un] === 'pending') return 'pending';
+          if (em && m['pending:' + em] === 'pending') return 'pending';
+          return 'pending';
+        }
+        function roleLabel(u) {
+          if (isDevName(u.username)) return 'Developer';
+          var staff = u.staff_role || u.job_title || '';
+          if (!staff) {
+            var m = mapGet();
+            var k = 'role:' + String(u.username || '').toLowerCase().trim();
+            if (m[k]) staff = m[k];
+          }
+          if (staff && !/^developer$/i.test(staff)) return staff;
+          if (u.role === 'admin') return 'Admin';
+          if (u.role === 'agent') return 'IT Tech Support';
+          return u.role || '—';
+        }
+        function setStatus(id, status, username, email) {
+          var m = mapGet();
+          if (id) m[id] = status;
+          var un = String(username || '').toLowerCase().trim();
+          var em = String(email || '').toLowerCase().trim();
+          if (un) {
+            if (status === 'approved') {
+              m['u:' + un] = 'approved';
+              delete m['pending:' + un];
+            } else {
+              delete m['u:' + un];
+              delete m['pending:' + un];
+            }
+          }
+          if (em) {
+            if (status === 'approved') {
+              m['e:' + em] = 'approved';
+              delete m['pending:' + em];
+            } else {
+              delete m['e:' + em];
+              delete m['pending:' + em];
+            }
+          }
+          mapSet(m);
+        }
+
+        function forceUsersNav() {
+          var root =
+            document.getElementById('nav-admin') ||
+            document.querySelector('#portal-agent .nav-btn[data-view="admin"]') ||
+            document.querySelector('#portal-agent .nav-btn.nav-admin');
+          if (!root) {
+            var btns = document.querySelectorAll('#portal-agent .nav-btn');
+            for (var i = 0; i < btns.length; i++) {
+              var t = (btns[i].textContent || '').replace(/\s+/g, ' ').trim().toLowerCase();
+              if (t === 'admin' || t === 'users') {
+                root = btns[i];
+                break;
+              }
+            }
+          }
+          if (!root) return;
+
+          root.setAttribute('data-dr-users-root', '1');
+          root.classList.remove('is-hidden');
+          root.style.display = '';
+          if (root.getAttribute('data-view') === 'admin') root.setAttribute('data-view', 'users');
+
+          var ico = root.querySelector('.dr-nav-ico, svg');
+          var lab = root.querySelector('[data-dr-users-label]');
+          if (!lab) {
+            root.textContent = '';
+            if (ico) root.appendChild(ico);
+            lab = document.createElement('span');
+            lab.setAttribute('data-dr-users-label', '1');
+            root.appendChild(lab);
+          }
+          lab.textContent = 'Users';
+
+          document.querySelectorAll('#portal-agent .nav-btn').forEach(function (btn) {
+            if (btn === root || btn.getAttribute('data-dr-users-root')) return;
+            if (btn.closest('#dr-users-sub')) return;
+            var t2 = (btn.textContent || '').replace(/\s+/g, ' ').trim().toLowerCase();
+            var v = (btn.getAttribute('data-view') || '').toLowerCase();
+            if (v === 'admin' || t2 === 'admin' || btn.classList.contains('nav-admin')) {
+              btn.style.display = 'none';
+              btn.classList.add('is-hidden');
+            }
+          });
+
+          if (!document.getElementById('dr-users-sub') && root.parentNode) {
+            var sub = document.createElement('div');
+            sub.id = 'dr-users-sub';
+            sub.innerHTML =
+              '<button type="button" class="nav-btn" id="dr-users-endusers">End-Users</button>' +
+              '<button type="button" class="nav-btn" id="dr-users-admin">Admin</button>';
+            if (root.nextSibling) root.parentNode.insertBefore(sub, root.nextSibling);
+            else root.parentNode.appendChild(sub);
+          }
+        }
+
+        function polishAdminTable() {
+          var box =
+            document.getElementById('admin-users-list') ||
+            document.getElementById('staff-admin-list');
+          if (!box) return;
+          var rows = box.querySelectorAll('tbody tr');
+          if (!rows.length) return;
+
+          var cache = window.__adminUsersCache || [];
+          var vDev = viewerIsDev();
+
+          rows.forEach(function (row) {
+            var cells = row.querySelectorAll('td');
+            if (cells.length < 5) return;
+
+            var uid = row.getAttribute('data-id') || '';
+            var uname = (cells[1].textContent || '').trim();
+            var u = null;
+            for (var i = 0; i < cache.length; i++) {
+              if (cache[i] && (cache[i].id === uid || cache[i].username === uname)) {
+                u = cache[i];
+                break;
+              }
+            }
+            if (!u) {
+              u = {
+                id: uid,
+                username: uname,
+                full_name: (cells[0].textContent || '').replace(/\byou\b|\bsuper\b/gi, '').trim(),
+                role: 'agent',
+                staff_role: '',
+                email: ''
+              };
+              var btn = row.querySelector('[data-id]');
+              if (btn) u.id = btn.getAttribute('data-id') || u.id;
+            }
+
+            /* Role column */
+            var badge = cells[2].querySelector('.badge');
+            var label = roleLabel(u);
+            if (badge) {
+              badge.textContent = label;
+              if (isDevName(u.username)) badge.className = 'badge badge-role-developer';
+              else if (getStatus(u) === 'pending') badge.className = 'badge badge-role-pending';
+              else if (/admin/i.test(label)) badge.className = 'badge badge-role-admin';
+              else badge.className = 'badge badge-role-agent';
+            }
+
+            cells[0].querySelectorAll('.you-tag').forEach(function (t) {
+              if (/super/i.test(t.textContent || '')) t.remove();
+            });
+
+            /* Actions column */
+            var html;
+            if (isDevName(u.username)) {
+              html = '<span class="badge badge-role-developer">Developer</span>';
+            } else if (getStatus(u) === 'approved') {
+              html =
+                '<span class="badge badge-role-admin" style="margin-right:0.35rem">Approved</span>' +
+                (vDev
+                  ? '<button type="button" class="btn btn-ghost btn-sm dr-inline-deny" data-id="' +
+                    esc(u.id) +
+                    '" data-username="' +
+                    esc(u.username) +
+                    '" data-email="' +
+                    esc(u.email || '') +
+                    '" data-name="' +
+                    esc(u.full_name || u.username) +
+                    '">Denied</button>'
+                  : '');
+            } else {
+              html =
+                '<span class="badge badge-role-pending" style="margin-right:0.35rem">Pending</span>' +
+                (vDev
+                  ? '<button type="button" class="btn btn-sm dr-inline-approve" data-id="' +
+                    esc(u.id) +
+                    '" data-username="' +
+                    esc(u.username) +
+                    '" data-email="' +
+                    esc(u.email || '') +
+                    '" style="margin-right:0.25rem">Approve</button>' +
+                    '<button type="button" class="btn btn-danger btn-sm dr-inline-deny" data-id="' +
+                    esc(u.id) +
+                    '" data-username="' +
+                    esc(u.username) +
+                    '" data-email="' +
+                    esc(u.email || '') +
+                    '" data-name="' +
+                    esc(u.full_name || u.username) +
+                    '">Denied</button>'
+                  : '<span style="opacity:0.65;font-size:0.8rem">Developer only</span>');
+            }
+            cells[4].innerHTML =
+              '<div class="admin-actions" style="display:flex;align-items:center;gap:0.35rem;flex-wrap:wrap;justify-content:center">' +
+              html +
+              '</div>';
+          });
+
+          box.querySelectorAll('.dr-inline-approve').forEach(function (btn) {
+            if (btn.__wired) return;
+            btn.__wired = 1;
+            btn.addEventListener('click', function () {
+              if (!viewerIsDev()) return;
+              if (!confirm('Approve this account? They will be able to sign in.')) return;
+              setStatus(
+                btn.getAttribute('data-id'),
+                'approved',
+                btn.getAttribute('data-username'),
+                btn.getAttribute('data-email')
+              );
+              if (window.DR && window.DR.toast) window.DR.toast('Account approved', 'success');
+              polishAdminTable();
+            });
+          });
+          box.querySelectorAll('.dr-inline-deny').forEach(function (btn) {
+            if (btn.__wired) return;
+            btn.__wired = 1;
+            btn.addEventListener('click', async function () {
+              if (!viewerIsDev()) return;
+              var name = btn.getAttribute('data-name') || 'this account';
+              if (!confirm('Deny and remove ' + name + '?')) return;
+              var id = btn.getAttribute('data-id');
+              setStatus(id, 'disapproved', btn.getAttribute('data-username'), btn.getAttribute('data-email'));
+              try {
+                if (window.DR && window.DR.sb) {
+                  await window.DR.sb().from('profiles').delete().eq('id', id);
+                }
+              } catch (e) {}
+              var tr = btn.closest('tr');
+              if (tr) tr.remove();
+              if (window.DR && window.DR.toast) window.DR.toast('Account denied and removed', 'success');
+            });
+          });
+        }
+
+        forceUsersNav();
+        polishAdminTable();
+        setInterval(function () {
+          forceUsersNav();
+          polishAdminTable();
+        }, 2500);
+
+        document.addEventListener(
+          'click',
+          function (e) {
+            var t = e.target;
+            if (!t) return;
+            if (t.id === 'dr-users-admin' || (t.closest && t.closest('#dr-users-admin'))) {
+              setTimeout(polishAdminTable, 300);
+              setTimeout(polishAdminTable, 800);
+            }
+          },
+          true
+        );
+      }, 4500);
     } catch (err) {
       console.error(err);
       clearTimeout(bootTimer);
@@ -140,7 +453,7 @@
         boot.innerHTML =
           '<div>Load error: ' +
           (err.message || err) +
-          '</div><div class="hint">Hard refresh (Ctrl+Shift+R) or try again in a moment.</div>';
+          '</div><div class="hint">Hard refresh (Ctrl+Shift+R) and try again.</div>';
       }
     }
   })();
