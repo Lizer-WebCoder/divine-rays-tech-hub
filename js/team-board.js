@@ -1,10 +1,10 @@
 /**
- * Divine Rays — team charts (Dashboard only) — stable, no flicker
+ * Divine Rays — team charts (Dashboard only) — stable, real names
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_TEAM_BOARD_STABLE) return;
+  // Allow reload so name fix always applies after older pin
   window.__DR_TEAM_BOARD_STABLE = 1;
 
   function dr() { return window.DR || {}; }
@@ -15,6 +15,30 @@
       .replace(/</g, '<')
       .replace(/>/g, '>')
       .replace(/"/g, '"');
+  }
+
+  function displayName(p) {
+    if (!p) return 'Agent';
+    var n =
+      p.full_name ||
+      p.name ||
+      p.display_name ||
+      p.username ||
+      (p.email ? String(p.email).split('@')[0] : '') ||
+      '';
+    n = String(n).trim();
+    if (!n || /^agent$/i.test(n) || /^user$/i.test(n)) {
+      if (p.username) n = String(p.username).trim();
+      else if (p.email) n = String(p.email).split('@')[0];
+    }
+    return n || 'Agent';
+  }
+
+  function normalizeRole(role) {
+    role = String(role || '').trim().toLowerCase();
+    if (role === 'admin' || role === 'administrator') return 'admin';
+    if (role === 'agent' || role === 'staff' || role === 'tech' || role === 'support') return 'agent';
+    return role;
   }
 
   var _token = 0;
@@ -43,6 +67,40 @@
   function showTeamSection() {
     var sec = teamSection();
     if (sec) sec.style.display = '';
+  }
+
+  async function fetchProfiles(client) {
+    var profiles = [];
+    if (!client) return profiles;
+    var tries = [
+      'id,full_name,name,username,email,role,display_name',
+      'id,full_name,username,email,role',
+      'id,full_name,name,role',
+      '*'
+    ];
+    for (var i = 0; i < tries.length; i++) {
+      try {
+        var r = await client.from('profiles').select(tries[i]);
+        if (!r.error && r.data && r.data.length) {
+          profiles = r.data;
+          break;
+        }
+      } catch (e) {}
+    }
+    return profiles;
+  }
+
+  async function fetchProfilesByIds(client, ids) {
+    if (!client || !ids || !ids.length) return [];
+    try {
+      var r = await client.from('profiles').select('id,full_name,name,username,email,role,display_name').in('id', ids);
+      if (!r.error && r.data) return r.data;
+    } catch (e) {}
+    try {
+      var r2 = await client.from('profiles').select('*').in('id', ids);
+      if (!r2.error && r2.data) return r2.data;
+    } catch (e2) {}
+    return [];
   }
 
   async function buildTeamRows() {
@@ -90,29 +148,40 @@
       }
     });
 
-    var profiles = [];
-    try {
-      var client2 = dr().sb && dr().sb();
-      if (client2) {
-        var r = await client2.from('profiles').select('id,full_name,name,role');
-        if (!r.error && r.data) profiles = r.data;
-      }
-    } catch (e) {}
+    var client2 = dr().sb && dr().sb();
+    var profiles = await fetchProfiles(client2);
+
+    // Pull any assignee ids missing from the staff list
+    var missing = Object.keys(byAgent).filter(function (id) {
+      return !profiles.some(function (p) { return p && p.id === id; });
+    });
+    if (missing.length) {
+      var extra = await fetchProfilesByIds(client2, missing);
+      profiles = profiles.concat(extra);
+    }
 
     var me = (dr().getProfile && dr().getProfile()) || null;
     var meId = me && me.id;
     var rows = [];
     var seen = {};
+    var byId = {};
+    profiles.forEach(function (p) {
+      if (p && p.id) byId[p.id] = p;
+    });
 
     profiles.forEach(function (p) {
       if (!p || !p.id) return;
-      if (p.role !== 'agent' && p.role !== 'admin') return;
+      var role = normalizeRole(p.role);
+      // Include staff; also include anyone with assigned tickets
+      var hasWork = !!byAgent[p.id];
+      if (role !== 'agent' && role !== 'admin' && !hasWork) return;
+      if (role !== 'agent' && role !== 'admin') role = 'agent';
       seen[p.id] = true;
       var s = byAgent[p.id] || { working: 0, solved: 0, csatSum: 0, csatN: 0 };
       rows.push({
         id: p.id,
-        name: p.full_name || p.name || 'Agent',
-        role: p.role,
+        name: displayName(p),
+        role: role,
         working: s.working,
         solved: s.solved,
         csatAvg: s.csatN ? s.csatSum / s.csatN : null,
@@ -120,12 +189,36 @@
       });
     });
 
+    // Assignees still missing a profile row
     Object.keys(byAgent).forEach(function (aid) {
       if (seen[aid]) return;
       var s = byAgent[aid];
+      var p = byId[aid];
+      var name = displayName(p);
+      // last-ditch: ticket assignee_name fields
+      if (name === 'Agent') {
+        for (var ti = 0; ti < tickets.length; ti++) {
+          var t = tickets[ti];
+          var tid = t.assignee_id || t.assigned_to;
+          if (tid !== aid) continue;
+          var tn = t.assignee_name || t.assigned_name || t.agent_name || t.assignee;
+          if (tn && typeof tn === 'string' && tn.trim() && tn.indexOf('@') === -1) {
+            name = tn.trim();
+            break;
+          }
+          if (tn && typeof tn === 'string' && tn.indexOf('@') !== -1) {
+            name = tn.split('@')[0];
+            break;
+          }
+        }
+      }
+      // current user
+      if (name === 'Agent' && meId && aid === meId) {
+        name = displayName(me);
+      }
       rows.push({
         id: aid,
-        name: 'Agent',
+        name: name,
         role: 'agent',
         working: s.working,
         solved: s.solved,
@@ -134,8 +227,24 @@
       });
     });
 
+    // Ensure current user appears even with 0 tickets
+    if (meId && !seen[meId] && !rows.some(function (r) { return r.id === meId; })) {
+      var myRole = normalizeRole(me && me.role) || 'agent';
+      if (myRole === 'admin' || myRole === 'agent') {
+        rows.push({
+          id: meId,
+          name: displayName(me),
+          role: myRole,
+          working: 0,
+          solved: 0,
+          csatAvg: null,
+          csatN: 0
+        });
+      }
+    }
+
     rows.sort(function (a, b) {
-      return b.solved - a.solved || b.working - a.working;
+      return b.solved - a.solved || b.working - a.working || a.name.localeCompare(b.name);
     });
 
     return { rows: rows, meId: meId };
@@ -249,7 +358,7 @@
         hWorking +
         '%"></div></div>' +
         '<div class="tower-name">' +
-        escapeHtml(r.name.split(' ')[0] || r.name) +
+        escapeHtml((r.name || '').split(' ')[0] || r.name) +
         '</div>' +
         '<div class="tower-n">' +
         total +
@@ -313,7 +422,6 @@
       barsHtml(rows) +
       '</div>';
 
-    // Each person already inside panel — no post-wrap needed
     html +=
       '<div class="chart-panel full" data-dr-each-person="1">' +
       '<h4 class="chart-title">Each person</h4>' +
@@ -438,7 +546,6 @@
       new MutationObserver(function () {
         if (_busy || !isDashboard()) return;
         if (Date.now() < _ignoreMutUntil) return;
-        // Only recover if charts were wiped by another script
         if (!hasCharts(box)) {
           scheduleRender(250);
         }
@@ -449,7 +556,7 @@
       renderTeamBoard(true);
     }, 900);
     setTimeout(function () {
-      renderTeamBoard(false);
+      renderTeamBoard(true);
     }, 2500);
   }
 
