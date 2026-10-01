@@ -1,25 +1,14 @@
 /**
- * Divine Rays — Agent/Admin login & register by Username only
- * End-User stays email + password. Supabase still needs an email internally,
- * so agents use a synthetic address: {username}@agent.divinerays.local
+ * Divine Rays — Agent/Admin auth
+ * Register: Username + Email + Password + Role
+ * Login: Username OR Email + Password
+ * End-User unchanged (email + password only)
  * Credit: Boyz at the Back
  */
 (function () {
   'use strict';
   if (window.__DR_AGENT_USERNAME_AUTH) return;
   window.__DR_AGENT_USERNAME_AUTH = 1;
-
-  var DOMAIN = '@agent.divinerays.local';
-
-  function syntheticEmail(username) {
-    var u = String(username || '')
-      .toLowerCase()
-      .trim()
-      .replace(/\s+/g, '.')
-      .replace(/[^a-z0-9._-]/g, '');
-    if (!u) return '';
-    return u + DOMAIN;
-  }
 
   function sb() {
     try {
@@ -35,27 +24,45 @@
     if (!input) return;
     var group = input.closest ? input.closest('.form-group') : input.parentNode;
     var label = group ? group.querySelector('label') : null;
-    if (label) label.textContent = 'Username';
+    if (label) label.textContent = 'Username or Email';
     input.setAttribute('type', 'text');
     input.setAttribute('autocomplete', 'username');
-    input.setAttribute('placeholder', 'Enter username');
+    input.setAttribute('placeholder', 'Username or email');
     input.removeAttribute('inputmode');
-    /* clear any email-style pattern */
     input.removeAttribute('pattern');
+  }
+
+  function ensureAgentEmailField(form) {
+    if (!form) return null;
+    var existing = form.querySelector('#reg-agent-email');
+    if (existing) {
+      existing.disabled = false;
+      existing.setAttribute('required', 'required');
+      existing.setAttribute('type', 'email');
+      var g = existing.closest ? existing.closest('.form-group') : existing.parentNode;
+      if (g) g.style.display = '';
+      return existing;
+    }
+    var un = form.querySelector('#reg-agent-username');
+    var unGroup = un && un.closest ? un.closest('.form-group') : null;
+    var group = document.createElement('div');
+    group.className = 'form-group';
+    group.innerHTML =
+      '<label for="reg-agent-email">Email</label>' +
+      '<input type="email" id="reg-agent-email" required autocomplete="email" placeholder="you@company.com" />';
+    if (unGroup && unGroup.parentNode) {
+      if (unGroup.nextSibling) unGroup.parentNode.insertBefore(group, unGroup.nextSibling);
+      else unGroup.parentNode.appendChild(group);
+    } else {
+      form.insertBefore(group, form.firstChild);
+    }
+    return group.querySelector('#reg-agent-email');
   }
 
   function patchAgentRegisterCard() {
     var form = document.getElementById('dr-register-form-agent');
     if (!form) return;
-    /* ensure no email field sneaks in */
-    form.querySelectorAll('input[type="email"], #reg-agent-email').forEach(function (el) {
-      try {
-        var g = el.closest ? el.closest('.form-group') : el.parentNode;
-        if (g) g.style.display = 'none';
-        el.removeAttribute('required');
-        el.disabled = true;
-      } catch (e) {}
-    });
+    ensureAgentEmailField(form);
     var un = form.querySelector('#reg-agent-username');
     if (un) {
       un.setAttribute('type', 'text');
@@ -69,20 +76,22 @@
     }
   }
 
-  async function registerAgentByUsername(form) {
+  async function registerAgent(form) {
     var unEl = form.querySelector('#reg-agent-username');
+    var emEl = form.querySelector('#reg-agent-email');
     var passEl = form.querySelector('#reg-agent-password');
     var roleEl = form.querySelector('#reg-agent-role');
     var username = unEl ? (unEl.value || '').trim() : '';
+    var email = emEl ? (emEl.value || '').trim() : '';
     var password = passEl ? passEl.value : '';
     var roleRaw = roleEl ? (roleEl.value || '').trim() : '';
-    if (!username || !password) return { error: 'Username and password are required' };
+
+    if (!username || !email || !password) {
+      return { error: 'Username, email, and password are required' };
+    }
+    if (email.indexOf('@') === -1) return { error: 'Please enter a valid email address' };
     if (password.length < 6) return { error: 'Password must be at least 6 characters' };
 
-    var email = syntheticEmail(username);
-    if (!email) return { error: 'Invalid username' };
-
-    /* Map UI roles → stored role */
     var role = 'agent';
     var rLow = roleRaw.toLowerCase();
     if (rLow === 'admin' || rLow === 'owner') role = 'admin';
@@ -92,12 +101,8 @@
     if (!client) return { error: 'Supabase not configured' };
 
     try {
-      var existing = await client
-        .from('profiles')
-        .select('id')
-        .eq('username', username)
-        .maybeSingle();
-      if (existing && existing.data) {
+      var byUser = await client.from('profiles').select('id').eq('username', username).maybeSingle();
+      if (byUser && byUser.data) {
         return { error: 'Username already taken. Please choose another.' };
       }
     } catch (e0) {}
@@ -136,7 +141,6 @@
       }
     }
 
-    /* pending approval marker */
     try {
       var key = 'dr_staff_approval';
       var map = {};
@@ -149,6 +153,41 @@
     } catch (e4) {}
 
     return { ok: true, user: user, email: email };
+  }
+
+  function showAgentSuccessModal() {
+    var m = document.getElementById('dr-success-modal');
+    if (!m) {
+      m = document.createElement('div');
+      m.id = 'dr-success-modal';
+      m.innerHTML =
+        '<div class="dr-success-box" role="dialog">' +
+        '<div class="dr-success-check" aria-hidden="true"><span class="dr-check-mark">✓</span></div>' +
+        '<h3 id="dr-success-title">Successfully created!</h3>' +
+        '<p id="dr-success-msg"></p>' +
+        '<button type="button" class="dr-success-ok">Ok</button></div>';
+      document.body.appendChild(m);
+      m.querySelector('.dr-success-ok').addEventListener('click', function () {
+        m.classList.remove('is-open');
+        try {
+          if (typeof window.showForm === 'function') window.showForm('login-agent');
+        } catch (e5) {}
+      });
+    }
+    m.setAttribute('data-reg-kind', 'agent');
+    var msg = m.querySelector('#dr-success-msg') || m.querySelector('.dr-success-box p');
+    if (msg) {
+      msg.textContent =
+        'Your account has been successfully created. A request has been sent to the Administrator for approval. Please wait for your account to be approved.';
+    }
+    m.classList.add('is-open');
+    try {
+      var card = document.getElementById('dr-register-card-agent');
+      if (card) {
+        card.classList.remove('is-open');
+        card.style.setProperty('display', 'none', 'important');
+      }
+    } catch (e6) {}
   }
 
   function wireAgentRegister() {
@@ -175,7 +214,7 @@
           btn.style.opacity = '0.55';
         }
 
-        registerAgentByUsername(form).then(function (res) {
+        registerAgent(form).then(function (res) {
           if (btn) {
             btn.disabled = false;
             btn.style.opacity = '';
@@ -185,98 +224,17 @@
             else alert(res.error);
             return;
           }
-          /* open success modal with agent message */
-          var m = document.getElementById('dr-success-modal');
-          if (!m && window.DRLoginTheme && window.DRLoginTheme.refresh) {
-            try {
-              window.DRLoginTheme.refresh();
-            } catch (er) {}
-            m = document.getElementById('dr-success-modal');
-          }
-          if (!m) {
-            m = document.createElement('div');
-            m.id = 'dr-success-modal';
-            m.innerHTML =
-              '<div class="dr-success-box" role="dialog">' +
-              '<div class="dr-success-check" aria-hidden="true"><span class="dr-check-mark">✓</span></div>' +
-              '<h3 id="dr-success-title">Successfully created!</h3>' +
-              '<p id="dr-success-msg"></p>' +
-              '<button type="button" class="dr-success-ok">Ok</button></div>';
-            document.body.appendChild(m);
-            m.querySelector('.dr-success-ok').addEventListener('click', function () {
-              m.classList.remove('is-open');
-              try {
-                if (typeof window.showForm === 'function') window.showForm('login-agent');
-              } catch (e5) {}
-            });
-          }
-          m.setAttribute('data-reg-kind', 'agent');
-          var msg = m.querySelector('#dr-success-msg') || m.querySelector('.dr-success-box p');
-          if (msg) {
-            msg.textContent =
-              'Your account has been successfully created. A request has been sent to the Administrator for approval. Please wait for your account to be approved.';
-          }
-          m.classList.add('is-open');
-          /* hide register card */
-          try {
-            var card = document.getElementById('dr-register-card-agent');
-            if (card) {
-              card.classList.remove('is-open');
-              card.style.setProperty('display', 'none', 'important');
-            }
-          } catch (e6) {}
+          showAgentSuccessModal();
         });
       },
       true
     );
   }
 
-  /* Strengthen agent login: resolve username → synthetic email if profile lookup fails */
-  function wireAgentLoginEnhance() {
-    var form = document.getElementById('login-agent');
-    if (!form || form.__drUserLoginWired) return;
-    form.__drUserLoginWired = 1;
-    form.addEventListener(
-      'submit',
-      function (e) {
-        var input =
-          document.getElementById('agent-username') ||
-          document.getElementById('agent-user');
-        if (!input) return;
-        var val = (input.value || '').trim();
-        if (!val) return;
-        /* if user typed a plain username, leave as-is; app.js resolves it.
-           Also stash synthetic email as fallback attribute for resolvers. */
-        if (val.indexOf('@') === -1) {
-          input.setAttribute('data-synthetic-email', syntheticEmail(val));
-        }
-      },
-      true
-    );
-
-    /* Patch resolveAgentEmail if available later */
-    var tries = 0;
-    var t = setInterval(function () {
-      tries++;
-      if (window.DR && typeof window.DR.resolveAgentEmail === 'function' && !window.DR.__drSynthResolve) {
-        window.DR.__drSynthResolve = 1;
-        var orig = window.DR.resolveAgentEmail;
-        window.DR.resolveAgentEmail = async function (username) {
-          var r = await orig(username);
-          if (r) return r;
-          return syntheticEmail(username);
-        };
-        clearInterval(t);
-      }
-      if (tries > 40) clearInterval(t);
-    }, 250);
-  }
-
   function tick() {
     patchAgentLoginLabels();
     patchAgentRegisterCard();
     wireAgentRegister();
-    wireAgentLoginEnhance();
   }
 
   tick();
