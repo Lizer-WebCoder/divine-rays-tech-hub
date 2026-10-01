@@ -3,17 +3,23 @@
  * - Exact Developer usernames only (kirzhian, jamesjerlow123)
  * - New staff default Pending
  * - Actions: Pending badge + Approve / Denied (Developer only)
- * - Role column shows chosen staff_role (Admin / Owner / IT Tech Support)
+ * - Role column shows chosen staff_role
  * - Denied deletes profile row
+ * Performance: debounced polish, no body-wide MutationObserver loop
  * Credit: Boyz at the Back
  */
 (function () {
   'use strict';
-  if (window.__DR_USERS_ADMIN_APPROVAL_UI) return;
+  if (window.__DR_USERS_ADMIN_APPROVAL_UI_V2) return;
+  window.__DR_USERS_ADMIN_APPROVAL_UI_V2 = 1;
   window.__DR_USERS_ADMIN_APPROVAL_UI = 1;
 
   var DEVS = { kirzhian: 1, jamesjerlow123: 1 };
   var KEY = 'dr_staff_approval';
+  var _polishing = false;
+  var _polishTimer = null;
+  var _lastFp = '';
+  var _obs = null;
 
   function esc(s) {
     return String(s == null ? '' : s)
@@ -84,7 +90,6 @@
     if (em && m['e:' + em] === 'approved') return 'approved';
     if (un && m['pending:' + un] === 'pending') return 'pending';
     if (em && m['pending:' + em] === 'pending') return 'pending';
-    /* New staff (agent/admin) default to pending until a Developer approves */
     if (u && (u.role === 'admin' || u.role === 'agent')) return 'pending';
     return 'pending';
   }
@@ -130,15 +135,29 @@
     }
   }
 
-  function rebuildActionsCell(td, u, viewerDev) {
-    if (!td || !u) return;
+  function adminBox() {
+    return (
+      document.getElementById('staff-admin-list') ||
+      document.getElementById('admin-users-list')
+    );
+  }
+
+  function isAdminViewVisible() {
+    var box = adminBox();
+    if (!box) return false;
+    var view = document.getElementById('view-admin');
+    if (view && !view.classList.contains('active') && view.style.display === 'none') return false;
+    return true;
+  }
+
+  function actionsHtml(u, viewerDev) {
     var st = getStatus(u);
     var dev = isDev(u);
-    var html;
     if (dev) {
-      html = '<span class="badge badge-role-developer">Developer</span>';
-    } else if (st === 'approved') {
-      html =
+      return '<span class="badge badge-role-developer">Developer</span>';
+    }
+    if (st === 'approved') {
+      return (
         '<span class="badge badge-role-admin" style="margin-right:0.35rem">Approved</span>' +
         (viewerDev
           ? '<button type="button" class="btn btn-ghost btn-sm dr-staff-deny" data-id="' +
@@ -150,33 +169,30 @@
             '" data-name="' +
             esc(u.full_name || u.username || 'user') +
             '">Denied</button>'
-          : '');
-    } else {
-      html =
-        '<span class="badge badge-role-pending" style="margin-right:0.35rem">Pending</span>' +
-        (viewerDev
-          ? '<button type="button" class="btn btn-sm dr-staff-approve" data-id="' +
-            esc(u.id) +
-            '" data-username="' +
-            esc(u.username || '') +
-            '" data-email="' +
-            esc(u.email || '') +
-            '" style="margin-right:0.25rem">Approve</button>' +
-            '<button type="button" class="btn btn-danger btn-sm dr-staff-deny" data-id="' +
-            esc(u.id) +
-            '" data-username="' +
-            esc(u.username || '') +
-            '" data-email="' +
-            esc(u.email || '') +
-            '" data-name="' +
-            esc(u.full_name || u.username || 'user') +
-            '">Denied</button>'
-          : '<span style="opacity:0.65;font-size:0.8rem">Developer only</span>');
+          : '')
+      );
     }
-    td.innerHTML =
-      '<div class="admin-actions" style="display:flex;align-items:center;gap:0.35rem;flex-wrap:wrap;justify-content:center">' +
-      html +
-      '</div>';
+    return (
+      '<span class="badge badge-role-pending" style="margin-right:0.35rem">Pending</span>' +
+      (viewerDev
+        ? '<button type="button" class="btn btn-sm dr-staff-approve" data-id="' +
+          esc(u.id) +
+          '" data-username="' +
+          esc(u.username || '') +
+          '" data-email="' +
+          esc(u.email || '') +
+          '" style="margin-right:0.25rem">Approve</button>' +
+          '<button type="button" class="btn btn-danger btn-sm dr-staff-deny" data-id="' +
+          esc(u.id) +
+          '" data-username="' +
+          esc(u.username || '') +
+          '" data-email="' +
+          esc(u.email || '') +
+          '" data-name="' +
+          esc(u.full_name || u.username || 'user') +
+          '">Denied</button>'
+        : '<span style="opacity:0.65;font-size:0.8rem">Developer only</span>')
+    );
   }
 
   function findUserForRow(row, cells, cache) {
@@ -204,7 +220,9 @@
       u = {
         id: uid || '',
         username: uname2,
-        full_name: cells[0] ? (cells[0].textContent || '').replace(/\byou\b|\bsuper\b/gi, '').trim() : '',
+        full_name: cells[0]
+          ? (cells[0].textContent || '').replace(/\byou\b|\bsuper\b/gi, '').trim()
+          : '',
         role: 'agent'
       };
       var anyBtn = row.querySelector('[data-id]');
@@ -213,44 +231,85 @@
     return u;
   }
 
-  function polishTable() {
-    var box =
-      document.getElementById('staff-admin-list') ||
-      document.getElementById('admin-users-list');
-    if (!box) return;
-    var viewerDev = isDev(profile());
-    var cache = window.__adminUsersCache || [];
+  function tableFingerprint(box) {
     var rows = box.querySelectorAll('tbody tr');
+    var parts = [];
     rows.forEach(function (row) {
       var cells = row.querySelectorAll('td');
-      if (cells.length < 5) return;
-      var u = findUserForRow(row, cells, cache);
+      if (cells.length < 3) return;
+      parts.push(
+        (row.getAttribute('data-id') || '') +
+          '|' +
+          (cells[1].textContent || '').trim() +
+          '|' +
+          (cells[2].textContent || '').trim() +
+          '|' +
+          (cells[4] ? (cells[4].textContent || '').trim() : '')
+      );
+    });
+    return parts.join(';;');
+  }
 
-      /* Role column: never show Developer unless exact username is a Developer */
-      var roleBadge = cells[2].querySelector('.badge');
-      if (roleBadge) {
+  function polishTable() {
+    if (_polishing) return;
+    var box = adminBox();
+    if (!box || !isAdminViewVisible()) return;
+
+    var rows = box.querySelectorAll('tbody tr');
+    if (!rows.length) return;
+
+    _polishing = true;
+    try {
+      var viewerDev = isDev(profile());
+      var cache = window.__adminUsersCache || [];
+
+      rows.forEach(function (row) {
+        var cells = row.querySelectorAll('td');
+        if (cells.length < 5) return;
+        var u = findUserForRow(row, cells, cache);
+
+        var roleBadge = cells[2].querySelector('.badge');
         var label = roleLabel(u);
-        roleBadge.textContent = label;
-        if (isDev(u)) {
-          roleBadge.className = 'badge badge-role-developer';
-        } else if (/pending/i.test(getStatus(u))) {
-          roleBadge.className = 'badge badge-role-pending';
-        } else if (/admin/i.test(label)) {
-          roleBadge.className = 'badge badge-role-admin';
-        } else {
-          roleBadge.className = 'badge badge-role-agent';
+        if (roleBadge) {
+          if (roleBadge.textContent !== label) roleBadge.textContent = label;
+          var cls;
+          if (isDev(u)) cls = 'badge badge-role-developer';
+          else if (getStatus(u) === 'pending') cls = 'badge badge-role-pending';
+          else if (/admin/i.test(label)) cls = 'badge badge-role-admin';
+          else cls = 'badge badge-role-agent';
+          if (roleBadge.className !== cls) roleBadge.className = cls;
         }
-      }
 
-      /* Clean accidental "super" tags in name */
-      cells[0].querySelectorAll('.you-tag').forEach(function (t) {
-        if (/super/i.test(t.textContent || '')) t.remove();
+        cells[0].querySelectorAll('.you-tag').forEach(function (t) {
+          if (/super/i.test(t.textContent || '')) t.remove();
+        });
+
+        var desired = actionsHtml(u, viewerDev);
+        var wrap = cells[4].querySelector('.admin-actions');
+        var current = wrap ? wrap.innerHTML : '';
+        if (!wrap || current.replace(/\s+/g, ' ') !== desired.replace(/\s+/g, ' ')) {
+          cells[4].innerHTML =
+            '<div class="admin-actions" style="display:flex;align-items:center;gap:0.35rem;flex-wrap:wrap;justify-content:center">' +
+            desired +
+            '</div>';
+        }
       });
 
-      rebuildActionsCell(cells[4], u, viewerDev);
-    });
+      wireButtons(box);
+      _lastFp = tableFingerprint(box);
+    } finally {
+      setTimeout(function () {
+        _polishing = false;
+      }, 80);
+    }
+  }
 
-    wireButtons(box);
+  function schedulePolish(delay) {
+    if (_polishTimer) clearTimeout(_polishTimer);
+    _polishTimer = setTimeout(function () {
+      _polishTimer = null;
+      polishTable();
+    }, delay == null ? 120 : delay);
   }
 
   function wireButtons(box) {
@@ -259,7 +318,8 @@
       btn.__drWired = 1;
       btn.addEventListener('click', function () {
         if (!isDev(profile())) {
-          if (window.DR && window.DR.toast) window.DR.toast('Only Developers can approve accounts', 'error');
+          if (window.DR && window.DR.toast)
+            window.DR.toast('Only Developers can approve accounts', 'error');
           return;
         }
         var id = btn.getAttribute('data-id');
@@ -267,11 +327,9 @@
         var em = btn.getAttribute('data-email') || '';
         if (!confirm('Approve this Admin account? They will be able to sign in.')) return;
         setStatus(id, 'approved', un, em);
-        if (window.DR && window.DR.toast) window.DR.toast('Account approved — can sign in', 'success');
-        polishTable();
-        if (window.DRUsersNav && window.DRUsersNav.openAdmin) {
-          try { window.DRUsersNav.openAdmin(); } catch (e) {}
-        }
+        if (window.DR && window.DR.toast)
+          window.DR.toast('Account approved — can sign in', 'success');
+        schedulePolish(50);
       });
     });
 
@@ -280,7 +338,8 @@
       btn.__drWired = 1;
       btn.addEventListener('click', async function () {
         if (!isDev(profile())) {
-          if (window.DR && window.DR.toast) window.DR.toast('Only Developers can deny accounts', 'error');
+          if (window.DR && window.DR.toast)
+            window.DR.toast('Only Developers can deny accounts', 'error');
           return;
         }
         var id = btn.getAttribute('data-id');
@@ -298,20 +357,67 @@
         }
         var tr = btn.closest('tr');
         if (tr) tr.remove();
-        polishTable();
+        schedulePolish(50);
       });
     });
   }
 
+  function observeAdminList() {
+    var box = adminBox();
+    if (!box) return;
+    if (box.__drApprovalObs) return;
+    box.__drApprovalObs = 1;
+    try {
+      _obs = new MutationObserver(function () {
+        if (_polishing) return;
+        if (!isAdminViewVisible()) return;
+        schedulePolish(150);
+      });
+      _obs.observe(box, { childList: true, subtree: false });
+    } catch (e) {}
+  }
+
+  function patchRender() {
+    if (typeof window.renderAdminUsers !== 'function') return;
+    if (window.renderAdminUsers.__drApprovalPatch) return;
+    var orig = window.renderAdminUsers;
+    window.renderAdminUsers = async function () {
+      var r = await orig.apply(this, arguments);
+      observeAdminList();
+      schedulePolish(100);
+      schedulePolish(400);
+      return r;
+    };
+    window.renderAdminUsers.__drApprovalPatch = 1;
+  }
+
   function tick() {
-    polishTable();
+    patchRender();
+    observeAdminList();
+    if (isAdminViewVisible()) schedulePolish(50);
   }
 
   tick();
-  setInterval(tick, 1500);
-  try {
-    new MutationObserver(function () {
-      polishTable();
-    }).observe(document.body, { childList: true, subtree: true });
-  } catch (e) {}
+  setInterval(function () {
+    if (!isAdminViewVisible()) return;
+    patchRender();
+    observeAdminList();
+    var box = adminBox();
+    if (!box) return;
+    var fp = tableFingerprint(box);
+    if (fp !== _lastFp) schedulePolish(80);
+  }, 4000);
+
+  document.addEventListener(
+    'click',
+    function (e) {
+      var t = e.target;
+      if (!t) return;
+      if (t.id === 'dr-users-admin' || (t.closest && t.closest('#dr-users-admin'))) {
+        schedulePolish(200);
+        schedulePolish(600);
+      }
+    },
+    true
+  );
 })();
