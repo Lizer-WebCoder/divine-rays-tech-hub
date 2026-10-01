@@ -1,7 +1,7 @@
 /**
  * Divine Rays — Users nav: parent "Users" with End-Users + Admin submenus
- * End-Users = existing Admin user-management UI
- * Admin = separate staff interface
+ * End-Users = end-user accounts only
+ * Admin = agents + admins
  * Credit: Boyz at the Back
  */
 (function () {
@@ -41,8 +41,6 @@
     'display:inline-block;margin-top:0.45rem;padding:0.15rem 0.55rem;border-radius:999px;',
     'font-size:0.75rem;font-weight:600;background:rgba(109,94,245,0.2);color:#c4b5fd}',
     'html[data-theme="light"] #view-staff-admin .staff-card .role-pill{color:#5b4fd4}',
-
-    /* End-Users view cleanup — topbar ticket filters */
     'body.dr-view-endusers .dr-list-toolbar-right{display:none!important}',
     'body.dr-view-endusers #dr-list-toolbar-right{display:none!important}',
     'body.dr-view-endusers .dr-list-toolbar-left p{display:none!important}',
@@ -53,6 +51,7 @@
     'body.dr-view-endusers #filter-limit{display:none!important}',
     'body.dr-view-endusers .dr-limit-wrap{display:none!important}',
     'body.dr-view-endusers #search-input{display:none!important}',
+    'body.dr-view-endusers #admin-filter-role{display:none!important}',
     '#view-admin .admin-stats .stat-card:has(#admin-stat-users){display:none!important}',
     '#view-admin .admin-stats .stat-card:has(#admin-stat-agents){display:none!important}',
     '#view-admin .admin-stats .stat-card:has(#admin-stat-admins){display:none!important}',
@@ -201,7 +200,6 @@
     try { document.body.classList.remove('dr-view-list', 'dr-view-dashboard'); } catch (e) {}
     var hint = document.querySelector('#view-admin .admin-hint');
     if (hint) hint.textContent = 'Manage users, roles and badge.';
-    /* Hide topbar ticket filters (All Statuses / Priorities / Newest / Clear) */
     ['filter-status', 'filter-priority', 'filter-sort', 'btn-clear-filters', 'filter-limit', 'search-input'].forEach(function (id) {
       var el = document.getElementById(id);
       if (el) {
@@ -230,6 +228,8 @@
       var keep = cust.closest ? cust.closest('.stat-card') : cust.parentNode;
       if (keep && keep.style) keep.style.display = '';
     }
+    var roleSel = document.getElementById('admin-filter-role');
+    if (roleSel) roleSel.style.setProperty('display', 'none', 'important');
   }
 
   function restoreTopbarFilters() {
@@ -245,6 +245,83 @@
     });
   }
 
+  function isEndUserRole(role) {
+    role = String(role || '').toLowerCase().trim();
+    return role === 'customer' || role === 'end-user' || role === 'enduser' || role === 'end user';
+  }
+
+  function filterEndUsersList() {
+    var box = document.getElementById('admin-users-list');
+    if (!box) return;
+    var sel = document.getElementById('admin-filter-role');
+    if (sel) {
+      sel.value = 'customer';
+      sel.style.setProperty('display', 'none', 'important');
+    }
+    var rows = box.querySelectorAll('tbody tr');
+    var shown = 0;
+    rows.forEach(function (tr) {
+      var badge = tr.querySelector('.badge');
+      var roleTxt = badge ? (badge.textContent || '') : '';
+      var rs = tr.querySelector('.admin-role-select');
+      var roleVal = rs ? (rs.value || '') : roleTxt;
+      var keep = isEndUserRole(roleVal) || isEndUserRole(roleTxt);
+      tr.style.display = keep ? '' : 'none';
+      if (keep) shown++;
+    });
+    var cust = document.getElementById('admin-stat-customers');
+    if (cust) {
+      var n = shown;
+      try {
+        var cache = window.__adminUsersCache || [];
+        if (cache.length) {
+          n = cache.filter(function (u) { return isEndUserRole(u.role); }).length;
+        }
+      } catch (e) {}
+      cust.textContent = String(n);
+    }
+    var empty = box.querySelector('.dr-eu-empty');
+    if (rows.length && shown === 0) {
+      if (!empty) {
+        var p = document.createElement('p');
+        p.className = 'empty-state dr-eu-empty';
+        p.style.padding = '1rem';
+        p.textContent = 'No end-user accounts found.';
+        box.appendChild(p);
+      }
+    } else if (empty) {
+      empty.remove();
+    }
+  }
+
+  function renderEndUsersOnly() {
+    polishEndUsersChrome();
+    var sel = document.getElementById('admin-filter-role');
+    if (sel) {
+      sel.value = 'customer';
+      sel.style.setProperty('display', 'none', 'important');
+    }
+    function after() {
+      polishEndUsersChrome();
+      filterEndUsersList();
+    }
+    if (typeof window.renderAdminUsers === 'function') {
+      try {
+        var r = window.renderAdminUsers();
+        if (r && typeof r.then === 'function') {
+          r.then(after).catch(after);
+        } else {
+          setTimeout(after, 80);
+          setTimeout(after, 400);
+        }
+      } catch (e) {
+        setTimeout(after, 80);
+      }
+    } else {
+      after();
+    }
+  }
+
   function openEndUsers() {
     clearNavActive();
     var sub = document.getElementById('nav-users-endusers');
@@ -253,12 +330,9 @@
     if (parent) parent.classList.add('active');
     showView('view-admin');
     setPageTitle('End-Users');
-    polishEndUsersChrome();
-    if (typeof window.renderAdminUsers === 'function') {
-      try { window.renderAdminUsers(); } catch (e) {}
-    }
-    setTimeout(polishEndUsersChrome, 50);
-    setTimeout(polishEndUsersChrome, 300);
+    renderEndUsersOnly();
+    setTimeout(renderEndUsersOnly, 100);
+    setTimeout(filterEndUsersList, 500);
   }
 
   function openAdminStaff() {
@@ -350,14 +424,39 @@
     else wrap.classList.remove('is-hidden');
   }
 
+  function wrapRenderAdminUsers() {
+    if (window.__drEuRenderWrapped) return;
+    if (typeof window.renderAdminUsers !== 'function') return;
+    window.__drEuRenderWrapped = 1;
+    var orig = window.renderAdminUsers;
+    window.renderAdminUsers = function () {
+      var ret = orig.apply(this, arguments);
+      var finish = function () {
+        var va = document.getElementById('view-admin');
+        if (va && va.classList.contains('active') && document.body.classList.contains('dr-view-endusers')) {
+          polishEndUsersChrome();
+          filterEndUsersList();
+        }
+      };
+      if (ret && typeof ret.then === 'function') {
+        return ret.then(function (v) { finish(); return v; }).catch(function (e) { finish(); throw e; });
+      }
+      setTimeout(finish, 30);
+      setTimeout(finish, 200);
+      return ret;
+    };
+  }
+
   function tick() {
     injectCss();
     transformNav();
     syncVisibility();
     ensureStaffView();
+    wrapRenderAdminUsers();
     var va = document.getElementById('view-admin');
-    if (va && va.classList.contains('active')) {
+    if (va && va.classList.contains('active') && document.body.classList.contains('dr-view-endusers')) {
       polishEndUsersChrome();
+      filterEndUsersList();
     }
   }
 
