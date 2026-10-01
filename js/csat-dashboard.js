@@ -4,48 +4,49 @@
  */
 (function () {
   'use strict';
-  if (window.__DR_CSAT_DASH) return;
-  window.__DR_CSAT_DASH = 1;
+  if (window.__DR_CSAT_DASH_V2) return;
+  window.__DR_CSAT_DASH_V2 = 1;
 
-  var STYLE = [
-    '#csat-dash-card{padding:1rem 1.15rem;border-radius:14px;border:1px solid rgba(124,106,240,.35);background:linear-gradient(145deg,rgba(124,106,240,.14),#1a1a24);min-width:140px}',
-    '#csat-dash-card .stat-label{display:block;font-size:.78rem;color:#9898b0;margin-bottom:.35rem}',
+  function sb() {
+    try {
+      if (window.DR && DR.supabase) return DR.supabase;
+      if (window.sb) return window.sb;
+    } catch (e) {}
+    return null;
+  }
+
+  var CSS = [
     '#csat-dash-card .csat-big{font-size:1.75rem;font-weight:700;color:#c4b5fd;line-height:1.1}',
-    '#csat-dash-card .csat-stars-row{letter-spacing:2px;color:#a78bfa;font-size:1.1rem;margin:.25rem 0}',
-    '#csat-dash-card .csat-meta{font-size:.78rem;color:#9494ae}',
+    '#csat-dash-card .csat-stars-row{color:#a78bfa;letter-spacing:2px;font-size:1.05rem;margin-top:.25rem}',
+    '#csat-dash-card .csat-meta{font-size:.78rem;color:#9494ae;margin-top:.2rem}',
+    'html[data-theme="light"] #csat-dash-card .csat-big,html[data-theme="light"] #csat-dash-card .csat-stars-row{color:#7c6af0}',
     '.team-card .csat-inline{margin-top:.55rem;padding-top:.5rem;border-top:1px solid rgba(46,46,66,.8);display:flex;align-items:center;justify-content:space-between;gap:.5rem}',
     '.team-card .csat-inline .stars{color:#a78bfa;letter-spacing:1px;font-size:.95rem}',
     '.team-card .csat-inline .csat-avg{font-weight:700;color:#c4b5fd;font-size:.95rem}',
     '.team-card .csat-inline .csat-n{font-size:.75rem;color:#9494ae}',
     'html[data-theme="light"] .team-card .csat-inline{border-top-color:rgba(0,0,0,.08)}',
-    'html[data-theme="light"] .team-card .csat-inline .stars,html[data-theme="light"] .team-card .csat-inline .csat-avg{color:#7c6af0}',
-    '#csat-agent-list{display:none!important}'
+    'html[data-theme="light"] .team-card .csat-inline .stars,html[data-theme="light"] .team-card .csat-inline .csat-avg{color:#7c6af0}'
   ].join('');
 
-  function css() {
-    if (document.getElementById('csat-dash-css')) return;
-    var s = document.createElement('style');
-    s.id = 'csat-dash-css';
-    s.textContent = STYLE;
-    document.head.appendChild(s);
+  function injectCss() {
+    var el = document.getElementById('dr-csat-dash-css');
+    if (!el) {
+      el = document.createElement('style');
+      el.id = 'dr-csat-dash-css';
+      document.head.appendChild(el);
+    }
+    el.textContent = CSS;
   }
 
-  function sb() {
-    try { if (window.DR && window.DR.sb) return window.DR.sb(); } catch (e) {}
-    return window.__drSb || null;
-  }
-
-  function starsStr(n) {
-    n = Math.round(Number(n) || 0);
+  function starsStr(avg) {
+    var n = Math.round(Number(avg) || 0);
     if (n < 0) n = 0;
     if (n > 5) n = 5;
-    var s = '';
-    for (var i = 1; i <= 5; i++) s += i <= n ? '★' : '☆';
-    return s;
+    return '★'.repeat(n) + '☆'.repeat(5 - n);
   }
 
   function ensureCard() {
-    css();
+    injectCss();
     var card = document.getElementById('csat-dash-card');
     if (card) return card;
     var dash = document.getElementById('view-dashboard');
@@ -78,7 +79,7 @@
   async function fetchCsat() {
     var client = sb();
     if (!client) return cache;
-    if (Date.now() - cache.ts < 4000 && cache.n >= 0) return cache;
+    if (Date.now() - cache.ts < 12000 && cache.n >= 0) return cache;
     try {
       var r = await client.from('tickets')
         .select('csat_score,assigned_to,assignee_id,claimed_by')
@@ -122,30 +123,18 @@
 
       var me = null;
       try {
-        if (window.DR && window.DR.getProfile) me = window.DR.getProfile();
+        if (window.DR && DR.getProfile) me = DR.getProfile();
+        else if (window.__drProfile) me = window.__drProfile;
       } catch (e) {}
-      if (!me) me = window.__drProfile || null;
 
       var byName = {};
-      ids.forEach(function (id) {
-        var av = byId[id].sum / byId[id].n;
-        var entry = { avg: av, n: byId[id].n, id: id };
-        byId[id] = entry;
+      Object.keys(byId).forEach(function (id) {
+        var e = byId[id];
+        e.avg = e.n ? e.sum / e.n : 0;
         var nm = (names[id] || '').trim().toLowerCase();
-        if (nm) {
-          byName[nm] = entry;
-          var first = nm.split(/\s+/)[0];
-          if (first) byName[first] = entry;
-        }
+        if (nm) byName[nm] = e;
+        if (nm) byName[nm.split(/\s+/)[0]] = e;
       });
-
-      if (me && me.id && byId[me.id]) {
-        var mn = (me.full_name || me.name || me.display_name || me.username || '').trim().toLowerCase();
-        if (mn) {
-          byName[mn] = byId[me.id];
-          byName[mn.split(/\s+/)[0]] = byId[me.id];
-        }
-      }
 
       cache = {
         byId: byId,
@@ -168,9 +157,6 @@
     var onlyOne = cards.length === 1;
 
     cards.forEach(function (card) {
-      var old = card.querySelector('.csat-inline');
-      if (old) old.remove();
-
       var nameEl = card.querySelector('.team-card-name');
       if (!nameEl) return;
       var raw = '';
@@ -203,17 +189,29 @@
         entry = data.unassigned;
       }
 
-      var stats = card.querySelector('.team-card-stats');
-      var box = document.createElement('div');
-      box.className = 'csat-inline';
+      var nextHtml;
       if (entry && entry.n) {
-        box.innerHTML =
+        nextHtml =
           '<span class="stars">' + starsStr(entry.avg) + '</span>' +
           '<span><span class="csat-avg">' + entry.avg.toFixed(1) + '</span> ' +
           '<span class="csat-n">(' + entry.n + ')</span></span>';
       } else {
-        box.innerHTML = '<span class="stars">☆☆☆☆☆</span><span class="csat-n">No ratings</span>';
+        nextHtml = '<span class="stars">☆☆☆☆☆</span><span class="csat-n">No ratings</span>';
       }
+
+      var box = card.querySelector('.csat-inline');
+      if (box) {
+        if (box.getAttribute('data-sig') === nextHtml) return;
+        box.setAttribute('data-sig', nextHtml);
+        box.innerHTML = nextHtml;
+        return;
+      }
+
+      box = document.createElement('div');
+      box.className = 'csat-inline';
+      box.setAttribute('data-sig', nextHtml);
+      box.innerHTML = nextHtml;
+      var stats = card.querySelector('.team-card-stats');
       if (stats) stats.parentNode.appendChild(box);
       else card.appendChild(box);
     });
@@ -235,9 +233,8 @@
     if (document.getElementById('view-dashboard')) load();
   }
 
-  setInterval(tick, 2500);
-  setTimeout(tick, 800);
-  setTimeout(tick, 2000);
-  setTimeout(tick, 5000);
+  setInterval(tick, 15000);
+  setTimeout(tick, 1200);
+  setTimeout(tick, 6000);
   window.DRCsatDash = { refresh: load };
 })();
