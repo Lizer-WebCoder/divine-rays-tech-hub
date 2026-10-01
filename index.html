@@ -7,30 +7,54 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.5.16" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.5.17" />
   <style>
     html,body{margin:0;background:#0c0c14;color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
-    #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae}
+    #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae;flex-direction:column;gap:0.75rem;padding:1.5rem;text-align:center}
+    #boot .hint{font-size:0.8rem;color:#6b6b80;max-width:22rem}
   </style>
-  <script>(function(){try{var t=localStorage.getItem('dr_theme')||'dark';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+  <script>
+  /* Kill any previously cached approval UI loop before shell starts */
+  (function () {
+    try {
+      window.__DR_USERS_ADMIN_APPROVAL_UI = 1;
+      window.__DR_USERS_ADMIN_APPROVAL_UI_V2 = 0;
+    } catch (e) {}
+    try {
+      var t = localStorage.getItem('dr_theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', t);
+    } catch (e2) {}
+  })();
+  </script>
 </head>
 <body>
-  <div id="boot">Loading Divine Rays Tech Hub…</div>
+  <div id="boot">
+    <div>Loading Divine Rays Tech Hub…</div>
+    <div class="hint" id="boot-hint"></div>
+  </div>
   <script>
   (async function () {
     var SHELL_SHA = '6d66f6b647cf6f4c7340536dab472409bd1de5d6';
     var TEAM_BOARD_SHA = '6f7d941cf16542de5868a7ed0abaacae83f4d133';
     var TEAM_SEP_SHA = '85337adc33ac049cdbf1317bbc20388b4f774739';
     var SIDEBAR_SHA = 'f54ca62b389e67557d902e630612372b9db32710';
-    var ADMIN_SHA = 'main';
-    var APPROVAL_UI_SHA = 'main';
-    var USERS_NAV_SHA = 'main';
+    /* Exact commit — never use @main on jsDelivr (week-long cache served the freeze) */
+    var FIX_SHA = 'ca1855f7da3fe40f8b34a33cbeaae1ded2ebcea5';
     var BUST = String(Date.now());
-    var urls = [
-      'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + SHELL_SHA + '/index.html',
-      'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + SHELL_SHA + '/index.html'
-    ];
-    function withBust(u) { return u + (u.indexOf('?') === -1 ? '?' : '&') + 'b=' + BUST; }
+    var RAW = 'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/';
+
+    var bootHint = document.getElementById('boot-hint');
+    var bootTimer = setTimeout(function () {
+      if (bootHint) {
+        bootHint.textContent =
+          'Still loading… Try a hard refresh (Ctrl+Shift+R). If this stays, clear site data for this page.';
+      }
+    }, 12000);
+
+    function withBust(u) {
+      return u + (u.indexOf('?') === -1 ? '?' : '&') + 'b=' + BUST;
+    }
+
     function loadScript(src) {
       return new Promise(function (resolve) {
         var s = document.createElement('script');
@@ -38,22 +62,33 @@
         s.async = false;
         s.onload = function () { resolve(src); };
         s.onerror = function () { resolve(src); };
-        document.body.appendChild(s);
+        (document.body || document.documentElement).appendChild(s);
       });
     }
+
+    var urls = [
+      RAW + SHELL_SHA + '/index.html',
+      'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + SHELL_SHA + '/index.html'
+    ];
+
     try {
       var html = null;
       for (var i = 0; i < urls.length; i++) {
         try {
           var r = await fetch(withBust(urls[i]), { cache: 'no-store', credentials: 'omit' });
-          if (r.ok) { html = await r.text(); break; }
+          if (r.ok) {
+            html = await r.text();
+            break;
+          }
         } catch (e) {}
       }
       if (!html) throw new Error('Could not load app shell');
 
       html = html.replace(
         /var EXTRA_FILES = \[[^\]]*\];/,
-        "var EXTRA_FILES = ['email-notify.js','ticket-plus.js','ticket-plus-fix.js','status-lock.js','polish-fixes.js','saved-views.js','kb.js','team-board.js'];\n    var TEAM_BOARD_SHA = '" + TEAM_BOARD_SHA + "';"
+        "var EXTRA_FILES = ['email-notify.js','ticket-plus.js','ticket-plus-fix.js','status-lock.js','polish-fixes.js','saved-views.js','kb.js','team-board.js'];\n    var TEAM_BOARD_SHA = '" +
+          TEAM_BOARD_SHA +
+          "';"
       );
       html = html.replace(
         /var pin = base === 'kb\.js' \? KB_JS_SHA : EXTRA_SHA;/g,
@@ -71,28 +106,42 @@
       document.open();
       document.write(html);
       document.close();
+      clearTimeout(bootTimer);
 
+      /* Non-critical UI after shell is up — raw.githubusercontent only (no @main CDN cache) */
       setTimeout(function () {
         loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + SIDEBAR_SHA + '/js/sidebar-design.js');
         loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + TEAM_BOARD_SHA + '/js/team-board.js');
         loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + TEAM_SEP_SHA + '/js/team-sep.js');
-        loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + ADMIN_SHA + '/js/admin.js');
-        loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + APPROVAL_UI_SHA + '/js/users-admin-approval-ui.js');
-        loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + APPROVAL_UI_SHA + '/js/users-admin-approval-ui.js');
-        /* Override pinned users-nav: rename Admin → Users, hide duplicate Admin tab */
-        loadScript('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + USERS_NAV_SHA + '/js/users-nav.js');
-        loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + USERS_NAV_SHA + '/js/users-nav.js');
-      }, 1600);
+      }, 2000);
+
       setTimeout(function () {
-        if (window.DRSidebarDesign && window.DRSidebarDesign.refresh) try { window.DRSidebarDesign.refresh(); } catch (e) {}
-        if (window.DR_TEAM && window.DR_TEAM.refresh) try { window.DR_TEAM.refresh(); } catch (e) {}
-        if (window.DRUsersNav && window.DRUsersNav.refresh) try { window.DRUsersNav.refresh(); } catch (e3) {}
-        if (typeof window.renderAdminUsers === 'function') try { window.renderAdminUsers(); } catch (e2) {}
-      }, 3000);
+        loadScript(RAW + FIX_SHA + '/js/admin.js');
+        loadScript(RAW + FIX_SHA + '/js/users-nav.js');
+        loadScript(RAW + FIX_SHA + '/js/users-admin-approval-ui.js');
+      }, 3500);
+
+      setTimeout(function () {
+        try {
+          if (window.DRSidebarDesign && window.DRSidebarDesign.refresh) window.DRSidebarDesign.refresh();
+        } catch (e) {}
+        try {
+          if (window.DR_TEAM && window.DR_TEAM.refresh) window.DR_TEAM.refresh();
+        } catch (e2) {}
+        try {
+          if (window.DRUsersNav && window.DRUsersNav.refresh) window.DRUsersNav.refresh();
+        } catch (e3) {}
+      }, 5000);
     } catch (err) {
       console.error(err);
+      clearTimeout(bootTimer);
       var boot = document.getElementById('boot');
-      if (boot) boot.textContent = 'Load error: ' + (err.message || err);
+      if (boot) {
+        boot.innerHTML =
+          '<div>Load error: ' +
+          (err.message || err) +
+          '</div><div class="hint">Hard refresh (Ctrl+Shift+R) or try again in a moment.</div>';
+      }
     }
   })();
   </script>
