@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.5.8" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.5.9" />
   <style>
     html,body{margin:0;background:#0c0c14;color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
     #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae}
@@ -56,7 +56,7 @@
       'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + PIN + '/index.html',
       'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PIN + '/index.html'
     ];
-    var ver = '8.5.8';
+    var ver = '8.5.9';
     var BUST = String(Date.now());
     try {
       if (navigator.serviceWorker) {
@@ -175,7 +175,7 @@
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@233f36150987e8576aab9114d1ca329bf09fa6a0/js/login-nav-fix.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@8afd47c0aa694ef7483f413d2ad7c15ea2be7b30/js/login-shell-sep.js?v=' + ver);
       await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@e02059987af1d6a696163540eebcc88326f3400e/js/dr-dialog.js?v=' + ver);
-      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@6045d7c36bde49b3742ffa4173c6c767018aca82/js/session-boot-guard.js?v=' + ver);
+      await loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@9292789bc6d88ed070f36814c0e2433de7a22295/js/session-boot-guard.js?v=' + ver);
       var scriptSrcs = [];
       doc.querySelectorAll('script[src]').forEach(function (sc) {
         var src = (sc.getAttribute('src') || '').replace(/\?v=[^&"]+/g, '?v=' + ver);
