@@ -5,8 +5,8 @@
  */
 (function () {
   'use strict';
-  if (window.__DR_STAFF_TICKET_NOTIFS_V3) return;
-  window.__DR_STAFF_TICKET_NOTIFS_V3 = 1;
+  if (window.__DR_STAFF_TICKET_NOTIFS_V4) return;
+  window.__DR_STAFF_TICKET_NOTIFS_V4 = 1;
 
   function dr() { return window.DR || {}; }
   function sb() {
@@ -26,12 +26,32 @@
   }
   function isStaff() {
     var p = profile();
-    var role = String((p && p.role) || '').toLowerCase();
-    return role === 'agent' || role === 'admin';
+    if (p) {
+      var role = String(p.role || '').toLowerCase();
+      if (role === 'agent' || role === 'admin' || role === 'developer') return true;
+    }
+    var pa = document.getElementById('portal-agent');
+    if (pa) {
+      try {
+        var st = window.getComputedStyle ? getComputedStyle(pa).display : '';
+        if (st !== 'none' && pa.offsetParent !== null) return true;
+      } catch (e) {}
+      if (pa.classList.contains('active') || pa.classList.contains('show')) return true;
+    }
+    try {
+      if (document.querySelector('.sidebar') && /Admin|IT Tech Support/i.test(document.body.innerText || '')) return true;
+    } catch (e2) {}
+    return false;
   }
   function agentPortalActive() {
     var pa = document.getElementById('portal-agent');
-    return !!(pa && pa.classList.contains('active'));
+    if (!pa) return false;
+    if (pa.classList.contains('active') || pa.classList.contains('show')) return true;
+    try {
+      return getComputedStyle(pa).display !== 'none';
+    } catch (e) {
+      return false;
+    }
   }
   function toast(msg, type) {
     try {
@@ -54,8 +74,7 @@
   }
 
   var CSS = [
-    '#dr-staff-notif-fab{position:fixed;right:1.15rem;bottom:5.1rem;z-index:12005;width:52px;height:52px;border-radius:50%;border:none;cursor:pointer;background:linear-gradient(135deg,#7c6af0,#9b8afb);color:#fff;box-shadow:0 8px 28px rgba(124,106,240,.45);display:none;align-items:center;justify-content:center}',
-    'body:has(#portal-agent.active) #dr-staff-notif-fab{display:flex}',
+    '#dr-staff-notif-fab{position:fixed;right:1.15rem;bottom:5.1rem;z-index:12005;width:52px;height:52px;border-radius:50%;border:none;cursor:pointer;background:linear-gradient(135deg,#7c6af0,#9b8afb);color:#fff;box-shadow:0 8px 28px rgba(124,106,240,.45);display:flex!important;align-items:center;justify-content:center}',
     '#dr-staff-notif-fab svg{width:22px;height:22px;fill:currentColor}',
     '#dr-staff-notif-fab .b{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#ef4444;color:#fff;font-size:11px;font-weight:700;display:none;align-items:center;justify-content:center}',
     '#dr-staff-notif-fab .b.on{display:flex}',
@@ -234,6 +253,8 @@
       existing.style.right = '1.15rem';
       existing.style.width = '52px';
       existing.style.height = '52px';
+      existing.style.display = 'flex';
+      existing.style.zIndex = '12005';
       var panel = document.getElementById('dr-staff-notif-panel');
       if (panel) {
         panel.style.top = 'auto';
@@ -248,6 +269,11 @@
     fab.innerHTML =
       '<svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4a2 2 0 0 0 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4a1.5 1.5 0 0 0-3 0v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>' +
       '<span class="b" id="dr-staff-notif-count">0</span>';
+    fab.style.display = 'flex';
+    fab.style.position = 'fixed';
+    fab.style.right = '1.15rem';
+    fab.style.bottom = '5.1rem';
+    fab.style.zIndex = '12005';
     document.body.appendChild(fab);
 
     var bd = document.createElement('div');
@@ -326,24 +352,29 @@
   }
 
   function boot() {
-    if (!isStaff() && !agentPortalActive()) {
-      return;
-    }
     ensureUi();
+    var fab = document.getElementById('dr-staff-notif-fab');
+    if (fab) {
+      fab.style.display = (isStaff() || agentPortalActive()) ? 'flex' : 'none';
+    }
+    if (!isStaff() && !agentPortalActive()) return;
     refreshBadge();
     subscribeRealtime();
     requestDesktopPermission();
   }
 
   setInterval(function () {
-    if (agentPortalActive() && isStaff()) {
-      ensureUi();
-      if (!channel) subscribeRealtime();
+    ensureUi();
+    var fab = document.getElementById('dr-staff-notif-fab');
+    if (fab) {
+      fab.style.display = (isStaff() || agentPortalActive()) ? 'flex' : 'none';
     }
-  }, 4000);
+    if ((isStaff() || agentPortalActive()) && !channel) subscribeRealtime();
+  }, 2500);
 
-  setTimeout(boot, 1200);
-  setTimeout(boot, 3500);
+  setTimeout(boot, 800);
+  setTimeout(boot, 2000);
+  setTimeout(boot, 4500);
   setTimeout(refreshBadge, 5000);
 
   window.DRStaffNotifs = {
