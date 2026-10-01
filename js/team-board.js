@@ -1,14 +1,16 @@
 /**
- * Divine Rays — team charts (Dashboard only)
- * Credit: Lizzz · All Rights Reserved
+ * Divine Rays — team charts (Dashboard only) — stable, no flicker
+ * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
+  if (window.__DR_TEAM_BOARD_STABLE) return;
+  window.__DR_TEAM_BOARD_STABLE = 1;
 
   function dr() { return window.DR || {}; }
 
   function escapeHtml(s) {
-    return String(s || '')
+    return String(s == null ? '' : s)
       .replace(/&/g, '&')
       .replace(/</g, '<')
       .replace(/>/g, '>')
@@ -17,8 +19,10 @@
 
   var _token = 0;
   var _busy = false;
+  var _lastFp = '';
   var _lastHtml = '';
   var _timer = null;
+  var _ignoreMutUntil = 0;
 
   function isDashboard() {
     var nav = document.querySelector('#portal-agent .nav-btn[data-view="dashboard"]');
@@ -137,6 +141,23 @@
     return { rows: rows, meId: meId };
   }
 
+  function fingerprint(rows, meId) {
+    return rows
+      .map(function (r) {
+        return [
+          r.id,
+          r.name,
+          r.role,
+          r.working,
+          r.solved,
+          r.csatAvg != null ? r.csatAvg.toFixed(2) : '-',
+          r.csatN || 0,
+          meId && r.id === meId ? '1' : '0'
+        ].join(':');
+      })
+      .join('|');
+  }
+
   function donutSvg(solved, working, size) {
     size = size || 120;
     var total = solved + working;
@@ -177,7 +198,7 @@
       ' ' +
       size / 2 +
       ')"/>' +
-      '<text class="donut-center-text" x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="14" font-weight="700" fill="#eeeef6">' +
+      '<text class="donut-center-text" x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="14" font-weight="700" fill="currentColor">' +
       (total ? Math.round(pct * 100) + '%' : '—') +
       '</text></svg>'
     );
@@ -191,7 +212,7 @@
     var dash = (pct * c).toFixed(1);
     var gap = (c - pct * c).toFixed(1);
     return (
-      '<svg width="40" height="40" viewBox="0 0 40 40">' +
+      '<svg class="team-mini-ring" width="40" height="40" viewBox="0 0 40 40">' +
       '<circle cx="20" cy="20" r="' +
       r +
       '" fill="none" stroke="rgba(139,124,247,.25)" stroke-width="4"/>' +
@@ -202,7 +223,7 @@
       ' ' +
       gap +
       '" transform="rotate(-90 20 20)"/>' +
-      '<text class="mini-ring-text" x="20" y="21" text-anchor="middle" dominant-baseline="middle" font-size="9" font-weight="700" fill="#eeeef6">' +
+      '<text class="mini-ring-text" x="20" y="21" text-anchor="middle" dominant-baseline="middle" font-size="9" font-weight="700" fill="currentColor">' +
       (total || 0) +
       '</text></svg>'
     );
@@ -245,7 +266,94 @@
     return !!(box && box.querySelector('.chart-panel, .tower-chart, .team-card'));
   }
 
-  async function renderTeamBoard() {
+  function buildHtml(rows, meId) {
+    var teamWorking = 0;
+    var teamSolved = 0;
+    rows.forEach(function (r) {
+      teamWorking += r.working;
+      teamSolved += r.solved;
+    });
+    var meRow = rows.find(function (r) {
+      return meId && r.id === meId;
+    });
+
+    var html = '<div class="chart-row">';
+    html +=
+      '<div class="chart-panel"><h4 class="chart-title">Team overall</h4>' +
+      '<p class="chart-desc">Share of assigned tickets that are finished</p>' +
+      '<div class="chart-donut-wrap">' +
+      donutSvg(teamSolved, teamWorking, 130) +
+      '<div class="chart-side-stats"><div><strong>' +
+      teamWorking +
+      '</strong><span>Working on</span></div><div><strong>' +
+      teamSolved +
+      '</strong><span>Solved</span></div></div></div></div>';
+
+    if (meRow) {
+      html +=
+        '<div class="chart-panel"><h4 class="chart-title">Your performance</h4>' +
+        '<p class="chart-desc">Your finished vs open tickets</p>' +
+        '<div class="chart-donut-wrap">' +
+        donutSvg(meRow.solved, meRow.working, 130) +
+        '<div class="chart-side-stats"><div><strong>' +
+        meRow.working +
+        '</strong><span>Working on</span></div><div><strong>' +
+        meRow.solved +
+        '</strong><span>Solved</span></div>' +
+        (meRow.csatAvg != null
+          ? '<div><strong>' + meRow.csatAvg.toFixed(1) + '★</strong><span>CSAT</span></div>'
+          : '') +
+        '</div></div></div>';
+    }
+    html += '</div>';
+
+    html +=
+      '<div class="chart-panel full"><h4 class="chart-title">Team comparison</h4>' +
+      '<p class="chart-desc">Taller bars = more tickets handled</p>' +
+      barsHtml(rows) +
+      '</div>';
+
+    // Each person already inside panel — no post-wrap needed
+    html +=
+      '<div class="chart-panel full" data-dr-each-person="1">' +
+      '<h4 class="chart-title">Each person</h4>' +
+      '<p class="chart-desc">Individual workload and ratings</p>' +
+      '<div class="team-cards">';
+
+    rows.forEach(function (r) {
+      var isMe = meId && r.id === meId;
+      var badges = '';
+      if (isMe) badges += '<span class="team-badge you">YOU</span>';
+      if (r.role === 'admin') badges += '<span class="team-badge admin">ADMIN</span>';
+      else if (r.role === 'agent') badges += '<span class="team-badge agent">AGENT</span>';
+
+      html +=
+        '<div class="team-card' +
+        (isMe ? ' is-you' : '') +
+        '" data-agent-id="' +
+        escapeHtml(r.id) +
+        '">' +
+        '<div class="team-card-top">' +
+        miniRing(r.solved, r.working) +
+        '<div class="team-card-name">' +
+        escapeHtml(r.name) +
+        badges +
+        '</div></div>' +
+        '<div class="team-card-stats">' +
+        '<div class="team-stat"><span class="team-stat-num">' +
+        r.working +
+        '</span><span class="team-stat-label">Working on</span></div>' +
+        '<div class="team-stat"><span class="team-stat-num">' +
+        r.solved +
+        '</span><span class="team-stat-label">Solved</span></div>' +
+        '</div></div>';
+    });
+
+    html += '</div></div>';
+    return html;
+  }
+
+  async function renderTeamBoard(force) {
     if (_busy) return;
     if (!isDashboard()) {
       hideTeamSection();
@@ -261,97 +369,55 @@
       if (token !== _token) return;
       var rows = data.rows || [];
       var meId = data.meId;
+
       if (!rows.length) {
-        box.innerHTML = '<p class="team-empty">No agent data yet.</p>';
-        box.classList.add('team-board');
+        var empty = '<p class="team-empty">No agent data yet.</p>';
+        if (box.innerHTML !== empty) {
+          _ignoreMutUntil = Date.now() + 800;
+          box.classList.add('team-board');
+          box.setAttribute('data-dr-team-stable', '1');
+          box.innerHTML = empty;
+        }
+        _lastFp = 'empty';
         return;
       }
 
-      var teamWorking = 0;
-      var teamSolved = 0;
-      rows.forEach(function (r) {
-        teamWorking += r.working;
-        teamSolved += r.solved;
-      });
-      var meRow = rows.find(function (r) {
-        return meId && r.id === meId;
-      });
-
-      var html = '<div class="chart-row">';
-      html +=
-        '<div class="chart-panel"><h4 class="chart-title">Team overall</h4>' +
-        '<p class="chart-desc">Share of assigned tickets that are finished</p>' +
-        '<div class="chart-donut-wrap">' +
-        donutSvg(teamSolved, teamWorking, 130) +
-        '<div class="chart-side-stats"><div><strong>' +
-        teamWorking +
-        '</strong><span>Working on</span></div><div><strong>' +
-        teamSolved +
-        '</strong><span>Solved</span></div></div></div></div>';
-
-      if (meRow) {
-        html +=
-          '<div class="chart-panel"><h4 class="chart-title">Your performance</h4>' +
-          '<p class="chart-desc">Your finished vs open tickets</p>' +
-          '<div class="chart-donut-wrap">' +
-          donutSvg(meRow.solved, meRow.working, 130) +
-          '<div class="chart-side-stats"><div><strong>' +
-          meRow.working +
-          '</strong><span>Working on</span></div><div><strong>' +
-          meRow.solved +
-          '</strong><span>Solved</span></div>' +
-          (meRow.csatAvg != null
-            ? '<div><strong>' + meRow.csatAvg.toFixed(1) + '★</strong><span>CSAT</span></div>'
-            : '') +
-          '</div></div></div>';
+      var fp = fingerprint(rows, meId);
+      if (!force && fp === _lastFp && hasCharts(box)) {
+        return;
       }
-      html += '</div>';
-      html +=
-        '<div class="chart-panel full"><h4 class="chart-title">Team comparison</h4>' +
-        '<p class="chart-desc">Taller bars = more tickets handled</p>' +
-        barsHtml(rows) +
-        '</div>';
-      html += '<h4 class="chart-title" style="margin-top:1.25rem">Each person</h4>';
-      html += '<div class="team-cards">';
-      rows.forEach(function (r) {
-        var isMe = meId && r.id === meId;
-        var badges = '';
-        if (isMe) badges += '<span class="team-badge you">You</span>';
-        if (r.role === 'admin') badges += '<span class="team-badge admin">Admin</span>';
-        html +=
-          '<div class="team-card' + (isMe ? ' is-you' : '') + '">' +
-          '<div class="team-card-top">' +
-          miniRing(r.solved, r.working) +
-          '<div class="team-card-name">' + escapeHtml(r.name) + badges + '</div>' +
-          '</div>' +
-          '<div class="team-card-stats">' +
-          '<div class="team-stat"><span class="team-stat-num">' + r.working + '</span>' +
-          '<span class="team-stat-label">Working on</span></div>' +
-          '<div class="team-stat"><span class="team-stat-num">' + r.solved + '</span>' +
-          '<span class="team-stat-label">Solved</span></div>' +
-          '</div>' +
-          (r.csatAvg != null
-            ? '<div class="team-csat">Avg rating: <strong>' + r.csatAvg.toFixed(1) + ' ★</strong> (' + r.csatN + ')</div>'
-            : '<div class="team-csat">No ratings yet</div>') +
-          '</div>';
-      });
-      html += '</div>';
 
+      var html = buildHtml(rows, meId);
       if (token !== _token || !isDashboard()) return;
+
+      _ignoreMutUntil = Date.now() + 1200;
       box.classList.add('team-board');
+      box.setAttribute('data-dr-team-stable', '1');
       box.innerHTML = html;
       _lastHtml = html;
+      _lastFp = fp;
     } catch (e) {
       console.warn('[team-board]', e);
+      if (_lastHtml && isDashboard() && !hasCharts(box)) {
+        _ignoreMutUntil = Date.now() + 800;
+        box.innerHTML = _lastHtml;
+      }
     } finally {
-      _busy = false;
+      if (token === _token) _busy = false;
     }
+  }
+
+  function scheduleRender(delay) {
+    if (_timer) clearTimeout(_timer);
+    _timer = setTimeout(function () {
+      renderTeamBoard(false);
+    }, delay || 300);
   }
 
   function applyView() {
     if (isDashboard()) {
       showTeamSection();
-      renderTeamBoard();
+      scheduleRender(200);
     } else {
       hideTeamSection();
     }
@@ -359,39 +425,50 @@
 
   function boot() {
     var nav = document.querySelector('#portal-agent .nav');
-    if (nav) {
+    if (nav && !nav.__drTeamObs) {
+      nav.__drTeamObs = true;
       new MutationObserver(function () {
         applyView();
       }).observe(nav, { attributes: true, subtree: true, attributeFilter: ['class'] });
     }
 
     var box = document.getElementById('agent-perf-list');
-    if (box) {
+    if (box && !box.__drTeamObs) {
+      box.__drTeamObs = true;
       new MutationObserver(function () {
         if (_busy || !isDashboard()) return;
+        if (Date.now() < _ignoreMutUntil) return;
+        // Only recover if charts were wiped by another script
         if (!hasCharts(box)) {
-          if (_timer) clearTimeout(_timer);
-          _timer = setTimeout(renderTeamBoard, 150);
+          scheduleRender(250);
         }
       }).observe(box, { childList: true });
     }
 
-    setTimeout(applyView, 800);
-    setTimeout(applyView, 2000);
+    setTimeout(function () {
+      renderTeamBoard(true);
+    }, 900);
+    setTimeout(function () {
+      renderTeamBoard(false);
+    }, 2500);
   }
 
   window.addEventListener('dr-status-saved', function () {
-    setTimeout(renderTeamBoard, 400);
+    scheduleRender(400);
   });
   window.addEventListener('dr-csat-saved', function () {
-    setTimeout(renderTeamBoard, 400);
+    scheduleRender(400);
   });
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else setTimeout(boot, 300);
 
   window.DR_TEAM = {
-    render: renderTeamBoard,
-    refresh: renderTeamBoard
+    render: function () {
+      return renderTeamBoard(true);
+    },
+    refresh: function () {
+      return renderTeamBoard(true);
+    }
   };
 })();
