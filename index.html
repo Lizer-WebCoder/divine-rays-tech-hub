@@ -1,1 +1,78 @@
-FILE_FROM_DISK
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>Divine Rays Tech Hub — Support</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.5.11" />
+  <style>
+    html,body{margin:0;background:#0c0c14;color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
+    #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae}
+  </style>
+  <script>(function(){try{var t=localStorage.getItem('dr_theme')||'dark';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+</head>
+<body>
+  <div id="boot">Loading Divine Rays Tech Hub…</div>
+  <script>
+  (async function () {
+    var SHELL_SHA = '6d66f6b647cf6f4c7340536dab472409bd1de5d6';
+    var TEAM_BOARD_SHA = '6d66f6b647cf6f4c7340536dab472409bd1de5d6';
+    var TEAM_SEP_SHA = '85337adc33ac049cdbf1317bbc20388b4f774739';
+    var BUST = String(Date.now());
+    var urls = [
+      'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + SHELL_SHA + '/index.html',
+      'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + SHELL_SHA + '/index.html'
+    ];
+    function withBust(u) { return u + (u.indexOf('?') === -1 ? '?' : '&') + 'b=' + BUST; }
+    try {
+      var html = null;
+      for (var i = 0; i < urls.length; i++) {
+        try {
+          var r = await fetch(withBust(urls[i]), { cache: 'no-store', credentials: 'omit' });
+          if (r.ok) { html = await r.text(); break; }
+        } catch (e) {}
+      }
+      if (!html) throw new Error('Could not load app shell');
+
+      // Rewrite pins inside the loaded shell so team-board / team-sep stay stable
+      html = html.replace(
+        /var EXTRA_FILES = \[[^\]]*\];/,
+        "var EXTRA_FILES = ['email-notify.js','ticket-plus.js','ticket-plus-fix.js','status-lock.js','polish-fixes.js','saved-views.js','kb.js','team-board.js'];\n    var TEAM_BOARD_SHA = '" + TEAM_BOARD_SHA + "';"
+      );
+      html = html.replace(
+        /var pin = base === 'kb\.js' \? KB_JS_SHA : EXTRA_SHA;/g,
+        "var pin = base === 'kb.js' ? KB_JS_SHA : (base === 'team-board.js' ? TEAM_BOARD_SHA : EXTRA_SHA);"
+      );
+      html = html.replace(
+        /var pin2 = base === 'kb\.js' \? KB_JS_SHA : EXTRA_SHA;/g,
+        "var pin2 = base === 'kb.js' ? KB_JS_SHA : (base === 'team-board.js' ? TEAM_BOARD_SHA : EXTRA_SHA);"
+      );
+      html = html.replace(
+        /https:\/\/cdn\.jsdelivr\.net\/gh\/Lizer-WebCoder\/divine-rays-tech-hub@[a-f0-9]+\/js\/team-sep\.js/g,
+        'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + TEAM_SEP_SHA + '/js/team-sep.js'
+      );
+
+      // Execute the restored shell by replacing document
+      document.open();
+      document.write(html);
+      document.close();
+
+      // After shell boots, force-load stable team-board once more
+      setTimeout(function () {
+        var s = document.createElement('script');
+        s.src = withBust('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + TEAM_BOARD_SHA + '/js/team-board.js');
+        s.async = false;
+        document.body.appendChild(s);
+      }, 2500);
+    } catch (err) {
+      console.error(err);
+      var boot = document.getElementById('boot');
+      if (boot) boot.textContent = 'Load error: ' + (err.message || err);
+    }
+  })();
+  </script>
+</body>
+</html>
