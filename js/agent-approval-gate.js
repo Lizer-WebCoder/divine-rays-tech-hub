@@ -1,14 +1,12 @@
 /**
- * Divine Rays — Agent approval gate V7
- * Document-level intercept (beats all form handlers).
- * Pending only: classic popup + orange login-card glow. No portal flash.
- * Approved / Developers / End-Users: unchanged.
+ * Divine Rays — Agent approval gate V7.1
+ * Faster pending popup, "Sign in as Admin" label, button loading feedback.
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_AGENT_APPROVAL_GATE_V7) return;
-  window.__DR_AGENT_APPROVAL_GATE_V7 = 1;
+  if (window.__DR_AGENT_APPROVAL_GATE_V7 >= 2) return;
+  window.__DR_AGENT_APPROVAL_GATE_V7 = 2;
   window.__DR_AGENT_APPROVAL_GATE_V6 = 99;
   window.__DR_AGENT_APPROVAL_GATE = 1;
 
@@ -21,6 +19,7 @@
   var _pendingToastTimer = null;
   var _busy = false;
   var _allowPass = false;
+  var _btnOrigLabel = 'Sign in as Admin';
 
   function getMap() {
     try {
@@ -90,8 +89,58 @@
       '.login-card.dr-login-pending{' +
       'border-color:rgba(251,146,60,0.95)!important;' +
       'box-shadow:0 0 0 1px rgba(251,146,60,0.55),0 0 36px 10px rgba(251,146,60,0.55),0 0 70px 18px rgba(251,146,60,0.28)!important}' +
-      'body.dr-pending-blocked .toast.success{display:none!important}';
+      'body.dr-pending-blocked .toast.success{display:none!important}' +
+      '#login-agent button[type="submit"].dr-btn-loading,' +
+      '#login-agent .btn.dr-btn-loading{' +
+      'opacity:0.75!important;cursor:wait!important;pointer-events:none!important;' +
+      'transform:scale(0.98);filter:brightness(0.92);' +
+      'box-shadow:inset 0 2px 8px rgba(0,0,0,0.35)!important;' +
+      'transition:transform 0.12s ease,opacity 0.12s ease,filter 0.12s ease}' +
+      '#login-agent button[type="submit"]:not(.dr-btn-loading):active{' +
+      'transform:scale(0.97);filter:brightness(0.9)}' +
+      '#login-agent button[type="submit"]{' +
+      'transition:transform 0.12s ease,opacity 0.12s ease,filter 0.12s ease,box-shadow 0.12s ease}';
     (document.head || document.documentElement).appendChild(el);
+  }
+
+  function getAgentSubmitBtn() {
+    var form = document.getElementById('login-agent');
+    if (!form) return null;
+    return form.querySelector('button[type="submit"]');
+  }
+
+  function polishAdminButton() {
+    var btn = getAgentSubmitBtn();
+    if (!btn) return;
+    var tx = (btn.textContent || '').replace(/\s+/g, ' ').trim();
+    if (/sign\s*in\s*as\s*agent/i.test(tx) || tx === 'Sign In as Agent' || /as agent/i.test(tx)) {
+      btn.textContent = _btnOrigLabel;
+    }
+    if (!btn.getAttribute('data-dr-admin-btn')) {
+      btn.setAttribute('data-dr-admin-btn', '1');
+      btn.setAttribute('aria-label', 'Sign in as Admin');
+    }
+  }
+
+  function setBtnLoading(on) {
+    var btn = getAgentSubmitBtn();
+    if (!btn) return;
+    if (on) {
+      if (!btn.getAttribute('data-dr-label-save')) {
+        btn.setAttribute('data-dr-label-save', (btn.textContent || _btnOrigLabel).trim());
+      }
+      btn.classList.add('dr-btn-loading');
+      btn.disabled = true;
+      btn.setAttribute('aria-busy', 'true');
+      btn.textContent = 'Signing in…';
+    } else {
+      btn.classList.remove('dr-btn-loading');
+      btn.disabled = false;
+      btn.removeAttribute('aria-busy');
+      var saved = btn.getAttribute('data-dr-label-save') || _btnOrigLabel;
+      btn.textContent = saved.indexOf('Agent') !== -1 ? _btnOrigLabel : saved;
+      btn.setAttribute('data-dr-label-save', _btnOrigLabel);
+    }
   }
 
   function setGlow(on) {
@@ -266,9 +315,11 @@
     if (_busy) {
       lockUI();
       showPendingPopup();
+      setBtnLoading(true);
       return;
     }
     _busy = true;
+    setBtnLoading(true);
     lockUI();
     removeSignedIn();
 
@@ -276,6 +327,7 @@
       var client = sb();
       if (!client) {
         unlockUI();
+        setBtnLoading(false);
         _busy = false;
         _allowPass = true;
         try {
@@ -291,13 +343,22 @@
 
       if (!userOrEmail || !password) {
         unlockUI();
+        setBtnLoading(false);
         _busy = false;
         return;
+      }
+
+      var quickUn = userOrEmail.indexOf('@') === -1 ? userOrEmail : '';
+      var quickEm = userOrEmail.indexOf('@') !== -1 ? userOrEmail.toLowerCase() : '';
+      if (isMarkedPending(null, quickUn, quickEm) && !isApproved(null, quickUn, quickEm) && !isDev(quickUn)) {
+        showPendingPopup();
+        setGlow(true);
       }
 
       var email = await resolveEmail(userOrEmail, client);
       if (!email) {
         unlockUI();
+        setBtnLoading(false);
         try {
           var box = document.getElementById('error-login-agent');
           if (box) {
@@ -312,6 +373,7 @@
       var auth = await client.auth.signInWithPassword({ email: email, password: password });
       if (auth.error) {
         unlockUI();
+        setBtnLoading(false);
         try {
           var box2 = document.getElementById('error-login-agent');
           if (box2) {
@@ -327,6 +389,23 @@
       var user = auth.data && auth.data.user;
       if (!user) {
         unlockUI();
+        setBtnLoading(false);
+        _busy = false;
+        return;
+      }
+
+      var hint = userOrEmail.indexOf('@') === -1 ? userOrEmail : '';
+      var metaPending = isPending(user, null, hint);
+      if (metaPending) {
+        showPendingPopup();
+        setGlow(true);
+        removeSignedIn();
+        await quietSignOut();
+        lockUI();
+        setGlow(true);
+        removeSignedIn();
+        showPendingPopup();
+        setBtnLoading(false);
         _busy = false;
         return;
       }
@@ -337,11 +416,11 @@
         profile = pr && pr.data;
       } catch (e1) {}
 
-      var hint = userOrEmail.indexOf('@') === -1 ? userOrEmail : (profile && profile.username) || '';
+      hint = userOrEmail.indexOf('@') === -1 ? userOrEmail : (profile && profile.username) || '';
       var pending = isPending(user, profile, hint);
 
       if (pending) {
-        lockUI();
+        showPendingPopup();
         setGlow(true);
         removeSignedIn();
         await quietSignOut();
@@ -349,12 +428,14 @@
         setGlow(true);
         removeSignedIn();
         showPendingPopup();
+        setBtnLoading(false);
         _busy = false;
         return;
       }
 
       unlockUI();
       removeSignedIn();
+      setBtnLoading(false);
       await quietSignOut();
       _allowPass = true;
       _busy = false;
@@ -364,6 +445,7 @@
       } catch (e4) {}
     } catch (err) {
       unlockUI();
+      setBtnLoading(false);
       _busy = false;
       if (window.DR && window.DR.toast) window.DR.toast((err && err.message) || 'Sign-in error', 'error');
     }
@@ -376,6 +458,7 @@
     if (_allowPass) {
       _allowPass = false;
       unlockUI();
+      setBtnLoading(false);
       return;
     }
 
@@ -385,11 +468,13 @@
       ev.stopImmediatePropagation();
     } catch (e) {}
 
+    setBtnLoading(true);
     handleAgentLogin(form);
   }
 
   function wire() {
     ensureCss();
+    polishAdminButton();
     if (!window.__drApprovalDocSubmitV7) {
       window.__drApprovalDocSubmitV7 = 1;
       document.addEventListener('submit', onSubmitCapture, true);
@@ -398,6 +483,7 @@
 
   setInterval(function () {
     try {
+      polishAdminButton();
       if (!document.body.classList.contains('dr-pending-blocked')) return;
       lockUI();
       removeSignedIn();
@@ -406,7 +492,7 @@
   }, 500);
 
   wire();
-  setInterval(wire, 1500);
+  setInterval(wire, 1200);
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', wire);
   }
