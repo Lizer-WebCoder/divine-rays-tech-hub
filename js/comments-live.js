@@ -1,11 +1,12 @@
 /**
- * Divine Rays — live comments v7 (Messenger order)
+ * Divine Rays — live comments v8
+ * Resolve real ticket UUID before insert (fixes comments_ticket_id_fkey)
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_COMMENTS_LIVE >= 7) return;
-  window.__DR_COMMENTS_LIVE = 7;
+  if (window.__DR_COMMENTS_LIVE >= 8) return;
+  window.__DR_COMMENTS_LIVE = 8;
   window.__DR_COMMENTS_LIVE_V2 = 1;
 
   var channel = null;
@@ -37,7 +38,7 @@
   function isStaff() {
     var p = profile();
     var r = p && String(p.role || '').toLowerCase();
-    return r === 'agent' || r === 'admin';
+    return r === 'agent' || r === 'admin' || r === 'developer';
   }
   function isCustomerView() {
     var pc = document.getElementById('portal-customer');
@@ -52,6 +53,9 @@
       .replace(/</g, '<')
       .replace(/>/g, '>')
       .replace(/"/g, '"');
+  }
+  function isUuid(s) {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(s || ''));
   }
   function formatDate(d) {
     try {
@@ -195,32 +199,122 @@
     );
   }
 
-  function currentTicketId() {
-    var d = document.getElementById('ticket-detail');
-    if (d && d.getAttribute('data-ticket-id')) return d.getAttribute('data-ticket-id');
-    var cust = document.getElementById('cust-ticket-detail');
-    if (cust && cust.getAttribute('data-ticket-id')) return cust.getAttribute('data-ticket-id');
-    return window.__drOpenTicketId || window.__drCustTicketUuid || null;
+  function stampTicketId(tid) {
+    if (!tid || !isUuid(tid)) return;
+    activeTicketId = tid;
+    window.__drOpenTicketId = tid;
+    ['ticket-detail', 'cust-ticket-detail'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.setAttribute('data-ticket-id', tid);
+    });
   }
 
-  async function resolveTicketIdFromDom() {
-    var early = currentTicketId();
-    if (early) return early;
-    var root = document.getElementById('ticket-detail') || document.getElementById('cust-ticket-detail');
-    if (!root) return null;
-    var idEl = root.querySelector('.ticket-id');
-    var num = idEl ? idEl.textContent.trim() : '';
-    if (!num) {
-      var m = (root.textContent || '').match(/DR-\d+/);
-      num = m ? m[0] : '';
+  function rawTicketCandidates() {
+    var out = [];
+    function push(v) {
+      if (v && out.indexOf(v) === -1) out.push(String(v));
     }
+    var d = document.getElementById('ticket-detail');
+    if (d) push(d.getAttribute('data-ticket-id'));
+    var cust = document.getElementById('cust-ticket-detail');
+    if (cust) push(cust.getAttribute('data-ticket-id'));
+    push(window.__drOpenTicketId);
+    push(window.__drCustTicketUuid);
+    push(window.currentTicketId);
+    push(window.currentCustTicketId);
+    try {
+      if (window.DR && typeof window.DR.getCurrentTicketId === 'function') {
+        push(window.DR.getCurrentTicketId());
+      }
+    } catch (e) {}
+    return out;
+  }
+
+  function ticketNumberFromDom() {
+    var roots = [
+      document.getElementById('ticket-detail'),
+      document.getElementById('cust-ticket-detail'),
+      document.getElementById('page-title'),
+      document.body
+    ];
+    for (var i = 0; i < roots.length; i++) {
+      var root = roots[i];
+      if (!root) continue;
+      var el = root.querySelector && root.querySelector('.ticket-id, [data-ticket-number]');
+      if (el) {
+        var t = (el.getAttribute('data-ticket-number') || el.textContent || '').trim();
+        var m = t.match(/DR[-]?\d+/i);
+        if (m) return m[0].toUpperCase().replace(/^DR(?=\d)/, 'DR-');
+        if (t) return t;
+      }
+      var m2 = (root.textContent || '').match(/\bDR-?\d+\b/i);
+      if (m2) return m2[0].toUpperCase().replace(/^DR(?=\d)/, 'DR-');
+    }
+    var pt = document.getElementById('page-title');
+    if (pt) {
+      var m3 = (pt.textContent || '').match(/\bDR-?\d+\b/i);
+      if (m3) return m3[0].toUpperCase().replace(/^DR(?=\d)/, 'DR-');
+    }
+    return null;
+  }
+
+  async function verifyTicketExists(tid) {
+    var client = sb();
+    if (!client || !tid) return false;
+    try {
+      var r = await client.from('tickets').select('id').eq('id', tid).maybeSingle();
+      return !!(r && r.data && r.data.id);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  async function resolveTicketUuid() {
+    var cands = rawTicketCandidates();
+    for (var i = 0; i < cands.length; i++) {
+      if (isUuid(cands[i])) {
+        if (await verifyTicketExists(cands[i])) {
+          stampTicketId(cands[i]);
+          return cands[i];
+        }
+      }
+    }
+
+    var num = ticketNumberFromDom();
     if (!num) return null;
+    if (isUuid(num)) {
+      if (await verifyTicketExists(num)) {
+        stampTicketId(num);
+        return num;
+      }
+      return null;
+    }
+
     var client = sb();
     if (!client) return null;
+
+    var variants = [num, num.toUpperCase(), num.replace(/^DR-/i, 'DR'), String(num).replace(/^DR(?=\d)/i, 'DR-')];
+    var seen = {};
+    for (var v = 0; v < variants.length; v++) {
+      var key = variants[v];
+      if (!key || seen[key]) continue;
+      seen[key] = 1;
+      try {
+        var r = await client.from('tickets').select('id,ticket_number').eq('ticket_number', key).maybeSingle();
+        if (r && r.data && r.data.id) {
+          stampTicketId(r.data.id);
+          return r.data.id;
+        }
+      } catch (e) {}
+    }
+    // last resort: ilike search
     try {
-      var r = await client.from('tickets').select('id, ticket_number').eq('ticket_number', num).limit(1);
-      if (!r.error && r.data && r.data[0]) return r.data[0].id;
-    } catch (e) {}
+      var r2 = await client.from('tickets').select('id,ticket_number').ilike('ticket_number', '%' + num.replace(/^DR-?/i, '') + '%').limit(3);
+      if (r2 && r2.data && r2.data.length === 1) {
+        stampTicketId(r2.data[0].id);
+        return r2.data[0].id;
+      }
+    } catch (e2) {}
     return null;
   }
 
@@ -270,17 +364,41 @@
     var client = sb();
     var me = profile();
     if (!client || !ticketId || !body) return { error: { message: 'Missing ticket or message' } };
-    var payload = { ticket_id: ticketId, body: body, is_internal: !!isInternal };
+
+    // Always resolve to a real UUID that exists
+    var tid = ticketId;
+    if (!isUuid(tid) || !(await verifyTicketExists(tid))) {
+      tid = await resolveTicketUuid();
+    }
+    if (!tid) {
+      return { error: { message: 'Could not find this ticket. Close and reopen it, then try again.' } };
+    }
+
+    var payload = { ticket_id: tid, body: body, is_internal: !!isInternal };
     if (me && me.id) {
       payload.author_id = me.id;
       storeProfile(me);
     }
     var ins = await client.from('comments').insert(payload).select('*').maybeSingle();
-    if (ins.error && /column|schema cache/i.test(ins.error.message || '')) {
-      var minimal = { ticket_id: ticketId, body: body };
-      if (me && me.id) minimal.author_id = me.id;
-      ins = await client.from('comments').insert(minimal).select('*').maybeSingle();
+    if (ins.error) {
+      var msg = ins.error.message || '';
+      if (/foreign key|ticket_id_fkey/i.test(msg)) {
+        // Retry once after re-resolve
+        var tid2 = await resolveTicketUuid();
+        if (tid2 && tid2 !== tid) {
+          payload.ticket_id = tid2;
+          ins = await client.from('comments').insert(payload).select('*').maybeSingle();
+        }
+        if (ins.error && /foreign key|ticket_id_fkey/i.test(ins.error.message || '')) {
+          return { error: { message: 'Ticket not found in database. Reopen the ticket and try again.' } };
+        }
+      } else if (/column|schema cache/i.test(msg)) {
+        var minimal = { ticket_id: tid, body: body };
+        if (me && me.id) minimal.author_id = me.id;
+        ins = await client.from('comments').insert(minimal).select('*').maybeSingle();
+      }
     }
+    if (!ins.error) stampTicketId(tid);
     return ins;
   }
 
@@ -314,7 +432,6 @@
     lastHtml = html;
     list.innerHTML = html;
     bindDeleteButtons(list);
-    // Keep newest message in view (Messenger-style)
     try {
       var last = list.lastElementChild;
       if (last) last.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
@@ -326,10 +443,9 @@
     injectCss();
     var list = listEl();
     if (!list) return;
-    var tid = activeTicketId || currentTicketId() || (await resolveTicketIdFromDom());
+    var tid = activeTicketId || (await resolveTicketUuid());
     if (!tid) return;
-    activeTicketId = tid;
-    window.__drOpenTicketId = tid;
+    stampTicketId(tid);
     busy = true;
     try {
       var comments = await fetchComments(tid);
@@ -350,7 +466,6 @@
         paint(list, '<p class="kb-sub" style="margin:0">No updates yet.</p>');
         return;
       }
-      // Messenger order: oldest at top, newest at bottom (no reverse)
       paint(
         list,
         visible
@@ -409,13 +524,12 @@
       unsub();
       return;
     }
-    var tid = await resolveTicketIdFromDom();
+    var tid = await resolveTicketUuid();
     if (!tid) return;
     if (tid !== activeTicketId) {
-      activeTicketId = tid;
+      stampTicketId(tid);
       lastSig = '';
       lastHtml = '';
-      window.__drOpenTicketId = tid;
       subscribe(tid);
     }
     await refreshList(false);
@@ -437,9 +551,9 @@
     }
     var internalEl = form.querySelector('#comment-internal');
     var isInternal = !!(internalEl && internalEl.checked);
-    var tid = currentTicketId() || activeTicketId || (await resolveTicketIdFromDom());
+    var tid = await resolveTicketUuid();
     if (!tid) {
-      toast('Open a ticket first', 'error');
+      toast('Open a ticket first (could not resolve ticket id)', 'error');
       return;
     }
     var btn = form.querySelector('button[type="submit"], .btn-primary');
@@ -455,19 +569,23 @@
       if (internalEl) internalEl.checked = false;
       if (btn) {
         btn.disabled = false;
-        btn.textContent = btn.dataset._old || 'Send Reply';
+        btn.textContent = btn.dataset._old || 'Add Update';
       }
-      toast('Reply sent', 'success');
+      toast(isInternal ? 'Internal note added' : 'Reply sent', 'success');
       lastSig = '';
       lastHtml = '';
       scheduleRefresh(true, 100);
     } catch (err) {
       var m = (err && err.message) || 'Could not send reply';
-      if (/user_id|assignee_id|schema cache/i.test(m)) m = 'Comment save failed. Try again.';
+      if (/foreign key|ticket_id_fkey/i.test(m)) {
+        m = 'Ticket not found. Close this ticket and open it again, then retry.';
+      } else if (/user_id|assignee_id|schema cache/i.test(m)) {
+        m = 'Comment save failed. Try again.';
+      }
       toast(m, 'error');
       if (btn) {
         btn.disabled = false;
-        btn.textContent = btn.dataset._old || 'Send Reply';
+        btn.textContent = btn.dataset._old || 'Add Update';
       }
     }
   }
@@ -491,6 +609,21 @@
     true
   );
 
+  // When a ticket card is opened, stamp the UUID immediately
+  document.addEventListener(
+    'click',
+    function (e) {
+      var t = e.target;
+      if (!t || !t.closest) return;
+      var card = t.closest('[data-id]');
+      if (card) {
+        var id = card.getAttribute('data-id');
+        if (id && isUuid(id)) stampTicketId(id);
+      }
+    },
+    true
+  );
+
   window.addEventListener('dr-comments-updated', function () {
     scheduleRefresh(true, 200);
   });
@@ -510,6 +643,7 @@
     },
     sync: sync,
     post: postComment,
+    resolveTicketUuid: resolveTicketUuid,
     profileMap: profileMap
   };
 })();
