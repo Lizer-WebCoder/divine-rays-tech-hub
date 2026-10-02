@@ -1,13 +1,13 @@
 /**
- * Divine Rays — UI layout + notifications helpers
+ * Divine Rays — UI layout + notifications helpers v2
  * - Add Update button above Internal note
- * - Mark all as read on staff + end-user notification panels
+ * - Mark all as read (staff + end-user) same compact size
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_UI_LAYOUT_NOTIFS) return;
-  window.__DR_UI_LAYOUT_NOTIFS = 1;
+  if (window.__DR_UI_LAYOUT_NOTIFS >= 2) return;
+  window.__DR_UI_LAYOUT_NOTIFS = 2;
 
   function sb() {
     try {
@@ -27,6 +27,43 @@
     var p = profile();
     var r = p && String(p.role || '').toLowerCase();
     return r === 'agent' || r === 'admin' || r === 'developer';
+  }
+
+  /* Shared compact button style (matches admin/staff) */
+  var MARK_CSS =
+    '#dr-staff-notif-markread,#dr-notif-mark-all{' +
+    'border:1px solid rgba(124,106,240,.4)!important;' +
+    'border-radius:8px!important;' +
+    'padding:.25rem .5rem!important;' +
+    'font-size:.72rem!important;' +
+    'font-weight:600!important;' +
+    'line-height:1.2!important;' +
+    'color:#c4b5fd!important;' +
+    'cursor:pointer!important;' +
+    'background:rgba(124,106,240,.12)!important;' +
+    'white-space:nowrap!important;' +
+    'height:auto!important;' +
+    'min-height:0!important;' +
+    'box-shadow:none!important;' +
+    'width:auto!important;' +
+    'flex:0 0 auto!important' +
+    '}' +
+    'html[data-theme="light"] #dr-staff-notif-markread,' +
+    'html[data-theme="light"] #dr-notif-mark-all{' +
+    'color:#5b21b6!important;background:#ede9fe!important;border-color:rgba(124,106,240,.35)!important' +
+    '}' +
+    '#dr-notif-panel .hd{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:.5rem!important}' +
+    '#dr-notif-panel .hd .hd-actions{display:flex!important;align-items:center!important;gap:.4rem!important;margin-left:auto!important}' +
+    '#dr-notif-panel .hd #dr-notif-close{font-size:1.1rem!important;padding:.15rem .35rem!important;background:0!important;border:0!important}';
+
+  function ensureCss() {
+    var el = document.getElementById('dr-markread-shared-css');
+    if (!el) {
+      el = document.createElement('style');
+      el.id = 'dr-markread-shared-css';
+      document.head.appendChild(el);
+    }
+    el.textContent = MARK_CSS;
   }
 
   /* ========== Comment form: button ABOVE internal note ========== */
@@ -79,15 +116,6 @@
     var clearBtn = document.getElementById('dr-staff-notif-clear');
     if (!actions) return;
 
-    if (!document.getElementById('dr-staff-markread-css')) {
-      var st = document.createElement('style');
-      st.id = 'dr-staff-markread-css';
-      st.textContent =
-        '#dr-staff-notif-markread{border:1px solid rgba(124,106,240,.4)!important;border-radius:8px!important;padding:.25rem .5rem!important;font-size:.72rem!important;color:#c4b5fd!important;cursor:pointer!important;background:rgba(124,106,240,.12)!important;white-space:nowrap!important}' +
-        'html[data-theme="light"] #dr-staff-notif-markread{color:#5b21b6!important;background:#ede9fe!important}';
-      document.head.appendChild(st);
-    }
-
     var btn = document.createElement('button');
     btn.type = 'button';
     btn.id = 'dr-staff-notif-markread';
@@ -124,11 +152,13 @@
     else actions.insertBefore(btn, actions.firstChild);
   }
 
-  /* ========== End-user notifications: Mark all as read ========== */
+  /* ========== End-user notifications: Mark all as read (compact) ========== */
   function injectCustomerMarkRead() {
     var panel = document.getElementById('dr-notif-panel');
     if (!panel) return;
-    if (document.getElementById('dr-notif-mark-all')) return;
+
+    var existing = document.getElementById('dr-notif-mark-all');
+    if (existing) return;
 
     var hd = panel.querySelector('.hd');
     if (!hd) return;
@@ -139,15 +169,6 @@
       var closeBtn = document.getElementById('dr-notif-close');
       if (closeBtn) hd.insertBefore(actions, closeBtn);
       else hd.appendChild(actions);
-    }
-
-    if (!document.getElementById('dr-cust-markread-css')) {
-      var st = document.createElement('style');
-      st.id = 'dr-cust-markread-css';
-      st.textContent =
-        '#dr-notif-mark-all{border:none;border-radius:8px;padding:0.3rem 0.55rem;font-size:0.72rem;background:rgba(124,106,240,.18);color:#c4b5fd;cursor:pointer;white-space:nowrap}' +
-        'html[data-theme="light"] #dr-notif-mark-all{background:#ede9fe;color:#5b21b6}';
-      document.head.appendChild(st);
     }
 
     var btn = document.createElement('button');
@@ -187,6 +208,7 @@
 
   function tick() {
     try {
+      ensureCss();
       layoutCommentForm();
       injectStaffMarkRead();
       injectCustomerMarkRead();
