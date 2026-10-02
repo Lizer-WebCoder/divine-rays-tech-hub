@@ -1,14 +1,13 @@
 /**
- * Divine Rays — Users nav v6
- * Dropdown + End-Users / Admin views
- * Stats: End-Users label + exact count
+ * Divine Rays — Users nav v7
+ * Stats: one End-Users card; Admin shows Staff / Agents / Admins
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_USERS_NAV_V6) return;
+  if (window.__DR_USERS_NAV_V7) return;
+  window.__DR_USERS_NAV_V7 = 1;
   window.__DR_USERS_NAV_V6 = 1;
-  window.__DR_USERS_NAV_V5 = 1;
   window.__DR_USERS_NAV = 1;
 
   var DEVELOPER_USERNAMES = { kirzhian: 1, jamesjerlow123: 1, liya: 1 };
@@ -67,11 +66,22 @@
       '.badge-role-developer{background:rgba(251,191,36,0.2)!important;color:#fbbf24!important}' +
       '.badge-role-pending{background:rgba(251,146,60,0.2)!important;color:#fb923c!important}' +
       '.badge-role-customer{background:rgba(96,165,250,0.2)!important;color:#60a5fa!important}' +
-      /* End-Users view: single End-Users stat card */
+      /* Stats layout */
+      '.admin-stats{display:flex!important;flex-wrap:wrap;gap:0.75rem;align-items:stretch}' +
+      '.admin-stats .stat-card{display:flex!important;flex-direction:column;justify-content:center;' +
+      '  min-width:8.5rem;padding:0.85rem 1rem;border-radius:14px;' +
+      '  background:rgba(20,16,36,.85);border:1px solid rgba(167,139,250,.22)}' +
+      '.admin-stats .stat-card .stat-label{font-size:0.72rem;font-weight:600;letter-spacing:.04em;' +
+      '  text-transform:uppercase;color:#9494ae;margin-bottom:0.25rem}' +
+      '.admin-stats .stat-card .stat-value{font-size:1.45rem;font-weight:700;color:#c4b5fd;line-height:1.1}' +
+      /* End-Users view: ONLY customers card */
       'body.dr-view-endusers .admin-stats .stat-card{display:none!important}' +
-      'body.dr-view-endusers .admin-stats .stat-card.dr-eu-stat{display:flex!important;flex-direction:column;min-width:10rem}' +
-      'body.dr-view-admin-staff .admin-stats .stat-card.dr-eu-stat{display:none!important}' +
-      'body.dr-view-admin-staff .admin-stats .stat-card.dr-staff-stat{display:flex!important;flex-direction:column}';
+      'body.dr-view-endusers .admin-stats .stat-card.dr-stat-endusers{display:flex!important}' +
+      /* Admin staff view: Staff + Agents + Admins (hide End-Users card) */
+      'body.dr-view-admin-staff .admin-stats .stat-card{display:none!important}' +
+      'body.dr-view-admin-staff .admin-stats .stat-card.dr-stat-staff,' +
+      'body.dr-view-admin-staff .admin-stats .stat-card.dr-stat-agents,' +
+      'body.dr-view-admin-staff .admin-stats .stat-card.dr-stat-admins{display:flex!important}';
   }
 
   function isEndUserRole(role) {
@@ -82,7 +92,7 @@
   function isStaffRole(role) {
     var r = String(role || '').toLowerCase().trim();
     if (isEndUserRole(r)) return false;
-    return r === 'admin' || r === 'agent' || r === 'developer' || r === 'staff' || !!r;
+    return r === 'admin' || r === 'agent' || r === 'developer' || r === 'staff' || r === 'administrator';
   }
 
   function setLabelText(card, text) {
@@ -96,109 +106,73 @@
     if (el) el.textContent = String(n == null ? 0 : n);
   }
 
+  function wrapOf(id) {
+    var el = document.getElementById(id);
+    return el ? el.closest('.stat-card') : null;
+  }
+
   function polishStatLabels() {
-    var mode = window.__DR_USERS_LIST_MODE || '';
-    var endMode =
-      mode === 'endusers' || document.body.classList.contains('dr-view-endusers');
+    var usersWrap = wrapOf('admin-stat-users');
+    var custWrap = wrapOf('admin-stat-customers');
+    var agentWrap = wrapOf('admin-stat-agents');
+    var adminWrap = wrapOf('admin-stat-admins');
 
-    var usersCard = document.getElementById('admin-stat-users');
-    var custCard = document.getElementById('admin-stat-customers');
-    var agentCard = document.getElementById('admin-stat-agents');
-    var adminCard = document.getElementById('admin-stat-admins');
+    // Clear old classes
+    [usersWrap, custWrap, agentWrap, adminWrap].forEach(function (w) {
+      if (!w) return;
+      w.classList.remove('dr-eu-stat', 'dr-staff-stat', 'dr-stat-endusers', 'dr-stat-staff', 'dr-stat-agents', 'dr-stat-admins');
+    });
 
-    var usersWrap = usersCard ? usersCard.closest('.stat-card') : null;
-    var custWrap = custCard ? custCard.closest('.stat-card') : null;
-    var agentWrap = agentCard ? agentCard.closest('.stat-card') : null;
-    var adminWrap = adminCard ? adminCard.closest('.stat-card') : null;
-
-    // Permanent labels
+    setLabelText(usersWrap, 'Staff');
     setLabelText(custWrap, 'End-Users');
     setLabelText(agentWrap, 'Agents');
     setLabelText(adminWrap, 'Admins');
 
-    if (endMode) {
-      // Primary card becomes End-Users with exact count
-      setLabelText(usersWrap, 'End-Users');
-      if (usersWrap) {
-        usersWrap.classList.add('dr-eu-stat');
-        usersWrap.classList.remove('dr-staff-stat');
-      }
-      if (custWrap) {
-        custWrap.classList.add('dr-eu-stat');
-      }
-      // Hide staff-only cards via class for CSS
-      [agentWrap, adminWrap].forEach(function (w) {
-        if (w) {
-          w.classList.remove('dr-eu-stat');
-          w.classList.remove('dr-staff-stat');
-        }
-      });
-    } else {
-      setLabelText(usersWrap, 'Staff');
-      if (usersWrap) {
-        usersWrap.classList.add('dr-staff-stat');
-        usersWrap.classList.remove('dr-eu-stat');
-      }
-      [agentWrap, adminWrap, custWrap].forEach(function (w) {
-        if (w) w.classList.add('dr-staff-stat');
-      });
-      if (custWrap) custWrap.classList.remove('dr-eu-stat');
-    }
+    if (custWrap) custWrap.classList.add('dr-stat-endusers');
+    if (usersWrap) usersWrap.classList.add('dr-stat-staff');
+    if (agentWrap) agentWrap.classList.add('dr-stat-agents');
+    if (adminWrap) adminWrap.classList.add('dr-stat-admins');
   }
 
   async function refreshStatCounts() {
     polishStatLabels();
     var client = sb();
-    if (!client) {
-      // Fallback: count visible table rows
-      var rows = document.querySelectorAll('#admin-users-list tbody tr');
-      var visible = 0;
-      rows.forEach(function (r) {
-        if (r.style.display === 'none') return;
-        visible++;
+    var endCount = 0;
+    var agentCount = 0;
+    var adminCount = 0;
+    var staffCount = 0;
+
+    if (client) {
+      try {
+        var r = await client.from('profiles').select('id,role');
+        var rows = r.error ? [] : r.data || [];
+        rows.forEach(function (u) {
+          if (isEndUserRole(u.role)) {
+            endCount++;
+          } else if (isStaffRole(u.role)) {
+            staffCount++;
+            var rr = String(u.role || '').toLowerCase();
+            if (rr === 'agent') agentCount++;
+            else if (rr === 'admin' || rr === 'developer' || rr === 'administrator') adminCount++;
+            else adminCount++; // other staff counted under admins bucket if needed
+          }
+        });
+      } catch (e) {}
+    } else {
+      // Fallback: visible rows
+      var vis = 0;
+      document.querySelectorAll('#admin-users-list tbody tr').forEach(function (row) {
+        if (row.style.display === 'none') return;
+        vis++;
       });
-      var mode = window.__DR_USERS_LIST_MODE || '';
-      if (mode === 'endusers' || document.body.classList.contains('dr-view-endusers')) {
-        setValueText('admin-stat-users', visible);
-        setValueText('admin-stat-customers', visible);
-      } else {
-        setValueText('admin-stat-users', visible);
-      }
-      return;
+      if (document.body.classList.contains('dr-view-endusers')) endCount = vis;
+      else staffCount = vis;
     }
 
-    try {
-      var r = await client.from('profiles').select('id,role');
-      var rows = r.error ? [] : r.data || [];
-      var endCount = 0;
-      var agentCount = 0;
-      var adminCount = 0;
-      var staffCount = 0;
-      rows.forEach(function (u) {
-        if (isEndUserRole(u.role)) {
-          endCount++;
-        } else if (isStaffRole(u.role)) {
-          staffCount++;
-          var rr = String(u.role || '').toLowerCase();
-          if (rr === 'agent') agentCount++;
-          if (rr === 'admin' || rr === 'developer') adminCount++;
-        }
-      });
-
-      var mode = window.__DR_USERS_LIST_MODE || '';
-      var endMode =
-        mode === 'endusers' || document.body.classList.contains('dr-view-endusers');
-
-      if (endMode) {
-        setValueText('admin-stat-users', endCount);
-        setValueText('admin-stat-customers', endCount);
-      } else {
-        setValueText('admin-stat-users', staffCount);
-        setValueText('admin-stat-customers', endCount);
-        setValueText('admin-stat-agents', agentCount);
-        setValueText('admin-stat-admins', adminCount);
-      }
-    } catch (e) {}
+    setValueText('admin-stat-customers', endCount);
+    setValueText('admin-stat-users', staffCount);
+    setValueText('admin-stat-agents', agentCount);
+    setValueText('admin-stat-admins', adminCount);
   }
 
   function findAdminNavBtn() {
