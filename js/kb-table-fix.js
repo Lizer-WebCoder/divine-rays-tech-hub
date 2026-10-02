@@ -1,12 +1,12 @@
 /**
- * Divine Rays — Knowledge Base table v4
- * Column lines, Action header, balanced Edit/Delete spacing
+ * Divine Rays — Knowledge Base table v5
+ * Column lines, Action header, wider gap between Edit/Delete
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_KB_TABLE_FIX >= 4) return;
-  window.__DR_KB_TABLE_FIX = 4;
+  if (window.__DR_KB_TABLE_FIX >= 5) return;
+  window.__DR_KB_TABLE_FIX = 5;
 
   var CSS = [
     '#view-kb table.kb-table, #view-kb table.perf-table, #kb-manage-list table, table.kb-table, table.perf-table.kb-table {',
@@ -42,25 +42,22 @@
     'table.kb-table th:nth-child(5), table.kb-table td:nth-child(5) { width:13%!important }',
     '#view-kb table.kb-table th:nth-child(6), #view-kb table.kb-table td:nth-child(6),',
     'table.kb-table th:nth-child(6), table.kb-table td:nth-child(6) {',
-    '  width:24%!important; min-width:170px!important; overflow:visible!important;',
+    '  width:24%!important; min-width:180px!important; overflow:visible!important;',
     '  white-space:nowrap!important; text-overflow:clip!important; text-align:center!important }',
 
-    /* Action header centered */
     '#view-kb table.kb-table thead th:last-child, table.kb-table thead th:last-child {',
     '  text-align:center!important }',
 
-    /* Actions cell — balanced padding, centered buttons */
     '.kb-row-actions, #view-kb table.kb-table td.kb-row-actions, table.kb-table td.kb-row-actions,',
     '#view-kb table.kb-table td:last-child, table.kb-table td:last-child {',
     '  display:table-cell!important; text-align:center!important; overflow:visible!important;',
-    '  white-space:nowrap!important; padding:.55rem .75rem!important }',
+    '  white-space:nowrap!important; padding:.6rem .85rem!important }',
 
     '.kb-row-actions {',
     '  display:inline-flex!important; flex-direction:row!important; flex-wrap:nowrap!important;',
-    '  align-items:center!important; justify-content:center!important; gap:10px!important;',
-    '  width:auto!important }',
+    '  align-items:center!important; justify-content:center!important; gap:16px!important;',
+    '  width:auto!important; column-gap:16px!important }',
 
-    /* Ensure the cell itself lays out the flex row centered */
     '#view-kb table.kb-table td:last-child, table.kb-table td:last-child {',
     '  text-align:center!important }',
 
@@ -68,17 +65,17 @@
     '#view-kb table.kb-table .kb-edit, #view-kb table.kb-table .kb-del,',
     'table.kb-table .kb-edit, table.kb-table .kb-del {',
     '  display:inline-flex!important; align-items:center!important; justify-content:center!important;',
-    '  height:30px!important; min-height:30px!important; padding:0 14px!important; margin:0!important;',
-    '  font-size:12px!important; font-weight:600!important; line-height:1!important;',
+    '  height:30px!important; min-height:30px!important; padding:0 14px!important;',
+    '  margin:0 6px!important; font-size:12px!important; font-weight:600!important; line-height:1!important;',
     '  border-radius:8px!important; width:auto!important; min-width:62px!important;',
     '  max-width:none!important; flex:0 0 auto!important; box-shadow:none!important;',
     '  overflow:visible!important; white-space:nowrap!important; text-overflow:clip!important;',
     '  letter-spacing:0!important }',
 
     '#view-kb table.kb-table .kb-edit, table.kb-table .kb-edit, .kb-row-actions .kb-edit {',
-    '  background:#7c6af0!important; color:#fff!important; border:none!important }',
+    '  background:#7c6af0!important; color:#fff!important; border:none!important; margin-right:10px!important }',
     '#view-kb table.kb-table .kb-del, table.kb-table .kb-del, .kb-row-actions .kb-del {',
-    '  background:#ef4444!important; color:#fff!important; border:none!important }',
+    '  background:#ef4444!important; color:#fff!important; border:none!important; margin-left:10px!important }',
 
     'html[data-theme="light"] #view-kb table.kb-table, html[data-theme="light"] table.kb-table {',
     '  border-color:rgba(0,0,0,.12)!important; background:#fff!important }',
@@ -105,9 +102,7 @@
   function labelActionHeader() {
     document.querySelectorAll('#view-kb table.kb-table thead th:last-child, table.kb-table thead th:last-child, #kb-manage-list table thead th:last-child').forEach(function (th) {
       var t = (th.textContent || '').trim();
-      if (!t || t === '' || /^\s*$/.test(t)) {
-        th.textContent = 'Action';
-      }
+      if (!t || t === '' || /^\s*$/.test(t)) th.textContent = 'Action';
     });
   }
 
