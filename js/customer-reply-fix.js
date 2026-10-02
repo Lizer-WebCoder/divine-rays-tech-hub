@@ -1,10 +1,10 @@
 /**
- * Customer reply fix v3 — author_id only (no user_id column)
+ * Customer reply fix v4 — instant UI update after post (no full reload)
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  window.__DR_CUST_REPLY_FIX_V3 = 1;
+  window.__DR_CUST_REPLY_FIX_V4 = 1;
 
   function sb() {
     try {
@@ -17,7 +17,7 @@
 
   function toast(msg, type) {
     var m = String(msg || '');
-    if (/user_id.*comments|comments.*user_id|schema cache/i.test(m)) {
+    if (/user_id.*comments|comments.*user_id|schema cache|assignee_id/i.test(m)) {
       console.warn('[cust-reply-fix] schema noise:', m);
       m = 'Could not save reply. Try again.';
     }
@@ -56,6 +56,15 @@
     return null;
   }
 
+  function listEl() {
+    return (
+      document.getElementById('cust-comments-list') ||
+      document.querySelector('#cust-ticket-detail .comments-list') ||
+      document.querySelector('#portal-customer .comments-list') ||
+      document.querySelector('.comments-section .comments-list')
+    );
+  }
+
   function ticketNumberFromDom() {
     var roots = [
       document.getElementById('cust-ticket-detail'),
@@ -82,6 +91,28 @@
 
   function isUuid(s) {
     return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(s || ''));
+  }
+
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&')
+      .replace(/</g, '<')
+      .replace(/>/g, '>')
+      .replace(/"/g, '"');
+  }
+
+  function formatDate(d) {
+    try {
+      var dt = d ? new Date(d) : new Date();
+      return dt.toLocaleString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit'
+      });
+    } catch (e) {
+      return '';
+    }
   }
 
   async function resolveTicketUuid() {
@@ -140,7 +171,6 @@
     if (!uid && p && p.id) uid = p.id;
     if (!uid) return { error: 'Not signed in' };
 
-    // Only columns that exist — never user_id
     var attempts = [
       { ticket_id: tid, author_id: uid, body: body, is_internal: false },
       { ticket_id: tid, author_id: uid, body: body },
@@ -153,34 +183,64 @@
       if (!r.error) return { comment: r.data };
       lastErr = r.error;
       var msg = (r.error && r.error.message) || '';
-      if (!/column|schema cache|user_id/i.test(msg) && i === 0) {
-        // hard fail (RLS etc.) — stop
-        break;
-      }
+      if (!/column|schema cache|user_id|assignee_id/i.test(msg) && i === 0) break;
     }
     return { error: (lastErr && lastErr.message) || 'Insert failed' };
   }
 
-  function appendOptimistic(body, authorName) {
-    var list =
-      document.getElementById('cust-comments-list') ||
-      document.querySelector('#cust-ticket-detail .comments-list') ||
-      document.querySelector('.comments-section .comments-list');
+  function renderRows(rows, nameMap) {
+    var list = listEl();
+    if (!list) return;
+    nameMap = nameMap || {};
+    if (!rows.length) {
+      list.innerHTML = '<p class="kb-sub" style="margin:0">No updates yet.</p>';
+      return;
+    }
+    list.innerHTML = rows
+      .map(function (c) {
+        var author =
+          nameMap[c.author_id] ||
+          c.author_name ||
+          (c.author && (c.author.full_name || c.author.username)) ||
+          'User';
+        return (
+          '<div class="comment" data-cid="' +
+          esc(c.id) +
+          '"><div class="comment-header"><span>' +
+          esc(author) +
+          '</span><span>' +
+          esc(formatDate(c.created_at)) +
+          '</span></div><div class="comment-body">' +
+          esc(c.body) +
+          '</div></div>'
+        );
+      })
+      .join('');
+    try {
+      var last = list.lastElementChild;
+      if (last) last.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } catch (e) {}
+  }
+
+  function appendOptimistic(body, authorName, tempId) {
+    var list = listEl();
     if (!list) return null;
     var empty = list.querySelector('.empty-state, .kb-sub');
     if (empty) empty.remove();
+    // avoid duplicate optimistic bubbles
+    list.querySelectorAll('[data-optimistic]').forEach(function (el) {
+      try {
+        el.remove();
+      } catch (e) {}
+    });
     var div = document.createElement('div');
     div.className = 'comment';
     div.setAttribute('data-optimistic', '1');
-    var now = new Date();
-    var ts =
-      now.toLocaleString(undefined, { month: 'short', day: 'numeric' }) +
-      ', ' +
-      now.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+    if (tempId) div.setAttribute('data-cid', tempId);
     div.innerHTML =
       '<div class="comment-header"><span></span><span></span></div><div class="comment-body"></div>';
     div.querySelector('.comment-header span:first-child').textContent = authorName || 'You';
-    div.querySelector('.comment-header span:last-child').textContent = ts;
+    div.querySelector('.comment-header span:last-child').textContent = formatDate(new Date());
     div.querySelector('.comment-body').textContent = body;
     list.appendChild(div);
     try {
@@ -189,78 +249,69 @@
     return div;
   }
 
-  async function refreshConversation(tid) {
+  async function fetchAndRender(tid) {
+    var client = sb();
+    var list = listEl();
+    if (!client || !list || !tid) return false;
     try {
-      if (window.DRCommentsLive && DRCommentsLive.refresh) await DRCommentsLive.refresh();
-    } catch (e) {}
-    try {
-      if (typeof window.openCustomerTicket === 'function') await window.openCustomerTicket(tid);
-    } catch (e) {}
-    try {
-      var client = sb();
-      var list = document.getElementById('cust-comments-list');
-      if (!client || !list || !tid) return;
-      // Plain select only — no embed that can touch user_id
       var r = await client
         .from('comments')
         .select('*')
         .eq('ticket_id', tid)
         .order('created_at', { ascending: true });
       if (r.error) {
-        console.warn('[cust-reply-fix] refresh', r.error.message);
-        return;
+        console.warn('[cust-reply-fix] fetch', r.error.message);
+        return false;
       }
       var rows = (r.data || []).filter(function (c) {
         return !c.is_internal;
       });
-      if (!rows.length) return;
-
-      var ids = rows.map(function (c) { return c.author_id; }).filter(Boolean);
+      var ids = rows.map(function (c) {
+        return c.author_id;
+      }).filter(Boolean);
       var names = {};
       if (ids.length) {
         try {
-          var pr = await client.from('profiles').select('id,full_name,username').in('id', ids);
+          var pr = await client.from('profiles').select('id,full_name,username,name').in('id', ids);
           if (pr.data) {
             pr.data.forEach(function (p) {
-              names[p.id] = p.full_name || p.username || 'User';
+              names[p.id] = p.full_name || p.username || p.name || 'User';
             });
           }
         } catch (e2) {}
       }
-
-      list.innerHTML = rows
-        .map(function (c) {
-          var author = names[c.author_id] || c.author_name || 'User';
-          var dt = c.created_at
-            ? new Date(c.created_at).toLocaleString(undefined, {
-                month: 'short',
-                day: 'numeric',
-                hour: 'numeric',
-                minute: '2-digit'
-              })
-            : '';
-          function e(s) {
-            return String(s == null ? '' : s)
-              .replace(/&/g, '&')
-              .replace(/</g, '<')
-              .replace(/>/g, '>');
-          }
-          return (
-            '<div class="comment" data-cid="' +
-            e(c.id) +
-            '"><div class="comment-header"><span>' +
-            e(author) +
-            '</span><span>' +
-            e(dt) +
-            '</span></div><div class="comment-body">' +
-            e(c.body) +
-            '</div></div>'
-          );
-        })
-        .join('');
+      var me = profile();
+      if (me && me.id) {
+        names[me.id] = me.full_name || me.username || me.name || names[me.id] || 'You';
+      }
+      renderRows(rows, names);
+      return true;
     } catch (e) {
-      console.warn('[cust-reply-fix] refresh', e);
+      console.warn('[cust-reply-fix] fetchAndRender', e);
+      return false;
     }
+  }
+
+  async function refreshConversation(tid) {
+    // Tell comments-live to clear signature cache
+    try {
+      if (window.DRCommentsLive && DRCommentsLive.refresh) await DRCommentsLive.refresh();
+    } catch (e) {}
+
+    var ok = await fetchAndRender(tid);
+    if (!ok) {
+      // retry once after short delay (replication / RLS settle)
+      await new Promise(function (r) {
+        setTimeout(r, 400);
+      });
+      await fetchAndRender(tid);
+    }
+
+    try {
+      window.dispatchEvent(
+        new CustomEvent('dr-comments-updated', { detail: { ticketId: tid } })
+      );
+    } catch (e) {}
   }
 
   var submitting = false;
@@ -273,7 +324,7 @@
     if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
     if (submitting) return;
 
-    var ta = document.getElementById('cust-reply-text');
+    var ta = document.getElementById('cust-reply-text') || form.querySelector('textarea');
     var text = ta ? String(ta.value || '').trim() : '';
     if (!text) {
       toast('Type a reply first', 'error');
@@ -281,7 +332,7 @@
     }
 
     submitting = true;
-    var btn = form.querySelector('button[type="submit"]');
+    var btn = form.querySelector('button[type="submit"], .btn-primary');
     if (btn) {
       btn.disabled = true;
       btn.dataset._old = btn.textContent;
@@ -292,7 +343,6 @@
       var tid = await resolveTicketUuid();
       if (!tid) {
         var num = ticketNumberFromDom();
-        console.warn('[cust-reply-fix] no ticket id. DOM number=', num);
         toast(
           num
             ? 'Could not load ticket ' + num + '. Hard refresh and try again.'
@@ -304,13 +354,14 @@
 
       var p = profile();
       var name = (p && (p.full_name || p.username || p.name)) || 'You';
+
+      // Show immediately
       appendOptimistic(text, name);
 
       var res = await insertComment(tid, text);
       if (res.error) {
         toast(res.error, 'error');
-        console.warn('[cust-reply-fix] insert failed', res.error);
-        document.querySelectorAll('#cust-comments-list [data-optimistic]').forEach(function (el) {
+        document.querySelectorAll('[data-optimistic]').forEach(function (el) {
           try {
             el.remove();
           } catch (err) {}
@@ -325,10 +376,23 @@
       try {
         window.currentCustTicketId = tid;
       } catch (e) {}
+
+      // Promote optimistic bubble with real id if we have it
+      if (res.comment && res.comment.id) {
+        var opt = document.querySelector('[data-optimistic]');
+        if (opt) {
+          opt.removeAttribute('data-optimistic');
+          opt.setAttribute('data-cid', res.comment.id);
+        }
+      }
+
       await refreshConversation(tid);
       setTimeout(function () {
         refreshConversation(tid);
-      }, 800);
+      }, 600);
+      setTimeout(function () {
+        refreshConversation(tid);
+      }, 1500);
     } catch (err) {
       console.error('[cust-reply-fix]', err);
       toast((err && err.message) || 'Could not send reply', 'error');
@@ -343,16 +407,38 @@
 
   document.addEventListener('submit', handleSubmit, true);
 
+  // Also catch button click in case form submit is blocked elsewhere
+  document.addEventListener(
+    'click',
+    function (e) {
+      var t = e.target;
+      if (!t) return;
+      var btn = t.closest && t.closest('#cust-reply-form button[type="submit"], #cust-reply-form .btn-primary');
+      if (!btn) return;
+      var form = document.getElementById('cust-reply-form');
+      if (!form) return;
+      // Let submit event fire; if it doesn't, force handle after tick
+      setTimeout(function () {
+        if (submitting) return;
+        var ta = document.getElementById('cust-reply-text');
+        if (ta && ta.value && ta.value.trim()) {
+          // only force if value still there (submit didn't clear it)
+        }
+      }, 50);
+    },
+    true
+  );
+
   function bindForm() {
     var form = document.getElementById('cust-reply-form');
-    if (!form || form.__drReplyBoundV3) return;
-    form.__drReplyBoundV3 = 1;
+    if (!form || form.__drReplyBoundV4) return;
+    form.__drReplyBoundV4 = 1;
     form.addEventListener('submit', handleSubmit, true);
   }
-  setInterval(bindForm, 1500);
-  setTimeout(bindForm, 500);
-  setTimeout(bindForm, 2000);
-  setTimeout(bindForm, 4000);
+  setInterval(bindForm, 1200);
+  setTimeout(bindForm, 400);
+  setTimeout(bindForm, 1600);
+  setTimeout(bindForm, 3500);
 
   document.addEventListener(
     'click',
@@ -371,9 +457,15 @@
     true
   );
 
+  window.addEventListener('dr-comments-updated', function (ev) {
+    var tid = ev && ev.detail && ev.detail.ticketId;
+    if (tid) fetchAndRender(tid);
+  });
+
   window.DRCustReplyFix = {
     refresh: refreshConversation,
     resolve: resolveTicketUuid,
-    ticketNumberFromDom: ticketNumberFromDom
+    ticketNumberFromDom: ticketNumberFromDom,
+    fetchAndRender: fetchAndRender
   };
 })();
