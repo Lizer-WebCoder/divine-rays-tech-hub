@@ -1,20 +1,35 @@
 /**
- * Divine Rays — force pending staff block V1 (companion to approval gate)
- * Blocks portal for unapproved staff including IT Tech Support roles.
+ * Divine Rays — force pending staff block V2
+ * Orange login-card glow (10s) + single pending toast that shakes on re-click.
+ * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_FORCE_PENDING_BLOCK) return;
-  window.__DR_FORCE_PENDING_BLOCK = 1;
+  if (window.__DR_FORCE_PENDING_BLOCK >= 2) return;
+  window.__DR_FORCE_PENDING_BLOCK = 2;
 
   var KEY = 'dr_staff_approval';
-  var MSG = 'Your account is pending Administrator approval. Please wait until a Developer/Admin approves your account.';
+  var MSG =
+    'Your account is pending Administrator approval. Please wait until a Developer/Admin approves your account.';
   var DEVS = { kirzhian: 1, jamesjerlow123: 1, liya: 1 };
+  var GLOW_MS = 10000;
+  var TOAST_MS = 10000;
+  var _glowTimer = null;
+  var _toastEl = null;
+  var _toastTimer = null;
+  var _busy = false;
+  var _lastPendingAt = 0;
 
   function map() {
-    try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { return {}; }
+    try {
+      return JSON.parse(localStorage.getItem(KEY) || '{}') || {};
+    } catch (e) {
+      return {};
+    }
   }
-  function isDev(n) { return !!DEVS[String(n || '').toLowerCase().trim()]; }
+  function isDev(n) {
+    return !!DEVS[String(n || '').toLowerCase().trim()];
+  }
   function isApproved(id, un, em) {
     var m = map();
     if (id && m[id] === 'approved') return true;
@@ -31,83 +46,251 @@
     em = em ? String(em).toLowerCase().trim() : '';
     if (un) m['pending:' + un] = 'pending';
     if (em) m['pending:' + em] = 'pending';
-    try { localStorage.setItem(KEY, JSON.stringify(m)); } catch (e) {}
+    try {
+      localStorage.setItem(KEY, JSON.stringify(m));
+    } catch (e) {}
   }
   function isCustomer(r) {
     r = String(r || '').toLowerCase();
-    return r === 'customer' || r === 'user' || r === 'end-user' || r === 'enduser' || r === 'end_user';
+    return (
+      r === 'customer' ||
+      r === 'user' ||
+      r === 'end-user' ||
+      r === 'enduser' ||
+      r === 'end_user'
+    );
   }
   function isStaff(r) {
-    r = String(r || '').toLowerCase().replace(/[_-]+/g, ' ').trim();
+    r = String(r || '')
+      .toLowerCase()
+      .replace(/[_-]+/g, ' ')
+      .trim();
     if (!r) return false;
     if (isCustomer(r)) return false;
-    if (r === 'agent' || r === 'admin' || r === 'owner' || r === 'developer' || r === 'dev') return true;
+    if (
+      r === 'agent' ||
+      r === 'admin' ||
+      r === 'owner' ||
+      r === 'developer' ||
+      r === 'dev'
+    )
+      return true;
     if (r.indexOf('tech support') !== -1 || r.indexOf('it tech') !== -1) return true;
-    if (r.indexOf('admin') !== -1 || r.indexOf('agent') !== -1 || r === 'staff' || r === 'support') return true;
+    if (r.indexOf('admin') !== -1 || r.indexOf('agent') !== -1 || r === 'staff' || r === 'support')
+      return true;
     return false;
   }
   function sb() {
-    try { if (window.DR && window.DR.sb) return window.DR.sb(); } catch (e) {}
+    try {
+      if (window.DR && window.DR.sb) return window.DR.sb();
+    } catch (e) {}
     return window.__drSb || window.__drAgentSb || null;
   }
-  function css() {
+
+  function ensureCss() {
     if (document.getElementById('dr-force-pending-css')) return;
     var s = document.createElement('style');
     s.id = 'dr-force-pending-css';
-    s.textContent =
-      'body.dr-pending-blocked #portal-agent{display:none!important;visibility:hidden!important;opacity:0!important}' +
-      'body.dr-pending-blocked #login-screen{display:flex!important;visibility:visible!important;opacity:1!important;z-index:60!important}' +
-      'body.dr-pending-blocked .login-card,.login-card.dr-login-pending{' +
-      'border-color:rgba(251,146,60,0.95)!important;' +
-      'box-shadow:0 0 0 1px rgba(251,146,60,0.55),0 0 36px 10px rgba(251,146,60,0.55)!important}' +
-      'body.dr-pending-blocked .toast.success{display:none!important}';
+    s.textContent = [
+      'body.dr-pending-blocked #portal-agent{display:none!important;visibility:hidden!important;opacity:0!important}',
+      'body.dr-pending-blocked #login-screen{display:flex!important;visibility:visible!important;opacity:1!important;z-index:60!important}',
+      'body.dr-pending-blocked .toast.success{display:none!important}',
+      '.login-card.login-pending-glow,#login-screen .login-card.login-pending-glow,',
+      '.login-card.dr-login-pending,#login-screen .login-card.dr-login-pending{',
+      'border-color:rgba(251,146,60,0.95)!important;',
+      'box-shadow:0 0 22px rgba(251,146,60,0.85),0 0 52px rgba(249,115,22,0.55),0 0 80px rgba(234,88,12,0.3),0 12px 40px rgba(0,0,0,0.3)!important;',
+      'transition:box-shadow .25s ease,border-color .25s ease!important}',
+      'html[data-theme="light"] .login-card.login-pending-glow,html[data-theme="light"] #login-screen .login-card.login-pending-glow,',
+      'html[data-theme="light"] .login-card.dr-login-pending,html[data-theme="light"] #login-screen .login-card.dr-login-pending{',
+      'border-color:rgba(234,88,12,0.95)!important;',
+      'box-shadow:0 0 28px rgba(251,146,60,0.9),0 0 56px rgba(249,115,22,0.55),0 10px 32px rgba(30,30,60,0.08)!important}',
+      '.login-card.login-pending-shake,#login-screen .login-card.login-pending-shake{',
+      'animation:dr-pending-shake 0.45s ease}',
+      '@keyframes dr-pending-shake{',
+      '0%,100%{transform:translateX(0)}',
+      '15%{transform:translateX(-8px)}',
+      '30%{transform:translateX(8px)}',
+      '45%{transform:translateX(-6px)}',
+      '60%{transform:translateX(6px)}',
+      '75%{transform:translateX(-3px)}',
+      '90%{transform:translateX(3px)}}',
+      '.toast.dr-pending-toast-shake{animation:dr-pending-shake 0.45s ease}',
+      '.toast[data-dr-force-pending]{',
+      'pointer-events:auto;padding:0.9rem 1.15rem;border-radius:14px;max-width:min(22rem,92vw);',
+      'background:rgba(28,22,42,0.98);border:1px solid rgba(251,146,60,0.55);',
+      'color:#eeeef6;font-size:0.9rem;line-height:1.45;box-shadow:0 12px 32px rgba(0,0,0,0.5)}'
+    ].join('');
     (document.head || document.documentElement).appendChild(s);
   }
-  function lock() {
-    css();
+
+  function getLoginCard() {
+    return (
+      document.querySelector('#login-screen .login-card') ||
+      document.querySelector('.login-card') ||
+      null
+    );
+  }
+
+  function applyOrangeGlow() {
+    ensureCss();
+    var card = getLoginCard();
+    if (!card) return;
+    card.classList.remove('login-fail-glow', 'login-fail-shake', 'login-pass-ok', 'login-fail-healing');
+    card.classList.add('login-pending-glow');
+    card.classList.add('dr-login-pending');
+    if (_glowTimer) clearTimeout(_glowTimer);
+    _glowTimer = setTimeout(function () {
+      try {
+        card.classList.remove('login-pending-glow', 'dr-login-pending', 'login-pending-shake');
+      } catch (e) {}
+      _glowTimer = null;
+    }, GLOW_MS);
+  }
+
+  function shakeCard() {
+    var card = getLoginCard();
+    if (!card) return;
+    card.classList.remove('login-pending-shake');
+    void card.offsetWidth;
+    card.classList.add('login-pending-shake');
+    setTimeout(function () {
+      try {
+        card.classList.remove('login-pending-shake');
+      } catch (e) {}
+    }, 500);
+  }
+
+  function lockPortal() {
+    ensureCss();
     try {
       document.body.classList.add('dr-pending-blocked');
-      document.querySelectorAll('.login-card').forEach(function (c) { c.classList.add('dr-login-pending'); });
       var pa = document.getElementById('portal-agent');
-      if (pa) { pa.classList.remove('active'); pa.style.setProperty('display', 'none', 'important'); }
+      if (pa) {
+        pa.classList.remove('active');
+        pa.style.setProperty('display', 'none', 'important');
+      }
       var ls = document.getElementById('login-screen');
-      if (ls) { ls.hidden = false; ls.style.display = ''; ls.classList.add('active'); }
+      if (ls) {
+        ls.hidden = false;
+        ls.style.display = '';
+        ls.classList.add('active');
+      }
     } catch (e) {}
   }
-  function toast() {
-    css();
+
+  function showPendingToast(isRepeat) {
+    ensureCss();
     var c = document.getElementById('toast-container');
     if (!c) {
       c = document.createElement('div');
       c.id = 'toast-container';
-      c.style.cssText = 'position:fixed;top:1rem;right:1rem;z-index:2147483646;display:flex;flex-direction:column;gap:0.5rem;max-width:min(22rem,92vw)';
+      c.style.cssText =
+        'position:fixed;top:1rem;right:1rem;z-index:2147483646;display:flex;flex-direction:column;gap:0.5rem;max-width:min(22rem,92vw);pointer-events:none';
       document.body.appendChild(c);
     }
-    var old = c.querySelector('[data-dr-force-pending]');
-    if (old) try { old.parentNode.removeChild(old); } catch (e) {}
-    var el = document.createElement('div');
-    el.className = 'toast error';
-    el.setAttribute('data-dr-force-pending', '1');
-    el.style.cssText = 'padding:0.9rem 1.15rem;border-radius:14px;background:rgba(28,22,42,0.98);border:1px solid rgba(167,139,250,0.45);color:#eeeef6;font-size:0.9rem;line-height:1.45;box-shadow:0 12px 32px rgba(0,0,0,0.5)';
-    el.textContent = MSG;
-    c.appendChild(el);
-    setTimeout(function () { try { if (el.parentNode) el.parentNode.removeChild(el); } catch (e) {} }, 5000);
+    c.style.zIndex = '2147483646';
+
+    Array.prototype.slice.call(c.querySelectorAll('.toast')).forEach(function (el) {
+      if (el === _toastEl) return;
+      var tx = (el.textContent || '').toLowerCase();
+      if (
+        tx.indexOf('pending') !== -1 ||
+        el.getAttribute('data-dr-force-pending') ||
+        el.getAttribute('data-dr-pending-approval')
+      ) {
+        try {
+          el.parentNode.removeChild(el);
+        } catch (e) {}
+      }
+    });
+
+    if (!_toastEl || !_toastEl.parentNode) {
+      _toastEl = document.createElement('div');
+      _toastEl.className = 'toast error';
+      _toastEl.setAttribute('data-dr-force-pending', '1');
+      _toastEl.setAttribute('role', 'alert');
+      c.appendChild(_toastEl);
+    }
+    _toastEl.textContent = MSG;
+    _toastEl.style.display = 'block';
+    _toastEl.style.opacity = '1';
+    _toastEl.style.visibility = 'visible';
+
+    if (isRepeat) {
+      _toastEl.classList.remove('dr-pending-toast-shake');
+      void _toastEl.offsetWidth;
+      _toastEl.classList.add('dr-pending-toast-shake');
+      setTimeout(function () {
+        try {
+          _toastEl && _toastEl.classList.remove('dr-pending-toast-shake');
+        } catch (e) {}
+      }, 500);
+      shakeCard();
+    }
+
+    if (_toastTimer) clearTimeout(_toastTimer);
+    _toastTimer = setTimeout(function () {
+      try {
+        if (_toastEl && _toastEl.parentNode) _toastEl.parentNode.removeChild(_toastEl);
+      } catch (e) {}
+      _toastEl = null;
+      _toastTimer = null;
+    }, TOAST_MS);
   }
+
+  function showPendingUI(isRepeat) {
+    lockPortal();
+    applyOrangeGlow();
+    showPendingToast(!!isRepeat);
+    try {
+      var c = document.getElementById('toast-container');
+      if (c) {
+        Array.prototype.slice.call(c.querySelectorAll('.toast')).forEach(function (el) {
+          if (((el.textContent || '') + '').toLowerCase().indexOf('signed in') !== -1) {
+            try {
+              el.parentNode.removeChild(el);
+            } catch (e) {}
+          }
+        });
+      }
+    } catch (e2) {}
+  }
+
   function shouldBlock(user, profile) {
     if (!user) return false;
     var meta = user.user_metadata || {};
     var uid = user.id;
     var email = (user.email || (profile && profile.email) || '').toLowerCase();
-    var un = String(meta.username || (profile && profile.username) || '').toLowerCase().trim();
+    var un = String(meta.username || (profile && profile.username) || '')
+      .toLowerCase()
+      .trim();
     if (isDev(un)) return false;
     if (meta.approval_status === 'approved' || meta.approved === true) return false;
     if (isApproved(uid, un, email)) return false;
-    var role = String((profile && profile.role) || meta.role || (profile && profile.staff_role) || meta.staff_role || '').toLowerCase();
+    var role = String(
+      (profile && profile.role) ||
+        meta.role ||
+        (profile && profile.staff_role) ||
+        meta.staff_role ||
+        ''
+    ).toLowerCase();
     if (isCustomer(role) || isCustomer((profile && profile.role) || meta.role)) return false;
-    if (meta.approval_status === 'pending' || meta.approved === false) { markPending(uid, un, email); return true; }
+    if (meta.approval_status === 'pending' || meta.approved === false) {
+      markPending(uid, un, email);
+      return true;
+    }
     var m = map();
-    if ((uid && m[uid] === 'pending') || (un && m['pending:' + un] === 'pending') || (email && m['pending:' + email] === 'pending')) return true;
-    if (isStaff(role) || isStaff((profile && profile.role) || '') || isStaff((profile && profile.staff_role) || '')) {
+    if (
+      (uid && m[uid] === 'pending') ||
+      (un && m['pending:' + un] === 'pending') ||
+      (email && m['pending:' + email] === 'pending')
+    )
+      return true;
+    if (
+      isStaff(role) ||
+      isStaff((profile && profile.role) || '') ||
+      isStaff((profile && profile.staff_role) || '')
+    ) {
       markPending(uid, un, email);
       return true;
     }
@@ -117,33 +300,43 @@
     }
     return false;
   }
+
   async function kick() {
     try {
       var client = sb();
       if (client && client.auth) await client.auth.signOut({ scope: 'local' });
     } catch (e) {}
-    try { window.__drFullLoaded = false; window.__drBooting = false; window.__drProfile = null; } catch (e2) {}
+    try {
+      window.__drFullLoaded = false;
+      window.__drBooting = false;
+      window.__drProfile = null;
+    } catch (e2) {}
   }
+
   function wrapShowApp() {
     function wrap(fn) {
-      if (!fn || fn.__drForcePendingWrap) return fn;
+      if (!fn || fn.__drForcePendingWrapV2) return fn;
       var w = function (p) {
         try {
           var role = p && p.role;
           var un = (p && p.username) || '';
           var em = (p && p.email) || '';
           var id = p && p.id;
-          if (!isDev(un) && !isApproved(id, un, em) && !isCustomer(role) && (isStaff(role) || isStaff(p && p.staff_role) || (p && !isCustomer(role)))) {
+          if (
+            !isDev(un) &&
+            !isApproved(id, un, em) &&
+            !isCustomer(role) &&
+            (isStaff(role) || isStaff(p && p.staff_role) || (p && !isCustomer(role)))
+          ) {
             markPending(id, un, em);
-            lock();
-            toast();
+            showPendingUI(false);
             kick();
             return;
           }
         } catch (e) {}
         return fn.apply(this, arguments);
       };
-      w.__drForcePendingWrap = 1;
+      w.__drForcePendingWrapV2 = 1;
       return w;
     }
     try {
@@ -151,10 +344,10 @@
       if (window.DR && typeof window.DR.showApp === 'function') window.DR.showApp = wrap(window.DR.showApp);
     } catch (e) {}
   }
-  var busy = false;
+
   async function checkSession() {
-    if (busy) return;
-    busy = true;
+    if (_busy) return;
+    _busy = true;
     try {
       wrapShowApp();
       var client = sb();
@@ -169,17 +362,81 @@
         profile = pr && pr.data;
       } catch (e) {}
       if (shouldBlock(user, profile)) {
-        lock();
-        toast();
+        showPendingUI(false);
         await kick();
-        lock();
+        lockPortal();
+        applyOrangeGlow();
       }
     } catch (e) {
     } finally {
-      busy = false;
+      _busy = false;
     }
   }
+
+  function observePendingToast() {
+    var c = document.getElementById('toast-container');
+    if (!c) return;
+    var found = false;
+    Array.prototype.slice.call(c.querySelectorAll('.toast')).forEach(function (el) {
+      var tx = (el.textContent || '').toLowerCase();
+      if (tx.indexOf('pending administrator approval') !== -1) found = true;
+    });
+    if (found) {
+      var now = Date.now();
+      var isRepeat = now - _lastPendingAt < 8000 && _lastPendingAt > 0;
+      _lastPendingAt = now;
+      applyOrangeGlow();
+      if (isRepeat) showPendingToast(true);
+      else showPendingToast(false);
+      Array.prototype.slice.call(c.querySelectorAll('.toast')).forEach(function (el) {
+        if (el === _toastEl) return;
+        var tx = (el.textContent || '').toLowerCase();
+        if (tx.indexOf('pending administrator approval') !== -1) {
+          try {
+            el.parentNode.removeChild(el);
+          } catch (e) {}
+        }
+      });
+    }
+  }
+
+  function onSubmit(ev) {
+    var form = ev.target;
+    if (!form || form.id !== 'login-agent') return;
+    try {
+      var inp = document.getElementById('agent-username') || document.getElementById('agent-user');
+      var userOrEmail = inp ? (inp.value || '').trim() : '';
+      var un = userOrEmail.indexOf('@') === -1 ? userOrEmail.toLowerCase() : '';
+      var em = userOrEmail.indexOf('@') !== -1 ? userOrEmail.toLowerCase() : '';
+      var m = map();
+      var marked =
+        (un && m['pending:' + un] === 'pending') || (em && m['pending:' + em] === 'pending');
+      if (marked && !isApproved(null, un, em) && !isDev(un)) {
+        var now = Date.now();
+        var isRepeat = now - _lastPendingAt < 8000 && _lastPendingAt > 0;
+        _lastPendingAt = now;
+        setTimeout(function () {
+          showPendingUI(isRepeat);
+        }, 30);
+      }
+    } catch (e) {}
+  }
+
+  if (!window.__drForcePendingSubmitV2) {
+    window.__drForcePendingSubmitV2 = 1;
+    document.addEventListener('submit', onSubmit, true);
+  }
+
   wrapShowApp();
   checkSession();
-  setInterval(function () { wrapShowApp(); checkSession(); }, 800);
+  setInterval(function () {
+    wrapShowApp();
+    checkSession();
+    observePendingToast();
+  }, 700);
+
+  window.DRForcePending = {
+    showPendingUI: showPendingUI,
+    applyOrangeGlow: applyOrangeGlow
+  };
 })();
