@@ -1,15 +1,15 @@
 /**
- * Divine Rays — Agent approval gate V5.1
+ * Divine Rays — Agent approval gate V5.2
  * Scope: ONLY pending Agent/Admin (IT Tech Support) staff.
  * Approved staff, Developers, and all End-Users: normal login unchanged.
  * Soft block without full page refresh or portal flash.
- * Soft sign-out; login screen + animations stay intact.
+ * Pending: no "Signed in" toast; orange glow on login card.
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_AGENT_APPROVAL_GATE_V5 >= 2) return;
-  window.__DR_AGENT_APPROVAL_GATE_V5 = 2;
+  if (window.__DR_AGENT_APPROVAL_GATE_V5 >= 3) return;
+  window.__DR_AGENT_APPROVAL_GATE_V5 = 3;
   window.__DR_AGENT_APPROVAL_GATE_V4 = 1;
   window.__DR_AGENT_APPROVAL_GATE_V3 = 1;
   window.__DR_AGENT_APPROVAL_GATE = 1;
@@ -94,7 +94,6 @@
       (document.head || document.documentElement).appendChild(el);
     }
     el.textContent =
-      /* Only staff portal is locked — End-Users / approved / developers unaffected */
       'body.dr-pending-blocked #portal-agent{' +
       '  display:none!important;visibility:hidden!important;pointer-events:none!important;' +
       '  opacity:0!important}' +
@@ -107,15 +106,28 @@
       'body.dr-pending-blocked .lifeline,' +
       'body.dr-pending-blocked #lifeline,' +
       'body.dr-pending-blocked .heartbeat-canvas{' +
-      '  visibility:visible!important;opacity:1!important}';
+      '  visibility:visible!important;opacity:1!important}' +
+      'body.dr-pending-blocked .login-card,' +
+      '.login-card.dr-login-pending{' +
+      '  border-color:rgba(251,146,60,0.85)!important;' +
+      '  box-shadow:0 0 0 1px rgba(251,146,60,0.45),0 0 28px 6px rgba(251,146,60,0.45),0 0 56px 12px rgba(251,146,60,0.22)!important;' +
+      '  transition:box-shadow 0.35s ease,border-color 0.35s ease}' +
+      'body.dr-pending-blocked .toast.success,' +
+      'body.dr-pending-blocked .toast[data-dr-signed-in]{display:none!important}';
     _blockCssReady = true;
   }
 
   function setPendingBlocked(on) {
     ensureBlockCss();
     try {
-      if (on) document.body.classList.add('dr-pending-blocked');
-      else document.body.classList.remove('dr-pending-blocked');
+      if (on) {
+        document.body.classList.add('dr-pending-blocked');
+        setLoginPendingGlow(true);
+        removeSignedInToasts();
+      } else {
+        document.body.classList.remove('dr-pending-blocked');
+        setLoginPendingGlow(false);
+      }
     } catch (e) {}
   }
 
@@ -178,6 +190,34 @@
     _lastPendingShow = Date.now();
   }
 
+  function removeSignedInToasts() {
+    try {
+      var c = document.getElementById('toast-container');
+      if (!c) return;
+      Array.prototype.slice.call(c.querySelectorAll('.toast')).forEach(function (el) {
+        var tx = (el.textContent || '').toLowerCase();
+        if (
+          tx.indexOf('signed in') !== -1 ||
+          tx.indexOf('sign in…') !== -1 ||
+          tx.indexOf('sign in...') !== -1
+        ) {
+          try {
+            el.parentNode && el.parentNode.removeChild(el);
+          } catch (e0) {}
+        }
+      });
+    } catch (e) {}
+  }
+
+  function setLoginPendingGlow(on) {
+    try {
+      document.querySelectorAll('.login-card').forEach(function (card) {
+        if (on) card.classList.add('dr-login-pending');
+        else card.classList.remove('dr-login-pending');
+      });
+    } catch (e) {}
+  }
+
   function showAgentError(msg) {
     try {
       var box = document.getElementById('error-login-agent');
@@ -190,10 +230,6 @@
     showPendingToast(msg || PENDING_MSG);
   }
 
-  /**
-   * true = must block (pending staff only).
-   * false = allow (Developers, approved staff, End-Users, unknown).
-   */
   async function checkPendingAndBlock(user, profile, loginHint) {
     if (!user) return false;
     var meta = user.user_metadata || {};
@@ -209,16 +245,12 @@
       .toLowerCase()
       .trim();
 
-    /* Developers always allowed */
     if (isDeveloperUsername(username)) return false;
-
-    /* Explicitly approved */
     if (meta.approval_status === 'approved' || meta.approved === true) return false;
     if (isApproved(uid, username, email)) return false;
 
     var role = String((profile && profile.role) || meta.role || '').toLowerCase();
 
-    /* End-Users / customers never gated */
     if (
       role === 'customer' ||
       role === 'user' ||
@@ -237,7 +269,6 @@
     }
     if (isMarkedPending(uid, username, email)) return true;
 
-    /* Unapproved staff only */
     if (isStaff) {
       markPending(uid, username, email);
       return true;
@@ -287,11 +318,14 @@
     }
     _gateBusy = true;
     showLoginOnly();
+    removeSignedInToasts();
     await softSignOut();
     showLoginOnly();
+    removeSignedInToasts();
     if (!silent || Date.now() - _lastPendingShow > 2500) {
       showAgentError(PENDING_MSG);
     }
+    removeSignedInToasts();
     _lastKick = Date.now();
     setTimeout(function () {
       _gateBusy = false;
@@ -300,8 +334,9 @@
     var hold = setInterval(function () {
       n++;
       showLoginOnly();
-      if (n > 15) clearInterval(hold);
-    }, 150);
+      removeSignedInToasts();
+      if (n > 20) clearInterval(hold);
+    }, 120);
     return true;
   }
 
@@ -359,8 +394,42 @@
     } catch (e) {}
   }
 
+  function patchToast() {
+    try {
+      if (window.DR && typeof window.DR.toast === 'function' && !window.DR.toast.__drPendingFilter) {
+        var orig = window.DR.toast;
+        window.DR.toast = function (msg, type) {
+          try {
+            if (
+              document.body.classList.contains('dr-pending-blocked') &&
+              /signed in/i.test(String(msg || ''))
+            ) {
+              return;
+            }
+          } catch (e) {}
+          return orig.apply(this, arguments);
+        };
+        window.DR.toast.__drPendingFilter = 1;
+      }
+      if (typeof window.toast === 'function' && !window.toast.__drPendingFilter) {
+        var orig2 = window.toast;
+        window.toast = function (msg, type) {
+          try {
+            if (
+              document.body.classList.contains('dr-pending-blocked') &&
+              /signed in/i.test(String(msg || ''))
+            ) {
+              return;
+            }
+          } catch (e) {}
+          return orig2.apply(this, arguments);
+        };
+        window.toast.__drPendingFilter = 1;
+      }
+    } catch (e) {}
+  }
+
   function wireLoginGate() {
-    /* Agent login form only — never customer form */
     var form = document.getElementById('login-agent');
     if (!form || form.__drApprovalGateV5) return;
     form.__drApprovalGateV5 = 1;
@@ -431,6 +500,7 @@
       (async function () {
         try {
           patchShowApp();
+          patchToast();
           var pa = document.getElementById('portal-agent');
           var portalOpen = !!(pa && pa.classList.contains('active'));
           var client = sb();
@@ -457,7 +527,6 @@
 
           var role = String((profile && profile.role) || meta.role || '').toLowerCase();
 
-          /* End-Users: never block */
           if (
             role === 'customer' ||
             role === 'user' ||
@@ -477,6 +546,7 @@
           var blocked = await checkPendingAndBlock(user, profile, meta.username || '');
           if (blocked) {
             showLoginOnly();
+            removeSignedInToasts();
             if (Date.now() - _lastKick > 3000) {
               await kickPending(user, profile, meta.username || '', true);
             }
@@ -540,10 +610,15 @@
 
   function tick() {
     ensureBlockCss();
+    patchToast();
     wireLoginGate();
     wireSessionGuard();
     wirePortalObserver();
     patchShowApp();
+    if (document.body.classList.contains('dr-pending-blocked')) {
+      removeSignedInToasts();
+      setLoginPendingGlow(true);
+    }
   }
 
   tick();
