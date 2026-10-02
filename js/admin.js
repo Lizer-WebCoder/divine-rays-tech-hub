@@ -2,7 +2,7 @@
  * Divine Rays Tech Hub — Admin module
  * Edit name/username, delete users, send password reset
  * Users list modes: endusers (customers only) | staff (admin/agent only)
- * Credit: Boyz at the Back LRK · All Rights Reserved
+ * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
@@ -11,6 +11,17 @@
   function toast(m, t) { if (DR().toast) DR().toast(m, t); }
   function esc(s) { return DR().esc ? DR().esc(s) : String(s || ''); }
   function fmt(d) { return DR().fmt ? DR().fmt(d) : (d || ''); }
+
+  var DEVELOPERS = { kirzhian: 1, jamesjerlow123: 1, liya: 1 };
+
+  function canManageUsers(profile) {
+    if (!profile) return false;
+    var role = String(profile.role || '').toLowerCase();
+    var un = String(profile.username || '').toLowerCase().trim();
+    if (role === 'admin' || role === 'developer') return true;
+    if (DEVELOPERS[un]) return true;
+    return false;
+  }
 
   async function ask(msg, opts) {
     try {
@@ -125,16 +136,43 @@
     toast('Password reset email sent', 'success');
   }
 
+  function showAdminView() {
+    var view = document.getElementById('view-admin');
+    if (!view) return false;
+    document.querySelectorAll('#portal-agent .view').forEach(function (x) {
+      x.classList.remove('active');
+      try { x.style.display = 'none'; } catch (e) {}
+    });
+    view.classList.add('active');
+    view.style.display = '';
+    view.style.visibility = 'visible';
+    view.style.opacity = '1';
+    // mark Users nav active; clear other primary nav actives
+    document.querySelectorAll('#portal-agent .nav-btn').forEach(function (b) {
+      if (b.closest('#dr-users-sub')) return;
+      if (b.getAttribute('data-dr-users-root')) b.classList.add('active');
+      else if (!b.closest('#dr-users-sub')) b.classList.remove('active');
+    });
+    return true;
+  }
+
   async function renderAdminUsers(mode) {
-    var profile = DR().getProfile && DR().getProfile();
-    if (!profile || profile.role !== 'admin') { toast('Admin only', 'error'); return; }
+    var profile = (DR().getProfile && DR().getProfile()) || window.__drProfile || null;
+    if (!canManageUsers(profile)) {
+      toast('Admin only', 'error');
+      return;
+    }
     if (mode === 'endusers' || mode === 'staff') {
       window.__DR_USERS_LIST_MODE = mode;
     }
     var listMode = window.__DR_USERS_LIST_MODE || 'staff';
     ensureModal();
+    showAdminView();
     var box = document.getElementById('admin-users-list');
-    if (!box) return;
+    if (!box) {
+      toast('Users panel not ready — hard refresh (Ctrl+Shift+R)', 'error');
+      return;
+    }
     box.innerHTML = '<div class="empty-state"><p>Loading users…</p></div>';
     var users = await fetchAllProfiles();
     var q = ((document.getElementById('admin-search') || {}).value || '').toLowerCase().trim();
