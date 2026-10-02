@@ -1,11 +1,10 @@
 /**
- * Customer reply fix v2 — resolve ticket from DOM (.ticket-id), real insert + refresh
- * Credit: Boyz at the Back LRK · All Rights Reserved
+ * Customer reply fix v3 — author_id only (no user_id column)
+ * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_CUST_REPLY_FIX_V2) return;
-  window.__DR_CUST_REPLY_FIX_V2 = 1;
+  window.__DR_CUST_REPLY_FIX_V3 = 1;
 
   function sb() {
     try {
@@ -17,8 +16,13 @@
   }
 
   function toast(msg, type) {
+    var m = String(msg || '');
+    if (/user_id.*comments|comments.*user_id|schema cache/i.test(m)) {
+      console.warn('[cust-reply-fix] schema noise:', m);
+      m = 'Could not save reply. Try again.';
+    }
     try {
-      if (window.DR && DR.toast) return DR.toast(msg, type);
+      if (window.DR && DR.toast) return DR.toast(m, type);
     } catch (e) {}
     var c = document.getElementById('toast-container');
     if (!c) {
@@ -30,14 +34,16 @@
     }
     var e = document.createElement('div');
     e.className = 'toast ' + (type || 'info');
-    e.textContent = msg;
+    e.textContent = m;
     e.style.cssText =
       'background:#1a1830;border:1px solid rgba(167,139,250,.4);color:#eeeef6;padding:.65rem 1rem;border-radius:10px;font-size:.85rem;box-shadow:0 8px 24px rgba(0,0,0,.35)';
     if (type === 'error') e.style.borderColor = 'rgba(239,68,68,.5)';
     if (type === 'success') e.style.borderColor = 'rgba(52,211,153,.45)';
     c.appendChild(e);
     setTimeout(function () {
-      try { e.remove(); } catch (err) {}
+      try {
+        e.remove();
+      } catch (err) {}
     }, 3500);
   }
 
@@ -134,26 +140,25 @@
     if (!uid && p && p.id) uid = p.id;
     if (!uid) return { error: 'Not signed in' };
 
-    var row = {
-      ticket_id: tid,
-      author_id: uid,
-      body: body,
-      is_internal: false
-    };
-    var r = await client.from('comments').insert(row).select().single();
-    if (r.error) {
-      var row2 = {
-        ticket_id: tid,
-        user_id: uid,
-        author_id: uid,
-        body: body,
-        is_internal: false
-      };
-      var r2 = await client.from('comments').insert(row2).select().single();
-      if (r2.error) return { error: r2.error.message || r.error.message || 'Insert failed' };
-      return { comment: r2.data };
+    // Only columns that exist — never user_id
+    var attempts = [
+      { ticket_id: tid, author_id: uid, body: body, is_internal: false },
+      { ticket_id: tid, author_id: uid, body: body },
+      { ticket_id: tid, body: body }
+    ];
+
+    var lastErr = null;
+    for (var i = 0; i < attempts.length; i++) {
+      var r = await client.from('comments').insert(attempts[i]).select('*').maybeSingle();
+      if (!r.error) return { comment: r.data };
+      lastErr = r.error;
+      var msg = (r.error && r.error.message) || '';
+      if (!/column|schema cache|user_id/i.test(msg) && i === 0) {
+        // hard fail (RLS etc.) — stop
+        break;
+      }
     }
-    return { comment: r.data };
+    return { error: (lastErr && lastErr.message) || 'Insert failed' };
   }
 
   function appendOptimistic(body, authorName) {
@@ -178,7 +183,9 @@
     div.querySelector('.comment-header span:last-child').textContent = ts;
     div.querySelector('.comment-body').textContent = body;
     list.appendChild(div);
-    try { div.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch (e) {}
+    try {
+      div.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } catch (e) {}
     return div;
   }
 
@@ -193,26 +200,37 @@
       var client = sb();
       var list = document.getElementById('cust-comments-list');
       if (!client || !list || !tid) return;
+      // Plain select only — no embed that can touch user_id
       var r = await client
         .from('comments')
-        .select('*, author:profiles(full_name,username)')
+        .select('*')
         .eq('ticket_id', tid)
         .order('created_at', { ascending: true });
       if (r.error) {
-        r = await client
-          .from('comments')
-          .select('*')
-          .eq('ticket_id', tid)
-          .order('created_at', { ascending: true });
+        console.warn('[cust-reply-fix] refresh', r.error.message);
+        return;
       }
-      var rows = (r.data || []).filter(function (c) { return !c.is_internal; });
+      var rows = (r.data || []).filter(function (c) {
+        return !c.is_internal;
+      });
       if (!rows.length) return;
+
+      var ids = rows.map(function (c) { return c.author_id; }).filter(Boolean);
+      var names = {};
+      if (ids.length) {
+        try {
+          var pr = await client.from('profiles').select('id,full_name,username').in('id', ids);
+          if (pr.data) {
+            pr.data.forEach(function (p) {
+              names[p.id] = p.full_name || p.username || 'User';
+            });
+          }
+        } catch (e2) {}
+      }
+
       list.innerHTML = rows
         .map(function (c) {
-          var author =
-            (c.author && (c.author.full_name || c.author.username)) ||
-            c.author_name ||
-            'User';
+          var author = names[c.author_id] || c.author_name || 'User';
           var dt = c.created_at
             ? new Date(c.created_at).toLocaleString(undefined, {
                 month: 'short',
@@ -221,15 +239,21 @@
                 minute: '2-digit'
               })
             : '';
+          function e(s) {
+            return String(s == null ? '' : s)
+              .replace(/&/g, '&')
+              .replace(/</g, '<')
+              .replace(/>/g, '>');
+          }
           return (
             '<div class="comment" data-cid="' +
-            (c.id || '') +
+            e(c.id) +
             '"><div class="comment-header"><span>' +
-            String(author).replace(/</g, '<') +
+            e(author) +
             '</span><span>' +
-            String(dt).replace(/</g, '<') +
+            e(dt) +
             '</span></div><div class="comment-body">' +
-            String(c.body || '').replace(/</g, '<') +
+            e(c.body) +
             '</div></div>'
           );
         })
@@ -246,7 +270,7 @@
     if (!form || form.id !== 'cust-reply-form') return;
     e.preventDefault();
     e.stopPropagation();
-    e.stopImmediatePropagation();
+    if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
     if (submitting) return;
 
     var ta = document.getElementById('cust-reply-text');
@@ -287,7 +311,9 @@
         toast(res.error, 'error');
         console.warn('[cust-reply-fix] insert failed', res.error);
         document.querySelectorAll('#cust-comments-list [data-optimistic]').forEach(function (el) {
-          try { el.remove(); } catch (err) {}
+          try {
+            el.remove();
+          } catch (err) {}
         });
         return;
       }
@@ -296,9 +322,13 @@
       toast('Reply sent', 'success');
       window.__drCustTicketUuid = tid;
       window.__drOpenTicketId = tid;
-      try { window.currentCustTicketId = tid; } catch (e) {}
+      try {
+        window.currentCustTicketId = tid;
+      } catch (e) {}
       await refreshConversation(tid);
-      setTimeout(function () { refreshConversation(tid); }, 800);
+      setTimeout(function () {
+        refreshConversation(tid);
+      }, 800);
     } catch (err) {
       console.error('[cust-reply-fix]', err);
       toast((err && err.message) || 'Could not send reply', 'error');
@@ -315,8 +345,8 @@
 
   function bindForm() {
     var form = document.getElementById('cust-reply-form');
-    if (!form || form.__drReplyBoundV2) return;
-    form.__drReplyBoundV2 = 1;
+    if (!form || form.__drReplyBoundV3) return;
+    form.__drReplyBoundV3 = 1;
     form.addEventListener('submit', handleSubmit, true);
   }
   setInterval(bindForm, 1500);
