@@ -1,13 +1,15 @@
 /**
- * Divine Rays — Agent approval gate V5
- * Pending staff blocked without full page refresh or portal flash.
+ * Divine Rays — Agent approval gate V5.1
+ * Scope: ONLY pending Agent/Admin (IT Tech Support) staff.
+ * Approved staff, Developers, and all End-Users: normal login unchanged.
+ * Soft block without full page refresh or portal flash.
  * Soft sign-out; login screen + animations stay intact.
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_AGENT_APPROVAL_GATE_V5) return;
-  window.__DR_AGENT_APPROVAL_GATE_V5 = 1;
+  if (window.__DR_AGENT_APPROVAL_GATE_V5 >= 2) return;
+  window.__DR_AGENT_APPROVAL_GATE_V5 = 2;
   window.__DR_AGENT_APPROVAL_GATE_V4 = 1;
   window.__DR_AGENT_APPROVAL_GATE_V3 = 1;
   window.__DR_AGENT_APPROVAL_GATE = 1;
@@ -92,8 +94,8 @@
       (document.head || document.documentElement).appendChild(el);
     }
     el.textContent =
-      'body.dr-pending-blocked #portal-agent,' +
-      'body.dr-pending-blocked #portal-customer{' +
+      /* Only staff portal is locked — End-Users / approved / developers unaffected */
+      'body.dr-pending-blocked #portal-agent{' +
       '  display:none!important;visibility:hidden!important;pointer-events:none!important;' +
       '  opacity:0!important}' +
       'body.dr-pending-blocked #login-screen,' +
@@ -188,6 +190,10 @@
     showPendingToast(msg || PENDING_MSG);
   }
 
+  /**
+   * true = must block (pending staff only).
+   * false = allow (Developers, approved staff, End-Users, unknown).
+   */
   async function checkPendingAndBlock(user, profile, loginHint) {
     if (!user) return false;
     var meta = user.user_metadata || {};
@@ -203,22 +209,40 @@
       .toLowerCase()
       .trim();
 
+    /* Developers always allowed */
     if (isDeveloperUsername(username)) return false;
+
+    /* Explicitly approved */
     if (meta.approval_status === 'approved' || meta.approved === true) return false;
     if (isApproved(uid, username, email)) return false;
 
     var role = String((profile && profile.role) || meta.role || '').toLowerCase();
-    var isStaff = role === 'agent' || role === 'admin' || role === 'developer';
+
+    /* End-Users / customers never gated */
+    if (
+      role === 'customer' ||
+      role === 'user' ||
+      role === 'end-user' ||
+      role === 'enduser' ||
+      role === 'end_user'
+    ) {
+      return false;
+    }
+
+    var isStaff = role === 'agent' || role === 'admin';
 
     if (meta.approval_status === 'pending' || meta.approved === false) {
       markPending(uid, username, email);
       return true;
     }
     if (isMarkedPending(uid, username, email)) return true;
+
+    /* Unapproved staff only */
     if (isStaff) {
       markPending(uid, username, email);
       return true;
     }
+
     return false;
   }
 
@@ -242,9 +266,7 @@
     ensureBlockCss();
     setPendingBlocked(true);
     try {
-      var pc = document.getElementById('portal-customer');
       var pa = document.getElementById('portal-agent');
-      if (pc) pc.classList.remove('active');
       if (pa) pa.classList.remove('active');
       var ls =
         document.getElementById('login-screen') ||
@@ -318,6 +340,7 @@
                 await kickPending(user, profile, (user.user_metadata || {}).username || '', false);
                 return;
               }
+              setPendingBlocked(false);
             }
           }
         } catch (e) {}
@@ -337,6 +360,7 @@
   }
 
   function wireLoginGate() {
+    /* Agent login form only — never customer form */
     var form = document.getElementById('login-agent');
     if (!form || form.__drApprovalGateV5) return;
     form.__drApprovalGateV5 = 1;
@@ -387,7 +411,8 @@
               } catch (e1) {}
 
               clearInterval(t);
-              await kickPending(user, profile, loginHint, false);
+              var blocked = await kickPending(user, profile, loginHint, false);
+              if (!blocked) setPendingBlocked(false);
             } catch (err) {
               if (tries > 40) clearInterval(t);
             }
@@ -431,7 +456,20 @@
           } catch (e1) {}
 
           var role = String((profile && profile.role) || meta.role || '').toLowerCase();
-          if (role !== 'agent' && role !== 'admin' && role !== 'developer') {
+
+          /* End-Users: never block */
+          if (
+            role === 'customer' ||
+            role === 'user' ||
+            role === 'end-user' ||
+            role === 'enduser' ||
+            role === 'end_user'
+          ) {
+            setPendingBlocked(false);
+            return;
+          }
+
+          if (role !== 'agent' && role !== 'admin') {
             setPendingBlocked(false);
             return;
           }
