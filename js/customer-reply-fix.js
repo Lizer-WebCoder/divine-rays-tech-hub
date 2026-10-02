@@ -1,10 +1,10 @@
 /**
- * Customer reply fix v5 — instant button unlock after post
+ * Customer reply fix v6 — post only; list paint owned by DRCommentsLive
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  window.__DR_CUST_REPLY_FIX_V5 = 1;
+  window.__DR_CUST_REPLY_FIX_V6 = 1;
 
   function sb() {
     try {
@@ -18,40 +18,17 @@
   function toast(msg, type) {
     var m = String(msg || '');
     if (/user_id.*comments|comments.*user_id|schema cache|assignee_id/i.test(m)) {
-      console.warn('[cust-reply-fix] schema noise:', m);
       m = 'Could not save reply. Try again.';
     }
     try {
       if (window.DR && DR.toast) return DR.toast(m, type);
     } catch (e) {}
-    var c = document.getElementById('toast-container');
-    if (!c) {
-      c = document.createElement('div');
-      c.id = 'toast-container';
-      c.style.cssText =
-        'position:fixed;bottom:1.25rem;right:1.25rem;z-index:100000;display:flex;flex-direction:column;gap:.5rem';
-      document.body.appendChild(c);
-    }
-    var e = document.createElement('div');
-    e.className = 'toast ' + (type || 'info');
-    e.textContent = m;
-    e.style.cssText =
-      'background:#1a1830;border:1px solid rgba(167,139,250,.4);color:#eeeef6;padding:.65rem 1rem;border-radius:10px;font-size:.85rem;box-shadow:0 8px 24px rgba(0,0,0,.35)';
-    if (type === 'error') e.style.borderColor = 'rgba(239,68,68,.5)';
-    if (type === 'success') e.style.borderColor = 'rgba(52,211,153,.45)';
-    c.appendChild(e);
-    setTimeout(function () {
-      try {
-        e.remove();
-      } catch (err) {}
-    }, 3500);
   }
 
   function profile() {
     try {
       if (window.DR && DR.getProfile) return DR.getProfile();
       if (window.__drProfile) return window.__drProfile;
-      if (window.currentProfile) return window.currentProfile;
     } catch (e) {}
     return null;
   }
@@ -81,24 +58,11 @@
         if (t && /[A-Za-z0-9-]{3,}/.test(t)) return t;
       }
     }
-    var pt = document.getElementById('page-title');
-    if (pt) {
-      var ptt = (pt.textContent || '').trim();
-      if (/^DR-/i.test(ptt) || /^[A-Z]{2,}-\d+/i.test(ptt)) return ptt;
-    }
     return null;
   }
 
   function isUuid(s) {
     return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(s || ''));
-  }
-
-  function esc(s) {
-    return String(s == null ? '' : s)
-      .replace(/&/g, '&')
-      .replace(/</g, '<')
-      .replace(/>/g, '>')
-      .replace(/"/g, '"');
   }
 
   function formatDate(d) {
@@ -121,47 +85,37 @@
     btn.textContent = btn.dataset._old || 'Send Reply';
   }
 
+  function selfLabel() {
+    var p = profile();
+    if (!p) return 'You';
+    var parts = [];
+    var name = p.full_name || p.username || p.name || 'You';
+    parts.push(name);
+    if (p.branch) parts.push(p.branch);
+    if (p.position) parts.push(p.position);
+    return parts.join(' · ');
+  }
+
   async function resolveTicketUuid() {
-    var candidates = [
-      window.currentCustTicketId,
-      window.__drOpenTicketId,
-      window.__drCustTicketUuid
-    ];
+    var candidates = [window.currentCustTicketId, window.__drOpenTicketId, window.__drCustTicketUuid];
     for (var i = 0; i < candidates.length; i++) {
       if (candidates[i] && isUuid(candidates[i])) return candidates[i];
     }
-
     var num = ticketNumberFromDom();
-    for (var j = 0; j < candidates.length; j++) {
-      if (candidates[j] && !isUuid(candidates[j])) num = num || candidates[j];
-    }
     if (!num) return null;
     if (isUuid(num)) return num;
-
     var client = sb();
     if (!client) return null;
     try {
-      var r = await client
-        .from('tickets')
-        .select('id,ticket_number')
-        .eq('ticket_number', String(num).toUpperCase())
-        .maybeSingle();
+      var r = await client.from('tickets').select('id').eq('ticket_number', String(num).toUpperCase()).maybeSingle();
       if (r.data && r.data.id) {
         window.__drCustTicketUuid = r.data.id;
         window.__drOpenTicketId = r.data.id;
         return r.data.id;
       }
       r = await client.from('tickets').select('id').eq('ticket_number', String(num)).maybeSingle();
-      if (r.data && r.data.id) {
-        window.__drCustTicketUuid = r.data.id;
-        window.__drOpenTicketId = r.data.id;
-        return r.data.id;
-      }
-      r = await client.from('tickets').select('id').eq('id', num).maybeSingle();
       if (r.data && r.data.id) return r.data.id;
-    } catch (e) {
-      console.warn('[cust-reply-fix] resolve', e);
-    }
+    } catch (e) {}
     return null;
   }
 
@@ -182,7 +136,6 @@
       { ticket_id: tid, author_id: uid, body: body },
       { ticket_id: tid, body: body }
     ];
-
     var lastErr = null;
     for (var i = 0; i < attempts.length; i++) {
       var r = await client.from('comments').insert(attempts[i]).select('*').maybeSingle();
@@ -192,40 +145,6 @@
       if (!/column|schema cache|user_id|assignee_id/i.test(msg) && i === 0) break;
     }
     return { error: (lastErr && lastErr.message) || 'Insert failed' };
-  }
-
-  function renderRows(rows, nameMap) {
-    var list = listEl();
-    if (!list) return;
-    nameMap = nameMap || {};
-    if (!rows.length) {
-      list.innerHTML = '<p class="kb-sub" style="margin:0">No updates yet.</p>';
-      return;
-    }
-    list.innerHTML = rows
-      .map(function (c) {
-        var author =
-          nameMap[c.author_id] ||
-          c.author_name ||
-          (c.author && (c.author.full_name || c.author.username)) ||
-          'User';
-        return (
-          '<div class="comment" data-cid="' +
-          esc(c.id) +
-          '"><div class="comment-header"><span>' +
-          esc(author) +
-          '</span><span>' +
-          esc(formatDate(c.created_at)) +
-          '</span></div><div class="comment-body">' +
-          esc(c.body) +
-          '</div></div>'
-        );
-      })
-      .join('');
-    try {
-      var last = list.lastElementChild;
-      if (last) last.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    } catch (e) {}
   }
 
   function appendOptimistic(body, authorName) {
@@ -242,77 +161,20 @@
     div.className = 'comment';
     div.setAttribute('data-optimistic', '1');
     div.innerHTML =
-      '<div class="comment-header"><span></span><span></span></div><div class="comment-body"></div>';
+      '<div class="comment-header"><span class="dr-author"></span><span></span></div><div class="comment-body"></div>';
     div.querySelector('.comment-header span:first-child').textContent = authorName || 'You';
     div.querySelector('.comment-header span:last-child').textContent = formatDate(new Date());
     div.querySelector('.comment-body').textContent = body;
     list.appendChild(div);
-    try {
-      div.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    } catch (e) {}
     return div;
-  }
-
-  async function fetchAndRender(tid) {
-    var client = sb();
-    var list = listEl();
-    if (!client || !list || !tid) return false;
-    try {
-      var r = await client
-        .from('comments')
-        .select('*')
-        .eq('ticket_id', tid)
-        .order('created_at', { ascending: true });
-      if (r.error) {
-        console.warn('[cust-reply-fix] fetch', r.error.message);
-        return false;
-      }
-      var rows = (r.data || []).filter(function (c) {
-        return !c.is_internal;
-      });
-      var ids = rows
-        .map(function (c) {
-          return c.author_id;
-        })
-        .filter(Boolean);
-      var names = {};
-      if (ids.length) {
-        try {
-          var pr = await client.from('profiles').select('id,full_name,username,name').in('id', ids);
-          if (pr.data) {
-            pr.data.forEach(function (p) {
-              names[p.id] = p.full_name || p.username || p.name || 'User';
-            });
-          }
-        } catch (e2) {}
-      }
-      var me = profile();
-      if (me && me.id) {
-        names[me.id] = me.full_name || me.username || me.name || names[me.id] || 'You';
-      }
-      renderRows(rows, names);
-      return true;
-    } catch (e) {
-      console.warn('[cust-reply-fix] fetchAndRender', e);
-      return false;
-    }
   }
 
   async function refreshConversation(tid) {
     try {
-      if (window.DRCommentsLive && DRCommentsLive.refresh) await DRCommentsLive.refresh();
-    } catch (e) {}
-    var ok = await fetchAndRender(tid);
-    if (!ok) {
-      await new Promise(function (r) {
-        setTimeout(r, 300);
-      });
-      await fetchAndRender(tid);
-    }
-    try {
-      window.dispatchEvent(
-        new CustomEvent('dr-comments-updated', { detail: { ticketId: tid } })
-      );
+      if (window.DRCommentsLive && DRCommentsLive.refresh) {
+        await DRCommentsLive.refresh();
+        return;
+      }
     } catch (e) {}
   }
 
@@ -344,19 +206,11 @@
     try {
       var tid = await resolveTicketUuid();
       if (!tid) {
-        var num = ticketNumberFromDom();
-        toast(
-          num
-            ? 'Could not load ticket ' + num + '. Hard refresh and try again.'
-            : 'Open a ticket first',
-          'error'
-        );
+        toast('Open a ticket first', 'error');
         return;
       }
 
-      var p = profile();
-      var name = (p && (p.full_name || p.username || p.name)) || 'You';
-      appendOptimistic(text, name);
+      appendOptimistic(text, selfLabel());
 
       var res = await insertComment(tid, text);
       if (res.error) {
@@ -373,28 +227,12 @@
       toast('Reply sent', 'success');
       window.__drCustTicketUuid = tid;
       window.__drOpenTicketId = tid;
-      try {
-        window.currentCustTicketId = tid;
-      } catch (e) {}
 
-      // Unlock immediately — do not wait for list refresh
       submitting = false;
       unlockBtn(btn);
 
-      if (res.comment && res.comment.id) {
-        var opt = document.querySelector('[data-optimistic]');
-        if (opt) {
-          opt.removeAttribute('data-optimistic');
-          opt.setAttribute('data-cid', res.comment.id);
-        }
-      }
-
       refreshConversation(tid).catch(function () {});
-      setTimeout(function () {
-        refreshConversation(tid);
-      }, 500);
     } catch (err) {
-      console.error('[cust-reply-fix]', err);
       toast((err && err.message) || 'Could not send reply', 'error');
     } finally {
       if (submitting) {
@@ -408,21 +246,20 @@
 
   function bindForm() {
     var form = document.getElementById('cust-reply-form');
-    if (!form || form.__drReplyBoundV5) return;
-    form.__drReplyBoundV5 = 1;
+    if (!form || form.__drReplyBoundV6) return;
+    form.__drReplyBoundV6 = 1;
     form.addEventListener('submit', handleSubmit, true);
   }
-  setInterval(bindForm, 1200);
-  setTimeout(bindForm, 400);
-  setTimeout(bindForm, 1600);
-  setTimeout(bindForm, 3500);
+  setInterval(bindForm, 1500);
+  setTimeout(bindForm, 500);
+  setTimeout(bindForm, 2000);
 
   document.addEventListener(
     'click',
     function (e) {
       var t = e.target;
-      if (!t) return;
-      var card = t.closest && t.closest('[data-id]');
+      if (!t || !t.closest) return;
+      var card = t.closest('[data-id]');
       if (card) {
         var id = card.getAttribute('data-id');
         if (id && isUuid(id)) {
@@ -434,15 +271,9 @@
     true
   );
 
-  window.addEventListener('dr-comments-updated', function (ev) {
-    var tid = ev && ev.detail && ev.detail.ticketId;
-    if (tid) fetchAndRender(tid);
-  });
-
   window.DRCustReplyFix = {
     refresh: refreshConversation,
     resolve: resolveTicketUuid,
-    ticketNumberFromDom: ticketNumberFromDom,
-    fetchAndRender: fetchAndRender
+    ticketNumberFromDom: ticketNumberFromDom
   };
 })();
