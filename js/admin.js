@@ -1,12 +1,12 @@
 /**
  * Divine Rays — Admin V6 loader
- * Staff tab: Status Pending/Approved, Actions Approve/Deny, role = staff_role / IT Tech Support
- * Credit: Boyz at the Back
+ * End-Users: customer only | Admin: admin/agent/developer only
+ * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_ADMIN_V6_LOADER) return;
-  window.__DR_ADMIN_V6_LOADER = 1;
+  if (window.__DR_ADMIN_V6_LOADER >= 2) return;
+  window.__DR_ADMIN_V6_LOADER = 2;
 
   var SRC =
     'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@4aae81525261cbee2a3cd15a9894b548df748e86/js/admin.js';
@@ -15,11 +15,11 @@
   s.async = false;
   s.onload = function () {
     try {
-      if (window.__DR_ADMIN_V6_PATCH) return;
-      window.__DR_ADMIN_V6_PATCH = 1;
+      if (window.__DR_ADMIN_V6_PATCH >= 2) return;
+      window.__DR_ADMIN_V6_PATCH = 2;
     } catch (e0) {}
 
-    var DEVS = { kirzhian: 1, jamesjerlow123: 1 };
+    var DEVS = { kirzhian: 1, jamesjerlow123: 1, liya: 1 };
     var KEY = 'dr_staff_approval';
 
     function esc(s) {
@@ -67,7 +67,7 @@
     function roleLabel(u) {
       if (isDev(u.username)) return 'Developer';
       var r = String(u.role || '').toLowerCase();
-      if (r === 'customer' || r === 'user') return 'End-User';
+      if (r === 'customer' || r === 'user' || r === 'end-user' || r === 'enduser') return 'End-User';
       var staff = (u.staff_role || u.job_title || '').trim();
       if (staff && !/^agent$/i.test(staff) && !/^developer$/i.test(staff)) return staff;
       if (r === 'admin') return 'Admin';
@@ -78,62 +78,42 @@
       try { return window.DR && window.DR.getProfile && window.DR.getProfile(); }
       catch (e) { return null; }
     }
-    function isStaffMode() {
-      if (window.__DR_USERS_LIST_MODE === 'endusers') return false;
-      if (window.__DR_USERS_LIST_MODE === 'staff') return true;
-      if (document.body.classList.contains('dr-view-endusers')) return false;
-      if (document.body.classList.contains('dr-view-admin-staff')) return true;
+    function isEndUserMode() {
+      if (window.__DR_USERS_LIST_MODE === 'endusers') return true;
+      if (window.__DR_USERS_LIST_MODE === 'staff') return false;
+      if (document.body.classList.contains('dr-view-endusers')) return true;
+      if (document.body.classList.contains('dr-view-admin-staff')) return false;
       var pt = document.getElementById('page-title');
       var t = pt ? (pt.textContent || '') : '';
-      if (/end-user/i.test(t)) return false;
-      if (/admin/i.test(t) || /users/i.test(t)) return true;
-      return true;
+      if (/end-user/i.test(t)) return true;
+      return false;
+    }
+    function isEndUserRecord(u, badgeTxt) {
+      var r = String((u && u.role) || '').toLowerCase().trim();
+      if (r === 'customer' || r === 'user' || r === 'end-user' || r === 'enduser' || r === 'end_user') return true;
+      if (/end[-_]?user|customer/i.test(badgeTxt || '')) return true;
+      return false;
+    }
+    function isStaffRecord(u, badgeTxt) {
+      if (isEndUserRecord(u, badgeTxt)) return false;
+      var r = String((u && u.role) || '').toLowerCase().trim();
+      if (r === 'admin' || r === 'agent' || r === 'developer' || r === 'staff') return true;
+      if (isDev(u && u.username)) return true;
+      if (/admin|agent|developer|it tech|staff/i.test(badgeTxt || '')) return true;
+      return !!r;
     }
 
-    function polishStaffTable() {
+    function polishTable() {
       var box = document.getElementById('admin-users-list');
       if (!box) return;
-
-      if (!isStaffMode()) {
-        box.querySelectorAll('tbody tr').forEach(function (row) {
-          var cells = row.querySelectorAll('td');
-          if (cells.length < 3) return;
-          var badge = cells[2].querySelector('.badge');
-          if (badge) {
-            badge.textContent = 'End-User';
-            badge.className = 'badge badge-role-customer';
-          }
-        });
-        return;
-      }
-
-      var thead = box.querySelector('thead tr');
-      if (thead) {
-        var ths = thead.querySelectorAll('th');
-        if (ths.length === 5) {
-          ths[4].textContent = 'Status';
-          var thA = document.createElement('th');
-          thA.textContent = 'Actions';
-          thead.appendChild(thA);
-        } else if (ths.length >= 6) {
-          ths[4].textContent = 'Status';
-          ths[5].textContent = 'Actions';
-        }
-      }
-
+      var endMode = isEndUserMode();
       var cache = window.__adminUsersCache || [];
       var me = profile();
       var vDev = me && isDev(me.username);
 
       box.querySelectorAll('tbody tr').forEach(function (row) {
         var cells = row.querySelectorAll('td');
-        if (cells.length === 5) {
-          var td = document.createElement('td');
-          td.className = 'admin-status-cell';
-          row.insertBefore(td, cells[4]);
-          cells = row.querySelectorAll('td');
-        }
-        if (cells.length < 5) return;
+        if (cells.length < 3) return;
 
         var uid = row.getAttribute('data-id') || '';
         var uname = cells[1] ? (cells[1].textContent || '').trim() : '';
@@ -142,6 +122,9 @@
           var b = cells[2].querySelector('.badge');
           badgeTxt = b ? (b.textContent || '').trim() : (cells[2].textContent || '').trim();
         }
+        var selectVal = '';
+        var sel = row.querySelector('select');
+        if (sel) selectVal = String(sel.value || '');
 
         var u = null;
         for (var i = 0; i < cache.length; i++) {
@@ -155,41 +138,68 @@
             id: uid,
             username: uname,
             full_name: cells[0] ? (cells[0].textContent || '').trim() : '',
-            role: /end-user/i.test(badgeTxt) ? 'customer' : 'agent',
+            role: selectVal || (/end-user|customer/i.test(badgeTxt) ? 'customer' : 'agent'),
             email: ''
           };
         }
 
-        var r = String(u.role || '').toLowerCase();
-        if (
-          r === 'customer' ||
-          r === 'user' ||
-          r === 'end-user' ||
-          r === 'enduser' ||
-          /end-user/i.test(badgeTxt)
-        ) {
+        var endUser = isEndUserRecord(u, badgeTxt) || selectVal === 'customer';
+        var staff = isStaffRecord(u, badgeTxt) || /^(admin|agent|developer)$/i.test(selectVal);
+
+        /* FILTER */
+        if (endMode) {
+          if (!endUser || (staff && !endUser)) {
+            row.style.display = 'none';
+            return;
+          }
+          row.style.display = '';
+          var badge = cells[2].querySelector('.badge');
+          if (badge) {
+            badge.textContent = 'End-User';
+            badge.className = 'badge badge-role-customer';
+          }
+          return;
+        }
+
+        /* Staff / Admin mode */
+        if (endUser && !staff) {
           row.style.display = 'none';
           return;
         }
         row.style.display = '';
 
+        /* Ensure 6 columns for Status + Actions */
         while (cells.length < 6) {
           var extra = document.createElement('td');
           row.appendChild(extra);
           cells = row.querySelectorAll('td');
         }
 
-        var label = roleLabel(u);
-        var badge = cells[2].querySelector('.badge');
-        if (!badge) {
-          cells[2].innerHTML = '<span class="badge"></span>';
-          badge = cells[2].querySelector('.badge');
+        var thead = box.querySelector('thead tr');
+        if (thead) {
+          var ths = thead.querySelectorAll('th');
+          if (ths.length === 5) {
+            ths[4].textContent = 'Status';
+            var thA = document.createElement('th');
+            thA.textContent = 'Actions';
+            thead.appendChild(thA);
+          } else if (ths.length >= 6) {
+            ths[4].textContent = 'Status';
+            ths[5].textContent = 'Actions';
+          }
         }
-        if (badge) {
-          badge.textContent = label;
-          if (isDev(u.username)) badge.className = 'badge badge-role-developer';
-          else if (/admin/i.test(label) && !/it tech/i.test(label)) badge.className = 'badge badge-role-admin';
-          else badge.className = 'badge badge-role-agent';
+
+        var label = roleLabel(u);
+        var badge2 = cells[2].querySelector('.badge');
+        if (!badge2) {
+          cells[2].innerHTML = '<span class="badge"></span>';
+          badge2 = cells[2].querySelector('.badge');
+        }
+        if (badge2) {
+          badge2.textContent = label;
+          if (isDev(u.username)) badge2.className = 'badge badge-role-developer';
+          else if (/admin/i.test(label) && !/it tech/i.test(label)) badge2.className = 'badge badge-role-admin';
+          else badge2.className = 'badge badge-role-agent';
         }
 
         var st = getStatus(u);
@@ -247,7 +257,7 @@
           );
           if (window.DR && window.DR.toast) window.DR.toast('Account approved', 'success');
           if (typeof window.renderAdminUsers === 'function') window.renderAdminUsers('staff');
-          setTimeout(polishStaffTable, 200);
+          setTimeout(polishTable, 200);
         });
       });
       box.querySelectorAll('.dr-v6-deny').forEach(function (btn) {
@@ -269,29 +279,27 @@
           } catch (e) {}
           if (window.DR && window.DR.toast) window.DR.toast('Account denied and removed', 'success');
           if (typeof window.renderAdminUsers === 'function') window.renderAdminUsers('staff');
-          setTimeout(polishStaffTable, 200);
+          setTimeout(polishTable, 200);
         });
       });
     }
 
-    if (typeof window.renderAdminUsers === 'function' && !window.renderAdminUsers.__v6patch) {
+    if (typeof window.renderAdminUsers === 'function' && !window.renderAdminUsers.__v6patch2) {
       var orig = window.renderAdminUsers;
       window.renderAdminUsers = async function (mode) {
         if (mode === 'endusers' || mode === 'staff') window.__DR_USERS_LIST_MODE = mode;
         var r = await orig.apply(this, arguments);
-        setTimeout(polishStaffTable, 80);
-        setTimeout(polishStaffTable, 300);
+        setTimeout(polishTable, 60);
+        setTimeout(polishTable, 250);
+        setTimeout(polishTable, 600);
         return r;
       };
-      window.renderAdminUsers.__v6patch = 1;
+      window.renderAdminUsers.__v6patch2 = 1;
     }
 
-    setInterval(function () {
-      if (isStaffMode()) polishStaffTable();
-    }, 1500);
-
-    setTimeout(polishStaffTable, 400);
-    setTimeout(polishStaffTable, 1200);
+    setInterval(polishTable, 1500);
+    setTimeout(polishTable, 400);
+    setTimeout(polishTable, 1200);
   };
   (document.body || document.documentElement).appendChild(s);
 })();
