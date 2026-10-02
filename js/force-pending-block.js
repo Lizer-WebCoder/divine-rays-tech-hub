@@ -1,12 +1,12 @@
 /**
- * Divine Rays — force pending staff block V2
+ * Divine Rays — force pending staff block V3 — sync glow/toast, 1 shake, keep background
  * Orange login-card glow (10s) + single pending toast that shakes on re-click.
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_FORCE_PENDING_BLOCK >= 2) return;
-  window.__DR_FORCE_PENDING_BLOCK = 2;
+  if (window.__DR_FORCE_PENDING_BLOCK >= 3) return;
+  window.__DR_FORCE_PENDING_BLOCK = 3;
 
   var KEY = 'dr_staff_approval';
   var MSG =
@@ -95,6 +95,10 @@
       'body.dr-pending-blocked #portal-agent{display:none!important;visibility:hidden!important;opacity:0!important}',
       'body.dr-pending-blocked #login-screen{display:flex!important;visibility:visible!important;opacity:1!important;z-index:60!important}',
       'body.dr-pending-blocked .toast.success{display:none!important}',
+      'body.dr-pending-blocked canvas,body.dr-pending-blocked .lifeline,body.dr-pending-blocked #bg-canvas,',
+      'body.dr-pending-blocked .bg-anim,body.dr-pending-blocked #login-bg,body.dr-pending-blocked .login-bg{',
+      'visibility:visible!important;opacity:1!important;display:block!important}',
+      'body.dr-pending-blocked{background:inherit!important}',
       '.login-card.login-pending-glow,#login-screen .login-card.login-pending-glow,',
       '.login-card.dr-login-pending,#login-screen .login-card.dr-login-pending{',
       'border-color:rgba(251,146,60,0.95)!important;',
@@ -105,16 +109,13 @@
       'border-color:rgba(234,88,12,0.95)!important;',
       'box-shadow:0 0 28px rgba(251,146,60,0.9),0 0 56px rgba(249,115,22,0.55),0 10px 32px rgba(30,30,60,0.08)!important}',
       '.login-card.login-pending-shake,#login-screen .login-card.login-pending-shake{',
-      'animation:dr-pending-shake 0.45s ease}',
+      'animation:dr-pending-shake 0.35s ease}',
       '@keyframes dr-pending-shake{',
       '0%,100%{transform:translateX(0)}',
-      '15%{transform:translateX(-8px)}',
-      '30%{transform:translateX(8px)}',
-      '45%{transform:translateX(-6px)}',
-      '60%{transform:translateX(6px)}',
-      '75%{transform:translateX(-3px)}',
-      '90%{transform:translateX(3px)}}',
-      '.toast.dr-pending-toast-shake{animation:dr-pending-shake 0.45s ease}',
+      '25%{transform:translateX(-6px)}',
+      '50%{transform:translateX(6px)}',
+      '75%{transform:translateX(-3px)}}',
+      '.toast.dr-pending-toast-shake{animation:dr-pending-shake 0.35s ease}',
       '.toast[data-dr-force-pending]{',
       'pointer-events:auto;padding:0.9rem 1.15rem;border-radius:14px;max-width:min(22rem,92vw);',
       'background:rgba(28,22,42,0.98);border:1px solid rgba(251,146,60,0.55);',
@@ -138,13 +139,6 @@
     card.classList.remove('login-fail-glow', 'login-fail-shake', 'login-pass-ok', 'login-fail-healing');
     card.classList.add('login-pending-glow');
     card.classList.add('dr-login-pending');
-    if (_glowTimer) clearTimeout(_glowTimer);
-    _glowTimer = setTimeout(function () {
-      try {
-        card.classList.remove('login-pending-glow', 'dr-login-pending', 'login-pending-shake');
-      } catch (e) {}
-      _glowTimer = null;
-    }, GLOW_MS);
   }
 
   function shakeCard() {
@@ -157,7 +151,7 @@
       try {
         card.classList.remove('login-pending-shake');
       } catch (e) {}
-    }, 500);
+    }, 350);
   }
 
   function lockPortal() {
@@ -224,24 +218,42 @@
         try {
           _toastEl && _toastEl.classList.remove('dr-pending-toast-shake');
         } catch (e) {}
-      }, 500);
+      }, 350);
       shakeCard();
     }
+  }
 
-    if (_toastTimer) clearTimeout(_toastTimer);
-    _toastTimer = setTimeout(function () {
-      try {
-        if (_toastEl && _toastEl.parentNode) _toastEl.parentNode.removeChild(_toastEl);
-      } catch (e) {}
-      _toastEl = null;
+  function clearPendingVisuals() {
+    try {
+      var card = getLoginCard();
+      if (card) {
+        card.classList.remove('login-pending-glow', 'dr-login-pending', 'login-pending-shake');
+      }
+    } catch (e) {}
+    try {
+      if (_toastEl && _toastEl.parentNode) _toastEl.parentNode.removeChild(_toastEl);
+    } catch (e2) {}
+    _toastEl = null;
+    if (_glowTimer) {
+      clearTimeout(_glowTimer);
+      _glowTimer = null;
+    }
+    if (_toastTimer) {
+      clearTimeout(_toastTimer);
       _toastTimer = null;
-    }, TOAST_MS);
+    }
   }
 
   function showPendingUI(isRepeat) {
     lockPortal();
     applyOrangeGlow();
     showPendingToast(!!isRepeat);
+    if (_glowTimer) clearTimeout(_glowTimer);
+    if (_toastTimer) clearTimeout(_toastTimer);
+    _glowTimer = setTimeout(function () {
+      clearPendingVisuals();
+    }, GLOW_MS);
+    _toastTimer = _glowTimer;
     try {
       var c = document.getElementById('toast-container');
       if (c) {
@@ -365,7 +377,6 @@
         showPendingUI(false);
         await kick();
         lockPortal();
-        applyOrangeGlow();
       }
     } catch (e) {
     } finally {
