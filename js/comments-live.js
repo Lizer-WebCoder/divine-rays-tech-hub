@@ -1,16 +1,18 @@
 /**
- * Divine Rays — live comments (schema-safe: author_id only, never user_id)
+ * Divine Rays — live comments v4
+ * Stable author labels: Name · Branch · Position (or Role for staff)
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  // Allow re-load over older pin
-  window.__DR_COMMENTS_LIVE = 3;
+  window.__DR_COMMENTS_LIVE = 4;
 
   var channel = null;
   var activeTicketId = null;
   var lastSig = '';
-  var nameMap = {};
+  // id -> { name, branch, position, role, label }
+  var profileMap = {};
+  var DEVELOPERS = { kirzhian: 1, jamesjerlow123: 1 };
 
   function sb() {
     try {
@@ -39,16 +41,13 @@
   }
   function toast(msg, type) {
     if (window.DR && window.DR.toast) return window.DR.toast(msg, type);
-    try {
-      console.log('[comments]', type || 'info', msg);
-    } catch (e) {}
   }
   function esc(s) {
     return String(s == null ? '' : s)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
+      .replace(/&/g, '&')
+      .replace(/</g, '<')
+      .replace(/>/g, '>')
+      .replace(/"/g, '"');
   }
   function formatDate(d) {
     try {
@@ -63,6 +62,113 @@
     }
   }
 
+  function roleLabel(role, username) {
+    var r = String(role || '').toLowerCase().trim();
+    var un = String(username || '').toLowerCase().trim();
+    if (DEVELOPERS[un] || r === 'developer') return 'DEVELOPER';
+    if (r === 'admin' || r === 'administrator') return 'ADMIN';
+    if (r === 'agent' || r === 'staff') return 'AGENT';
+    return '';
+  }
+
+  function buildLabel(info) {
+    if (!info) return 'User';
+    var parts = [];
+    var name = info.name || '';
+    if (name && !/^user$/i.test(name)) parts.push(name);
+    var staff = roleLabel(info.role, info.username);
+    if (staff) {
+      parts.push(staff);
+      if (info.branch) parts.push(info.branch);
+    } else {
+      // End-user: name · branch · position
+      if (info.branch) parts.push(info.branch);
+      if (info.position) parts.push(info.position);
+    }
+    return parts.length ? parts.join(' · ') : name || 'User';
+  }
+
+  function storeProfile(p) {
+    if (!p || !p.id) return;
+    var name = p.full_name || p.username || p.name || '';
+    // Never overwrite a real name with empty/User
+    var prev = profileMap[p.id];
+    if (prev && prev.name && (!name || /^user$/i.test(name))) {
+      name = prev.name;
+    }
+    if (!name) name = (prev && prev.name) || 'User';
+    var info = {
+      name: name,
+      username: p.username || (prev && prev.username) || '',
+      branch: p.branch != null ? p.branch : (prev && prev.branch) || '',
+      position: p.position != null ? p.position : (prev && prev.position) || '',
+      role: p.role != null ? p.role : (prev && prev.role) || ''
+    };
+    info.label = buildLabel(info);
+    profileMap[p.id] = info;
+    return info;
+  }
+
+  function authorLabel(c) {
+    if (!c) return 'User';
+    var aid = c.author_id || c.created_by || null;
+    if (aid && profileMap[aid] && profileMap[aid].label) {
+      return profileMap[aid].label;
+    }
+    if (c.author) {
+      var info = storeProfile({
+        id: aid || 'tmp',
+        full_name: c.author.full_name,
+        username: c.author.username,
+        branch: c.author.branch,
+        position: c.author.position,
+        role: c.author.role
+      });
+      if (info && info.label && info.label !== 'User') return info.label;
+    }
+    if (c.author_name && !/^user$/i.test(c.author_name)) return c.author_name;
+    var me = profile();
+    if (me && aid && me.id === aid) {
+      storeProfile(me);
+      return (profileMap[aid] && profileMap[aid].label) || me.full_name || me.username || 'You';
+    }
+    // Keep last known DOM text if we somehow re-render without map
+    return (aid && profileMap[aid] && profileMap[aid].name) || 'User';
+  }
+
+  async function loadProfiles(ids) {
+    var client = sb();
+    if (!client || !ids || !ids.length) return;
+    var missing = ids.filter(function (id) {
+      return id && !(profileMap[id] && profileMap[id].name && profileMap[id].name !== 'User');
+    });
+    // Always refresh if we lack branch/role
+    missing = ids.filter(function (id) {
+      if (!id) return false;
+      var p = profileMap[id];
+      if (!p || !p.name || p.name === 'User') return true;
+      if (p.branch === undefined && p.role === undefined) return true;
+      return false;
+    });
+    if (!missing.length) return;
+    var tries = [
+      'id,full_name,username,name,branch,position,role',
+      'id,full_name,username,branch,position,role',
+      'id,full_name,username,branch,role',
+      'id,full_name,username,name,role',
+      'id,full_name,username,name'
+    ];
+    for (var t = 0; t < tries.length; t++) {
+      try {
+        var r = await client.from('profiles').select(tries[t]).in('id', missing);
+        if (!r.error && r.data) {
+          r.data.forEach(storeProfile);
+          break;
+        }
+      } catch (e) {}
+    }
+  }
+
   function injectCss() {
     if (document.getElementById('dr-comments-live-css')) return;
     var s = document.createElement('style');
@@ -70,7 +176,9 @@
     s.textContent = [
       '.dr-cdel{float:right;font-size:.72rem;padding:.15rem .45rem;border-radius:6px;border:1px solid rgba(239,68,68,.35);background:rgba(239,68,68,.12);color:#fca5a5;cursor:pointer;font-weight:600}',
       'html[data-theme="light"] .dr-cdel{color:#b91c1c;background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.3)}',
-      '.comment.internal{border-left:3px solid #f59e0b!important}'
+      '.comment.internal{border-left:3px solid #f59e0b!important}',
+      '.comment-header .dr-author{font-weight:600}',
+      '.comment-header .dr-author-meta{opacity:.75;font-weight:500;font-size:.85em}'
     ].join('');
     document.head.appendChild(s);
   }
@@ -112,51 +220,10 @@
     try {
       var r = await client.from('tickets').select('id, ticket_number').eq('ticket_number', num).limit(1);
       if (!r.error && r.data && r.data[0]) return r.data[0].id;
-      var r2 = await client
-        .from('tickets')
-        .select('id, ticket_number')
-        .order('created_at', { ascending: false })
-        .limit(100);
-      if (!r2.error && r2.data) {
-        var hit = r2.data.find(function (t) {
-          return String(t.ticket_number || '') === num || String(t.id) === num;
-        });
-        if (hit) return hit.id;
-      }
       return null;
     } catch (e) {
       return null;
     }
-  }
-
-  function authorName(c) {
-    if (!c) return 'User';
-    if (c.author && (c.author.full_name || c.author.username)) {
-      return c.author.full_name || c.author.username;
-    }
-    var aid = c.author_id || c.created_by || null;
-    if (aid && nameMap[aid]) return nameMap[aid];
-    if (c.author_name) return c.author_name;
-    var me = profile();
-    if (me && aid && me.id === aid) return me.full_name || me.username || me.name || 'You';
-    return 'User';
-  }
-
-  async function loadNames(ids) {
-    var client = sb();
-    if (!client || !ids || !ids.length) return;
-    var missing = ids.filter(function (id) {
-      return id && !nameMap[id];
-    });
-    if (!missing.length) return;
-    try {
-      var r = await client.from('profiles').select('id,full_name,username,name').in('id', missing);
-      if (!r.error && r.data) {
-        r.data.forEach(function (p) {
-          nameMap[p.id] = p.full_name || p.username || p.name || 'User';
-        });
-      }
-    } catch (e) {}
   }
 
   function canDelete(c) {
@@ -170,7 +237,15 @@
 
   function renderComment(c, forCustomer) {
     if (forCustomer && c.is_internal) return '';
-    var author = authorName(c);
+    var label = authorLabel(c);
+    // Split name vs meta for subtle styling
+    var main = label;
+    var meta = '';
+    var dot = label.indexOf(' · ');
+    if (dot > 0) {
+      main = label.slice(0, dot);
+      meta = label.slice(dot);
+    }
     var internal = c.is_internal ? ' internal' : '';
     var tag = c.is_internal ? ' · Internal' : '';
     var status = c.status_change ? ' · → ' + esc(c.status_change) : '';
@@ -188,8 +263,11 @@
       esc(c.author_id || '') +
       '">' +
       delBtn +
-      '<div class="comment-header"><span>' +
-      esc(author) +
+      '<div class="comment-header"><span class="dr-author">' +
+      esc(main) +
+      '<span class="dr-author-meta">' +
+      esc(meta) +
+      '</span>' +
       tag +
       '</span>' +
       '<span>' +
@@ -221,7 +299,8 @@
           return c.author_id || c.created_by;
         })
         .filter(Boolean);
-      await loadNames(ids);
+      // Load profiles BEFORE any render to avoid User → Name flicker
+      await loadProfiles(ids);
       return rows;
     } catch (e) {
       console.warn('[comments-live] fetch', e);
@@ -240,8 +319,10 @@
       body: body,
       is_internal: !!isInternal
     };
-    if (me && me.id) payload.author_id = me.id;
-
+    if (me && me.id) {
+      payload.author_id = me.id;
+      storeProfile(me);
+    }
     var ins = await client.from('comments').insert(payload).select('*').maybeSingle();
     if (ins.error) {
       var msg = (ins.error.message || '') + '';
@@ -292,9 +373,11 @@
           return !c.is_internal;
         })
       : comments;
+
+    // Signature includes labels so we re-render once names resolve, but not thrash
     var sig = visible
       .map(function (c) {
-        return c.id + ':' + (c.body || '').length;
+        return c.id + ':' + (c.body || '').length + ':' + authorLabel(c);
       })
       .join('|');
     if (!force && sig === lastSig) return;
@@ -305,7 +388,6 @@
       return;
     }
 
-    // Customer: chronological (oldest → newest). Staff: newest first.
     var ordered = cust ? visible : visible.slice().reverse();
     list.innerHTML = ordered
       .map(function (c) {
@@ -407,20 +489,20 @@
       if (res.error) throw res.error;
       if (ta) ta.value = '';
       if (internalEl) internalEl.checked = false;
-      lastSig = '';
-      await refreshList(true);
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = btn.dataset._old || 'Send Reply';
+      }
       toast('Reply sent', 'success');
+      lastSig = '';
+      refreshList(true).catch(function () {});
       try {
         window.dispatchEvent(new CustomEvent('dr-comments-updated', { detail: { ticketId: tid } }));
       } catch (e2) {}
     } catch (err) {
       var m = (err && err.message) || 'Could not send reply';
-      if (/user_id|assignee_id|schema cache/i.test(m)) {
-        m = 'Comment save failed. Try again.';
-      }
+      if (/user_id|assignee_id|schema cache/i.test(m)) m = 'Comment save failed. Try again.';
       toast(m, 'error');
-      console.warn('[comments-live] post', err);
-    } finally {
       if (btn) {
         btn.disabled = false;
         btn.textContent = btn.dataset._old || 'Send Reply';
@@ -433,7 +515,6 @@
     function (e) {
       var t = e.target;
       if (!t) return;
-      // Customer form owned by DRCustReplyFix — just refresh after it posts
       if (t.id === 'cust-reply-form' && window.DRCustReplyFix) {
         setTimeout(function () {
           lastSig = '';
@@ -465,31 +546,8 @@
     }, 700);
   });
 
-  (function patchToast() {
-    function wrap(fn) {
-      return function (msg, type) {
-        var m = String(msg || '');
-        if (/user_id.*comments|comments.*user_id|schema cache|assignee_id/i.test(m)) {
-          console.warn('[comments-live] suppressed schema toast:', m);
-          return;
-        }
-        return fn.apply(this, arguments);
-      };
-    }
-    var tries = 0;
-    var iv = setInterval(function () {
-      tries++;
-      if (window.DR && window.DR.toast && !window.DR.toast.__drCommentsPatched) {
-        window.DR.toast = wrap(window.DR.toast);
-        window.DR.toast.__drCommentsPatched = true;
-        clearInterval(iv);
-      }
-      if (tries > 40) clearInterval(iv);
-    }, 250);
-  })();
-
   injectCss();
-  setInterval(sync, 2500);
+  setInterval(sync, 3000);
   setTimeout(sync, 800);
   setTimeout(sync, 2000);
 
@@ -510,6 +568,7 @@
       return refreshList(true);
     },
     sync: sync,
-    post: postComment
+    post: postComment,
+    profileMap: profileMap
   };
 })();
