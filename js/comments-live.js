@@ -1,10 +1,12 @@
 /**
- * Divine Rays — live comments v5 (no-flicker labels)
+ * Divine Rays — live comments v6 (no-flicker, single instance)
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  window.__DR_COMMENTS_LIVE = 5;
+  if (window.__DR_COMMENTS_LIVE >= 6) return;
+  window.__DR_COMMENTS_LIVE = 6;
+  window.__DR_COMMENTS_LIVE_V2 = 1;
 
   var channel = null;
   var activeTicketId = null;
@@ -46,10 +48,10 @@
   }
   function esc(s) {
     return String(s == null ? '' : s)
-      .replace(/&/g, '&')
-      .replace(/</g, '<')
-      .replace(/>/g, '>')
-      .replace(/"/g, '"');
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
   }
   function formatDate(d) {
     try {
@@ -93,9 +95,7 @@
     if (!p || !p.id) return null;
     var prev = profileMap[p.id] || {};
     var name = p.full_name || p.username || p.name || '';
-    if (prev.name && prev.name !== 'User' && (!name || /^user$/i.test(name))) {
-      name = prev.name;
-    }
+    if (prev.name && prev.name !== 'User' && (!name || /^user$/i.test(name))) name = prev.name;
     if (!name) name = prev.name || '';
     var info = {
       name: name,
@@ -105,10 +105,6 @@
       role: p.role != null && p.role !== '' ? p.role : prev.role || ''
     };
     info.label = buildLabel(info);
-    // Prefer richer label over poorer
-    if (prev.label && prev.label.length > (info.label || '').length && info.label.indexOf(prev.name) === 0) {
-      // keep new if it has more structure
-    }
     if (!info.label && prev.label) info.label = prev.label;
     profileMap[p.id] = info;
     return info;
@@ -147,7 +143,6 @@
       if (!id) return false;
       var p = profileMap[id];
       if (!p || !p.name || p.name === 'User') return true;
-      // still need role/branch if never loaded
       if (!p._loaded) return true;
       return false;
     });
@@ -171,7 +166,6 @@
         }
       } catch (e) {}
     }
-    // mark attempted
     missing.forEach(function (id) {
       if (profileMap[id]) profileMap[id]._loaded = true;
     });
@@ -184,7 +178,6 @@
       el.id = 'dr-comments-live-css';
       document.head.appendChild(el);
     }
-    // Single solid label style — no opacity split (was causing visible flicker)
     el.textContent = [
       '.dr-cdel{float:right;font-size:.72rem;padding:.15rem .45rem;border-radius:6px;border:1px solid rgba(239,68,68,.35);background:rgba(239,68,68,.12);color:#fca5a5;cursor:pointer;font-weight:600}',
       'html[data-theme="light"] .dr-cdel{color:#b91c1c;background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.3)}',
@@ -247,29 +240,14 @@
     var tag = c.is_internal ? ' · Internal' : '';
     var status = c.status_change ? ' · → ' + esc(c.status_change) : '';
     var delBtn = canDelete(c)
-      ? '<button type="button" class="dr-cdel" data-del-cid="' +
-        esc(c.id) +
-        '" title="Delete this note">Delete</button>'
+      ? '<button type="button" class="dr-cdel" data-del-cid="' + esc(c.id) + '" title="Delete this note">Delete</button>'
       : '';
     return (
-      '<div class="comment' +
-      internal +
-      '" data-cid="' +
-      esc(c.id) +
-      '" data-author="' +
-      esc(c.author_id || '') +
-      '">' +
+      '<div class="comment' + internal + '" data-cid="' + esc(c.id) + '" data-author="' + esc(c.author_id || '') + '">' +
       delBtn +
-      '<div class="comment-header"><span class="dr-author">' +
-      esc(label) +
-      tag +
-      '</span><span>' +
-      esc(formatDate(c.created_at)) +
-      status +
-      '</span></div>' +
-      '<div class="comment-body">' +
-      esc(c.body) +
-      '</div></div>'
+      '<div class="comment-header"><span class="dr-author">' + esc(label) + tag + '</span><span>' +
+      esc(formatDate(c.created_at)) + status + '</span></div>' +
+      '<div class="comment-body">' + esc(c.body) + '</div></div>'
     );
   }
 
@@ -277,21 +255,10 @@
     var client = sb();
     if (!client || !ticketId) return [];
     try {
-      var r = await client
-        .from('comments')
-        .select('*')
-        .eq('ticket_id', ticketId)
-        .order('created_at', { ascending: true });
-      if (r.error) {
-        console.warn('[comments-live] fetch', r.error.message || r.error);
-        return [];
-      }
+      var r = await client.from('comments').select('*').eq('ticket_id', ticketId).order('created_at', { ascending: true });
+      if (r.error) return [];
       var rows = r.data || [];
-      var ids = rows
-        .map(function (c) {
-          return c.author_id || c.created_by;
-        })
-        .filter(Boolean);
+      var ids = rows.map(function (c) { return c.author_id || c.created_by; }).filter(Boolean);
       await loadProfiles(ids);
       return rows;
     } catch (e) {
@@ -309,13 +276,10 @@
       storeProfile(me);
     }
     var ins = await client.from('comments').insert(payload).select('*').maybeSingle();
-    if (ins.error) {
-      var msg = (ins.error.message || '') + '';
-      if (/column|schema cache/i.test(msg)) {
-        var minimal = { ticket_id: ticketId, body: body };
-        if (me && me.id) minimal.author_id = me.id;
-        ins = await client.from('comments').insert(minimal).select('*').maybeSingle();
-      }
+    if (ins.error && /column|schema cache/i.test(ins.error.message || '')) {
+      var minimal = { ticket_id: ticketId, body: body };
+      if (me && me.id) minimal.author_id = me.id;
+      ins = await client.from('comments').insert(minimal).select('*').maybeSingle();
     }
     return ins;
   }
@@ -345,8 +309,8 @@
 
   function paint(list, html) {
     if (!list) return;
-    if (html === lastHtml) return; // hard stop flicker
-    ignoreMutUntil = Date.now() + 1500;
+    if (html === lastHtml) return;
+    ignoreMutUntil = Date.now() + 2000;
     lastHtml = html;
     list.innerHTML = html;
     bindDeleteButtons(list);
@@ -361,38 +325,22 @@
     if (!tid) return;
     activeTicketId = tid;
     window.__drOpenTicketId = tid;
-
     busy = true;
     try {
       var comments = await fetchComments(tid);
       var cust = isCustomerView() || list.id === 'cust-comments-list';
-      var visible = cust
-        ? comments.filter(function (c) {
-            return !c.is_internal;
-          })
-        : comments;
-
-      var sig = visible
-        .map(function (c) {
-          return c.id + ':' + (c.body || '').length + ':' + authorLabel(c);
-        })
-        .join('|');
-
+      var visible = cust ? comments.filter(function (c) { return !c.is_internal; }) : comments;
+      var sig = visible.map(function (c) {
+        return c.id + ':' + (c.body || '').length + ':' + authorLabel(c);
+      }).join('|');
       if (!force && sig === lastSig && lastHtml) return;
       lastSig = sig;
-
       if (!visible.length) {
         paint(list, '<p class="kb-sub" style="margin:0">No updates yet.</p>');
         return;
       }
-
       var ordered = cust ? visible : visible.slice().reverse();
-      var html = ordered
-        .map(function (c) {
-          return renderComment(c, cust);
-        })
-        .join('');
-      paint(list, html);
+      paint(list, ordered.map(function (c) { return renderComment(c, cust); }).join(''));
     } finally {
       busy = false;
     }
@@ -400,9 +348,7 @@
 
   function scheduleRefresh(force, delay) {
     if (debounceTimer) clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(function () {
-      refreshList(!!force);
-    }, delay == null ? 250 : delay);
+    debounceTimer = setTimeout(function () { refreshList(!!force); }, delay == null ? 250 : delay);
   }
 
   function unsub() {
@@ -422,19 +368,10 @@
     try {
       channel = client
         .channel('comments-' + ticketId)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'comments',
-            filter: 'ticket_id=eq.' + ticketId
-          },
-          function () {
-            lastSig = '';
-            scheduleRefresh(true, 300);
-          }
-        )
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'comments', filter: 'ticket_id=eq.' + ticketId }, function () {
+          lastSig = '';
+          scheduleRefresh(true, 300);
+        })
         .subscribe();
     } catch (e) {}
   }
@@ -465,41 +402,21 @@
     e.preventDefault();
     e.stopPropagation();
     if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
-
-    var ta =
-      form.querySelector('#comment-text') ||
-      form.querySelector('#cust-reply-text') ||
-      form.querySelector('textarea');
+    var ta = form.querySelector('#comment-text') || form.querySelector('#cust-reply-text') || form.querySelector('textarea');
     var body = ta ? String(ta.value || '').trim() : '';
-    if (!body) {
-      toast('Write a reply first', 'error');
-      return;
-    }
-
+    if (!body) { toast('Write a reply first', 'error'); return; }
     var internalEl = form.querySelector('#comment-internal');
     var isInternal = !!(internalEl && internalEl.checked);
     var tid = currentTicketId() || activeTicketId || (await resolveTicketIdFromDom());
-    if (!tid) {
-      toast('Open a ticket first', 'error');
-      return;
-    }
-
+    if (!tid) { toast('Open a ticket first', 'error'); return; }
     var btn = form.querySelector('button[type="submit"], .btn-primary');
-    if (btn) {
-      btn.disabled = true;
-      btn.dataset._old = btn.textContent;
-      btn.textContent = 'Sending…';
-    }
-
+    if (btn) { btn.disabled = true; btn.dataset._old = btn.textContent; btn.textContent = 'Sending…'; }
     try {
       var res = await postComment(tid, body, isInternal);
       if (res.error) throw res.error;
       if (ta) ta.value = '';
       if (internalEl) internalEl.checked = false;
-      if (btn) {
-        btn.disabled = false;
-        btn.textContent = btn.dataset._old || 'Send Reply';
-      }
+      if (btn) { btn.disabled = false; btn.textContent = btn.dataset._old || 'Send Reply'; }
       toast('Reply sent', 'success');
       lastSig = '';
       lastHtml = '';
@@ -508,61 +425,30 @@
       var m = (err && err.message) || 'Could not send reply';
       if (/user_id|assignee_id|schema cache/i.test(m)) m = 'Comment save failed. Try again.';
       toast(m, 'error');
-      if (btn) {
-        btn.disabled = false;
-        btn.textContent = btn.dataset._old || 'Send Reply';
-      }
+      if (btn) { btn.disabled = false; btn.textContent = btn.dataset._old || 'Send Reply'; }
     }
   }
 
-  document.addEventListener(
-    'submit',
-    function (e) {
-      var t = e.target;
-      if (!t) return;
-      if (t.id === 'cust-reply-form' && window.DRCustReplyFix) {
-        // Let customer fix post; refresh once after
-        scheduleRefresh(true, 500);
-        return;
-      }
-      var isCommentForm =
-        t.id === 'comment-form' ||
-        t.id === 'cust-reply-form' ||
-        (t.classList && t.classList.contains('comment-form'));
-      if (!isCommentForm) return;
-      handleReplySubmit(t, e);
-    },
-    true
-  );
+  document.addEventListener('submit', function (e) {
+    var t = e.target;
+    if (!t) return;
+    if (t.id === 'cust-reply-form' && window.DRCustReplyFix) {
+      scheduleRefresh(true, 500);
+      return;
+    }
+    var isCommentForm = t.id === 'comment-form' || t.id === 'cust-reply-form' || (t.classList && t.classList.contains('comment-form'));
+    if (!isCommentForm) return;
+    handleReplySubmit(t, e);
+  }, true);
 
-  window.addEventListener('dr-comments-updated', function () {
-    scheduleRefresh(true, 200);
-  });
+  window.addEventListener('dr-comments-updated', function () { scheduleRefresh(true, 200); });
 
   injectCss();
-  // Slow poll — realtime + submit handlers cover most updates
   setInterval(function () {
     if (Date.now() < ignoreMutUntil) return;
     sync();
-  }, 8000);
-  setTimeout(sync, 1000);
-
-  // MutationObserver only recovers if *another* script wiped our list
-  ['comments-list', 'cust-comments-list'].forEach(function (id) {
-    var el = document.getElementById(id);
-    if (!el || el.__drCommentsObs) return;
-    el.__drCommentsObs = true;
-    try {
-      new MutationObserver(function () {
-        if (Date.now() < ignoreMutUntil) return;
-        if (busy) return;
-        // Only re-paint if our stable markup is gone
-        if (lastHtml && el.innerHTML !== lastHtml && !el.querySelector('.dr-author')) {
-          scheduleRefresh(true, 400);
-        }
-      }).observe(el, { childList: true, subtree: false });
-    } catch (e) {}
-  });
+  }, 10000);
+  setTimeout(sync, 1200);
 
   window.DRCommentsLive = {
     refresh: function () {
