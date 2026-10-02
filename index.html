@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.1.1" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.1.2" />
   <style>
     html,body{margin:0;background:#0c0c14;color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
     #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae;flex-direction:column;gap:0.75rem;padding:1.5rem;text-align:center}
@@ -49,7 +49,7 @@
     var TOOLBAR_SHA = '2ea9190cbbb3dbfbf3a159ca47d585a61b2f6e2b';
     var FILTER_SHA = '1bfe6c0e93dedc361cf1f3e15eb520c3aea13930';
     var DESIGN_SHA = '7d6d66cbe63fda91cf71d64bbddd1af80f3adfc3';
-    var CUSTOMER_PRO_SHA = '9b26e751660232dc5bc4a43a1a5b5497a45cda2e';
+    var CUSTOMER_PRO_SHA = '508cdf17c8ffa2bbd4b6d899d9a1bcc162f8c034';
     var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
     var BUST = String(Date.now());
     var TIP = 'dd3d27c0c8190f4f85781c8f2477678d538768b0';
@@ -163,10 +163,6 @@
       document.write(html);
       document.close();
       clearTimeout(bootTimer);
-
-      setTimeout(function () {
-        loadScript(CDN + CUSTOMER_PRO_SHA + '/js/customer-pro-ui.js');
-      }, 900);
 
       setTimeout(function () {
         Promise.all([
