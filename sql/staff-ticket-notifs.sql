@@ -1,5 +1,6 @@
 -- Divine Rays — notify agents/admins on new customer tickets + customer replies
 -- Run in Supabase SQL Editor
+-- tickets column is assigned_to (NOT assignee_id)
 
 CREATE TABLE IF NOT EXISTS public.notifications (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -117,6 +118,7 @@ CREATE TRIGGER trg_notify_staff_new_ticket
   FOR EACH ROW
   EXECUTE FUNCTION public.trg_notify_staff_new_ticket();
 
+-- Fixed: tickets has assigned_to only — never read assignee_id
 CREATE OR REPLACE FUNCTION public.trg_notify_staff_customer_comment()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -151,7 +153,8 @@ BEGIN
 
   num := COALESCE(t.ticket_number, LEFT(t.id::text, 8));
   snippet := left(COALESCE(NEW.body, ''), 120);
-  target := COALESCE(t.assignee_id, t.assigned_to);
+  -- assigned_to is the real column (assignee_id does not exist)
+  target := t.assigned_to;
 
   IF target IS NOT NULL THEN
     PERFORM public.notify_staff_users(
