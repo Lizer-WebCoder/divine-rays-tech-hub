@@ -1,12 +1,85 @@
 /**
  * Divine Rays — Admin V6 loader
  * End-Users: customer only | Admin: admin/agent/developer only
+ * Admin chrome: only Admins count, no top search/Showing, centered cols
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_ADMIN_V6_LOADER >= 2) return;
-  window.__DR_ADMIN_V6_LOADER = 2;
+  if (window.__DR_ADMIN_V6_LOADER >= 3) return;
+  window.__DR_ADMIN_V6_LOADER = 3;
+
+  (function injectAdminChromeCss() {
+    if (document.getElementById('dr-admin-chrome-css')) return;
+    var el = document.createElement('style');
+    el.id = 'dr-admin-chrome-css';
+    el.textContent =
+      'body.dr-view-admin-staff #search-input,' +
+      'body.dr-view-endusers #search-input,' +
+      'body.dr-view-admin-staff #filter-status,' +
+      'body.dr-view-endusers #filter-status,' +
+      'body.dr-view-admin-staff #filter-priority,' +
+      'body.dr-view-endusers #filter-priority,' +
+      'body.dr-view-admin-staff #filter-sort,' +
+      'body.dr-view-endusers #filter-sort,' +
+      'body.dr-view-admin-staff #btn-clear-filters,' +
+      'body.dr-view-endusers #btn-clear-filters{display:none!important}' +
+      'body.dr-view-admin-staff .list-meta,' +
+      'body.dr-view-endusers .list-meta,' +
+      'body.dr-view-admin-staff #list-meta,' +
+      'body.dr-view-endusers #list-meta,' +
+      'body.dr-view-admin-staff .page-meta,' +
+      'body.dr-view-endusers .page-meta,' +
+      'body.dr-view-admin-staff #page-meta,' +
+      'body.dr-view-endusers #page-meta,' +
+      'body.dr-view-admin-staff .results-meta,' +
+      'body.dr-view-endusers .results-meta{display:none!important}' +
+      'body.dr-view-admin-staff #admin-stat-users,' +
+      'body.dr-view-admin-staff #admin-stat-customers,' +
+      'body.dr-view-admin-staff #admin-stat-agents,' +
+      'body.dr-view-admin-staff .admin-stats .stat-card:not(.me){display:none!important}' +
+      'body.dr-view-admin-staff .admin-stats{display:flex;gap:0.75rem;max-width:14rem}' +
+      'body.dr-view-admin-staff .admin-stats .stat-card.me{flex:1;min-width:10rem}' +
+      'body.dr-view-endusers #admin-stat-users,' +
+      'body.dr-view-endusers #admin-stat-agents,' +
+      'body.dr-view-endusers #admin-stat-admins,' +
+      'body.dr-view-endusers .admin-stats .stat-card.me{display:none!important}' +
+      'body.dr-view-admin-staff .admin-table th:nth-child(3),' +
+      'body.dr-view-admin-staff .admin-table td:nth-child(3),' +
+      'body.dr-view-admin-staff .admin-table th:nth-child(4),' +
+      'body.dr-view-admin-staff .admin-table td:nth-child(4),' +
+      'body.dr-view-admin-staff .admin-table th:nth-child(5),' +
+      'body.dr-view-admin-staff .admin-table td:nth-child(5),' +
+      'body.dr-view-admin-staff .admin-table th:nth-child(6),' +
+      'body.dr-view-admin-staff .admin-table td:nth-child(6){text-align:center!important;vertical-align:middle!important}' +
+      'body.dr-view-admin-staff .admin-table .admin-actions{justify-content:center!important}';
+    (document.head || document.documentElement).appendChild(el);
+  })();
+
+  function hideShowingMeta() {
+    try {
+      var pt = document.getElementById('page-title');
+      if (pt && pt.parentNode) {
+        Array.prototype.forEach.call(pt.parentNode.childNodes, function (ch) {
+          if (ch === pt || !ch.textContent) return;
+          if (ch.nodeType === 1 && ch.classList && ch.classList.contains('topbar-actions')) return;
+          var tx = (ch.textContent || '').replace(/\s+/g, ' ').trim();
+          if (/^Showing\s+\d/i.test(tx) || /Page\s+\d+\s*([\/of]+)\s*\d+/i.test(tx)) {
+            if (ch.nodeType === 1) ch.style.display = 'none';
+          }
+        });
+      }
+      document.querySelectorAll('.topbar, header.topbar, .main > header').forEach(function (bar) {
+        bar.querySelectorAll('p, span, div, small').forEach(function (n) {
+          if (n.id === 'page-title' || n.closest('#page-title') || n.closest('.topbar-actions')) return;
+          var tx = (n.textContent || '').replace(/\s+/g, ' ').trim();
+          if (/^Showing\s+\d/i.test(tx) || (/Page\s+\d/i.test(tx) && /of|\//i.test(tx) && tx.length < 60)) {
+            n.style.display = 'none';
+          }
+        });
+      });
+    } catch (e) {}
+  }
 
   var SRC =
     'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@4aae81525261cbee2a3cd15a9894b548df748e86/js/admin.js';
@@ -15,8 +88,8 @@
   s.async = false;
   s.onload = function () {
     try {
-      if (window.__DR_ADMIN_V6_PATCH >= 2) return;
-      window.__DR_ADMIN_V6_PATCH = 2;
+      if (window.__DR_ADMIN_V6_PATCH >= 3) return;
+      window.__DR_ADMIN_V6_PATCH = 3;
     } catch (e0) {}
 
     var DEVS = { kirzhian: 1, jamesjerlow123: 1, liya: 1 };
@@ -104,6 +177,7 @@
     }
 
     function polishTable() {
+      hideShowingMeta();
       var box = document.getElementById('admin-users-list');
       if (!box) return;
       var endMode = isEndUserMode();
@@ -146,7 +220,6 @@
         var endUser = isEndUserRecord(u, badgeTxt) || selectVal === 'customer';
         var staff = isStaffRecord(u, badgeTxt) || /^(admin|agent|developer)$/i.test(selectVal);
 
-        /* FILTER */
         if (endMode) {
           if (!endUser || (staff && !endUser)) {
             row.style.display = 'none';
@@ -161,14 +234,12 @@
           return;
         }
 
-        /* Staff / Admin mode */
         if (endUser && !staff) {
           row.style.display = 'none';
           return;
         }
         row.style.display = '';
 
-        /* Ensure 6 columns for Status + Actions */
         while (cells.length < 6) {
           var extra = document.createElement('td');
           row.appendChild(extra);
@@ -284,7 +355,7 @@
       });
     }
 
-    if (typeof window.renderAdminUsers === 'function' && !window.renderAdminUsers.__v6patch2) {
+    if (typeof window.renderAdminUsers === 'function' && !window.renderAdminUsers.__v6patch3) {
       var orig = window.renderAdminUsers;
       window.renderAdminUsers = async function (mode) {
         if (mode === 'endusers' || mode === 'staff') window.__DR_USERS_LIST_MODE = mode;
@@ -294,10 +365,11 @@
         setTimeout(polishTable, 600);
         return r;
       };
-      window.renderAdminUsers.__v6patch2 = 1;
+      window.renderAdminUsers.__v6patch3 = 1;
     }
 
-    setInterval(polishTable, 1500);
+    setInterval(function () { hideShowingMeta(); polishTable(); }, 1500);
+    hideShowingMeta();
     setTimeout(polishTable, 400);
     setTimeout(polishTable, 1200);
   };
