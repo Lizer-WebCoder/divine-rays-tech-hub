@@ -1,12 +1,14 @@
 /**
- * Divine Rays — Admin V9
+ * Divine Rays — Admin V10
  * End-Users: customers only | Admin: staff Status/Approve/Deny (deny deletes)
- * Role badge fonts/colors from css/styles.css + css/admin.css (not overridden)
+ * Role filter: Admin, IT Tech Support, Owner, Developer
+ * Role badge fonts/colors from css; Admin = teal, Developer = gold
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_ADMIN_V9) return;
+  if (window.__DR_ADMIN_V10) return;
+  window.__DR_ADMIN_V10 = 1;
   window.__DR_ADMIN_V9 = 1;
   window.__DR_ADMIN_V7 = 1;
   window.__DR_ADMIN_V6_LOADER = 99;
@@ -77,8 +79,11 @@
   function roleCls(u, label) {
     if (isDev(u.username)) return 'badge badge-role-developer';
     var r = String(u.role || '').toLowerCase();
-    if (r === 'customer' || /end-user/i.test(label)) return 'badge badge-role-customer';
-    if (/admin/i.test(label) && !/it tech/i.test(label)) return 'badge badge-role-admin';
+    var lab = String(label || '').toLowerCase();
+    if (r === 'customer' || /end-user/i.test(lab)) return 'badge badge-role-customer';
+    if (/owner/i.test(lab)) return 'badge badge-role-owner';
+    if (/admin/i.test(lab) && !/it tech/i.test(lab)) return 'badge badge-role-admin';
+    if (/developer/i.test(lab)) return 'badge badge-role-developer';
     return 'badge badge-role-agent';
   }
   async function ask(msg) {
@@ -180,30 +185,57 @@
     toast('Password reset email sent', 'success');
   }
 
+  function ensureRoleFilterOptions() {
+    var sel = document.getElementById('admin-filter-role');
+    if (!sel) return;
+    var want = [
+      { v: '', t: 'All roles' },
+      { v: 'admin', t: 'Admin' },
+      { v: 'it_tech_support', t: 'IT Tech Support' },
+      { v: 'owner', t: 'Owner' },
+      { v: 'developer', t: 'Developer' }
+    ];
+    var cur = sel.value;
+    var sig = Array.prototype.map.call(sel.options, function (o) { return o.value + ':' + o.textContent; }).join('|');
+    var wantSig = want.map(function (x) { return x.v + ':' + x.t; }).join('|');
+    if (sig === wantSig) return;
+    sel.innerHTML = want.map(function (x) {
+      return '<option value="' + x.v + '">' + x.t + '</option>';
+    }).join('');
+    var ok = want.some(function (x) { return x.v === cur; });
+    sel.value = ok ? cur : '';
+  }
+
   function injectCss() {
     try {
       var o = document.getElementById('dr-admin-v7-css'); if (o) o.remove();
       var o2 = document.getElementById('dr-admin-v8-css'); if (o2) o2.remove();
+      var o3 = document.getElementById('dr-admin-v9-css'); if (o3) o3.remove();
     } catch (e0) {}
-    var el = document.getElementById('dr-admin-v9-css');
+    var el = document.getElementById('dr-admin-v10-css');
     if (!el) {
       el = document.createElement('style');
-      el.id = 'dr-admin-v9-css';
+      el.id = 'dr-admin-v10-css';
       (document.head || document.documentElement).appendChild(el);
     }
     el.textContent =
       '#view-admin > .admin-hint{display:none!important}' +
+      'body.dr-view-admin-staff #filter-hint,body.dr-view-endusers #filter-hint{display:none!important}' +
+      'body.dr-view-admin-staff .dr-ticket-pager,body.dr-view-endusers .dr-ticket-pager{display:none!important}' +
       'body.dr-view-admin-staff #search-input,body.dr-view-endusers #search-input,' +
       'body.dr-view-admin-staff #filter-status,body.dr-view-endusers #filter-status,' +
       'body.dr-view-admin-staff #filter-priority,body.dr-view-endusers #filter-priority,' +
       'body.dr-view-admin-staff #filter-sort,body.dr-view-endusers #filter-sort,' +
       'body.dr-view-admin-staff #btn-clear-filters,body.dr-view-endusers #btn-clear-filters{display:none!important}' +
-      'body.dr-view-admin-staff .admin-stats .stat-card{display:none!important}' +
-      'body.dr-view-admin-staff .admin-stats .stat-card.me,' +
-      'body.dr-view-admin-staff .admin-stats .stat-card:last-child{display:flex!important;flex-direction:column!important;min-width:10rem!important}' +
+      'body.dr-view-admin-staff .admin-stats .stat-card{display:none!important;visibility:hidden!important}' +
+      'body.dr-view-admin-staff .admin-stats .stat-card.dr-stat-admins,' +
+      'body.dr-view-admin-staff .admin-stats .stat-card.me{display:flex!important;visibility:visible!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;text-align:center!important;min-width:10rem!important}' +
       'body.dr-view-admin-staff .admin-stats{display:flex!important;gap:0.75rem!important;max-width:14rem!important}' +
+      'body.dr-view-admin-staff #admin-stat-admins{text-align:center!important;width:100%;display:block!important}' +
+      'body.dr-view-admin-staff #admin-stat-users,body.dr-view-admin-staff #admin-stat-agents{display:none!important}' +
       'body.dr-view-endusers .admin-stats .stat-card{display:none!important}' +
-      'body.dr-view-endusers .admin-stats .stat-card:nth-child(2){display:flex!important;flex-direction:column!important;min-width:10rem!important}' +
+      'body.dr-view-endusers .admin-stats .stat-card:nth-child(2),' +
+      'body.dr-view-endusers .admin-stats .stat-card.dr-stat-endusers{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;text-align:center!important;min-width:10rem!important}' +
       '.admin-table{width:100%;border-collapse:collapse}' +
       'body.dr-view-admin-staff .admin-table th:nth-child(3),' +
       'body.dr-view-admin-staff .admin-table td:nth-child(3),' +
@@ -214,7 +246,9 @@
       'body.dr-view-admin-staff .admin-table th:nth-child(6),' +
       'body.dr-view-admin-staff .admin-table td:nth-child(6){text-align:center!important;vertical-align:middle!important}' +
       '.admin-table .admin-actions{display:inline-flex!important;align-items:center;justify-content:center;gap:0.35rem;flex-wrap:wrap}' +
-      '.badge-role-developer{background:rgba(251,191,36,0.2);color:#fbbf24}' +
+      '.badge-role-admin{background:rgba(45,212,191,0.22)!important;color:#2dd4bf!important;border-color:rgba(45,212,191,0.4)!important}' +
+      '.badge-role-developer{background:rgba(251,191,36,0.2)!important;color:#fbbf24!important}' +
+      '.badge-role-owner{background:rgba(244,114,182,0.22)!important;color:#f472b6!important}' +
       'body.dr-view-admin-staff .admin-role-select,' +
       'body.dr-view-admin-staff .admin-btn-edit,' +
       'body.dr-view-admin-staff .admin-btn-del{display:none!important}';
@@ -222,6 +256,11 @@
 
   function hideShowingMeta() {
     try {
+      var fh = document.getElementById('filter-hint');
+      if (fh && (document.body.classList.contains('dr-view-admin-staff') || document.body.classList.contains('dr-view-endusers'))) {
+        fh.style.display = 'none';
+        fh.textContent = '';
+      }
       document.querySelectorAll('.topbar, header.topbar, .main > header').forEach(function (bar) {
         bar.querySelectorAll('p, span, div, small').forEach(function (n) {
           if (n.id === 'page-title' || n.closest('#page-title') || n.closest('.topbar-actions')) return;
@@ -254,6 +293,7 @@
 
   async function renderAdminUsers(mode) {
     injectCss();
+    ensureRoleFilterOptions();
     hideShowingMeta();
     var profile = (DR().getProfile && DR().getProfile()) || window.__drProfile || null;
     if (!canManage(profile)) { toast('Admin only', 'error'); return; }
@@ -287,7 +327,21 @@
         if (r === 'customer' || r === 'user' || r === 'end-user' || r === 'enduser') return false;
         if (r !== 'admin' && r !== 'agent' && r !== 'developer' && !isDev(u.username)) return false;
       }
-      if (roleFilter && u.role !== roleFilter) return false;
+      if (roleFilter) {
+        var lab = roleLabel(u).toLowerCase();
+        var staff = String(u.staff_role || u.job_title || '').toLowerCase().trim();
+        if (roleFilter === 'admin') {
+          if (!(r === 'admin' || lab === 'admin') || /it tech/i.test(lab) || isDev(u.username)) return false;
+        } else if (roleFilter === 'developer') {
+          if (!isDev(u.username) && lab !== 'developer' && staff !== 'developer' && r !== 'developer') return false;
+        } else if (roleFilter === 'it_tech_support') {
+          if (!(/it tech/i.test(lab) || staff === 'it tech support' || (r === 'agent' && !isDev(u.username) && lab !== 'admin'))) return false;
+        } else if (roleFilter === 'owner') {
+          if (!(lab === 'owner' || staff === 'owner' || /owner/i.test(staff))) return false;
+        } else if (u.role !== roleFilter && lab !== roleFilter) {
+          return false;
+        }
+      }
       if (!q) return true;
       return ((u.full_name || '') + ' ' + (u.username || '') + ' ' + (u.email || '') + ' ' + (u.role || '') + ' ' + (u.staff_role || '')).toLowerCase().indexOf(q) !== -1;
     });
@@ -355,9 +409,9 @@
           } else {
             statusHtml = '<span class="badge" style="background:rgba(251,146,60,0.2);color:#fb923c">Pending</span>';
             actionHtml = viewerDev
-              ? '<button type="button" class="btn btn-sm btn-primary dr-v9-approve" data-id="' + esc(u.id) +
+              ? '<button type="button" class="btn btn-sm btn-primary dr-v10-approve" data-id="' + esc(u.id) +
                 '" data-username="' + esc(u.username || '') + '" data-email="' + esc(u.email || '') + '">Approve</button>' +
-                '<button type="button" class="btn btn-danger btn-sm dr-v9-deny" data-id="' + esc(u.id) +
+                '<button type="button" class="btn btn-danger btn-sm dr-v10-deny" data-id="' + esc(u.id) +
                 '" data-username="' + esc(u.username || '') + '" data-email="' + esc(u.email || '') +
                 '" data-name="' + esc(u.full_name || u.username || 'user') + '">Deny</button>'
               : '<span style="opacity:0.65;font-size:0.8rem">Developer only</span>';
@@ -392,7 +446,7 @@
         renderAdminUsers();
       });
     });
-    box.querySelectorAll('.dr-v9-approve').forEach(function (btn) {
+    box.querySelectorAll('.dr-v10-approve').forEach(function (btn) {
       btn.addEventListener('click', async function () {
         if (!viewerDev) return;
         if (!(await ask('Approve this account? They can sign in to the agent portal.'))) return;
@@ -401,7 +455,7 @@
         renderAdminUsers('staff');
       });
     });
-    box.querySelectorAll('.dr-v9-deny').forEach(function (btn) {
+    box.querySelectorAll('.dr-v10-deny').forEach(function (btn) {
       btn.addEventListener('click', async function () {
         if (!viewerDev) return;
         var name = btn.getAttribute('data-name') || 'this account';
@@ -418,28 +472,32 @@
   }
 
   window.renderAdminUsers = renderAdminUsers;
+  window.renderAdminUsers.__drV10 = 1;
   window.renderAdminUsers.__drV9 = 1;
   window.renderAdminUsers.__drV7 = 1;
 
   function bindChrome() {
     var ar = document.getElementById('btn-admin-refresh');
-    if (ar && !ar.__v9) { ar.__v9 = 1; ar.addEventListener('click', function () { renderAdminUsers(); }); }
+    if (ar && !ar.__v10) { ar.__v10 = 1; ar.addEventListener('click', function () { renderAdminUsers(); }); }
     var as = document.getElementById('admin-search');
-    if (as && !as.__v9) { as.__v9 = 1; as.addEventListener('input', function () { renderAdminUsers(); }); }
+    if (as && !as.__v10) { as.__v10 = 1; as.addEventListener('input', function () { renderAdminUsers(); }); }
     var afr = document.getElementById('admin-filter-role');
-    if (afr && !afr.__v9) { afr.__v9 = 1; afr.addEventListener('change', function () { renderAdminUsers(); }); }
+    if (afr && !afr.__v10) { afr.__v10 = 1; afr.addEventListener('change', function () { renderAdminUsers(); }); }
   }
 
   function boot() {
     injectCss();
+    ensureRoleFilterOptions();
     hideShowingMeta();
     bindChrome();
     setInterval(function () {
       injectCss();
+      ensureRoleFilterOptions();
       hideShowingMeta();
       bindChrome();
-      if (typeof window.renderAdminUsers === 'function' && !window.renderAdminUsers.__drV9) {
+      if (typeof window.renderAdminUsers === 'function' && !window.renderAdminUsers.__drV10) {
         window.renderAdminUsers = renderAdminUsers;
+        window.renderAdminUsers.__drV10 = 1;
         window.renderAdminUsers.__drV9 = 1;
         window.renderAdminUsers.__drV7 = 1;
       }
