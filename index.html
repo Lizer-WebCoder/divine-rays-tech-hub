@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.6.9" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.7.0" />
   <style>
     html,body{margin:0;background:#0c0c14;color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
     #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae;flex-direction:column;gap:0.75rem;padding:1.5rem;text-align:center}
@@ -19,6 +19,9 @@
       var t = localStorage.getItem('dr_theme') || 'dark';
       document.documentElement.setAttribute('data-theme', t);
     } catch (e) {}
+    // Block antique comments-live before any shell script runs
+    window.__DR_COMMENTS_LIVE_V2 = 1;
+    window.__DR_COMMENTS_LIVE = 1;
   })();
   </script>
 </head>
@@ -39,6 +42,7 @@
     var STAFF_NOTIF_SHA = 'ad42d4238ecd55ec0bb66aa9a842fe2c57b936bd';
     var REPLY_FIX_SHA = '5307c296fc8868d23fdc61bde79cad23f3c71dba';
     var COMMENTS_LIVE_SHA = 'b9dc6830a087acddb58d370fcc62d312790376c5';
+    var UI_LAYOUT_SHA = '611051ab7677b0232aa545595a49c223eac5cfad';
     var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
     var BUST = String(Date.now());
 
@@ -90,10 +94,15 @@
           "';"
       );
 
-      // Replace antique shell pin so only no-flicker comments-live loads
       html = html.replace(
         /var LIVE_SHA = '[^']*';/,
         "var LIVE_SHA = '" + COMMENTS_LIVE_SHA + "';"
+      );
+
+      // Re-assert kill flags inside shell before its scripts
+      html = html.replace(
+        '<head>',
+        '<head><script>window.__DR_COMMENTS_LIVE_V2=1;window.__DR_COMMENTS_LIVE=1;<\/script>'
       );
 
       document.open();
@@ -107,7 +116,8 @@
         loadScript(CDN + TEAM_SEP_SHA + '/js/team-sep.js');
         loadScript(CDN + COMMENTS_LIVE_SHA + '/js/comments-live.js');
         loadScript(CDN + REPLY_FIX_SHA + '/js/customer-reply-fix.js');
-      }, 1800);
+        loadScript(CDN + UI_LAYOUT_SHA + '/js/ui-layout-notifs.js');
+      }, 1500);
 
       setTimeout(function () {
         loadScript(CDN + FIX_SHA + '/js/admin.js');
@@ -116,6 +126,7 @@
         loadScript(CDN + STAFF_NOTIF_SHA + '/js/staff-ticket-notifs.js');
         loadScript(CDN + COMMENTS_LIVE_SHA + '/js/comments-live.js');
         loadScript(CDN + REPLY_FIX_SHA + '/js/customer-reply-fix.js');
+        loadScript(CDN + UI_LAYOUT_SHA + '/js/ui-layout-notifs.js');
       }, 2800);
 
       setTimeout(function () {
