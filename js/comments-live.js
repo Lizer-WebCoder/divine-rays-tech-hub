@@ -1,11 +1,11 @@
 /**
- * Divine Rays — live comments v6 (no-flicker, single instance)
+ * Divine Rays — live comments v7 (Messenger order)
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_COMMENTS_LIVE >= 6) return;
-  window.__DR_COMMENTS_LIVE = 6;
+  if (window.__DR_COMMENTS_LIVE >= 7) return;
+  window.__DR_COMMENTS_LIVE = 7;
   window.__DR_COMMENTS_LIVE_V2 = 1;
 
   var channel = null;
@@ -48,10 +48,10 @@
   }
   function esc(s) {
     return String(s == null ? '' : s)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
+      .replace(/&/g, '&')
+      .replace(/</g, '<')
+      .replace(/>/g, '>')
+      .replace(/"/g, '"');
   }
   function formatDate(d) {
     try {
@@ -314,6 +314,11 @@
     lastHtml = html;
     list.innerHTML = html;
     bindDeleteButtons(list);
+    // Keep newest message in view (Messenger-style)
+    try {
+      var last = list.lastElementChild;
+      if (last) last.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    } catch (e) {}
   }
 
   async function refreshList(force) {
@@ -329,18 +334,31 @@
     try {
       var comments = await fetchComments(tid);
       var cust = isCustomerView() || list.id === 'cust-comments-list';
-      var visible = cust ? comments.filter(function (c) { return !c.is_internal; }) : comments;
-      var sig = visible.map(function (c) {
-        return c.id + ':' + (c.body || '').length + ':' + authorLabel(c);
-      }).join('|');
+      var visible = cust
+        ? comments.filter(function (c) {
+            return !c.is_internal;
+          })
+        : comments;
+      var sig = visible
+        .map(function (c) {
+          return c.id + ':' + (c.body || '').length + ':' + authorLabel(c);
+        })
+        .join('|');
       if (!force && sig === lastSig && lastHtml) return;
       lastSig = sig;
       if (!visible.length) {
         paint(list, '<p class="kb-sub" style="margin:0">No updates yet.</p>');
         return;
       }
-      var ordered = cust ? visible : visible.slice().reverse();
-      paint(list, ordered.map(function (c) { return renderComment(c, cust); }).join(''));
+      // Messenger order: oldest at top, newest at bottom (no reverse)
+      paint(
+        list,
+        visible
+          .map(function (c) {
+            return renderComment(c, cust);
+          })
+          .join('')
+      );
     } finally {
       busy = false;
     }
@@ -348,7 +366,9 @@
 
   function scheduleRefresh(force, delay) {
     if (debounceTimer) clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(function () { refreshList(!!force); }, delay == null ? 250 : delay);
+    debounceTimer = setTimeout(function () {
+      refreshList(!!force);
+    }, delay == null ? 250 : delay);
   }
 
   function unsub() {
@@ -368,10 +388,14 @@
     try {
       channel = client
         .channel('comments-' + ticketId)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'comments', filter: 'ticket_id=eq.' + ticketId }, function () {
-          lastSig = '';
-          scheduleRefresh(true, 300);
-        })
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'comments', filter: 'ticket_id=eq.' + ticketId },
+          function () {
+            lastSig = '';
+            scheduleRefresh(true, 300);
+          }
+        )
         .subscribe();
     } catch (e) {}
   }
@@ -402,21 +426,37 @@
     e.preventDefault();
     e.stopPropagation();
     if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
-    var ta = form.querySelector('#comment-text') || form.querySelector('#cust-reply-text') || form.querySelector('textarea');
+    var ta =
+      form.querySelector('#comment-text') ||
+      form.querySelector('#cust-reply-text') ||
+      form.querySelector('textarea');
     var body = ta ? String(ta.value || '').trim() : '';
-    if (!body) { toast('Write a reply first', 'error'); return; }
+    if (!body) {
+      toast('Write a reply first', 'error');
+      return;
+    }
     var internalEl = form.querySelector('#comment-internal');
     var isInternal = !!(internalEl && internalEl.checked);
     var tid = currentTicketId() || activeTicketId || (await resolveTicketIdFromDom());
-    if (!tid) { toast('Open a ticket first', 'error'); return; }
+    if (!tid) {
+      toast('Open a ticket first', 'error');
+      return;
+    }
     var btn = form.querySelector('button[type="submit"], .btn-primary');
-    if (btn) { btn.disabled = true; btn.dataset._old = btn.textContent; btn.textContent = 'Sending…'; }
+    if (btn) {
+      btn.disabled = true;
+      btn.dataset._old = btn.textContent;
+      btn.textContent = 'Sending…';
+    }
     try {
       var res = await postComment(tid, body, isInternal);
       if (res.error) throw res.error;
       if (ta) ta.value = '';
       if (internalEl) internalEl.checked = false;
-      if (btn) { btn.disabled = false; btn.textContent = btn.dataset._old || 'Send Reply'; }
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = btn.dataset._old || 'Send Reply';
+      }
       toast('Reply sent', 'success');
       lastSig = '';
       lastHtml = '';
@@ -425,23 +465,35 @@
       var m = (err && err.message) || 'Could not send reply';
       if (/user_id|assignee_id|schema cache/i.test(m)) m = 'Comment save failed. Try again.';
       toast(m, 'error');
-      if (btn) { btn.disabled = false; btn.textContent = btn.dataset._old || 'Send Reply'; }
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = btn.dataset._old || 'Send Reply';
+      }
     }
   }
 
-  document.addEventListener('submit', function (e) {
-    var t = e.target;
-    if (!t) return;
-    if (t.id === 'cust-reply-form' && window.DRCustReplyFix) {
-      scheduleRefresh(true, 500);
-      return;
-    }
-    var isCommentForm = t.id === 'comment-form' || t.id === 'cust-reply-form' || (t.classList && t.classList.contains('comment-form'));
-    if (!isCommentForm) return;
-    handleReplySubmit(t, e);
-  }, true);
+  document.addEventListener(
+    'submit',
+    function (e) {
+      var t = e.target;
+      if (!t) return;
+      if (t.id === 'cust-reply-form' && window.DRCustReplyFix) {
+        scheduleRefresh(true, 500);
+        return;
+      }
+      var isCommentForm =
+        t.id === 'comment-form' ||
+        t.id === 'cust-reply-form' ||
+        (t.classList && t.classList.contains('comment-form'));
+      if (!isCommentForm) return;
+      handleReplySubmit(t, e);
+    },
+    true
+  );
 
-  window.addEventListener('dr-comments-updated', function () { scheduleRefresh(true, 200); });
+  window.addEventListener('dr-comments-updated', function () {
+    scheduleRefresh(true, 200);
+  });
 
   injectCss();
   setInterval(function () {
