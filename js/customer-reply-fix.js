@@ -1,10 +1,10 @@
 /**
- * Customer reply fix v4 — instant UI update after post (no full reload)
+ * Customer reply fix v5 — instant button unlock after post
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  window.__DR_CUST_REPLY_FIX_V4 = 1;
+  window.__DR_CUST_REPLY_FIX_V5 = 1;
 
   function sb() {
     try {
@@ -115,6 +115,12 @@
     }
   }
 
+  function unlockBtn(btn) {
+    if (!btn) return;
+    btn.disabled = false;
+    btn.textContent = btn.dataset._old || 'Send Reply';
+  }
+
   async function resolveTicketUuid() {
     var candidates = [
       window.currentCustTicketId,
@@ -222,12 +228,11 @@
     } catch (e) {}
   }
 
-  function appendOptimistic(body, authorName, tempId) {
+  function appendOptimistic(body, authorName) {
     var list = listEl();
     if (!list) return null;
     var empty = list.querySelector('.empty-state, .kb-sub');
     if (empty) empty.remove();
-    // avoid duplicate optimistic bubbles
     list.querySelectorAll('[data-optimistic]').forEach(function (el) {
       try {
         el.remove();
@@ -236,7 +241,6 @@
     var div = document.createElement('div');
     div.className = 'comment';
     div.setAttribute('data-optimistic', '1');
-    if (tempId) div.setAttribute('data-cid', tempId);
     div.innerHTML =
       '<div class="comment-header"><span></span><span></span></div><div class="comment-body"></div>';
     div.querySelector('.comment-header span:first-child').textContent = authorName || 'You';
@@ -266,9 +270,11 @@
       var rows = (r.data || []).filter(function (c) {
         return !c.is_internal;
       });
-      var ids = rows.map(function (c) {
-        return c.author_id;
-      }).filter(Boolean);
+      var ids = rows
+        .map(function (c) {
+          return c.author_id;
+        })
+        .filter(Boolean);
       var names = {};
       if (ids.length) {
         try {
@@ -293,20 +299,16 @@
   }
 
   async function refreshConversation(tid) {
-    // Tell comments-live to clear signature cache
     try {
       if (window.DRCommentsLive && DRCommentsLive.refresh) await DRCommentsLive.refresh();
     } catch (e) {}
-
     var ok = await fetchAndRender(tid);
     if (!ok) {
-      // retry once after short delay (replication / RLS settle)
       await new Promise(function (r) {
-        setTimeout(r, 400);
+        setTimeout(r, 300);
       });
       await fetchAndRender(tid);
     }
-
     try {
       window.dispatchEvent(
         new CustomEvent('dr-comments-updated', { detail: { ticketId: tid } })
@@ -335,7 +337,7 @@
     var btn = form.querySelector('button[type="submit"], .btn-primary');
     if (btn) {
       btn.disabled = true;
-      btn.dataset._old = btn.textContent;
+      btn.dataset._old = btn.textContent || 'Send Reply';
       btn.textContent = 'Sending…';
     }
 
@@ -354,8 +356,6 @@
 
       var p = profile();
       var name = (p && (p.full_name || p.username || p.name)) || 'You';
-
-      // Show immediately
       appendOptimistic(text, name);
 
       var res = await insertComment(tid, text);
@@ -377,7 +377,10 @@
         window.currentCustTicketId = tid;
       } catch (e) {}
 
-      // Promote optimistic bubble with real id if we have it
+      // Unlock immediately — do not wait for list refresh
+      submitting = false;
+      unlockBtn(btn);
+
       if (res.comment && res.comment.id) {
         var opt = document.querySelector('[data-optimistic]');
         if (opt) {
@@ -386,53 +389,27 @@
         }
       }
 
-      await refreshConversation(tid);
+      refreshConversation(tid).catch(function () {});
       setTimeout(function () {
         refreshConversation(tid);
-      }, 600);
-      setTimeout(function () {
-        refreshConversation(tid);
-      }, 1500);
+      }, 500);
     } catch (err) {
       console.error('[cust-reply-fix]', err);
       toast((err && err.message) || 'Could not send reply', 'error');
     } finally {
-      submitting = false;
-      if (btn) {
-        btn.disabled = false;
-        btn.textContent = btn.dataset._old || 'Send Reply';
+      if (submitting) {
+        submitting = false;
+        unlockBtn(btn);
       }
     }
   }
 
   document.addEventListener('submit', handleSubmit, true);
 
-  // Also catch button click in case form submit is blocked elsewhere
-  document.addEventListener(
-    'click',
-    function (e) {
-      var t = e.target;
-      if (!t) return;
-      var btn = t.closest && t.closest('#cust-reply-form button[type="submit"], #cust-reply-form .btn-primary');
-      if (!btn) return;
-      var form = document.getElementById('cust-reply-form');
-      if (!form) return;
-      // Let submit event fire; if it doesn't, force handle after tick
-      setTimeout(function () {
-        if (submitting) return;
-        var ta = document.getElementById('cust-reply-text');
-        if (ta && ta.value && ta.value.trim()) {
-          // only force if value still there (submit didn't clear it)
-        }
-      }, 50);
-    },
-    true
-  );
-
   function bindForm() {
     var form = document.getElementById('cust-reply-form');
-    if (!form || form.__drReplyBoundV4) return;
-    form.__drReplyBoundV4 = 1;
+    if (!form || form.__drReplyBoundV5) return;
+    form.__drReplyBoundV5 = 1;
     form.addEventListener('submit', handleSubmit, true);
   }
   setInterval(bindForm, 1200);
