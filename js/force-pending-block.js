@@ -1,24 +1,22 @@
 /**
- * Divine Rays — force pending staff block V3 — sync glow/toast, 1 shake, keep background
- * Orange login-card glow (10s) + single pending toast that shakes on re-click.
+ * Divine Rays — force pending staff block V4
+ * Fast first-click pending UI, 5s toast+glow, one shake per click only.
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_FORCE_PENDING_BLOCK >= 3) return;
-  window.__DR_FORCE_PENDING_BLOCK = 3;
+  if (window.__DR_FORCE_PENDING_BLOCK >= 4) return;
+  window.__DR_FORCE_PENDING_BLOCK = 4;
 
   var KEY = 'dr_staff_approval';
   var MSG =
     'Your account is pending Administrator approval. Please wait until a Developer/Admin approves your account.';
   var DEVS = { kirzhian: 1, jamesjerlow123: 1, liya: 1 };
-  var GLOW_MS = 10000;
-  var TOAST_MS = 10000;
+  var FADE_MS = 5000;
   var _glowTimer = null;
   var _toastEl = null;
-  var _toastTimer = null;
-  var _busy = false;
-  var _lastPendingAt = 0;
+  var _uiVisible = false;
+  var _shakeLock = false;
 
   function map() {
     try {
@@ -50,6 +48,15 @@
       localStorage.setItem(KEY, JSON.stringify(m));
     } catch (e) {}
   }
+  function isMarkedPending(id, un, em) {
+    var m = map();
+    if (id && m[id] === 'pending') return true;
+    un = un ? String(un).toLowerCase().trim() : '';
+    em = em ? String(em).toLowerCase().trim() : '';
+    if (un && m['pending:' + un] === 'pending') return true;
+    if (em && m['pending:' + em] === 'pending') return true;
+    return false;
+  }
   function isCustomer(r) {
     r = String(r || '').toLowerCase();
     return (
@@ -67,14 +74,7 @@
       .trim();
     if (!r) return false;
     if (isCustomer(r)) return false;
-    if (
-      r === 'agent' ||
-      r === 'admin' ||
-      r === 'owner' ||
-      r === 'developer' ||
-      r === 'dev'
-    )
-      return true;
+    if (r === 'agent' || r === 'admin' || r === 'owner' || r === 'developer' || r === 'dev') return true;
     if (r.indexOf('tech support') !== -1 || r.indexOf('it tech') !== -1) return true;
     if (r.indexOf('admin') !== -1 || r.indexOf('agent') !== -1 || r === 'staff' || r === 'support')
       return true;
@@ -98,16 +98,11 @@
       'body.dr-pending-blocked canvas,body.dr-pending-blocked .lifeline,body.dr-pending-blocked #bg-canvas,',
       'body.dr-pending-blocked .bg-anim,body.dr-pending-blocked #login-bg,body.dr-pending-blocked .login-bg{',
       'visibility:visible!important;opacity:1!important;display:block!important}',
-      'body.dr-pending-blocked{background:inherit!important}',
       '.login-card.login-pending-glow,#login-screen .login-card.login-pending-glow,',
       '.login-card.dr-login-pending,#login-screen .login-card.dr-login-pending{',
       'border-color:rgba(251,146,60,0.95)!important;',
       'box-shadow:0 0 22px rgba(251,146,60,0.85),0 0 52px rgba(249,115,22,0.55),0 0 80px rgba(234,88,12,0.3),0 12px 40px rgba(0,0,0,0.3)!important;',
       'transition:box-shadow .25s ease,border-color .25s ease!important}',
-      'html[data-theme="light"] .login-card.login-pending-glow,html[data-theme="light"] #login-screen .login-card.login-pending-glow,',
-      'html[data-theme="light"] .login-card.dr-login-pending,html[data-theme="light"] #login-screen .login-card.dr-login-pending{',
-      'border-color:rgba(234,88,12,0.95)!important;',
-      'box-shadow:0 0 28px rgba(251,146,60,0.9),0 0 56px rgba(249,115,22,0.55),0 10px 32px rgba(30,30,60,0.08)!important}',
       '.login-card.login-pending-shake,#login-screen .login-card.login-pending-shake{',
       'animation:dr-pending-shake 0.35s ease}',
       '@keyframes dr-pending-shake{',
@@ -119,7 +114,8 @@
       '.toast[data-dr-force-pending]{',
       'pointer-events:auto;padding:0.9rem 1.15rem;border-radius:14px;max-width:min(22rem,92vw);',
       'background:rgba(28,22,42,0.98);border:1px solid rgba(251,146,60,0.55);',
-      'color:#eeeef6;font-size:0.9rem;line-height:1.45;box-shadow:0 12px 32px rgba(0,0,0,0.5)}'
+      'color:#eeeef6;font-size:0.9rem;line-height:1.45;box-shadow:0 12px 32px rgba(0,0,0,0.5)}',
+      '#login-agent button[type="submit"].dr-btn-loading{opacity:0.75!important;cursor:wait!important;pointer-events:none!important;transform:scale(0.98)}'
     ].join('');
     (document.head || document.documentElement).appendChild(s);
   }
@@ -132,26 +128,28 @@
     );
   }
 
-  function applyOrangeGlow() {
-    ensureCss();
-    var card = getLoginCard();
-    if (!card) return;
-    card.classList.remove('login-fail-glow', 'login-fail-shake', 'login-pass-ok', 'login-fail-healing');
-    card.classList.add('login-pending-glow');
-    card.classList.add('dr-login-pending');
+  function getSubmitBtn() {
+    var form = document.getElementById('login-agent');
+    return form ? form.querySelector('button[type="submit"]') : null;
   }
 
-  function shakeCard() {
-    var card = getLoginCard();
-    if (!card) return;
-    card.classList.remove('login-pending-shake');
-    void card.offsetWidth;
-    card.classList.add('login-pending-shake');
-    setTimeout(function () {
-      try {
-        card.classList.remove('login-pending-shake');
-      } catch (e) {}
-    }, 350);
+  function setBtnLoading(on) {
+    var btn = getSubmitBtn();
+    if (!btn) return;
+    if (on) {
+      if (!btn.getAttribute('data-dr-label-save')) {
+        btn.setAttribute('data-dr-label-save', (btn.textContent || 'Sign in as Admin').trim());
+      }
+      btn.classList.add('dr-btn-loading');
+      btn.disabled = true;
+      btn.textContent = 'Signing in…';
+    } else {
+      btn.classList.remove('dr-btn-loading');
+      btn.disabled = false;
+      var saved = btn.getAttribute('data-dr-label-save') || 'Sign in as Admin';
+      if (/agent/i.test(saved)) saved = 'Sign in as Admin';
+      btn.textContent = saved;
+    }
   }
 
   function lockPortal() {
@@ -172,8 +170,57 @@
     } catch (e) {}
   }
 
-  function showPendingToast(isRepeat) {
+  function clearPendingVisuals() {
+    try {
+      var card = getLoginCard();
+      if (card) {
+        card.classList.remove('login-pending-glow', 'dr-login-pending', 'login-pending-shake');
+      }
+    } catch (e) {}
+    try {
+      if (_toastEl && _toastEl.parentNode) _toastEl.parentNode.removeChild(_toastEl);
+    } catch (e2) {}
+    _toastEl = null;
+    _uiVisible = false;
+    if (_glowTimer) {
+      clearTimeout(_glowTimer);
+      _glowTimer = null;
+    }
+  }
+
+  function shakeOnce() {
+    if (_shakeLock) return;
+    _shakeLock = true;
+    var card = getLoginCard();
+    if (card) {
+      card.classList.remove('login-pending-shake');
+      void card.offsetWidth;
+      card.classList.add('login-pending-shake');
+    }
+    if (_toastEl) {
+      _toastEl.classList.remove('dr-pending-toast-shake');
+      void _toastEl.offsetWidth;
+      _toastEl.classList.add('dr-pending-toast-shake');
+    }
+    setTimeout(function () {
+      try {
+        if (card) card.classList.remove('login-pending-shake');
+        if (_toastEl) _toastEl.classList.remove('dr-pending-toast-shake');
+      } catch (e) {}
+      _shakeLock = false;
+    }, 400);
+  }
+
+  function showPendingUI(isRepeat) {
     ensureCss();
+    lockPortal();
+
+    var card = getLoginCard();
+    if (card) {
+      card.classList.remove('login-fail-glow', 'login-fail-shake', 'login-pass-ok');
+      card.classList.add('login-pending-glow', 'dr-login-pending');
+    }
+
     var c = document.getElementById('toast-container');
     if (!c) {
       c = document.createElement('div');
@@ -182,13 +229,13 @@
         'position:fixed;top:1rem;right:1rem;z-index:2147483646;display:flex;flex-direction:column;gap:0.5rem;max-width:min(22rem,92vw);pointer-events:none';
       document.body.appendChild(c);
     }
-    c.style.zIndex = '2147483646';
 
     Array.prototype.slice.call(c.querySelectorAll('.toast')).forEach(function (el) {
       if (el === _toastEl) return;
       var tx = (el.textContent || '').toLowerCase();
       if (
         tx.indexOf('pending') !== -1 ||
+        tx.indexOf('signed in') !== -1 ||
         el.getAttribute('data-dr-force-pending') ||
         el.getAttribute('data-dr-pending-approval')
       ) {
@@ -208,101 +255,42 @@
     _toastEl.textContent = MSG;
     _toastEl.style.display = 'block';
     _toastEl.style.opacity = '1';
-    _toastEl.style.visibility = 'visible';
 
-    if (isRepeat) {
-      _toastEl.classList.remove('dr-pending-toast-shake');
-      void _toastEl.offsetWidth;
-      _toastEl.classList.add('dr-pending-toast-shake');
-      setTimeout(function () {
-        try {
-          _toastEl && _toastEl.classList.remove('dr-pending-toast-shake');
-        } catch (e) {}
-      }, 350);
-      shakeCard();
+    if (isRepeat && _uiVisible) {
+      shakeOnce();
     }
-  }
 
-  function clearPendingVisuals() {
-    try {
-      var card = getLoginCard();
-      if (card) {
-        card.classList.remove('login-pending-glow', 'dr-login-pending', 'login-pending-shake');
-      }
-    } catch (e) {}
-    try {
-      if (_toastEl && _toastEl.parentNode) _toastEl.parentNode.removeChild(_toastEl);
-    } catch (e2) {}
-    _toastEl = null;
-    if (_glowTimer) {
-      clearTimeout(_glowTimer);
-      _glowTimer = null;
-    }
-    if (_toastTimer) {
-      clearTimeout(_toastTimer);
-      _toastTimer = null;
-    }
-  }
+    _uiVisible = true;
 
-  function showPendingUI(isRepeat) {
-    lockPortal();
-    applyOrangeGlow();
-    showPendingToast(!!isRepeat);
     if (_glowTimer) clearTimeout(_glowTimer);
-    if (_toastTimer) clearTimeout(_toastTimer);
     _glowTimer = setTimeout(function () {
       clearPendingVisuals();
-    }, GLOW_MS);
-    _toastTimer = _glowTimer;
-    try {
-      var c = document.getElementById('toast-container');
-      if (c) {
-        Array.prototype.slice.call(c.querySelectorAll('.toast')).forEach(function (el) {
-          if (((el.textContent || '') + '').toLowerCase().indexOf('signed in') !== -1) {
-            try {
-              el.parentNode.removeChild(el);
-            } catch (e) {}
-          }
-        });
-      }
-    } catch (e2) {}
+    }, FADE_MS);
+
+    setBtnLoading(false);
   }
 
-  function shouldBlock(user, profile) {
+  function shouldBlock(user, profile, hint) {
     if (!user) return false;
     var meta = user.user_metadata || {};
     var uid = user.id;
     var email = (user.email || (profile && profile.email) || '').toLowerCase();
-    var un = String(meta.username || (profile && profile.username) || '')
+    var un = String(meta.username || (profile && profile.username) || hint || '')
       .toLowerCase()
       .trim();
     if (isDev(un)) return false;
     if (meta.approval_status === 'approved' || meta.approved === true) return false;
     if (isApproved(uid, un, email)) return false;
     var role = String(
-      (profile && profile.role) ||
-        meta.role ||
-        (profile && profile.staff_role) ||
-        meta.staff_role ||
-        ''
+      (profile && profile.role) || meta.role || (profile && profile.staff_role) || meta.staff_role || ''
     ).toLowerCase();
     if (isCustomer(role) || isCustomer((profile && profile.role) || meta.role)) return false;
     if (meta.approval_status === 'pending' || meta.approved === false) {
       markPending(uid, un, email);
       return true;
     }
-    var m = map();
-    if (
-      (uid && m[uid] === 'pending') ||
-      (un && m['pending:' + un] === 'pending') ||
-      (email && m['pending:' + email] === 'pending')
-    )
-      return true;
-    if (
-      isStaff(role) ||
-      isStaff((profile && profile.role) || '') ||
-      isStaff((profile && profile.staff_role) || '')
-    ) {
+    if (isMarkedPending(uid, un, email)) return true;
+    if (isStaff(role) || isStaff((profile && profile.role) || '') || isStaff((profile && profile.staff_role) || '')) {
       markPending(uid, un, email);
       return true;
     }
@@ -313,7 +301,7 @@
     return false;
   }
 
-  async function kick() {
+  async function quietSignOut() {
     try {
       var client = sb();
       if (client && client.auth) await client.auth.signOut({ scope: 'local' });
@@ -325,9 +313,83 @@
     } catch (e2) {}
   }
 
+  async function handlePendingCheck() {
+    var inp = document.getElementById('agent-username') || document.getElementById('agent-user');
+    var userOrEmail = inp ? (inp.value || '').trim() : '';
+    if (!userOrEmail) {
+      setBtnLoading(false);
+      return;
+    }
+
+    var un = userOrEmail.indexOf('@') === -1 ? userOrEmail.toLowerCase() : '';
+    var em = userOrEmail.indexOf('@') !== -1 ? userOrEmail.toLowerCase() : '';
+
+    if (isMarkedPending(null, un, em) && !isApproved(null, un, em) && !isDev(un)) {
+      showPendingUI(_uiVisible);
+      await quietSignOut();
+      lockPortal();
+      return;
+    }
+
+    /* Poll for gate marking pending — show UI on first detect (no 2nd click) */
+    var tries = 0;
+    var poll = setInterval(function () {
+      tries++;
+      var marked = isMarkedPending(null, un, em);
+      var toastPending = false;
+      try {
+        var c = document.getElementById('toast-container');
+        if (c) {
+          Array.prototype.slice.call(c.querySelectorAll('.toast')).forEach(function (el) {
+            if ((el.textContent || '').toLowerCase().indexOf('pending administrator approval') !== -1) {
+              toastPending = true;
+            }
+          });
+        }
+      } catch (e) {}
+      if (marked || toastPending) {
+        clearInterval(poll);
+        showPendingUI(false);
+        quietSignOut();
+        lockPortal();
+        return;
+      }
+      if (tries >= 40) {
+        clearInterval(poll);
+        setBtnLoading(false);
+      }
+    }, 100);
+  }
+
+  function onSubmitCapture(ev) {
+    var form = ev.target;
+    if (!form || form.id !== 'login-agent') return;
+
+    setBtnLoading(true);
+    lockPortal();
+
+    var inp = document.getElementById('agent-username') || document.getElementById('agent-user');
+    var userOrEmail = inp ? (inp.value || '').trim() : '';
+    var un = userOrEmail.indexOf('@') === -1 ? userOrEmail.toLowerCase() : '';
+    var em = userOrEmail.indexOf('@') !== -1 ? userOrEmail.toLowerCase() : '';
+
+    if (isMarkedPending(null, un, em) && !isApproved(null, un, em) && !isDev(un)) {
+      try {
+        ev.preventDefault();
+        ev.stopPropagation();
+        ev.stopImmediatePropagation();
+      } catch (e) {}
+      showPendingUI(_uiVisible);
+      quietSignOut();
+      return;
+    }
+
+    handlePendingCheck();
+  }
+
   function wrapShowApp() {
     function wrap(fn) {
-      if (!fn || fn.__drForcePendingWrapV2) return fn;
+      if (!fn || fn.__drForcePendingWrapV4) return fn;
       var w = function (p) {
         try {
           var role = p && p.role;
@@ -342,13 +404,13 @@
           ) {
             markPending(id, un, em);
             showPendingUI(false);
-            kick();
+            quietSignOut();
             return;
           }
         } catch (e) {}
         return fn.apply(this, arguments);
       };
-      w.__drForcePendingWrapV2 = 1;
+      w.__drForcePendingWrapV4 = 1;
       return w;
     }
     try {
@@ -357,9 +419,10 @@
     } catch (e) {}
   }
 
+  var _sessionBusy = false;
   async function checkSession() {
-    if (_busy) return;
-    _busy = true;
+    if (_sessionBusy) return;
+    _sessionBusy = true;
     try {
       wrapShowApp();
       var client = sb();
@@ -373,81 +436,49 @@
         var pr = await client.from('profiles').select('*').eq('id', user.id).maybeSingle();
         profile = pr && pr.data;
       } catch (e) {}
-      if (shouldBlock(user, profile)) {
+      if (shouldBlock(user, profile, (user.user_metadata || {}).username || '')) {
         showPendingUI(false);
-        await kick();
+        await quietSignOut();
         lockPortal();
       }
     } catch (e) {
     } finally {
-      _busy = false;
+      _sessionBusy = false;
     }
   }
 
-  function observePendingToast() {
-    var c = document.getElementById('toast-container');
-    if (!c) return;
-    var found = false;
-    Array.prototype.slice.call(c.querySelectorAll('.toast')).forEach(function (el) {
-      var tx = (el.textContent || '').toLowerCase();
-      if (tx.indexOf('pending administrator approval') !== -1) found = true;
-    });
-    if (found) {
-      var now = Date.now();
-      var isRepeat = now - _lastPendingAt < 8000 && _lastPendingAt > 0;
-      _lastPendingAt = now;
-      applyOrangeGlow();
-      if (isRepeat) showPendingToast(true);
-      else showPendingToast(false);
-      Array.prototype.slice.call(c.querySelectorAll('.toast')).forEach(function (el) {
-        if (el === _toastEl) return;
-        var tx = (el.textContent || '').toLowerCase();
-        if (tx.indexOf('pending administrator approval') !== -1) {
-          try {
-            el.parentNode.removeChild(el);
-          } catch (e) {}
-        }
-      });
-    }
-  }
-
-  function onSubmit(ev) {
-    var form = ev.target;
-    if (!form || form.id !== 'login-agent') return;
+  function hookGate() {
     try {
-      var inp = document.getElementById('agent-username') || document.getElementById('agent-user');
-      var userOrEmail = inp ? (inp.value || '').trim() : '';
-      var un = userOrEmail.indexOf('@') === -1 ? userOrEmail.toLowerCase() : '';
-      var em = userOrEmail.indexOf('@') !== -1 ? userOrEmail.toLowerCase() : '';
-      var m = map();
-      var marked =
-        (un && m['pending:' + un] === 'pending') || (em && m['pending:' + em] === 'pending');
-      if (marked && !isApproved(null, un, em) && !isDev(un)) {
-        var now = Date.now();
-        var isRepeat = now - _lastPendingAt < 8000 && _lastPendingAt > 0;
-        _lastPendingAt = now;
-        setTimeout(function () {
-          showPendingUI(isRepeat);
-        }, 30);
+      if (window.DRAgentApproval && window.DRAgentApproval.showPendingToast && !window.DRAgentApproval.__drForceHooked) {
+        var orig = window.DRAgentApproval.showPendingToast;
+        window.DRAgentApproval.showPendingToast = function () {
+          showPendingUI(_uiVisible);
+          try {
+            return orig.apply(this, arguments);
+          } catch (e) {}
+        };
+        window.DRAgentApproval.__drForceHooked = 1;
       }
     } catch (e) {}
   }
 
-  if (!window.__drForcePendingSubmitV2) {
-    window.__drForcePendingSubmitV2 = 1;
-    document.addEventListener('submit', onSubmit, true);
+  if (!window.__drForcePendingSubmitV4) {
+    window.__drForcePendingSubmitV4 = 1;
+    document.addEventListener('submit', onSubmitCapture, true);
   }
 
+  ensureCss();
   wrapShowApp();
+  hookGate();
   checkSession();
   setInterval(function () {
     wrapShowApp();
+    hookGate();
     checkSession();
-    observePendingToast();
-  }, 700);
+  }, 1200);
 
   window.DRForcePending = {
     showPendingUI: showPendingUI,
-    applyOrangeGlow: applyOrangeGlow
+    clearPendingVisuals: clearPendingVisuals
   };
 })();
