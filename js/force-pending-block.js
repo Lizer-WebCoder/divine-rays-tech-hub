@@ -1,33 +1,31 @@
 /**
- * Divine Rays — force pending staff block V4
- * Fast first-click pending UI, 5s toast+glow, one shake per click only.
+ * Divine Rays — force pending staff block V5
+ * Owns agent login: first-click pending, 5s glow+toast, shake every click.
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_FORCE_PENDING_BLOCK >= 4) return;
-  window.__DR_FORCE_PENDING_BLOCK = 4;
+  if (window.__DR_FORCE_PENDING_BLOCK >= 5) return;
+  window.__DR_FORCE_PENDING_BLOCK = 5;
 
   var KEY = 'dr_staff_approval';
   var MSG =
     'Your account is pending Administrator approval. Please wait until a Developer/Admin approves your account.';
   var DEVS = { kirzhian: 1, jamesjerlow123: 1, liya: 1 };
   var FADE_MS = 5000;
-  var _glowTimer = null;
+  var _timer = null;
   var _toastEl = null;
-  var _uiVisible = false;
+  var _busy = false;
+  var _uiOn = false;
   var _shakeLock = false;
 
   function map() {
-    try {
-      return JSON.parse(localStorage.getItem(KEY) || '{}') || {};
-    } catch (e) {
-      return {};
-    }
+    try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { return {}; }
   }
-  function isDev(n) {
-    return !!DEVS[String(n || '').toLowerCase().trim()];
+  function save(m) {
+    try { localStorage.setItem(KEY, JSON.stringify(m)); } catch (e) {}
   }
+  function isDev(n) { return !!DEVS[String(n || '').toLowerCase().trim()]; }
   function isApproved(id, un, em) {
     var m = map();
     if (id && m[id] === 'approved') return true;
@@ -44,9 +42,7 @@
     em = em ? String(em).toLowerCase().trim() : '';
     if (un) m['pending:' + un] = 'pending';
     if (em) m['pending:' + em] = 'pending';
-    try {
-      localStorage.setItem(KEY, JSON.stringify(m));
-    } catch (e) {}
+    save(m);
   }
   function isMarkedPending(id, un, em) {
     var m = map();
@@ -59,31 +55,18 @@
   }
   function isCustomer(r) {
     r = String(r || '').toLowerCase();
-    return (
-      r === 'customer' ||
-      r === 'user' ||
-      r === 'end-user' ||
-      r === 'enduser' ||
-      r === 'end_user'
-    );
+    return r === 'customer' || r === 'user' || r === 'end-user' || r === 'enduser' || r === 'end_user';
   }
   function isStaff(r) {
-    r = String(r || '')
-      .toLowerCase()
-      .replace(/[_-]+/g, ' ')
-      .trim();
-    if (!r) return false;
-    if (isCustomer(r)) return false;
+    r = String(r || '').toLowerCase().replace(/[_-]+/g, ' ').trim();
+    if (!r || isCustomer(r)) return false;
     if (r === 'agent' || r === 'admin' || r === 'owner' || r === 'developer' || r === 'dev') return true;
     if (r.indexOf('tech support') !== -1 || r.indexOf('it tech') !== -1) return true;
-    if (r.indexOf('admin') !== -1 || r.indexOf('agent') !== -1 || r === 'staff' || r === 'support')
-      return true;
+    if (r.indexOf('admin') !== -1 || r.indexOf('agent') !== -1 || r === 'staff' || r === 'support') return true;
     return false;
   }
   function sb() {
-    try {
-      if (window.DR && window.DR.sb) return window.DR.sb();
-    } catch (e) {}
+    try { if (window.DR && window.DR.sb) return window.DR.sb(); } catch (e) {}
     return window.__drSb || window.__drAgentSb || null;
   }
 
@@ -95,60 +78,43 @@
       'body.dr-pending-blocked #portal-agent{display:none!important;visibility:hidden!important;opacity:0!important}',
       'body.dr-pending-blocked #login-screen{display:flex!important;visibility:visible!important;opacity:1!important;z-index:60!important}',
       'body.dr-pending-blocked .toast.success{display:none!important}',
-      'body.dr-pending-blocked canvas,body.dr-pending-blocked .lifeline,body.dr-pending-blocked #bg-canvas,',
-      'body.dr-pending-blocked .bg-anim,body.dr-pending-blocked #login-bg,body.dr-pending-blocked .login-bg{',
-      'visibility:visible!important;opacity:1!important;display:block!important}',
+      'body.dr-pending-blocked canvas,body.dr-pending-blocked .lifeline,body.dr-pending-blocked #bg-canvas{visibility:visible!important;opacity:1!important}',
       '.login-card.login-pending-glow,#login-screen .login-card.login-pending-glow,',
       '.login-card.dr-login-pending,#login-screen .login-card.dr-login-pending{',
       'border-color:rgba(251,146,60,0.95)!important;',
       'box-shadow:0 0 22px rgba(251,146,60,0.85),0 0 52px rgba(249,115,22,0.55),0 0 80px rgba(234,88,12,0.3),0 12px 40px rgba(0,0,0,0.3)!important;',
       'transition:box-shadow .25s ease,border-color .25s ease!important}',
-      '.login-card.login-pending-shake,#login-screen .login-card.login-pending-shake{',
-      'animation:dr-pending-shake 0.35s ease}',
-      '@keyframes dr-pending-shake{',
-      '0%,100%{transform:translateX(0)}',
-      '25%{transform:translateX(-6px)}',
-      '50%{transform:translateX(6px)}',
-      '75%{transform:translateX(-3px)}}',
-      '.toast.dr-pending-toast-shake{animation:dr-pending-shake 0.35s ease}',
-      '.toast[data-dr-force-pending]{',
-      'pointer-events:auto;padding:0.9rem 1.15rem;border-radius:14px;max-width:min(22rem,92vw);',
-      'background:rgba(28,22,42,0.98);border:1px solid rgba(251,146,60,0.55);',
-      'color:#eeeef6;font-size:0.9rem;line-height:1.45;box-shadow:0 12px 32px rgba(0,0,0,0.5)}',
+      '.login-card.login-pending-shake{animation:dr-fp-shake 0.35s ease}',
+      '@keyframes dr-fp-shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}50%{transform:translateX(6px)}75%{transform:translateX(-3px)}}',
+      '.toast.dr-pending-toast-shake{animation:dr-fp-shake 0.35s ease}',
+      '.toast[data-dr-force-pending]{pointer-events:auto;padding:0.9rem 1.15rem;border-radius:14px;max-width:min(22rem,92vw);',
+      'background:rgba(28,22,42,0.98);border:1px solid rgba(251,146,60,0.55);color:#eeeef6;font-size:0.9rem;line-height:1.45;box-shadow:0 12px 32px rgba(0,0,0,0.5)}',
       '#login-agent button[type="submit"].dr-btn-loading{opacity:0.75!important;cursor:wait!important;pointer-events:none!important;transform:scale(0.98)}'
     ].join('');
     (document.head || document.documentElement).appendChild(s);
   }
 
-  function getLoginCard() {
-    return (
-      document.querySelector('#login-screen .login-card') ||
-      document.querySelector('.login-card') ||
-      null
-    );
+  function card() {
+    return document.querySelector('#login-screen .login-card') || document.querySelector('.login-card');
   }
-
-  function getSubmitBtn() {
-    var form = document.getElementById('login-agent');
-    return form ? form.querySelector('button[type="submit"]') : null;
+  function btn() {
+    var f = document.getElementById('login-agent');
+    return f ? f.querySelector('button[type="submit"]') : null;
   }
-
-  function setBtnLoading(on) {
-    var btn = getSubmitBtn();
-    if (!btn) return;
+  function setLoading(on) {
+    var b = btn();
+    if (!b) return;
     if (on) {
-      if (!btn.getAttribute('data-dr-label-save')) {
-        btn.setAttribute('data-dr-label-save', (btn.textContent || 'Sign in as Admin').trim());
-      }
-      btn.classList.add('dr-btn-loading');
-      btn.disabled = true;
-      btn.textContent = 'Signing in…';
+      if (!b.getAttribute('data-dr-label-save')) b.setAttribute('data-dr-label-save', (b.textContent || 'Sign in as Admin').trim());
+      b.classList.add('dr-btn-loading');
+      b.disabled = true;
+      b.textContent = 'Signing in…';
     } else {
-      btn.classList.remove('dr-btn-loading');
-      btn.disabled = false;
-      var saved = btn.getAttribute('data-dr-label-save') || 'Sign in as Admin';
-      if (/agent/i.test(saved)) saved = 'Sign in as Admin';
-      btn.textContent = saved;
+      b.classList.remove('dr-btn-loading');
+      b.disabled = false;
+      var s = b.getAttribute('data-dr-label-save') || 'Sign in as Admin';
+      if (/agent/i.test(s)) s = 'Sign in as Admin';
+      b.textContent = s;
     }
   }
 
@@ -157,45 +123,31 @@
     try {
       document.body.classList.add('dr-pending-blocked');
       var pa = document.getElementById('portal-agent');
-      if (pa) {
-        pa.classList.remove('active');
-        pa.style.setProperty('display', 'none', 'important');
-      }
+      if (pa) { pa.classList.remove('active'); pa.style.setProperty('display', 'none', 'important'); }
       var ls = document.getElementById('login-screen');
-      if (ls) {
-        ls.hidden = false;
-        ls.style.display = '';
-        ls.classList.add('active');
-      }
+      if (ls) { ls.hidden = false; ls.style.display = ''; ls.classList.add('active'); }
     } catch (e) {}
   }
 
-  function clearPendingVisuals() {
+  function clearUI() {
     try {
-      var card = getLoginCard();
-      if (card) {
-        card.classList.remove('login-pending-glow', 'dr-login-pending', 'login-pending-shake');
-      }
+      var c = card();
+      if (c) c.classList.remove('login-pending-glow', 'dr-login-pending', 'login-pending-shake');
     } catch (e) {}
-    try {
-      if (_toastEl && _toastEl.parentNode) _toastEl.parentNode.removeChild(_toastEl);
-    } catch (e2) {}
+    try { if (_toastEl && _toastEl.parentNode) _toastEl.parentNode.removeChild(_toastEl); } catch (e2) {}
     _toastEl = null;
-    _uiVisible = false;
-    if (_glowTimer) {
-      clearTimeout(_glowTimer);
-      _glowTimer = null;
-    }
+    _uiOn = false;
+    if (_timer) { clearTimeout(_timer); _timer = null; }
   }
 
-  function shakeOnce() {
+  function shake() {
     if (_shakeLock) return;
     _shakeLock = true;
-    var card = getLoginCard();
-    if (card) {
-      card.classList.remove('login-pending-shake');
-      void card.offsetWidth;
-      card.classList.add('login-pending-shake');
+    var c = card();
+    if (c) {
+      c.classList.remove('login-pending-shake');
+      void c.offsetWidth;
+      c.classList.add('login-pending-shake');
     }
     if (_toastEl) {
       _toastEl.classList.remove('dr-pending-toast-shake');
@@ -204,70 +156,52 @@
     }
     setTimeout(function () {
       try {
-        if (card) card.classList.remove('login-pending-shake');
+        if (c) c.classList.remove('login-pending-shake');
         if (_toastEl) _toastEl.classList.remove('dr-pending-toast-shake');
       } catch (e) {}
       _shakeLock = false;
     }, 400);
   }
 
-  function showPendingUI(isRepeat) {
+  function showPending(isRepeat) {
     ensureCss();
     lockPortal();
-
-    var card = getLoginCard();
-    if (card) {
-      card.classList.remove('login-fail-glow', 'login-fail-shake', 'login-pass-ok');
-      card.classList.add('login-pending-glow', 'dr-login-pending');
+    var c = card();
+    if (c) {
+      c.classList.remove('login-fail-glow', 'login-pass-ok');
+      c.classList.add('login-pending-glow', 'dr-login-pending');
     }
-
-    var c = document.getElementById('toast-container');
-    if (!c) {
-      c = document.createElement('div');
-      c.id = 'toast-container';
-      c.style.cssText =
-        'position:fixed;top:1rem;right:1rem;z-index:2147483646;display:flex;flex-direction:column;gap:0.5rem;max-width:min(22rem,92vw);pointer-events:none';
-      document.body.appendChild(c);
+    var box = document.getElementById('toast-container');
+    if (!box) {
+      box = document.createElement('div');
+      box.id = 'toast-container';
+      box.style.cssText = 'position:fixed;top:1rem;right:1rem;z-index:2147483646;display:flex;flex-direction:column;gap:0.5rem;max-width:min(22rem,92vw);pointer-events:none';
+      document.body.appendChild(box);
     }
-
-    Array.prototype.slice.call(c.querySelectorAll('.toast')).forEach(function (el) {
+    Array.prototype.slice.call(box.querySelectorAll('.toast')).forEach(function (el) {
       if (el === _toastEl) return;
       var tx = (el.textContent || '').toLowerCase();
-      if (
-        tx.indexOf('pending') !== -1 ||
-        tx.indexOf('signed in') !== -1 ||
-        el.getAttribute('data-dr-force-pending') ||
-        el.getAttribute('data-dr-pending-approval')
-      ) {
-        try {
-          el.parentNode.removeChild(el);
-        } catch (e) {}
+      if (tx.indexOf('pending') !== -1 || tx.indexOf('signed in') !== -1 || el.getAttribute('data-dr-force-pending') || el.getAttribute('data-dr-pending-approval')) {
+        try { el.parentNode.removeChild(el); } catch (e) {}
       }
     });
-
     if (!_toastEl || !_toastEl.parentNode) {
       _toastEl = document.createElement('div');
       _toastEl.className = 'toast error';
       _toastEl.setAttribute('data-dr-force-pending', '1');
       _toastEl.setAttribute('role', 'alert');
-      c.appendChild(_toastEl);
+      box.appendChild(_toastEl);
     }
     _toastEl.textContent = MSG;
     _toastEl.style.display = 'block';
     _toastEl.style.opacity = '1';
 
-    if (isRepeat && _uiVisible) {
-      shakeOnce();
-    }
+    if (isRepeat) shake();
+    _uiOn = true;
 
-    _uiVisible = true;
-
-    if (_glowTimer) clearTimeout(_glowTimer);
-    _glowTimer = setTimeout(function () {
-      clearPendingVisuals();
-    }, FADE_MS);
-
-    setBtnLoading(false);
+    if (_timer) clearTimeout(_timer);
+    _timer = setTimeout(clearUI, FADE_MS);
+    setLoading(false);
   }
 
   function shouldBlock(user, profile, hint) {
@@ -275,26 +209,22 @@
     var meta = user.user_metadata || {};
     var uid = user.id;
     var email = (user.email || (profile && profile.email) || '').toLowerCase();
-    var un = String(meta.username || (profile && profile.username) || hint || '')
-      .toLowerCase()
-      .trim();
+    var un = String(meta.username || (profile && profile.username) || hint || '').toLowerCase().trim();
     if (isDev(un)) return false;
     if (meta.approval_status === 'approved' || meta.approved === true) return false;
     if (isApproved(uid, un, email)) return false;
-    var role = String(
-      (profile && profile.role) || meta.role || (profile && profile.staff_role) || meta.staff_role || ''
-    ).toLowerCase();
+    var role = String((profile && profile.role) || meta.role || (profile && profile.staff_role) || meta.staff_role || '').toLowerCase();
     if (isCustomer(role) || isCustomer((profile && profile.role) || meta.role)) return false;
     if (meta.approval_status === 'pending' || meta.approved === false) {
       markPending(uid, un, email);
       return true;
     }
     if (isMarkedPending(uid, un, email)) return true;
-    if (isStaff(role) || isStaff((profile && profile.role) || '') || isStaff((profile && profile.staff_role) || '')) {
+    if (isStaff(role) || isStaff((profile && profile.role) || '') || isStaff((profile && profile.staff_role) || '') || isStaff(meta.role || '') || isStaff(meta.staff_role || '')) {
       markPending(uid, un, email);
       return true;
     }
-    if (profile && !isCustomer(profile.role)) {
+    if (profile && profile.role && !isCustomer(profile.role)) {
       markPending(uid, un, email);
       return true;
     }
@@ -306,111 +236,121 @@
       var client = sb();
       if (client && client.auth) await client.auth.signOut({ scope: 'local' });
     } catch (e) {}
-    try {
-      window.__drFullLoaded = false;
-      window.__drBooting = false;
-      window.__drProfile = null;
-    } catch (e2) {}
+    try { window.__drFullLoaded = false; window.__drBooting = false; window.__drProfile = null; } catch (e2) {}
   }
 
-  async function handlePendingCheck() {
+  async function resolveEmail(userOrEmail, client) {
+    if (!userOrEmail) return null;
+    if (userOrEmail.indexOf('@') !== -1) return userOrEmail.trim();
+    try {
+      var r = await client.from('profiles').select('email').eq('username', userOrEmail.trim()).maybeSingle();
+      return r.data && r.data.email ? r.data.email : null;
+    } catch (e) { return null; }
+  }
+
+  async function doLogin() {
+    var client = sb();
     var inp = document.getElementById('agent-username') || document.getElementById('agent-user');
+    var passEl = document.getElementById('agent-password');
     var userOrEmail = inp ? (inp.value || '').trim() : '';
-    if (!userOrEmail) {
-      setBtnLoading(false);
-      return;
-    }
+    var password = passEl ? passEl.value : '';
+    if (!userOrEmail || !password) { setLoading(false); return; }
 
     var un = userOrEmail.indexOf('@') === -1 ? userOrEmail.toLowerCase() : '';
     var em = userOrEmail.indexOf('@') !== -1 ? userOrEmail.toLowerCase() : '';
 
     if (isMarkedPending(null, un, em) && !isApproved(null, un, em) && !isDev(un)) {
-      showPendingUI(_uiVisible);
+      showPending(_uiOn);
       await quietSignOut();
       lockPortal();
       return;
     }
 
-    /* Poll for gate marking pending — show UI on first detect (no 2nd click) */
-    var tries = 0;
-    var poll = setInterval(function () {
-      tries++;
-      var marked = isMarkedPending(null, un, em);
-      var toastPending = false;
+    if (!client) { setLoading(false); return; }
+
+    try {
+      var email = await resolveEmail(userOrEmail, client);
+      if (!email) { setLoading(false); return; }
+
+      var auth = await client.auth.signInWithPassword({ email: email, password: password });
+      if (auth.error) { setLoading(false); return; }
+
+      var user = auth.data && auth.data.user;
+      if (!user) { setLoading(false); return; }
+
+      var profile = null;
       try {
-        var c = document.getElementById('toast-container');
-        if (c) {
-          Array.prototype.slice.call(c.querySelectorAll('.toast')).forEach(function (el) {
-            if ((el.textContent || '').toLowerCase().indexOf('pending administrator approval') !== -1) {
-              toastPending = true;
-            }
-          });
-        }
-      } catch (e) {}
-      if (marked || toastPending) {
-        clearInterval(poll);
-        showPendingUI(false);
-        quietSignOut();
+        var pr = await client.from('profiles').select('*').eq('id', user.id).maybeSingle();
+        profile = pr && pr.data;
+      } catch (e1) {}
+
+      var hint = un || (profile && profile.username) || '';
+      if (shouldBlock(user, profile, hint)) {
+        showPending(false);
+        await quietSignOut();
         lockPortal();
         return;
       }
-      if (tries >= 40) {
-        clearInterval(poll);
-        setBtnLoading(false);
-      }
-    }, 100);
+
+      setLoading(false);
+      try { document.body.classList.remove('dr-pending-blocked'); } catch (e3) {}
+      try {
+        if (window.showApp && profile) window.showApp(profile);
+        else if (window.DR && window.DR.showApp && profile) window.DR.showApp(profile);
+      } catch (e4) {}
+    } catch (err) {
+      setLoading(false);
+    }
   }
 
-  function onSubmitCapture(ev) {
+  function onSubmit(ev) {
     var form = ev.target;
     if (!form || form.id !== 'login-agent') return;
 
-    setBtnLoading(true);
+    try {
+      ev.preventDefault();
+      ev.stopPropagation();
+      ev.stopImmediatePropagation();
+    } catch (e) {}
+
+    setLoading(true);
     lockPortal();
 
-    var inp = document.getElementById('agent-username') || document.getElementById('agent-user');
-    var userOrEmail = inp ? (inp.value || '').trim() : '';
-    var un = userOrEmail.indexOf('@') === -1 ? userOrEmail.toLowerCase() : '';
-    var em = userOrEmail.indexOf('@') !== -1 ? userOrEmail.toLowerCase() : '';
-
-    if (isMarkedPending(null, un, em) && !isApproved(null, un, em) && !isDev(un)) {
-      try {
-        ev.preventDefault();
-        ev.stopPropagation();
-        ev.stopImmediatePropagation();
-      } catch (e) {}
-      showPendingUI(_uiVisible);
-      quietSignOut();
+    if (_busy) {
+      var inp = document.getElementById('agent-username') || document.getElementById('agent-user');
+      var userOrEmail = inp ? (inp.value || '').trim() : '';
+      var un = userOrEmail.indexOf('@') === -1 ? userOrEmail.toLowerCase() : '';
+      var em = userOrEmail.indexOf('@') !== -1 ? userOrEmail.toLowerCase() : '';
+      if (isMarkedPending(null, un, em) || _uiOn) {
+        showPending(true);
+      }
+      setLoading(false);
       return;
     }
 
-    handlePendingCheck();
+    _busy = true;
+    doLogin().then(function () { _busy = false; }).catch(function () { _busy = false; setLoading(false); });
   }
 
   function wrapShowApp() {
     function wrap(fn) {
-      if (!fn || fn.__drForcePendingWrapV4) return fn;
+      if (!fn || fn.__drFpWrapV5) return fn;
       var w = function (p) {
         try {
           var role = p && p.role;
           var un = (p && p.username) || '';
           var em = (p && p.email) || '';
           var id = p && p.id;
-          if (
-            !isDev(un) &&
-            !isApproved(id, un, em) &&
-            !isCustomer(role) &&
-            (isStaff(role) || isStaff(p && p.staff_role) || (p && !isCustomer(role)))
-          ) {
+          if (!isDev(un) && !isApproved(id, un, em) && !isCustomer(role) && (isStaff(role) || isStaff(p && p.staff_role) || (p && !isCustomer(role)))) {
             markPending(id, un, em);
-            showPendingUI(false);
+            showPending(false);
             quietSignOut();
             return;
           }
         } catch (e) {}
         return fn.apply(this, arguments);
       };
-      w.__drForcePendingWrapV4 = 1;
+      w.__drFpWrapV5 = 1;
       return w;
     }
     try {
@@ -419,10 +359,7 @@
     } catch (e) {}
   }
 
-  var _sessionBusy = false;
   async function checkSession() {
-    if (_sessionBusy) return;
-    _sessionBusy = true;
     try {
       wrapShowApp();
       var client = sb();
@@ -437,48 +374,22 @@
         profile = pr && pr.data;
       } catch (e) {}
       if (shouldBlock(user, profile, (user.user_metadata || {}).username || '')) {
-        showPendingUI(false);
+        showPending(false);
         await quietSignOut();
         lockPortal();
-      }
-    } catch (e) {
-    } finally {
-      _sessionBusy = false;
-    }
-  }
-
-  function hookGate() {
-    try {
-      if (window.DRAgentApproval && window.DRAgentApproval.showPendingToast && !window.DRAgentApproval.__drForceHooked) {
-        var orig = window.DRAgentApproval.showPendingToast;
-        window.DRAgentApproval.showPendingToast = function () {
-          showPendingUI(_uiVisible);
-          try {
-            return orig.apply(this, arguments);
-          } catch (e) {}
-        };
-        window.DRAgentApproval.__drForceHooked = 1;
       }
     } catch (e) {}
   }
 
-  if (!window.__drForcePendingSubmitV4) {
-    window.__drForcePendingSubmitV4 = 1;
-    document.addEventListener('submit', onSubmitCapture, true);
+  if (!window.__drForcePendingSubmitV5) {
+    window.__drForcePendingSubmitV5 = 1;
+    document.addEventListener('submit', onSubmit, true);
   }
 
   ensureCss();
   wrapShowApp();
-  hookGate();
   checkSession();
-  setInterval(function () {
-    wrapShowApp();
-    hookGate();
-    checkSession();
-  }, 1200);
+  setInterval(function () { wrapShowApp(); checkSession(); }, 1500);
 
-  window.DRForcePending = {
-    showPendingUI: showPendingUI,
-    clearPendingVisuals: clearPendingVisuals
-  };
+  window.DRForcePending = { showPendingUI: showPending, clearPendingVisuals: clearUI };
 })();
