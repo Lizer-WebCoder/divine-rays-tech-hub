@@ -1,14 +1,15 @@
 /**
- * Divine Rays — Agent approval gate V6
+ * Divine Rays — Agent approval gate V6.1
  * Scope: ONLY pending Agent/Admin (IT Tech Support) staff.
  * Approved / Developers / End-Users: normal login unchanged.
  * Pending: intercept Agent login BEFORE portal loads (no flash, no refresh).
+ * Pending UI: classic approval popup toast + orange glow on login card.
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_AGENT_APPROVAL_GATE_V6) return;
-  window.__DR_AGENT_APPROVAL_GATE_V6 = 1;
+  if (window.__DR_AGENT_APPROVAL_GATE_V6 >= 2) return;
+  window.__DR_AGENT_APPROVAL_GATE_V6 = 2;
   window.__DR_AGENT_APPROVAL_GATE_V5 = 99;
   window.__DR_AGENT_APPROVAL_GATE = 1;
 
@@ -164,7 +165,7 @@
     c.id = 'toast-container';
     c.setAttribute('aria-live', 'polite');
     c.style.cssText =
-      'position:fixed;top:1rem;right:1rem;z-index:100000;display:flex;flex-direction:column;gap:0.5rem;max-width:min(22rem,92vw);pointer-events:none;';
+      'position:fixed;top:1rem;right:1rem;z-index:2147483646;display:flex;flex-direction:column;gap:0.5rem;max-width:min(22rem,92vw);pointer-events:none;';
     document.body.appendChild(c);
     return c;
   }
@@ -197,8 +198,11 @@
   }
 
   function showPendingToast(msg) {
+    /* Classic pending popup — always this message for blocked pending staff */
     var text = msg || PENDING_MSG;
     var c = ensureToastContainer();
+    c.style.zIndex = '2147483646';
+
     Array.prototype.slice.call(c.querySelectorAll('.toast')).forEach(function (el) {
       if (el !== _pendingToastEl && (el.textContent || '').indexOf('pending Administrator approval') !== -1) {
         try {
@@ -206,18 +210,23 @@
         } catch (e0) {}
       }
     });
+
     if (!_pendingToastEl || !_pendingToastEl.parentNode) {
       _pendingToastEl = document.createElement('div');
       _pendingToastEl.className = 'toast error';
       _pendingToastEl.setAttribute('data-dr-pending-approval', '1');
-      _pendingToastEl.style.cssText =
-        'pointer-events:auto;padding:0.85rem 1.1rem;border-radius:14px;' +
-        'background:rgba(28,22,42,0.96);border:1px solid rgba(251,146,60,0.45);' +
-        'color:#eeeef6;font-size:0.9rem;line-height:1.45;box-shadow:0 12px 32px rgba(0,0,0,0.45);';
+      _pendingToastEl.setAttribute('role', 'alert');
       c.appendChild(_pendingToastEl);
     }
+
+    _pendingToastEl.style.cssText =
+      'pointer-events:auto;padding:0.9rem 1.15rem;border-radius:14px;max-width:min(22rem,92vw);' +
+      'background:rgba(28,22,42,0.98);border:1px solid rgba(167,139,250,0.4);' +
+      'color:#eeeef6;font-size:0.9rem;line-height:1.45;' +
+      'box-shadow:0 12px 32px rgba(0,0,0,0.5);display:block;opacity:1;visibility:visible;';
     _pendingToastEl.textContent = text;
     trimToastStack();
+
     if (_pendingToastTimer) clearTimeout(_pendingToastTimer);
     _pendingToastTimer = setTimeout(function () {
       try {
@@ -369,6 +378,7 @@
         if (_gateBusy) {
           showPendingToast(PENDING_MSG);
           keepLoginVisible();
+          setLoginPendingGlow(true);
           return;
         }
 
@@ -444,10 +454,13 @@
 
             if (pending) {
               keepLoginVisible();
+              setLoginPendingGlow(true);
               removeSignedInToasts();
               await quietSignOut();
               keepLoginVisible();
+              setLoginPendingGlow(true);
               removeSignedInToasts();
+              showPendingToast(PENDING_MSG);
               showAgentError(PENDING_MSG);
               _lastPendingShow = Date.now();
               _gateBusy = false;
@@ -529,6 +542,7 @@
           if (checkPendingSync(user, profile, (user.user_metadata || {}).username || '')) {
             await quietSignOut();
             keepLoginVisible();
+            setLoginPendingGlow(true);
           }
         } catch (e) {}
       })();
