@@ -1,12 +1,13 @@
 /**
- * Divine Rays — Agent approval gate V4
- * Pending Agent/Admin cannot enter the portal at all (hard block + continuous guard).
- * Developers (kirzhian, jamesjerlow123, liya) always allowed.
+ * Divine Rays — Agent approval gate V5
+ * Pending staff blocked without full page refresh or portal flash.
+ * Soft sign-out; login screen + animations stay intact.
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_AGENT_APPROVAL_GATE_V4) return;
+  if (window.__DR_AGENT_APPROVAL_GATE_V5) return;
+  window.__DR_AGENT_APPROVAL_GATE_V5 = 1;
   window.__DR_AGENT_APPROVAL_GATE_V4 = 1;
   window.__DR_AGENT_APPROVAL_GATE_V3 = 1;
   window.__DR_AGENT_APPROVAL_GATE = 1;
@@ -22,6 +23,7 @@
   var _gateBusy = false;
   var _lastPendingShow = 0;
   var _lastKick = 0;
+  var _blockCssReady = false;
 
   function getApprovalMap() {
     try {
@@ -79,6 +81,40 @@
       }
     } catch (e) {}
     return window.__drSb || window.__drAgentSb || null;
+  }
+
+  function ensureBlockCss() {
+    if (_blockCssReady && document.getElementById('dr-approval-block-css')) return;
+    var el = document.getElementById('dr-approval-block-css');
+    if (!el) {
+      el = document.createElement('style');
+      el.id = 'dr-approval-block-css';
+      (document.head || document.documentElement).appendChild(el);
+    }
+    el.textContent =
+      'body.dr-pending-blocked #portal-agent,' +
+      'body.dr-pending-blocked #portal-customer{' +
+      '  display:none!important;visibility:hidden!important;pointer-events:none!important;' +
+      '  opacity:0!important}' +
+      'body.dr-pending-blocked #login-screen,' +
+      'body.dr-pending-blocked #auth-screen,' +
+      'body.dr-pending-blocked .login-screen{' +
+      '  display:block!important;visibility:visible!important;opacity:1!important;' +
+      '  pointer-events:auto!important}' +
+      'body.dr-pending-blocked canvas,' +
+      'body.dr-pending-blocked .lifeline,' +
+      'body.dr-pending-blocked #lifeline,' +
+      'body.dr-pending-blocked .heartbeat-canvas{' +
+      '  visibility:visible!important;opacity:1!important}';
+    _blockCssReady = true;
+  }
+
+  function setPendingBlocked(on) {
+    ensureBlockCss();
+    try {
+      if (on) document.body.classList.add('dr-pending-blocked');
+      else document.body.classList.remove('dr-pending-blocked');
+    } catch (e) {}
   }
 
   function ensureToastContainer() {
@@ -168,7 +204,6 @@
       .trim();
 
     if (isDeveloperUsername(username)) return false;
-
     if (meta.approval_status === 'approved' || meta.approved === true) return false;
     if (isApproved(uid, username, email)) return false;
 
@@ -180,36 +215,22 @@
       return true;
     }
     if (isMarkedPending(uid, username, email)) return true;
-
     if (isStaff) {
       markPending(uid, username, email);
       return true;
     }
-
     return false;
   }
 
-  async function forceSignOut() {
+  async function softSignOut() {
     try {
       var client = sb();
       if (client && client.auth) {
         try {
           await client.auth.signOut({ scope: 'local' });
         } catch (e0) {}
-        try {
-          await client.auth.signOut();
-        } catch (e1) {}
       }
     } catch (e) {}
-    try {
-      Object.keys(localStorage).forEach(function (k) {
-        if (k.indexOf('supabase') !== -1 || k.indexOf('sb-') === 0) {
-          try {
-            localStorage.removeItem(k);
-          } catch (e2) {}
-        }
-      });
-    } catch (e3) {}
     try {
       window.__drFullLoaded = false;
       window.__drBooting = false;
@@ -217,30 +238,20 @@
     } catch (e4) {}
   }
 
-  function stayOnLoginScreen() {
+  function showLoginOnly() {
+    ensureBlockCss();
+    setPendingBlocked(true);
     try {
       var pc = document.getElementById('portal-customer');
       var pa = document.getElementById('portal-agent');
-      if (pc) {
-        pc.classList.remove('active');
-        try {
-          pc.style.display = 'none';
-        } catch (e) {}
-      }
-      if (pa) {
-        pa.classList.remove('active');
-        try {
-          pa.style.display = 'none';
-          pa.setAttribute('aria-hidden', 'true');
-        } catch (e2) {}
-      }
+      if (pc) pc.classList.remove('active');
+      if (pa) pa.classList.remove('active');
       var ls =
         document.getElementById('login-screen') ||
-        document.getElementById('auth-screen') ||
-        document.querySelector('.login-screen, #login, [data-view="login"]');
+        document.getElementById('auth-screen');
       if (ls) {
-        ls.style.display = '';
         ls.hidden = false;
+        ls.style.display = '';
         ls.classList.add('active');
       }
     } catch (e2) {}
@@ -248,17 +259,27 @@
 
   async function kickPending(user, profile, loginHint, silent) {
     var pending = await checkPendingAndBlock(user, profile, loginHint);
-    if (!pending) return false;
+    if (!pending) {
+      setPendingBlocked(false);
+      return false;
+    }
     _gateBusy = true;
-    await forceSignOut();
-    stayOnLoginScreen();
-    if (!silent || Date.now() - _lastPendingShow > 2000) {
+    showLoginOnly();
+    await softSignOut();
+    showLoginOnly();
+    if (!silent || Date.now() - _lastPendingShow > 2500) {
       showAgentError(PENDING_MSG);
     }
     _lastKick = Date.now();
     setTimeout(function () {
       _gateBusy = false;
-    }, 800);
+    }, 600);
+    var n = 0;
+    var hold = setInterval(function () {
+      n++;
+      showLoginOnly();
+      if (n > 15) clearInterval(hold);
+    }, 150);
     return true;
   }
 
@@ -266,22 +287,69 @@
     return kickPending(user, profile, loginHint, false);
   }
 
+  function patchShowApp() {
+    function wrap(fn) {
+      if (!fn || fn.__drApprovalWrap) return fn;
+      var wrapped = async function (p) {
+        try {
+          var client = sb();
+          if (client) {
+            var sess = await client.auth.getSession();
+            var session = sess && sess.data && sess.data.session;
+            if (session && session.user) {
+              var user = session.user;
+              var profile = p || null;
+              if (!profile) {
+                try {
+                  var pr = await client
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', user.id)
+                    .maybeSingle();
+                  profile = pr && pr.data;
+                } catch (e1) {}
+              }
+              var blocked = await checkPendingAndBlock(
+                user,
+                profile,
+                (user.user_metadata || {}).username || ''
+              );
+              if (blocked) {
+                await kickPending(user, profile, (user.user_metadata || {}).username || '', false);
+                return;
+              }
+            }
+          }
+        } catch (e) {}
+        return fn.apply(this, arguments);
+      };
+      wrapped.__drApprovalWrap = 1;
+      return wrapped;
+    }
+    try {
+      if (typeof window.showApp === 'function') {
+        window.showApp = wrap(window.showApp);
+      }
+      if (window.DR && typeof window.DR.showApp === 'function') {
+        window.DR.showApp = wrap(window.DR.showApp);
+      }
+    } catch (e) {}
+  }
+
   function wireLoginGate() {
     var form = document.getElementById('login-agent');
-    if (!form || form.__drApprovalGateV4) return;
-    form.__drApprovalGateV4 = 1;
+    if (!form || form.__drApprovalGateV5) return;
+    form.__drApprovalGateV5 = 1;
 
     form.addEventListener(
       'submit',
-      function (ev) {
+      function () {
         if (_gateBusy) {
-          try {
-            ev.preventDefault();
-            ev.stopPropagation();
-          } catch (e) {}
           showPendingToast(PENDING_MSG);
+          showLoginOnly();
           return;
         }
+        ensureBlockCss();
 
         var tries = 0;
         var t = setInterval(function () {
@@ -290,13 +358,13 @@
             try {
               var client = sb();
               if (!client) {
-                if (tries > 50) clearInterval(t);
+                if (tries > 40) clearInterval(t);
                 return;
               }
               var sess = await client.auth.getSession();
               var session = sess && sess.data && sess.data.session;
               if (!session || !session.user) {
-                if (tries > 50) clearInterval(t);
+                if (tries > 40) clearInterval(t);
                 return;
               }
               var user = session.user;
@@ -319,41 +387,34 @@
               } catch (e1) {}
 
               clearInterval(t);
-              var blocked = await kickPending(user, profile, loginHint, false);
-              if (blocked) {
-                var keep = 0;
-                var keepIv = setInterval(function () {
-                  keep++;
-                  stayOnLoginScreen();
-                  if (keep > 20) clearInterval(keepIv);
-                }, 200);
-              }
+              await kickPending(user, profile, loginHint, false);
             } catch (err) {
-              if (tries > 50) clearInterval(t);
+              if (tries > 40) clearInterval(t);
             }
           })();
-        }, 200);
+        }, 120);
       },
       true
     );
   }
 
   function wireSessionGuard() {
-    if (window.__drApprovalSessionGuardV4) return;
-    window.__drApprovalSessionGuardV4 = 1;
+    if (window.__drApprovalSessionGuardV5) return;
+    window.__drApprovalSessionGuardV5 = 1;
 
     setInterval(function () {
       (async function () {
         try {
+          patchShowApp();
           var pa = document.getElementById('portal-agent');
-          var portalOpen = pa && (pa.classList.contains('active') || pa.style.display === 'block');
+          var portalOpen = !!(pa && pa.classList.contains('active'));
           var client = sb();
           if (!client) return;
 
           var sess = await client.auth.getSession();
           var session = sess && sess.data && sess.data.session;
           if (!session || !session.user) {
-            if (portalOpen) stayOnLoginScreen();
+            if (portalOpen) showLoginOnly();
             return;
           }
 
@@ -370,27 +431,32 @@
           } catch (e1) {}
 
           var role = String((profile && profile.role) || meta.role || '').toLowerCase();
-          if (role !== 'agent' && role !== 'admin' && role !== 'developer') return;
+          if (role !== 'agent' && role !== 'admin' && role !== 'developer') {
+            setPendingBlocked(false);
+            return;
+          }
 
           var blocked = await checkPendingAndBlock(user, profile, meta.username || '');
           if (blocked) {
-            stayOnLoginScreen();
-            if (Date.now() - _lastKick > 2500) {
+            showLoginOnly();
+            if (Date.now() - _lastKick > 3000) {
               await kickPending(user, profile, meta.username || '', true);
             }
+          } else {
+            setPendingBlocked(false);
           }
         } catch (e) {}
       })();
-    }, 700);
+    }, 900);
   }
 
   function wirePortalObserver() {
-    if (window.__drApprovalPortalObs) return;
-    window.__drApprovalPortalObs = 1;
+    if (window.__drApprovalPortalObsV5) return;
+    window.__drApprovalPortalObsV5 = 1;
     try {
       var pa = document.getElementById('portal-agent');
       if (!pa) {
-        setTimeout(wirePortalObserver, 1500);
+        setTimeout(wirePortalObserver, 1200);
         return;
       }
       var mo = new MutationObserver(function () {
@@ -401,7 +467,10 @@
             if (!client) return;
             var sess = await client.auth.getSession();
             var session = sess && sess.data && sess.data.session;
-            if (!session || !session.user) return;
+            if (!session || !session.user) {
+              showLoginOnly();
+              return;
+            }
             var user = session.user;
             var profile = null;
             try {
@@ -432,9 +501,11 @@
   };
 
   function tick() {
+    ensureBlockCss();
     wireLoginGate();
     wireSessionGuard();
     wirePortalObserver();
+    patchShowApp();
   }
 
   tick();
