@@ -36,7 +36,7 @@
     var TEAM_BOARD_SHA = '6f7d941cf16542de5868a7ed0abaacae83f4d133';
     var TEAM_SEP_SHA = '85337adc33ac049cdbf1317bbc20388b4f774739';
     var SIDEBAR_SHA = 'f54ca62b389e67557d902e630612372b9db32710';
-    var APPROVAL_GATE_SHA = '72a045e80b671856e9caf696a82c0af8540653f4';
+    var APPROVAL_GATE_SHA = '931797f512058d3f957b1a043b7d9e4d23af0793';
     var STAFF_NOTIF_SHA = 'ad42d4238ecd55ec0bb66aa9a842fe2c57b936bd';
     var REPLY_FIX_SHA = '5307c296fc8868d23fdc61bde79cad23f3c71dba';
     var COMMENTS_LIVE_SHA = '4181ae9900f29ec307555a38e62ae6be7e6b9a8f';
@@ -49,6 +49,7 @@
     var TOOLBAR_SHA = '2ea9190cbbb3dbfbf3a159ca47d585a61b2f6e2b';
     var FILTER_SHA = '1bfe6c0e93dedc361cf1f3e15eb520c3aea13930';
     var DESIGN_SHA = '7d6d66cbe63fda91cf71d64bbddd1af80f3adfc3';
+    var TICKET_DESIGN_SHA = '01d6078d7a6a6ff64a1c9f53621d1bc2446156cf';
     var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
     var BUST = String(Date.now());
     var TIP = 'dd3d27c0c8190f4f85781c8f2477678d538768b0';
@@ -64,7 +65,8 @@
       'staff-ticket-notifs.js': STAFF_NOTIF_SHA,
       'customer-reply-fix.js': REPLY_FIX_SHA,
       'sidebar-design.js': SIDEBAR_SHA,
-      'design-system-v10.js': DESIGN_SHA
+      'design-system-v10.js': DESIGN_SHA,
+      'ticket-list-design.js': TICKET_DESIGN_SHA
     };
 
     var SKIP = {
@@ -183,7 +185,8 @@
           loadScript(CDN + USERS_NAV_SHA + '/js/users-nav.js'),
           loadScript(CDN + FILTER_SHA + '/js/users-filter-enforce.js'),
           loadScript(CDN + APPROVAL_GATE_SHA + '/js/agent-approval-gate.js'),
-          loadScript(CDN + STAFF_NOTIF_SHA + '/js/staff-ticket-notifs.js')
+          loadScript(CDN + STAFF_NOTIF_SHA + '/js/staff-ticket-notifs.js'),
+          loadScript(CDN + TICKET_DESIGN_SHA + '/js/ticket-list-design.js')
         ]).then(function () {
           try { if (window.DRUsersNav && window.DRUsersNav.refresh) window.DRUsersNav.refresh(); } catch (e) {}
           try { if (window.DRSidebarDesign && window.DRSidebarDesign.refresh) window.DRSidebarDesign.refresh(); } catch (e2) {}
