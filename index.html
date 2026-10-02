@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.0.0" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.0.1" />
   <style>
     html,body{margin:0;background:#0c0c14;color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
     #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae;flex-direction:column;gap:0.75rem;padding:1.5rem;text-align:center}
@@ -19,7 +19,6 @@
       var t = localStorage.getItem('dr_theme') || 'dark';
       document.documentElement.setAttribute('data-theme', t);
     } catch (e) {}
-    // Block antique comments-live (< v9) from shell; modern v9 still loads
     window.__DR_COMMENTS_LIVE = 8;
     window.__DR_COMMENTS_LIVE_V2 = 1;
     window.__DR_BOOT_CLEAN = 1;
@@ -44,13 +43,17 @@
     var UI_LAYOUT_SHA = 'ce5a1fde308a9d38438b60df40497902b607690c';
     var KB_TABLE_SHA = '057efa589371be7a05114c786f31a89bb28fe009';
     var KB_JS_SHA = 'd4e9498db74b26a08bf7c8acec52ac3496c6ff86';
-    var USERS_NAV_SHA = 'fe34cd70deab260dc759623d22a05cbf5008fd16';
+    var USERS_NAV_SHA = '560dc20a3274a5535a065d3658faca95f668c8d1';
     var ADMIN_SHA = 'e105acd90bb2c07fe256092c15286f1a58e46ccc';
     var FILTER_SHA = '1bfe6c0e93dedc361cf1f3e15eb520c3aea13930';
+    // Design / button polish (restored)
+    var DESIGN_SHA = '7d6d66cbe63fda91cf71d64bbddd1af80f3adfc3';
+    var POLISH_FIX_SHA = '7572806a391a4e8b8f0c0e0c0e0c0e0c0e0c0e0c'; // placeholder replaced below
     var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
     var BUST = String(Date.now());
+    // Use tip commit that has current design files
+    var TIP = '560dc20a3274a5535a065d3658faca95f668c8d1';
 
-    // Rewrite shell's ancient pins → current
     var REWRITE = {
       'admin.js': ADMIN_SHA,
       'users-nav.js': USERS_NAV_SHA,
@@ -61,25 +64,18 @@
       'agent-approval-gate.js': APPROVAL_GATE_SHA,
       'staff-ticket-notifs.js': STAFF_NOTIF_SHA,
       'customer-reply-fix.js': REPLY_FIX_SHA,
-      'sidebar-design.js': SIDEBAR_SHA
+      'sidebar-design.js': SIDEBAR_SHA,
+      'design-system-v10.js': DESIGN_SHA
     };
 
-    // Drop scripts that only re-apply old UI / cause flicker
+    // Only skip true flicker fighters — keep button/design polish
     var SKIP = {
-      'design-system-v10.js': 1,
       'ui-flicker-fix.js': 1,
-      'ux-dashboard-detail.js': 1,
-      'ux-session-polish.js': 1,
-      'kb-layout-fix.js': 1,
-      'card-opacity.js': 1,
       'content-restore.js': 1,
-      'ui-polish.js': 1,
-      'ui-fixes-v11.js': 1,
-      'polish.js': 1,
-      'dashboard-polish.js': 1,
+      'card-opacity.js': 1,
       'smooth-refresh.js': 1,
-      'polish-fixes.js': 1,
-      'saved-views.js': 1
+      'ux-dashboard-detail.js': 1,
+      'ux-session-polish.js': 1
     };
 
     var bootHint = document.getElementById('boot-hint');
@@ -136,23 +132,20 @@
         "var KB_JS_SHA = '" + KB_JS_SHA + "';"
       );
 
-      // Slim extras — no polish/saved-views (old UI fighters)
       html = html.replace(
         /var EXTRA_FILES = \[[^\]]*\];/,
-        "var EXTRA_FILES = ['email-notify.js','ticket-plus.js','ticket-plus-fix.js','status-lock.js','kb.js'];"
+        "var EXTRA_FILES = ['email-notify.js','ticket-plus.js','ticket-plus-fix.js','status-lock.js','kb.js','polish-fixes.js'];"
       );
 
-      // Rewrite hard-coded CDN pins in shell
       html = html.replace(
         /https:\/\/cdn\.jsdelivr\.net\/gh\/Lizer-WebCoder\/divine-rays-tech-hub@[a-f0-9]+\/js\/([a-z0-9._-]+\.js)/gi,
         function (full, name) {
-          if (SKIP[name]) return full; // neutralized below
+          if (SKIP[name]) return full;
           if (REWRITE[name]) return CDN + REWRITE[name] + '/js/' + name;
           return full;
         }
       );
 
-      // Comment-out loadScript lines for SKIP modules
       Object.keys(SKIP).forEach(function (name) {
         var re = new RegExp(
           'await loadScript\\([^)]*' + name.replace(/\./g, '\\.') + '[^)]*\\);',
@@ -171,9 +164,12 @@
       document.close();
       clearTimeout(bootTimer);
 
-      // ONE wave only — no 1500 + 2800 double load
       setTimeout(function () {
         Promise.all([
+          loadScript(CDN + DESIGN_SHA + '/js/design-system-v10.js'),
+          loadScript(CDN + TIP + '/js/polish-fixes.js'),
+          loadScript(CDN + TIP + '/js/ui-polish.js'),
+          loadScript(CDN + TIP + '/js/ui-fixes-v11.js'),
           loadScript(CDN + SIDEBAR_SHA + '/js/sidebar-design.js'),
           loadScript(CDN + TEAM_BOARD_SHA + '/js/team-board.js'),
           loadScript(CDN + TEAM_SEP_SHA + '/js/team-sep.js'),
