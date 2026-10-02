@@ -1,15 +1,16 @@
 /**
  * Divine Rays — toolbar / Show control polish
- * Matches system design; hide on Users views
+ * Styled to match system — ALWAYS visible (not removed)
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_UI_TOOLBAR_FIX) return;
+  if (window.__DR_UI_TOOLBAR_FIX_V2) return;
+  window.__DR_UI_TOOLBAR_FIX_V2 = 1;
   window.__DR_UI_TOOLBAR_FIX = 1;
 
   var CSS = [
-    /* —— Show limit control —— */
+    /* —— Show limit control (always visible) —— */
     '.dr-limit-wrap{',
     '  display:inline-flex!important;align-items:center;gap:0.45rem;',
     '  padding:0.28rem 0.55rem 0.28rem 0.7rem;',
@@ -17,12 +18,15 @@
     '  background:rgba(26,24,42,0.85)!important;',
     '  border:1px solid rgba(139,124,247,0.32)!important;',
     '  box-shadow:0 4px 14px rgba(0,0,0,0.18);',
-    '  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}',
+    '  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);',
+    '  visibility:visible!important;opacity:1!important}',
     '.dr-limit-wrap label{',
     '  font-size:0.78rem;font-weight:600;letter-spacing:0.02em;',
-    '  color:#a5a5c0!important;margin:0;white-space:nowrap;cursor:default}',
+    '  color:#a5a5c0!important;margin:0;white-space:nowrap;cursor:default;',
+    '  display:inline!important}',
     '.dr-limit-wrap #filter-limit, .dr-limit-wrap select.filter-select, #filter-limit{',
     '  appearance:none;-webkit-appearance:none;',
+    '  display:inline-block!important;visibility:visible!important;',
     '  min-width:3.6rem;padding:0.35rem 1.6rem 0.35rem 0.55rem;',
     '  border-radius:9px;border:1px solid rgba(139,124,247,0.35)!important;',
     '  background:#12121c url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 viewBox=%270 0 24 24%27%3E%3Cpath fill=%27%23c4b5fd%27 d=%27M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z%27/%3E%3C/svg%3E") no-repeat right 0.45rem center!important;',
@@ -41,7 +45,7 @@
     '  color:#1e1b4b!important;border-color:rgba(109,94,245,0.3)!important}',
     /* —— Pager —— */
     '.dr-ticket-pager{',
-    '  display:flex;align-items:center;justify-content:center;gap:0.65rem;',
+    '  display:flex!important;align-items:center;justify-content:center;gap:0.65rem;',
     '  margin:0.85rem 0 0.35rem;padding:0.35rem}',
     '.dr-page-btn{',
     '  padding:0.4rem 0.85rem;border-radius:10px;',
@@ -54,13 +58,6 @@
     '.dr-page-btn:disabled, .dr-page-btn.is-disabled{',
     '  opacity:0.4;cursor:not-allowed}',
     '.dr-page-info{font-size:0.82rem;color:#9494ae;font-weight:500}',
-    /* Hide Show + Showing meta on Users admin screens */
-    'body.dr-view-endusers .dr-limit-wrap,',
-    'body.dr-view-admin-staff .dr-limit-wrap,',
-    'body.dr-view-endusers #filter-limit,',
-    'body.dr-view-admin-staff #filter-limit,',
-    'body.dr-view-endusers .dr-ticket-pager,',
-    'body.dr-view-admin-staff .dr-ticket-pager{display:none!important}',
     /* Admin table polish */
     '#view-admin .admin-table, #admin-users-list table{',
     '  width:100%;border-collapse:separate;border-spacing:0}',
@@ -75,11 +72,7 @@
     '  display:inline-flex!important;align-items:center;gap:0.4rem;flex-wrap:wrap}',
     '#view-admin .admin-actions .btn, #view-admin .admin-actions button{',
     '  padding:0.32rem 0.7rem!important;font-size:0.8rem!important;',
-    '  border-radius:9px!important;min-height:auto!important}',
-    /* Hide leftover Showing X-Y text on users pages */
-    'body.dr-view-endusers .topbar p, body.dr-view-admin-staff .topbar p,',
-    'body.dr-view-endusers header.topbar p, body.dr-view-admin-staff header.topbar p{',
-    '  /* kept; JS hides matching text */}'
+    '  border-radius:9px!important;min-height:auto!important}'
   ].join('');
 
   function inject() {
@@ -92,68 +85,47 @@
     el.textContent = CSS;
   }
 
-  function isUsersView() {
-    return (
-      document.body.classList.contains('dr-view-endusers') ||
-      document.body.classList.contains('dr-view-admin-staff') ||
-      window.__DR_USERS_LIST_MODE === 'endusers' ||
-      window.__DR_USERS_LIST_MODE === 'staff'
-    );
-  }
-
-  function hideUsersMeta() {
-    if (!isUsersView()) return;
+  function ensureShowVisible() {
     var wrap = document.querySelector('.dr-limit-wrap');
-    if (wrap) wrap.style.display = 'none';
     var lim = document.getElementById('filter-limit');
+    if (wrap) {
+      wrap.style.display = 'inline-flex';
+      wrap.style.visibility = 'visible';
+      wrap.style.opacity = '1';
+    }
     if (lim) {
-      var w = lim.closest('.dr-limit-wrap') || lim.parentElement;
-      if (w) w.style.display = 'none';
+      lim.style.display = '';
+      lim.style.visibility = 'visible';
+      var parent = lim.closest('.dr-limit-wrap') || lim.parentElement;
+      if (parent) {
+        parent.style.display = parent.classList.contains('dr-limit-wrap') ? 'inline-flex' : '';
+        parent.style.visibility = 'visible';
+      }
     }
-    document.querySelectorAll('.topbar, header.topbar, .main > header, #page-title').forEach(function (bar) {
-      var root = bar.id === 'page-title' ? bar.parentElement : bar;
-      if (!root) return;
-      root.querySelectorAll('p, span, div, small').forEach(function (n) {
-        if (n.id === 'page-title' || n.closest('#page-title') || n.closest('.topbar-actions')) return;
-        if (n.closest('.dr-limit-wrap')) return;
-        var t = (n.textContent || '').trim();
-        if (/^Showing\s+\d+/i.test(t) || /^Page\s+\d+\s*\/?\s*\d*/i.test(t)) {
-          n.style.display = 'none';
-        }
-      });
-    });
-  }
-
-  function polishLimitPlacement() {
-    var wrap = document.querySelector('.dr-limit-wrap');
-    if (!wrap) return;
-    if (isUsersView()) {
-      wrap.style.display = 'none';
-      return;
-    }
-    wrap.style.display = '';
-    // Prefer sitting with filter controls, not floating alone in topbar
-    var sort = document.getElementById('filter-sort');
-    var host =
-      document.getElementById('dr-list-toolbar-right') ||
-      (sort && sort.parentElement) ||
-      document.querySelector('.filters, .filter-bar, .list-toolbar');
-    if (host && wrap.parentNode !== host) {
-      try {
-        host.appendChild(wrap);
-      } catch (e) {}
+    // Place near filters / topbar actions so it's easy to find
+    if (wrap) {
+      var sort = document.getElementById('filter-sort');
+      var host =
+        document.getElementById('dr-list-toolbar-right') ||
+        (sort && sort.parentElement) ||
+        document.querySelector('.topbar-actions') ||
+        document.querySelector('.filters, .filter-bar, .list-toolbar');
+      if (host && wrap.parentNode !== host) {
+        try {
+          host.appendChild(wrap);
+        } catch (e) {}
+      }
     }
   }
 
   function tick() {
     inject();
-    polishLimitPlacement();
-    hideUsersMeta();
+    ensureShowVisible();
   }
 
   tick();
   setInterval(tick, 1800);
-  setTimeout(tick, 500);
-  setTimeout(tick, 1500);
-  setTimeout(tick, 3200);
+  setTimeout(tick, 400);
+  setTimeout(tick, 1200);
+  setTimeout(tick, 2800);
 })();
