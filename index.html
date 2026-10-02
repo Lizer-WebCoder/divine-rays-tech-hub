@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.6.7" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.6.8" />
   <style>
     html,body{margin:0;background:#0c0c14;color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
     #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae;flex-direction:column;gap:0.75rem;padding:1.5rem;text-align:center}
@@ -83,11 +83,18 @@
       }
       if (!html) throw new Error('Could not load app shell');
 
+      // Inject team board into EXTRA_FILES
       html = html.replace(
         /var EXTRA_FILES = \[[^\]]*\];/,
         "var EXTRA_FILES = ['email-notify.js','ticket-plus.js','ticket-plus-fix.js','status-lock.js','polish-fixes.js','saved-views.js','kb.js','team-board.js'];\n    var TEAM_BOARD_SHA = '" +
           TEAM_BOARD_SHA +
           "';"
+      );
+
+      // CRITICAL: replace shell's old LIVE_SHA so the antique comments-live never boots
+      html = html.replace(
+        /var LIVE_SHA = '[^']*';/,
+        "var LIVE_SHA = '" + COMMENTS_LIVE_SHA + "';"
       );
 
       document.open();
