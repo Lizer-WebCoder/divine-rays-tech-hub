@@ -1,15 +1,14 @@
 /**
- * Divine Rays — Users nav v5
- * Dropdown arrow; highlight active; force view-admin + load users list
+ * Divine Rays — Users nav v6
+ * Dropdown + End-Users / Admin views
+ * Stats: End-Users label + exact count
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_USERS_NAV_V5) return;
+  if (window.__DR_USERS_NAV_V6) return;
+  window.__DR_USERS_NAV_V6 = 1;
   window.__DR_USERS_NAV_V5 = 1;
-  window.__DR_USERS_NAV_V4 = 1;
-  window.__DR_USERS_NAV_V3 = 1;
-  window.__DR_USERS_NAV_V2 = 1;
   window.__DR_USERS_NAV = 1;
 
   var DEVELOPER_USERNAMES = { kirzhian: 1, jamesjerlow123: 1, liya: 1 };
@@ -17,6 +16,14 @@
   function isDeveloperUser(u) {
     if (!u) return false;
     return !!DEVELOPER_USERNAMES[String(u.username || '').toLowerCase().trim()];
+  }
+
+  function sb() {
+    try {
+      if (window.DR && typeof window.DR.sb === 'function') return window.DR.sb();
+      if (window.__drSb) return window.__drSb;
+    } catch (e) {}
+    return null;
   }
 
   function injectCss() {
@@ -59,7 +66,139 @@
       '#view-admin.active{display:block!important;visibility:visible!important;opacity:1!important}' +
       '.badge-role-developer{background:rgba(251,191,36,0.2)!important;color:#fbbf24!important}' +
       '.badge-role-pending{background:rgba(251,146,60,0.2)!important;color:#fb923c!important}' +
-      '.badge-role-customer{background:rgba(96,165,250,0.2)!important;color:#60a5fa!important}';
+      '.badge-role-customer{background:rgba(96,165,250,0.2)!important;color:#60a5fa!important}' +
+      /* End-Users view: single End-Users stat card */
+      'body.dr-view-endusers .admin-stats .stat-card{display:none!important}' +
+      'body.dr-view-endusers .admin-stats .stat-card.dr-eu-stat{display:flex!important;flex-direction:column;min-width:10rem}' +
+      'body.dr-view-admin-staff .admin-stats .stat-card.dr-eu-stat{display:none!important}' +
+      'body.dr-view-admin-staff .admin-stats .stat-card.dr-staff-stat{display:flex!important;flex-direction:column}';
+  }
+
+  function isEndUserRole(role) {
+    var r = String(role || '').toLowerCase().trim();
+    return r === 'customer' || r === 'end-user' || r === 'enduser' || r === 'end_user' || r === 'user';
+  }
+
+  function isStaffRole(role) {
+    var r = String(role || '').toLowerCase().trim();
+    if (isEndUserRole(r)) return false;
+    return r === 'admin' || r === 'agent' || r === 'developer' || r === 'staff' || !!r;
+  }
+
+  function setLabelText(card, text) {
+    if (!card) return;
+    var lab = card.querySelector('.stat-label');
+    if (lab) lab.textContent = text;
+  }
+
+  function setValueText(idOrEl, n) {
+    var el = typeof idOrEl === 'string' ? document.getElementById(idOrEl) : idOrEl;
+    if (el) el.textContent = String(n == null ? 0 : n);
+  }
+
+  function polishStatLabels() {
+    var mode = window.__DR_USERS_LIST_MODE || '';
+    var endMode =
+      mode === 'endusers' || document.body.classList.contains('dr-view-endusers');
+
+    var usersCard = document.getElementById('admin-stat-users');
+    var custCard = document.getElementById('admin-stat-customers');
+    var agentCard = document.getElementById('admin-stat-agents');
+    var adminCard = document.getElementById('admin-stat-admins');
+
+    var usersWrap = usersCard ? usersCard.closest('.stat-card') : null;
+    var custWrap = custCard ? custCard.closest('.stat-card') : null;
+    var agentWrap = agentCard ? agentCard.closest('.stat-card') : null;
+    var adminWrap = adminCard ? adminCard.closest('.stat-card') : null;
+
+    // Permanent labels
+    setLabelText(custWrap, 'End-Users');
+    setLabelText(agentWrap, 'Agents');
+    setLabelText(adminWrap, 'Admins');
+
+    if (endMode) {
+      // Primary card becomes End-Users with exact count
+      setLabelText(usersWrap, 'End-Users');
+      if (usersWrap) {
+        usersWrap.classList.add('dr-eu-stat');
+        usersWrap.classList.remove('dr-staff-stat');
+      }
+      if (custWrap) {
+        custWrap.classList.add('dr-eu-stat');
+      }
+      // Hide staff-only cards via class for CSS
+      [agentWrap, adminWrap].forEach(function (w) {
+        if (w) {
+          w.classList.remove('dr-eu-stat');
+          w.classList.remove('dr-staff-stat');
+        }
+      });
+    } else {
+      setLabelText(usersWrap, 'Staff');
+      if (usersWrap) {
+        usersWrap.classList.add('dr-staff-stat');
+        usersWrap.classList.remove('dr-eu-stat');
+      }
+      [agentWrap, adminWrap, custWrap].forEach(function (w) {
+        if (w) w.classList.add('dr-staff-stat');
+      });
+      if (custWrap) custWrap.classList.remove('dr-eu-stat');
+    }
+  }
+
+  async function refreshStatCounts() {
+    polishStatLabels();
+    var client = sb();
+    if (!client) {
+      // Fallback: count visible table rows
+      var rows = document.querySelectorAll('#admin-users-list tbody tr');
+      var visible = 0;
+      rows.forEach(function (r) {
+        if (r.style.display === 'none') return;
+        visible++;
+      });
+      var mode = window.__DR_USERS_LIST_MODE || '';
+      if (mode === 'endusers' || document.body.classList.contains('dr-view-endusers')) {
+        setValueText('admin-stat-users', visible);
+        setValueText('admin-stat-customers', visible);
+      } else {
+        setValueText('admin-stat-users', visible);
+      }
+      return;
+    }
+
+    try {
+      var r = await client.from('profiles').select('id,role');
+      var rows = r.error ? [] : r.data || [];
+      var endCount = 0;
+      var agentCount = 0;
+      var adminCount = 0;
+      var staffCount = 0;
+      rows.forEach(function (u) {
+        if (isEndUserRole(u.role)) {
+          endCount++;
+        } else if (isStaffRole(u.role)) {
+          staffCount++;
+          var rr = String(u.role || '').toLowerCase();
+          if (rr === 'agent') agentCount++;
+          if (rr === 'admin' || rr === 'developer') adminCount++;
+        }
+      });
+
+      var mode = window.__DR_USERS_LIST_MODE || '';
+      var endMode =
+        mode === 'endusers' || document.body.classList.contains('dr-view-endusers');
+
+      if (endMode) {
+        setValueText('admin-stat-users', endCount);
+        setValueText('admin-stat-customers', endCount);
+      } else {
+        setValueText('admin-stat-users', staffCount);
+        setValueText('admin-stat-customers', endCount);
+        setValueText('admin-stat-agents', agentCount);
+        setValueText('admin-stat-admins', adminCount);
+      }
+    } catch (e) {}
   }
 
   function findAdminNavBtn() {
@@ -186,7 +325,9 @@
     if (!v) return false;
     document.querySelectorAll('#portal-agent .view').forEach(function (x) {
       x.classList.remove('active');
-      try { x.style.display = 'none'; } catch (e) {}
+      try {
+        x.style.display = 'none';
+      } catch (e) {}
     });
     v.classList.add('active');
     v.style.display = 'block';
@@ -205,6 +346,8 @@
       if (typeof window.renderAdminUsers === 'function') {
         try {
           window.renderAdminUsers(mode);
+          setTimeout(refreshStatCounts, 200);
+          setTimeout(refreshStatCounts, 800);
           return true;
         } catch (e) {
           return false;
@@ -213,9 +356,15 @@
       return false;
     }
     if (!go()) {
-      setTimeout(function () { go(); }, 300);
-      setTimeout(function () { go(); }, 900);
-      setTimeout(function () { go(); }, 1800);
+      setTimeout(function () {
+        go();
+      }, 300);
+      setTimeout(function () {
+        go();
+      }, 900);
+      setTimeout(function () {
+        go();
+      }, 1800);
     }
   }
 
@@ -230,6 +379,7 @@
     if (pt) pt.textContent = 'Users · End-Users';
     loadUsersList('endusers');
     syncActiveHighlight();
+    refreshStatCounts();
   }
 
   function openAdminStaff() {
@@ -243,6 +393,7 @@
     if (pt) pt.textContent = 'Users · Admin';
     loadUsersList('staff');
     syncActiveHighlight();
+    refreshStatCounts();
   }
 
   function wire() {
@@ -283,18 +434,26 @@
       });
     }
     syncActiveHighlight();
+    polishStatLabels();
   }
 
   function tick() {
     wire();
+    if (
+      document.body.classList.contains('dr-view-endusers') ||
+      document.body.classList.contains('dr-view-admin-staff')
+    ) {
+      refreshStatCounts();
+    }
   }
 
   tick();
-  setInterval(tick, 2000);
+  setInterval(tick, 2500);
   window.DRUsersNav = {
     refresh: tick,
     openEndUsers: openEndUsers,
     openAdmin: openAdminStaff,
-    isDeveloperUser: isDeveloperUser
+    isDeveloperUser: isDeveloperUser,
+    refreshStats: refreshStatCounts
   };
 })();
