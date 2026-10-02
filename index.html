@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.0.1" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.0.2" />
   <style>
     html,body{margin:0;background:#0c0c14;color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
     #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae;flex-direction:column;gap:0.75rem;padding:1.5rem;text-align:center}
@@ -44,15 +44,13 @@
     var KB_TABLE_SHA = '057efa589371be7a05114c786f31a89bb28fe009';
     var KB_JS_SHA = 'd4e9498db74b26a08bf7c8acec52ac3496c6ff86';
     var USERS_NAV_SHA = '560dc20a3274a5535a065d3658faca95f668c8d1';
-    var ADMIN_SHA = 'e105acd90bb2c07fe256092c15286f1a58e46ccc';
+    var ADMIN_SHA = '2c72573cd329718cb5c2d00383cfdab0d0861d8a';
+    var ADMIN_STATS_SHA = 'dacf4152cda8f05396ae4f0eb805a008b2910242';
     var FILTER_SHA = '1bfe6c0e93dedc361cf1f3e15eb520c3aea13930';
-    // Design / button polish (restored)
     var DESIGN_SHA = '7d6d66cbe63fda91cf71d64bbddd1af80f3adfc3';
-    var POLISH_FIX_SHA = '7572806a391a4e8b8f0c0e0c0e0c0e0c0e0c0e0c'; // placeholder replaced below
     var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
     var BUST = String(Date.now());
-    // Use tip commit that has current design files
-    var TIP = '560dc20a3274a5535a065d3658faca95f668c8d1';
+    var TIP = '2c72573cd329718cb5c2d00383cfdab0d0861d8a';
 
     var REWRITE = {
       'admin.js': ADMIN_SHA,
@@ -68,7 +66,6 @@
       'design-system-v10.js': DESIGN_SHA
     };
 
-    // Only skip true flicker fighters — keep button/design polish
     var SKIP = {
       'ui-flicker-fix.js': 1,
       'content-restore.js': 1,
@@ -179,6 +176,7 @@
           loadScript(CDN + KB_TABLE_SHA + '/js/kb-table-fix.js'),
           loadScript(CDN + KB_JS_SHA + '/js/kb.js'),
           loadScript(CDN + ADMIN_SHA + '/js/admin.js'),
+          loadScript(CDN + ADMIN_STATS_SHA + '/js/admin-stats-fix.js'),
           loadScript(CDN + USERS_NAV_SHA + '/js/users-nav.js'),
           loadScript(CDN + FILTER_SHA + '/js/users-filter-enforce.js'),
           loadScript(CDN + APPROVAL_GATE_SHA + '/js/agent-approval-gate.js'),
