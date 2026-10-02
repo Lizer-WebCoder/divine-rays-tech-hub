@@ -1,11 +1,12 @@
 /**
- * Divine Rays — Users nav v7
- * Stats: one End-Users card; Admin shows Staff / Agents / Admins
+ * Divine Rays — Users nav v8
+ * Stats: one End-Users card; Admin shows only Admins
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_USERS_NAV_V7) return;
+  if (window.__DR_USERS_NAV_V8 >= 2) return;
+  window.__DR_USERS_NAV_V8 = 2;
   window.__DR_USERS_NAV_V7 = 1;
   window.__DR_USERS_NAV_V6 = 1;
   window.__DR_USERS_NAV = 1;
@@ -66,7 +67,6 @@
       '.badge-role-developer{background:rgba(251,191,36,0.2)!important;color:#fbbf24!important}' +
       '.badge-role-pending{background:rgba(251,146,60,0.2)!important;color:#fb923c!important}' +
       '.badge-role-customer{background:rgba(96,165,250,0.2)!important;color:#60a5fa!important}' +
-      /* Stats layout */
       '.admin-stats{display:flex!important;flex-wrap:wrap;gap:0.75rem;align-items:stretch}' +
       '.admin-stats .stat-card{display:flex!important;flex-direction:column;justify-content:center;' +
       '  min-width:8.5rem;padding:0.85rem 1rem;border-radius:14px;' +
@@ -74,14 +74,17 @@
       '.admin-stats .stat-card .stat-label{font-size:0.72rem;font-weight:600;letter-spacing:.04em;' +
       '  text-transform:uppercase;color:#9494ae;margin-bottom:0.25rem}' +
       '.admin-stats .stat-card .stat-value{font-size:1.45rem;font-weight:700;color:#c4b5fd;line-height:1.1}' +
-      /* End-Users view: ONLY customers card */
       'body.dr-view-endusers .admin-stats .stat-card{display:none!important}' +
-      'body.dr-view-endusers .admin-stats .stat-card.dr-stat-endusers{display:flex!important}' +
-      /* Admin staff view: Staff + Agents + Admins (hide End-Users card) */
+      'body.dr-view-endusers .admin-stats .stat-card.dr-stat-endusers{display:flex!important;align-items:center!important;justify-content:center!important;text-align:center!important}' +
       'body.dr-view-admin-staff .admin-stats .stat-card{display:none!important}' +
-      'body.dr-view-admin-staff .admin-stats .stat-card.dr-stat-staff,' +
-      'body.dr-view-admin-staff .admin-stats .stat-card.dr-stat-agents,' +
-      'body.dr-view-admin-staff .admin-stats .stat-card.dr-stat-admins{display:flex!important}';
+      'body.dr-view-admin-staff .admin-stats .stat-card.dr-stat-admins,' +
+      'body.dr-view-admin-staff .admin-stats .stat-card.me{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;text-align:center!important;min-width:10rem!important}' +
+      'body.dr-view-admin-staff .admin-stats .stat-card.dr-stat-admins .stat-label,' +
+      'body.dr-view-admin-staff .admin-stats .stat-card.dr-stat-admins .stat-value,' +
+      'body.dr-view-admin-staff .admin-stats .stat-card.me .stat-label,' +
+      'body.dr-view-admin-staff .admin-stats .stat-card.me .stat-value{text-align:center!important;width:100%}' +
+      'body.dr-view-admin-staff #filter-hint,body.dr-view-endusers #filter-hint,' +
+      'body.dr-view-admin-staff .dr-ticket-pager,body.dr-view-endusers .dr-ticket-pager{display:none!important}';
   }
 
   function isEndUserRole(role) {
@@ -117,7 +120,6 @@
     var agentWrap = wrapOf('admin-stat-agents');
     var adminWrap = wrapOf('admin-stat-admins');
 
-    // Clear old classes
     [usersWrap, custWrap, agentWrap, adminWrap].forEach(function (w) {
       if (!w) return;
       w.classList.remove('dr-eu-stat', 'dr-staff-stat', 'dr-stat-endusers', 'dr-stat-staff', 'dr-stat-agents', 'dr-stat-admins');
@@ -153,20 +155,10 @@
             staffCount++;
             var rr = String(u.role || '').toLowerCase();
             if (rr === 'agent') agentCount++;
-            else if (rr === 'admin' || rr === 'developer' || rr === 'administrator') adminCount++;
-            else adminCount++; // other staff counted under admins bucket if needed
+            else adminCount++;
           }
         });
       } catch (e) {}
-    } else {
-      // Fallback: visible rows
-      var vis = 0;
-      document.querySelectorAll('#admin-users-list tbody tr').forEach(function (row) {
-        if (row.style.display === 'none') return;
-        vis++;
-      });
-      if (document.body.classList.contains('dr-view-endusers')) endCount = vis;
-      else staffCount = vis;
     }
 
     setValueText('admin-stat-customers', endCount);
@@ -299,9 +291,7 @@
     if (!v) return false;
     document.querySelectorAll('#portal-agent .view').forEach(function (x) {
       x.classList.remove('active');
-      try {
-        x.style.display = 'none';
-      } catch (e) {}
+      try { x.style.display = 'none'; } catch (e) {}
     });
     v.classList.add('active');
     v.style.display = 'block';
@@ -330,15 +320,9 @@
       return false;
     }
     if (!go()) {
-      setTimeout(function () {
-        go();
-      }, 300);
-      setTimeout(function () {
-        go();
-      }, 900);
-      setTimeout(function () {
-        go();
-      }, 1800);
+      setTimeout(go, 300);
+      setTimeout(go, 900);
+      setTimeout(go, 1800);
     }
   }
 
@@ -351,6 +335,8 @@
     forceAdminView();
     var pt = document.getElementById('page-title');
     if (pt) pt.textContent = 'Users · End-Users';
+    var fh = document.getElementById('filter-hint');
+    if (fh) { fh.style.display = 'none'; fh.textContent = ''; }
     loadUsersList('endusers');
     syncActiveHighlight();
     refreshStatCounts();
@@ -365,6 +351,8 @@
     forceAdminView();
     var pt = document.getElementById('page-title');
     if (pt) pt.textContent = 'Users · Admin';
+    var fh = document.getElementById('filter-hint');
+    if (fh) { fh.style.display = 'none'; fh.textContent = ''; }
     loadUsersList('staff');
     syncActiveHighlight();
     refreshStatCounts();
@@ -418,11 +406,13 @@
       document.body.classList.contains('dr-view-admin-staff')
     ) {
       refreshStatCounts();
+      var fh = document.getElementById('filter-hint');
+      if (fh) { fh.style.display = 'none'; fh.textContent = ''; }
     }
   }
 
   tick();
-  setInterval(tick, 2500);
+  setInterval(tick, 2000);
   window.DRUsersNav = {
     refresh: tick,
     openEndUsers: openEndUsers,
