@@ -1,21 +1,20 @@
 /**
- * Divine Rays — Customer portal professional UI/UX v2
- * Applies whenever customer portal is visible (not only .active)
+ * Divine Rays — Customer portal professional UI/UX v3
+ * Safe: no MutationObserver, throttled refresh only
  * Credit: Lizzz · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_CUSTOMER_PRO_UI_V2) return;
-  window.__DR_CUSTOMER_PRO_UI_V2 = 1;
+  if (window.__DR_CUSTOMER_PRO_UI_V3) return;
+  window.__DR_CUSTOMER_PRO_UI_V3 = 1;
 
   var STYLE_ID = 'dr-customer-pro-ui-css';
+  var lastSync = 0;
 
   var CSS = [
     'body.dr-is-customer #portal-customer,',
-    '#portal-customer.active,',
-    '#portal-customer:not([hidden]){',
+    '#portal-customer.active{',
     '  --dr-c-radius:16px;',
-    '  --dr-c-radius-sm:10px;',
     '  --dr-c-accent:#8b7cf7;',
     '  --dr-c-accent-2:#6d5ef5;',
     '  --dr-c-surface:rgba(22,22,34,0.88);',
@@ -37,20 +36,17 @@
     '  max-width:100%!important;',
     '  margin:0!important;',
     '  padding:4.5rem 1rem 5.5rem!important;',
-    '  box-sizing:border-box!important;',
-    '  left:0!important;right:0!important;transform:none!important',
+    '  box-sizing:border-box!important',
     '}',
     'body.dr-is-customer #portal-customer .customer-main,',
     'body.dr-is-customer #portal-customer main,',
-    '#portal-customer.active .customer-main,',
-    '#portal-customer.active main.customer-main{',
+    '#portal-customer.active .customer-main{',
     '  display:block!important;',
     '  width:100%!important;',
     '  max-width:640px!important;',
     '  margin:0 auto!important;',
     '  padding:0 0.25rem 2rem!important;',
-    '  box-sizing:border-box!important;',
-    '  position:relative!important;left:0!important;transform:none!important',
+    '  box-sizing:border-box!important',
     '}',
     'body.dr-is-customer #portal-customer h1,',
     '#portal-customer.active h1{',
@@ -59,8 +55,7 @@
     '  font-size:clamp(1.5rem,4vw,1.9rem)!important;',
     '  font-weight:700!important;',
     '  letter-spacing:-0.025em!important;',
-    '  color:var(--dr-c-text)!important;',
-    '  line-height:1.2!important',
+    '  color:var(--dr-c-text)!important',
     '}',
     'body.dr-is-customer #portal-customer h1 + p,',
     '#portal-customer.active h1 + p{',
@@ -68,8 +63,7 @@
     '  color:var(--dr-c-muted)!important;',
     '  font-size:0.92rem!important;',
     '  margin:0 auto 1.4rem!important;',
-    '  max-width:28rem!important;',
-    '  line-height:1.5!important',
+    '  max-width:28rem!important',
     '}',
     'body.dr-is-customer #portal-customer .customer-tabs,',
     '#portal-customer.active .customer-tabs{',
@@ -83,13 +77,7 @@
     '  border:1px solid var(--dr-c-border)!important;',
     '  border-radius:999px!important;',
     '  box-sizing:border-box!important;',
-    '  overflow-x:auto!important;',
-    '  scrollbar-width:none!important',
-    '}',
-    'body.dr-is-customer #portal-customer .customer-tabs::-webkit-scrollbar,',
-    '#portal-customer.active .customer-tabs::-webkit-scrollbar{display:none!important}',
-    'html[data-theme="light"] body.dr-is-customer #portal-customer .customer-tabs{',
-    '  background:rgba(109,94,245,0.1)!important',
+    '  overflow-x:auto!important',
     '}',
     'body.dr-is-customer #portal-customer .customer-tabs .ctab,',
     '#portal-customer.active .customer-tabs .ctab{',
@@ -103,12 +91,7 @@
     '  padding:0.55rem 0.85rem!important;',
     '  border-radius:999px!important;',
     '  cursor:pointer!important;',
-    '  transition:background .15s,color .15s,box-shadow .15s!important;',
     '  white-space:nowrap!important',
-    '}',
-    'body.dr-is-customer #portal-customer .customer-tabs .ctab:hover{',
-    '  color:var(--dr-c-text)!important;',
-    '  background:rgba(139,124,247,0.14)!important',
     '}',
     'body.dr-is-customer #portal-customer .customer-tabs .ctab.active,',
     '#portal-customer.active .customer-tabs .ctab.active{',
@@ -118,32 +101,25 @@
     '}',
     'body.dr-is-customer #portal-customer #customer-form,',
     'body.dr-is-customer #portal-customer .ticket-form,',
-    'body.dr-is-customer #portal-customer .ctab-panel.active,',
     '#portal-customer.active #customer-form,',
     '#portal-customer.active .ticket-form{',
     '  background:var(--dr-c-surface)!important;',
     '  border:1px solid var(--dr-c-border)!important;',
     '  border-radius:16px!important;',
-    '  padding:1.35rem 1.35rem 1.5rem!important;',
+    '  padding:1.35rem!important;',
     '  box-shadow:0 16px 48px rgba(0,0,0,0.35)!important;',
-    '  backdrop-filter:blur(14px)!important;',
-    '  -webkit-backdrop-filter:blur(14px)!important;',
-    '  box-sizing:border-box!important;',
     '  width:100%!important;',
-    '  max-width:100%!important',
+    '  box-sizing:border-box!important',
     '}',
     'body.dr-is-customer #portal-customer label,',
     '#portal-customer.active label{',
     '  display:block!important;',
     '  font-size:0.76rem!important;',
     '  font-weight:600!important;',
-    '  letter-spacing:0.03em!important;',
     '  color:var(--dr-c-muted)!important;',
     '  margin-bottom:0.4rem!important',
     '}',
-    'body.dr-is-customer #portal-customer .form-group{margin-bottom:1rem!important}',
     'body.dr-is-customer #portal-customer input[type="text"],',
-    'body.dr-is-customer #portal-customer input[type="search"],',
     'body.dr-is-customer #portal-customer textarea,',
     'body.dr-is-customer #portal-customer select,',
     '#portal-customer.active input[type="text"],',
@@ -157,14 +133,12 @@
     '  color:var(--dr-c-text)!important;',
     '  padding:0.72rem 0.9rem!important;',
     '  font-size:0.92rem!important;',
-    '  outline:none!important;',
-    '  transition:border-color .15s,box-shadow .15s!important',
+    '  outline:none!important',
     '}',
     'html[data-theme="light"] body.dr-is-customer #portal-customer input[type="text"],',
     'html[data-theme="light"] body.dr-is-customer #portal-customer textarea,',
     'html[data-theme="light"] body.dr-is-customer #portal-customer select{',
-    '  background:#fff!important;',
-    '  border-color:rgba(109,94,245,0.25)!important',
+    '  background:#fff!important',
     '}',
     'body.dr-is-customer #portal-customer input:focus,',
     'body.dr-is-customer #portal-customer textarea:focus,',
@@ -172,16 +146,14 @@
     '  border-color:#8b7cf7!important;',
     '  box-shadow:0 0 0 3px rgba(139,124,247,0.25)!important',
     '}',
-    'body.dr-is-customer #portal-customer textarea{min-height:110px!important;resize:vertical!important}',
-    'body.dr-is-customer #portal-customer .form-row,',
-    'body.dr-is-customer #portal-customer .ticket-form .row{',
+    'body.dr-is-customer #portal-customer textarea{min-height:110px!important}',
+    'body.dr-is-customer #portal-customer .form-row{',
     '  display:grid!important;',
     '  grid-template-columns:1fr 1fr!important;',
     '  gap:0.85rem!important',
     '}',
     '@media (max-width:520px){',
-    '  body.dr-is-customer #portal-customer .form-row,',
-    '  body.dr-is-customer #portal-customer .ticket-form .row{grid-template-columns:1fr!important}',
+    '  body.dr-is-customer #portal-customer .form-row{grid-template-columns:1fr!important}',
     '}',
     'body.dr-is-customer #portal-customer button[type="submit"],',
     '#portal-customer.active button[type="submit"]{',
@@ -195,18 +167,12 @@
     '  color:#fff!important;',
     '  background:linear-gradient(135deg,#8b7cf7,#6d5ef5)!important;',
     '  box-shadow:0 8px 28px rgba(109,94,245,0.42)!important;',
-    '  cursor:pointer!important;',
-    '  transition:transform .12s,filter .12s!important',
-    '}',
-    'body.dr-is-customer #portal-customer button[type="submit"]:hover{',
-    '  filter:brightness(1.07)!important;',
-    '  transform:translateY(-1px)!important',
+    '  cursor:pointer!important',
     '}',
     'body.dr-is-customer #portal-customer .dr-field-hint{',
     '  font-size:0.72rem!important;',
     '  color:var(--dr-c-muted)!important;',
-    '  margin:0.35rem 0 0.85rem!important;',
-    '  line-height:1.35!important',
+    '  margin:0.35rem 0 0.85rem!important',
     '}',
     'body.dr-is-customer #portal-customer .dr-feature-strip{',
     '  display:grid!important;',
@@ -221,23 +187,13 @@
     '  background:rgba(0,0,0,0.25)!important;',
     '  border:1px solid var(--dr-c-border)!important;',
     '  border-radius:12px!important;',
-    '  padding:0.85rem!important;',
-    '  text-align:left!important',
+    '  padding:0.85rem!important',
     '}',
     'body.dr-is-customer #portal-customer .dr-feature-card h4{',
     '  margin:0 0 0.25rem!important;font-size:0.82rem!important;font-weight:700!important;color:var(--dr-c-text)!important',
     '}',
     'body.dr-is-customer #portal-customer .dr-feature-card p{',
-    '  margin:0!important;font-size:0.74rem!important;line-height:1.4!important;color:var(--dr-c-muted)!important',
-    '}',
-    'body.dr-is-customer #dr-tour-help{',
-    '  background:rgba(22,22,34,0.9)!important;',
-    '  border:1px solid rgba(139,124,247,0.28)!important;',
-    '  color:#c4b5fd!important;',
-    '  font-size:0.78rem!important;',
-    '  font-weight:600!important;',
-    '  border-radius:999px!important;',
-    '  padding:0.5rem 0.95rem!important',
+    '  margin:0!important;font-size:0.74rem!important;color:var(--dr-c-muted)!important',
     '}'
   ].join('');
 
@@ -248,7 +204,7 @@
       el.id = STYLE_ID;
       (document.head || document.documentElement).appendChild(el);
     }
-    el.textContent = CSS;
+    if (el.textContent !== CSS) el.textContent = CSS;
   }
 
   function isCustomerView() {
@@ -262,58 +218,44 @@
       if (st.display === 'none' || st.visibility === 'hidden') return false;
       if (pc.offsetHeight > 30) return true;
     } catch (e) {}
-    if (document.getElementById('customer-form')) return true;
-    return false;
+    return !!document.getElementById('customer-form');
   }
 
   function syncBodyClass() {
     try {
-      document.body.classList.toggle('dr-is-customer', isCustomerView());
+      var on = isCustomerView();
+      if (on) document.body.classList.add('dr-is-customer');
+      else document.body.classList.remove('dr-is-customer');
     } catch (e) {}
   }
 
   function polishForm() {
     if (!isCustomerView()) return;
-    var form = document.getElementById('customer-form') || document.querySelector('#portal-customer .ticket-form');
-    if (!form) return;
-    if (!form.querySelector('.dr-field-hint-title')) {
-      var titleInput = form.querySelector('#c-title, input[name="title"]') || form.querySelector('input[type="text"]');
-      if (titleInput) {
-        var hint = document.createElement('div');
-        hint.className = 'dr-field-hint dr-field-hint-title';
-        hint.textContent = 'Keep it short — e.g. “Printer offline at Baybay branch”.';
-        var parent = titleInput.parentNode;
-        if (parent) {
-          if (titleInput.nextSibling) parent.insertBefore(hint, titleInput.nextSibling);
-          else parent.appendChild(hint);
-        }
-      }
-    }
-    var btn = form.querySelector('button[type="submit"]');
-    if (btn && /submit\s*ticket/i.test(btn.textContent || '')) {
-      btn.textContent = 'Submit ticket';
-    }
+    var form = document.getElementById('customer-form');
+    if (!form || form.querySelector('.dr-field-hint-title')) return;
+    var titleInput = form.querySelector('#c-title') || form.querySelector('input[type="text"]');
+    if (!titleInput || !titleInput.parentNode) return;
+    var hint = document.createElement('div');
+    hint.className = 'dr-field-hint dr-field-hint-title';
+    hint.textContent = 'Keep it short — e.g. “Printer offline at Baybay branch”.';
+    if (titleInput.nextSibling) titleInput.parentNode.insertBefore(hint, titleInput.nextSibling);
+    else titleInput.parentNode.appendChild(hint);
   }
 
   function tick() {
+    var now = Date.now();
+    if (now - lastSync < 800) return;
+    lastSync = now;
     injectCss();
     syncBodyClass();
     polishForm();
   }
 
   injectCss();
-  setTimeout(tick, 200);
-  setTimeout(tick, 800);
-  setTimeout(tick, 1800);
-  setTimeout(tick, 3500);
-  setInterval(tick, 2500);
+  setTimeout(tick, 500);
+  setTimeout(tick, 2000);
+  setTimeout(tick, 5000);
+  setInterval(tick, 5000);
 
-  try {
-    var obs = new MutationObserver(function () { tick(); });
-    if (document.body) {
-      obs.observe(document.body, { attributes: true, childList: true, subtree: true, attributeFilter: ['class', 'hidden', 'style'] });
-    }
-  } catch (e) {}
-
-  window.DRCustomerProUi = { refresh: tick, v: 2 };
+  window.DRCustomerProUi = { refresh: tick, v: 3 };
 })();
