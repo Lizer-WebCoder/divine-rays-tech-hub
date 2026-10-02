@@ -1,14 +1,13 @@
 /**
- * Divine Rays — Agent approval gate + staff role label
- * - Newly registered Agent/Admin cannot enter portal until approved
- * - Staff (agent/admin) default to PENDING unless explicitly approved
- * - Developers (kirzhian, jamesjerlow123) always allowed
- * - Pending login: one toast only, 5s, stack-capped (max 3 visible)
- * Credit: Boyz at the Back
+ * Divine Rays — Agent approval gate V4
+ * Pending Agent/Admin cannot enter the portal at all (hard block + continuous guard).
+ * Developers (kirzhian, jamesjerlow123, liya) always allowed.
+ * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_AGENT_APPROVAL_GATE_V3) return;
+  if (window.__DR_AGENT_APPROVAL_GATE_V4) return;
+  window.__DR_AGENT_APPROVAL_GATE_V4 = 1;
   window.__DR_AGENT_APPROVAL_GATE_V3 = 1;
   window.__DR_AGENT_APPROVAL_GATE = 1;
 
@@ -17,11 +16,12 @@
     'Your account is pending Administrator approval. Please wait until a Developer/Admin approves your account.';
   var TOAST_MS = 5000;
   var MAX_TOASTS = 3;
-  var DEVS = { kirzhian: 1, jamesjerlow123: 1 };
+  var DEVS = { kirzhian: 1, jamesjerlow123: 1, liya: 1 };
   var _pendingToastEl = null;
   var _pendingToastTimer = null;
   var _gateBusy = false;
   var _lastPendingShow = 0;
+  var _lastKick = 0;
 
   function getApprovalMap() {
     try {
@@ -40,29 +40,35 @@
   function markPending(userId, username, email) {
     var map = getApprovalMap();
     if (userId) map[userId] = 'pending';
-    if (username) map['pending:' + String(username).toLowerCase().trim()] = 'pending';
-    if (email) map['pending:' + String(email).toLowerCase().trim()] = 'pending';
+    var un = username ? String(username).toLowerCase().trim() : '';
+    var em = email ? String(email).toLowerCase().trim() : '';
+    if (un) map['pending:' + un] = 'pending';
+    if (em) map['pending:' + em] = 'pending';
     setApprovalMap(map);
   }
 
   function isMarkedPending(userId, username, email) {
     var map = getApprovalMap();
     if (userId && map[userId] === 'pending') return true;
-    if (username && map['pending:' + String(username).toLowerCase().trim()] === 'pending') return true;
-    if (email && map['pending:' + String(email).toLowerCase().trim()] === 'pending') return true;
+    var un = username ? String(username).toLowerCase().trim() : '';
+    var em = email ? String(email).toLowerCase().trim() : '';
+    if (un && map['pending:' + un] === 'pending') return true;
+    if (em && map['pending:' + em] === 'pending') return true;
     return false;
   }
 
   function isApproved(userId, username, email) {
     var map = getApprovalMap();
     if (userId && map[userId] === 'approved') return true;
-    if (username && map['u:' + String(username).toLowerCase().trim()] === 'approved') return true;
-    if (email && map['e:' + String(email).toLowerCase().trim()] === 'approved') return true;
+    var un = username ? String(username).toLowerCase().trim() : '';
+    var em = email ? String(email).toLowerCase().trim() : '';
+    if (un && map['u:' + un] === 'approved') return true;
+    if (em && map['e:' + em] === 'approved') return true;
     return false;
   }
 
-  function isDeveloperUsername(username) {
-    return !!DEVS[String(username || '').toLowerCase().trim()];
+  function isDeveloperUsername(name) {
+    return !!DEVS[String(name || '').toLowerCase().trim()];
   }
 
   function sb() {
@@ -102,7 +108,6 @@
   function showPendingToast(msg) {
     var text = msg || PENDING_MSG;
     var c = ensureToastContainer();
-
     Array.prototype.slice.call(c.querySelectorAll('.toast')).forEach(function (el) {
       if (el !== _pendingToastEl && (el.textContent || '').indexOf('pending Administrator approval') !== -1) {
         try {
@@ -110,7 +115,6 @@
         } catch (e0) {}
       }
     });
-
     if (!_pendingToastEl || !_pendingToastEl.parentNode) {
       _pendingToastEl = document.createElement('div');
       _pendingToastEl.className = 'toast error';
@@ -121,10 +125,8 @@
         'color:#eeeef6;font-size:0.9rem;line-height:1.45;box-shadow:0 12px 32px rgba(0,0,0,0.45);';
       c.appendChild(_pendingToastEl);
     }
-
     _pendingToastEl.textContent = text;
     trimToastStack();
-
     if (_pendingToastTimer) clearTimeout(_pendingToastTimer);
     _pendingToastTimer = setTimeout(function () {
       try {
@@ -135,7 +137,6 @@
       _pendingToastEl = null;
       _pendingToastTimer = null;
     }, TOAST_MS);
-
     _lastPendingShow = Date.now();
   }
 
@@ -143,100 +144,141 @@
     try {
       var box = document.getElementById('error-login-agent');
       if (box) {
-        box.textContent = msg;
+        box.textContent = msg || PENDING_MSG;
         box.style.display = '';
+        box.hidden = false;
       }
     } catch (e) {}
-    showPendingToast(msg);
+    showPendingToast(msg || PENDING_MSG);
   }
 
-  /**
-   * Returns true if login must be blocked.
-   * Staff (agent/admin) are blocked unless explicitly approved or Developer.
-   */
   async function checkPendingAndBlock(user, profile, loginHint) {
     if (!user) return false;
     var meta = user.user_metadata || {};
     var uid = user.id;
     var email = (user.email || (profile && profile.email) || '').toLowerCase();
-    var username =
-      (meta.username || (profile && profile.username) || loginHint || '').toString().toLowerCase().trim();
+    var username = (
+      meta.username ||
+      (profile && profile.username) ||
+      loginHint ||
+      ''
+    )
+      .toString()
+      .toLowerCase()
+      .trim();
 
     if (isDeveloperUsername(username)) return false;
 
-    /* Explicitly approved in metadata or local map */
     if (meta.approval_status === 'approved' || meta.approved === true) return false;
     if (isApproved(uid, username, email)) return false;
 
-    var role = String(meta.role || (profile && profile.role) || '').toLowerCase();
-    var isStaff = role === 'agent' || role === 'admin';
+    var role = String((profile && profile.role) || meta.role || '').toLowerCase();
+    var isStaff = role === 'agent' || role === 'admin' || role === 'developer';
 
-    /* Explicitly pending */
-    if (meta.approval_status === 'pending' || meta.approved === false) return true;
+    if (meta.approval_status === 'pending' || meta.approved === false) {
+      markPending(uid, username, email);
+      return true;
+    }
     if (isMarkedPending(uid, username, email)) return true;
 
-    /* Staff with no approval marker → treat as pending (new accounts) */
-    if (isStaff) return true;
+    if (isStaff) {
+      markPending(uid, username, email);
+      return true;
+    }
 
-    /* Customers / others → allow */
     return false;
   }
 
   async function forceSignOut() {
     try {
       var client = sb();
-      if (client && client.auth) await client.auth.signOut({ scope: 'local' });
+      if (client && client.auth) {
+        try {
+          await client.auth.signOut({ scope: 'local' });
+        } catch (e0) {}
+        try {
+          await client.auth.signOut();
+        } catch (e1) {}
+      }
     } catch (e) {}
+    try {
+      Object.keys(localStorage).forEach(function (k) {
+        if (k.indexOf('supabase') !== -1 || k.indexOf('sb-') === 0) {
+          try {
+            localStorage.removeItem(k);
+          } catch (e2) {}
+        }
+      });
+    } catch (e3) {}
     try {
       window.__drFullLoaded = false;
       window.__drBooting = false;
-    } catch (e2) {}
+      window.__drProfile = null;
+    } catch (e4) {}
   }
 
   function stayOnLoginScreen() {
     try {
       var pc = document.getElementById('portal-customer');
       var pa = document.getElementById('portal-agent');
-      if (pc) pc.classList.remove('active');
-      if (pa) pa.classList.remove('active');
-      var ls = document.getElementById('login-screen');
+      if (pc) {
+        pc.classList.remove('active');
+        try {
+          pc.style.display = 'none';
+        } catch (e) {}
+      }
+      if (pa) {
+        pa.classList.remove('active');
+        try {
+          pa.style.display = 'none';
+          pa.setAttribute('aria-hidden', 'true');
+        } catch (e2) {}
+      }
+      var ls =
+        document.getElementById('login-screen') ||
+        document.getElementById('auth-screen') ||
+        document.querySelector('.login-screen, #login, [data-view="login"]');
       if (ls) {
         ls.style.display = '';
         ls.hidden = false;
+        ls.classList.add('active');
       }
     } catch (e2) {}
   }
 
-  function blockPendingSession(user, profile, loginHint) {
-    return checkPendingAndBlock(user, profile, loginHint).then(function (pending) {
-      if (!pending) return false;
-      _gateBusy = true;
-      return forceSignOut().then(function () {
-        stayOnLoginScreen();
-        showAgentError(PENDING_MSG);
-        setTimeout(function () {
-          _gateBusy = false;
-        }, 600);
-        return true;
-      });
-    });
+  async function kickPending(user, profile, loginHint, silent) {
+    var pending = await checkPendingAndBlock(user, profile, loginHint);
+    if (!pending) return false;
+    _gateBusy = true;
+    await forceSignOut();
+    stayOnLoginScreen();
+    if (!silent || Date.now() - _lastPendingShow > 2000) {
+      showAgentError(PENDING_MSG);
+    }
+    _lastKick = Date.now();
+    setTimeout(function () {
+      _gateBusy = false;
+    }, 800);
+    return true;
   }
 
-  /* After auth succeeds, poll briefly for session then block if pending.
-     Do NOT stopPropagation — login handlers must still run. */
+  function blockPendingSession(user, profile, loginHint) {
+    return kickPending(user, profile, loginHint, false);
+  }
+
   function wireLoginGate() {
     var form = document.getElementById('login-agent');
-    if (!form || form.__drApprovalGateV3) return;
-    form.__drApprovalGateV3 = 1;
+    if (!form || form.__drApprovalGateV4) return;
+    form.__drApprovalGateV4 = 1;
 
     form.addEventListener(
       'submit',
-      function () {
-        if (Date.now() - _lastPendingShow < 800 && _pendingToastEl && _pendingToastEl.parentNode) {
-          showPendingToast(PENDING_MSG);
-          return;
-        }
+      function (ev) {
         if (_gateBusy) {
+          try {
+            ev.preventDefault();
+            ev.stopPropagation();
+          } catch (e) {}
           showPendingToast(PENDING_MSG);
           return;
         }
@@ -248,13 +290,13 @@
             try {
               var client = sb();
               if (!client) {
-                if (tries > 40) clearInterval(t);
+                if (tries > 50) clearInterval(t);
                 return;
               }
               var sess = await client.auth.getSession();
               var session = sess && sess.data && sess.data.session;
               if (!session || !session.user) {
-                if (tries > 40) clearInterval(t);
+                if (tries > 50) clearInterval(t);
                 return;
               }
               var user = session.user;
@@ -268,133 +310,135 @@
 
               var profile = null;
               try {
-                var pr = await client.from('profiles').select('*').eq('id', user.id).maybeSingle();
+                var pr = await client
+                  .from('profiles')
+                  .select('*')
+                  .eq('id', user.id)
+                  .maybeSingle();
                 profile = pr && pr.data;
               } catch (e1) {}
 
               clearInterval(t);
-              await blockPendingSession(user, profile, loginHint);
+              var blocked = await kickPending(user, profile, loginHint, false);
+              if (blocked) {
+                var keep = 0;
+                var keepIv = setInterval(function () {
+                  keep++;
+                  stayOnLoginScreen();
+                  if (keep > 20) clearInterval(keepIv);
+                }, 200);
+              }
             } catch (err) {
-              if (tries > 40) clearInterval(t);
+              if (tries > 50) clearInterval(t);
             }
           })();
-        }, 120);
+        }, 200);
       },
       true
     );
   }
 
-  /* Also guard session restore / loadFullAppThen path */
   function wireSessionGuard() {
-    if (window.__drApprovalSessionGuard) return;
-    window.__drApprovalSessionGuard = 1;
-    var n = 0;
-    var iv = setInterval(function () {
-      n++;
+    if (window.__drApprovalSessionGuardV4) return;
+    window.__drApprovalSessionGuardV4 = 1;
+
+    setInterval(function () {
       (async function () {
         try {
-          if (window.__drBooting) return;
+          var pa = document.getElementById('portal-agent');
+          var portalOpen = pa && (pa.classList.contains('active') || pa.style.display === 'block');
           var client = sb();
           if (!client) return;
+
           var sess = await client.auth.getSession();
           var session = sess && sess.data && sess.data.session;
-          if (!session || !session.user) return;
+          if (!session || !session.user) {
+            if (portalOpen) stayOnLoginScreen();
+            return;
+          }
+
           var user = session.user;
           var meta = user.user_metadata || {};
-          var role = String(meta.role || '').toLowerCase();
           var profile = null;
           try {
-            var pr = await client.from('profiles').select('*').eq('id', user.id).maybeSingle();
+            var pr = await client
+              .from('profiles')
+              .select('*')
+              .eq('id', user.id)
+              .maybeSingle();
             profile = pr && pr.data;
-            if (profile && profile.role) role = String(profile.role).toLowerCase();
           } catch (e1) {}
-          if (role !== 'agent' && role !== 'admin') return;
+
+          var role = String((profile && profile.role) || meta.role || '').toLowerCase();
+          if (role !== 'agent' && role !== 'admin' && role !== 'developer') return;
+
           var blocked = await checkPendingAndBlock(user, profile, meta.username || '');
           if (blocked) {
-            await forceSignOut();
             stayOnLoginScreen();
-            showAgentError(PENDING_MSG);
+            if (Date.now() - _lastKick > 2500) {
+              await kickPending(user, profile, meta.username || '', true);
+            }
           }
         } catch (e) {}
       })();
-      if (n > 25) clearInterval(iv);
-    }, 400);
+    }, 700);
   }
 
-  function polishRoleCells() {
-    var box = document.getElementById('admin-users-list') || document.getElementById('staff-admin-list');
-    if (!box) return;
-    box.querySelectorAll('tbody tr, .admin-user-row, tr').forEach(function (row) {
-      if (row.__drRolePolished) return;
-      var badge = row.querySelector('[class*="badge-role"], .badge');
-      if (!badge) return;
-      var uid = row.getAttribute('data-id') || '';
-      var cache = window.__adminUsersCache || [];
-      var user = null;
-      if (uid) {
-        for (var i = 0; i < cache.length; i++) {
-          if (cache[i] && cache[i].id === uid) {
-            user = cache[i];
-            break;
-          }
-        }
+  function wirePortalObserver() {
+    if (window.__drApprovalPortalObs) return;
+    window.__drApprovalPortalObs = 1;
+    try {
+      var pa = document.getElementById('portal-agent');
+      if (!pa) {
+        setTimeout(wirePortalObserver, 1500);
+        return;
       }
-      if (!user) return;
-      var label =
-        user.staff_role ||
-        user.job_title ||
-        (user.meta && user.meta.staff_role) ||
-        '';
-      if (!label) {
-        try {
-          var map = getApprovalMap();
-          var k = 'role:' + (user.username || '').toLowerCase();
-          if (map[k]) label = map[k];
-        } catch (e) {}
-      }
-      if (label) {
-        badge.textContent = label;
-        row.__drRolePolished = 1;
-      }
-    });
-  }
-
-  function patchAdminRender() {
-    if (typeof window.renderAdminUsers !== 'function' || window.renderAdminUsers.__drRolePatch) return;
-    var orig = window.renderAdminUsers;
-    window.renderAdminUsers = async function () {
-      var r = await orig.apply(this, arguments);
-      setTimeout(polishRoleCells, 50);
-      setTimeout(polishRoleCells, 300);
-      return r;
-    };
-    window.renderAdminUsers.__drRolePatch = 1;
+      var mo = new MutationObserver(function () {
+        if (!pa.classList.contains('active')) return;
+        (async function () {
+          try {
+            var client = sb();
+            if (!client) return;
+            var sess = await client.auth.getSession();
+            var session = sess && sess.data && sess.data.session;
+            if (!session || !session.user) return;
+            var user = session.user;
+            var profile = null;
+            try {
+              var pr = await client
+                .from('profiles')
+                .select('*')
+                .eq('id', user.id)
+                .maybeSingle();
+              profile = pr && pr.data;
+            } catch (e1) {}
+            await kickPending(user, profile, (user.user_metadata || {}).username || '', false);
+          } catch (e) {}
+        })();
+      });
+      mo.observe(pa, { attributes: true, attributeFilter: ['class', 'style'] });
+    } catch (e) {}
   }
 
   window.DRAgentApproval = {
     markPending: markPending,
     isMarkedPending: isMarkedPending,
+    isApproved: isApproved,
     getApprovalMap: getApprovalMap,
     setApprovalMap: setApprovalMap,
-    saveRoleLabel: function (username, label) {
-      if (!username || !label) return;
-      var map = getApprovalMap();
-      map['role:' + String(username).toLowerCase().trim()] = label;
-      setApprovalMap(map);
-    },
     showPendingToast: showPendingToast,
-    checkPendingAndBlock: checkPendingAndBlock
+    checkPendingAndBlock: checkPendingAndBlock,
+    kickPending: kickPending
   };
 
   function tick() {
     wireLoginGate();
     wireSessionGuard();
-    patchAdminRender();
-    polishRoleCells();
+    wirePortalObserver();
   }
 
   tick();
-  setInterval(tick, 2000);
+  setInterval(tick, 2500);
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', tick);
   }
