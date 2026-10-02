@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.7.9" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.8.0" />
   <style>
     html,body{margin:0;background:#0c0c14;color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
     #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae;flex-direction:column;gap:0.75rem;padding:1.5rem;text-align:center}
@@ -45,7 +45,8 @@
     var KB_TABLE_SHA = '057efa589371be7a05114c786f31a89bb28fe009';
     var KB_JS_SHA = 'd4e9498db74b26a08bf7c8acec52ac3496c6ff86';
     var USERS_NAV_SHA = 'd330209b56095d26622d0f003fbdc265a3e62a82';
-    var ADMIN_SHA = '61d4b1ff1914f6c31e0c2f5bdcafe9934082daa8';
+    var ADMIN_SHA = '9409e044dccbae6829ba248bb46171940524e1a3';
+    var FILTER_SHA = '1bfe6c0e93dedc361cf1f3e15eb520c3aea13930';
     var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
     var BUST = String(Date.now());
 
@@ -128,11 +129,13 @@
         loadScript(CDN + KB_JS_SHA + '/js/kb.js');
         loadScript(CDN + ADMIN_SHA + '/js/admin.js');
         loadScript(CDN + USERS_NAV_SHA + '/js/users-nav.js');
+        loadScript(CDN + FILTER_SHA + '/js/users-filter-enforce.js');
       }, 1500);
 
       setTimeout(function () {
         loadScript(CDN + ADMIN_SHA + '/js/admin.js');
         loadScript(CDN + USERS_NAV_SHA + '/js/users-nav.js');
+        loadScript(CDN + FILTER_SHA + '/js/users-filter-enforce.js');
         loadScript(CDN + APPROVAL_GATE_SHA + '/js/agent-approval-gate.js');
         loadScript(CDN + STAFF_NOTIF_SHA + '/js/staff-ticket-notifs.js');
         loadScript(CDN + COMMENTS_LIVE_SHA + '/js/comments-live.js');
@@ -147,6 +150,7 @@
         try { if (window.DRSidebarDesign && window.DRSidebarDesign.refresh) window.DRSidebarDesign.refresh(); } catch (e2) {}
         try { if (window.DRStaffNotifs && window.DRStaffNotifs.refresh) window.DRStaffNotifs.refresh(); } catch (e3) {}
         try { if (window.DRCommentsLive && window.DRCommentsLive.refresh) window.DRCommentsLive.refresh(); } catch (e4) {}
+        try { if (window.DRUsersFilterEnforce && window.DRUsersFilterEnforce.refresh) window.DRUsersFilterEnforce.refresh(); } catch (e5) {}
       }, 4500);
 
     } catch (err) {
