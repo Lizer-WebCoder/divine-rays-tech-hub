@@ -1,11 +1,11 @@
 /**
- * Customer reply fix — real insert + refresh, no false "Reply sent"
+ * Customer reply fix v2 — resolve ticket from DOM (.ticket-id), real insert + refresh
  * Credit: Boyz at the Back LRK · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_CUST_REPLY_FIX) return;
-  window.__DR_CUST_REPLY_FIX = 1;
+  if (window.__DR_CUST_REPLY_FIX_V2) return;
+  window.__DR_CUST_REPLY_FIX_V2 = 1;
 
   function sb() {
     try {
@@ -24,7 +24,8 @@
     if (!c) {
       c = document.createElement('div');
       c.id = 'toast-container';
-      c.style.cssText = 'position:fixed;bottom:1.25rem;right:1.25rem;z-index:100000;display:flex;flex-direction:column;gap:.5rem';
+      c.style.cssText =
+        'position:fixed;bottom:1.25rem;right:1.25rem;z-index:100000;display:flex;flex-direction:column;gap:.5rem';
       document.body.appendChild(c);
     }
     var e = document.createElement('div');
@@ -35,7 +36,9 @@
     if (type === 'error') e.style.borderColor = 'rgba(239,68,68,.5)';
     if (type === 'success') e.style.borderColor = 'rgba(52,211,153,.45)';
     c.appendChild(e);
-    setTimeout(function () { try { e.remove(); } catch (err) {} }, 3500);
+    setTimeout(function () {
+      try { e.remove(); } catch (err) {}
+    }, 3500);
   }
 
   function profile() {
@@ -47,43 +50,87 @@
     return null;
   }
 
-  function ticketId() {
-    if (window.currentCustTicketId) return window.currentCustTicketId;
-    if (window.__drOpenTicketId) return window.__drOpenTicketId;
-    var detail = document.getElementById('cust-ticket-detail');
-    if (detail) {
-      var chip = detail.querySelector('.ticket-id, [data-ticket-id]');
-      if (chip && chip.getAttribute('data-ticket-id')) return chip.getAttribute('data-ticket-id');
+  function ticketNumberFromDom() {
+    var roots = [
+      document.getElementById('cust-ticket-detail'),
+      document.getElementById('ticket-detail'),
+      document.getElementById('portal-customer'),
+      document.body
+    ];
+    for (var r = 0; r < roots.length; r++) {
+      var root = roots[r];
+      if (!root) continue;
+      var el = root.querySelector('.ticket-id, .meta-chip .ticket-id, [data-ticket-number]');
+      if (el) {
+        var t = (el.getAttribute('data-ticket-number') || el.textContent || '').trim();
+        if (t && /[A-Za-z0-9-]{3,}/.test(t)) return t;
+      }
+    }
+    var pt = document.getElementById('page-title');
+    if (pt) {
+      var ptt = (pt.textContent || '').trim();
+      if (/^DR-/i.test(ptt) || /^[A-Z]{2,}-\d+/i.test(ptt)) return ptt;
     }
     return null;
   }
 
+  function isUuid(s) {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(s || ''));
+  }
+
   async function resolveTicketUuid() {
-    var id = ticketId();
-    if (!id) return null;
-    if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(id))) {
-      return id;
+    var candidates = [
+      window.currentCustTicketId,
+      window.__drOpenTicketId,
+      window.__drCustTicketUuid
+    ];
+    for (var i = 0; i < candidates.length; i++) {
+      if (candidates[i] && isUuid(candidates[i])) return candidates[i];
     }
+
+    var num = ticketNumberFromDom();
+    for (var j = 0; j < candidates.length; j++) {
+      if (candidates[j] && !isUuid(candidates[j])) num = num || candidates[j];
+    }
+    if (!num) return null;
+    if (isUuid(num)) return num;
+
     var client = sb();
     if (!client) return null;
     try {
-      var r = await client.from('tickets').select('id').eq('ticket_number', id).maybeSingle();
+      var r = await client
+        .from('tickets')
+        .select('id,ticket_number')
+        .eq('ticket_number', String(num).toUpperCase())
+        .maybeSingle();
+      if (r.data && r.data.id) {
+        window.__drCustTicketUuid = r.data.id;
+        window.__drOpenTicketId = r.data.id;
+        return r.data.id;
+      }
+      r = await client.from('tickets').select('id').eq('ticket_number', String(num)).maybeSingle();
+      if (r.data && r.data.id) {
+        window.__drCustTicketUuid = r.data.id;
+        window.__drOpenTicketId = r.data.id;
+        return r.data.id;
+      }
+      r = await client.from('tickets').select('id').eq('id', num).maybeSingle();
       if (r.data && r.data.id) return r.data.id;
-      r = await client.from('tickets').select('id').eq('id', id).maybeSingle();
-      if (r.data && r.data.id) return r.data.id;
-    } catch (e) {}
-    return id;
+    } catch (e) {
+      console.warn('[cust-reply-fix] resolve', e);
+    }
+    return null;
   }
 
   async function insertComment(tid, body) {
     var client = sb();
     if (!client) return { error: 'Not connected' };
-    var p = profile();
     var uid = null;
     try {
       var sess = await client.auth.getSession();
       uid = sess.data && sess.data.session && sess.data.session.user && sess.data.session.user.id;
     } catch (e) {}
+    var p = profile();
     if (!uid && p && p.id) uid = p.id;
     if (!uid) return { error: 'Not signed in' };
 
@@ -112,8 +159,9 @@
   function appendOptimistic(body, authorName) {
     var list =
       document.getElementById('cust-comments-list') ||
-      document.querySelector('#cust-ticket-detail .comments-list');
-    if (!list) return;
+      document.querySelector('#cust-ticket-detail .comments-list') ||
+      document.querySelector('.comments-section .comments-list');
+    if (!list) return null;
     var empty = list.querySelector('.empty-state, .kb-sub');
     if (empty) empty.remove();
     var div = document.createElement('div');
@@ -125,76 +173,67 @@
       ', ' +
       now.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
     div.innerHTML =
-      '<div class="comment-header"><span>' +
-      (authorName || 'You') +
-      '</span><span>' +
-      ts +
-      '</span></div><div class="comment-body"></div>';
+      '<div class="comment-header"><span></span><span></span></div><div class="comment-body"></div>';
+    div.querySelector('.comment-header span:first-child').textContent = authorName || 'You';
+    div.querySelector('.comment-header span:last-child').textContent = ts;
     div.querySelector('.comment-body').textContent = body;
     list.appendChild(div);
-    try {
-      div.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    } catch (e) {}
+    try { div.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch (e) {}
+    return div;
   }
 
   async function refreshConversation(tid) {
     try {
-      if (window.DRCommentsLive && DRCommentsLive.refresh) {
-        await DRCommentsLive.refresh();
-      }
+      if (window.DRCommentsLive && DRCommentsLive.refresh) await DRCommentsLive.refresh();
     } catch (e) {}
     try {
-      if (typeof window.openCustomerTicket === 'function') {
-        await window.openCustomerTicket(tid);
-      }
+      if (typeof window.openCustomerTicket === 'function') await window.openCustomerTicket(tid);
     } catch (e) {}
     try {
       var client = sb();
       var list = document.getElementById('cust-comments-list');
-      if (client && list && tid) {
-        var r = await client
+      if (!client || !list || !tid) return;
+      var r = await client
+        .from('comments')
+        .select('*, author:profiles(full_name,username)')
+        .eq('ticket_id', tid)
+        .order('created_at', { ascending: true });
+      if (r.error) {
+        r = await client
           .from('comments')
-          .select('*, author:profiles(full_name,username)')
+          .select('*')
           .eq('ticket_id', tid)
           .order('created_at', { ascending: true });
-        if (r.error) {
-          r = await client
-            .from('comments')
-            .select('*')
-            .eq('ticket_id', tid)
-            .order('created_at', { ascending: true });
-        }
-        var rows = (r.data || []).filter(function (c) { return !c.is_internal; });
-        if (rows.length) {
-          list.innerHTML = rows
-            .map(function (c) {
-              var author =
-                (c.author && (c.author.full_name || c.author.username)) ||
-                c.author_name ||
-                'User';
-              var dt = c.created_at
-                ? new Date(c.created_at).toLocaleString(undefined, {
-                    month: 'short',
-                    day: 'numeric',
-                    hour: 'numeric',
-                    minute: '2-digit'
-                  })
-                : '';
-              return (
-                '<div class="comment" data-cid="' +
-                (c.id || '') +
-                '"><div class="comment-header"><span>' +
-                String(author).replace(/</g, '<') +
-                '</span><span>' +
-                String(dt).replace(/</g, '<') +
-                '</span></div><div class="comment-body">' +
-                String(c.body || '').replace(/</g, '<') +
-                '</div></div>'
-              );
-            })
-            .join('');
-        }
       }
+      var rows = (r.data || []).filter(function (c) { return !c.is_internal; });
+      if (!rows.length) return;
+      list.innerHTML = rows
+        .map(function (c) {
+          var author =
+            (c.author && (c.author.full_name || c.author.username)) ||
+            c.author_name ||
+            'User';
+          var dt = c.created_at
+            ? new Date(c.created_at).toLocaleString(undefined, {
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit'
+              })
+            : '';
+          return (
+            '<div class="comment" data-cid="' +
+            (c.id || '') +
+            '"><div class="comment-header"><span>' +
+            String(author).replace(/</g, '<') +
+            '</span><span>' +
+            String(dt).replace(/</g, '<') +
+            '</span></div><div class="comment-body">' +
+            String(c.body || '').replace(/</g, '<') +
+            '</div></div>'
+          );
+        })
+        .join('');
     } catch (e) {
       console.warn('[cust-reply-fix] refresh', e);
     }
@@ -228,9 +267,17 @@
     try {
       var tid = await resolveTicketUuid();
       if (!tid) {
-        toast('Open a ticket first', 'error');
+        var num = ticketNumberFromDom();
+        console.warn('[cust-reply-fix] no ticket id. DOM number=', num);
+        toast(
+          num
+            ? 'Could not load ticket ' + num + '. Hard refresh and try again.'
+            : 'Open a ticket first',
+          'error'
+        );
         return;
       }
+
       var p = profile();
       var name = (p && (p.full_name || p.username || p.name)) || 'You';
       appendOptimistic(text, name);
@@ -247,8 +294,9 @@
 
       if (ta) ta.value = '';
       toast('Reply sent', 'success');
-      window.currentCustTicketId = tid;
+      window.__drCustTicketUuid = tid;
       window.__drOpenTicketId = tid;
+      try { window.currentCustTicketId = tid; } catch (e) {}
       await refreshConversation(tid);
       setTimeout(function () { refreshConversation(tid); }, 800);
     } catch (err) {
@@ -267,13 +315,35 @@
 
   function bindForm() {
     var form = document.getElementById('cust-reply-form');
-    if (!form || form.__drReplyBound) return;
-    form.__drReplyBound = 1;
+    if (!form || form.__drReplyBoundV2) return;
+    form.__drReplyBoundV2 = 1;
     form.addEventListener('submit', handleSubmit, true);
   }
-  setInterval(bindForm, 2000);
-  setTimeout(bindForm, 600);
+  setInterval(bindForm, 1500);
+  setTimeout(bindForm, 500);
   setTimeout(bindForm, 2000);
+  setTimeout(bindForm, 4000);
 
-  window.DRCustReplyFix = { refresh: refreshConversation };
+  document.addEventListener(
+    'click',
+    function (e) {
+      var t = e.target;
+      if (!t) return;
+      var card = t.closest && t.closest('[data-id]');
+      if (card) {
+        var id = card.getAttribute('data-id');
+        if (id && isUuid(id)) {
+          window.__drCustTicketUuid = id;
+          window.__drOpenTicketId = id;
+        }
+      }
+    },
+    true
+  );
+
+  window.DRCustReplyFix = {
+    refresh: refreshConversation,
+    resolve: resolveTicketUuid,
+    ticketNumberFromDom: ticketNumberFromDom
+  };
 })();
