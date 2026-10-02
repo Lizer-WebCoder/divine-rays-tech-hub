@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.6.8" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.6.9" />
   <style>
     html,body{margin:0;background:#0c0c14;color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
     #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae;flex-direction:column;gap:0.75rem;padding:1.5rem;text-align:center}
@@ -38,7 +38,7 @@
     var APPROVAL_GATE_SHA = '4552159901c37718727f9ea9d7bb65c6928b49d5';
     var STAFF_NOTIF_SHA = 'ad42d4238ecd55ec0bb66aa9a842fe2c57b936bd';
     var REPLY_FIX_SHA = '5307c296fc8868d23fdc61bde79cad23f3c71dba';
-    var COMMENTS_LIVE_SHA = 'b527b005275565f870af7fd7478392ed75451f80';
+    var COMMENTS_LIVE_SHA = 'b9dc6830a087acddb58d370fcc62d312790376c5';
     var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
     var BUST = String(Date.now());
 
@@ -83,7 +83,6 @@
       }
       if (!html) throw new Error('Could not load app shell');
 
-      // Inject team board into EXTRA_FILES
       html = html.replace(
         /var EXTRA_FILES = \[[^\]]*\];/,
         "var EXTRA_FILES = ['email-notify.js','ticket-plus.js','ticket-plus-fix.js','status-lock.js','polish-fixes.js','saved-views.js','kb.js','team-board.js'];\n    var TEAM_BOARD_SHA = '" +
@@ -91,7 +90,7 @@
           "';"
       );
 
-      // CRITICAL: replace shell's old LIVE_SHA so the antique comments-live never boots
+      // Replace antique shell pin so only no-flicker comments-live loads
       html = html.replace(
         /var LIVE_SHA = '[^']*';/,
         "var LIVE_SHA = '" + COMMENTS_LIVE_SHA + "';"
@@ -120,18 +119,10 @@
       }, 2800);
 
       setTimeout(function () {
-        try {
-          if (window.DRUsersNav && window.DRUsersNav.refresh) window.DRUsersNav.refresh();
-        } catch (e) {}
-        try {
-          if (window.DRSidebarDesign && window.DRSidebarDesign.refresh) window.DRSidebarDesign.refresh();
-        } catch (e2) {}
-        try {
-          if (window.DRStaffNotifs && window.DRStaffNotifs.refresh) window.DRStaffNotifs.refresh();
-        } catch (e3) {}
-        try {
-          if (window.DRCommentsLive && window.DRCommentsLive.refresh) window.DRCommentsLive.refresh();
-        } catch (e4) {}
+        try { if (window.DRUsersNav && window.DRUsersNav.refresh) window.DRUsersNav.refresh(); } catch (e) {}
+        try { if (window.DRSidebarDesign && window.DRSidebarDesign.refresh) window.DRSidebarDesign.refresh(); } catch (e2) {}
+        try { if (window.DRStaffNotifs && window.DRStaffNotifs.refresh) window.DRStaffNotifs.refresh(); } catch (e3) {}
+        try { if (window.DRCommentsLive && window.DRCommentsLive.refresh) window.DRCommentsLive.refresh(); } catch (e4) {}
       }, 4500);
 
     } catch (err) {
