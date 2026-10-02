@@ -1,300 +1,243 @@
 /**
- * Divine Rays — Customer portal professional UI/UX
- * Senior polish: hierarchy, spacing, form UX, tabs, empty states
+ * Divine Rays — Customer portal professional UI/UX v2
+ * Applies whenever customer portal is visible (not only .active)
  * Credit: Lizzz · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_CUSTOMER_PRO_UI_V1) return;
-  window.__DR_CUSTOMER_PRO_UI_V1 = 1;
+  if (window.__DR_CUSTOMER_PRO_UI_V2) return;
+  window.__DR_CUSTOMER_PRO_UI_V2 = 1;
 
   var STYLE_ID = 'dr-customer-pro-ui-css';
 
   var CSS = [
-    '#portal-customer.active{',
+    'body.dr-is-customer #portal-customer,',
+    '#portal-customer.active,',
+    '#portal-customer:not([hidden]){',
     '  --dr-c-radius:16px;',
     '  --dr-c-radius-sm:10px;',
-    '  --dr-c-gap:1rem;',
     '  --dr-c-accent:#8b7cf7;',
     '  --dr-c-accent-2:#6d5ef5;',
-    '  --dr-c-surface:rgba(22,22,34,0.78);',
-    '  --dr-c-border:rgba(139,124,247,0.22);',
+    '  --dr-c-surface:rgba(22,22,34,0.88);',
+    '  --dr-c-border:rgba(139,124,247,0.28);',
     '  --dr-c-muted:#9898b0;',
-    '  --dr-c-text:#eeeef6;',
-    '  font-feature-settings:"ss01" on,"kern" on',
+    '  --dr-c-text:#eeeef6',
     '}',
+    'html[data-theme="light"] body.dr-is-customer #portal-customer,',
     'html[data-theme="light"] #portal-customer.active{',
-    '  --dr-c-surface:rgba(255,255,255,0.92);',
-    '  --dr-c-border:rgba(109,94,245,0.2);',
+    '  --dr-c-surface:rgba(255,255,255,0.95);',
+    '  --dr-c-border:rgba(109,94,245,0.22);',
     '  --dr-c-muted:#6b6b80;',
     '  --dr-c-text:#1a1a28',
     '}',
+    'body.dr-is-customer #portal-customer,',
+    '#portal-customer.active{',
+    '  display:block!important;',
+    '  width:100%!important;',
+    '  max-width:100%!important;',
+    '  margin:0!important;',
+    '  padding:4.5rem 1rem 5.5rem!important;',
+    '  box-sizing:border-box!important;',
+    '  left:0!important;right:0!important;transform:none!important',
+    '}',
+    'body.dr-is-customer #portal-customer .customer-main,',
+    'body.dr-is-customer #portal-customer main,',
     '#portal-customer.active .customer-main,',
     '#portal-customer.active main.customer-main{',
+    '  display:block!important;',
+    '  width:100%!important;',
     '  max-width:640px!important;',
-    '  margin-left:auto!important;',
-    '  margin-right:auto!important;',
-    '  padding:0.5rem 1rem 5.5rem!important',
+    '  margin:0 auto!important;',
+    '  padding:0 0.25rem 2rem!important;',
+    '  box-sizing:border-box!important;',
+    '  position:relative!important;left:0!important;transform:none!important',
     '}',
-    '#portal-customer.active .customer-hero,',
-    '#portal-customer.active .welcome-block,',
+    'body.dr-is-customer #portal-customer h1,',
     '#portal-customer.active h1{',
     '  text-align:center!important;',
-    '  margin:0.75rem 0 0.35rem!important;',
-    '  font-size:clamp(1.45rem,3.5vw,1.85rem)!important;',
+    '  margin:0.5rem 0 0.35rem!important;',
+    '  font-size:clamp(1.5rem,4vw,1.9rem)!important;',
     '  font-weight:700!important;',
-    '  letter-spacing:-0.02em!important;',
+    '  letter-spacing:-0.025em!important;',
     '  color:var(--dr-c-text)!important;',
-    '  line-height:1.25!important',
+    '  line-height:1.2!important',
     '}',
-    '#portal-customer.active .customer-sub,',
-    '#portal-customer.active .welcome-sub,',
+    'body.dr-is-customer #portal-customer h1 + p,',
     '#portal-customer.active h1 + p{',
     '  text-align:center!important;',
     '  color:var(--dr-c-muted)!important;',
     '  font-size:0.92rem!important;',
-    '  margin:0 auto 1.35rem!important;',
+    '  margin:0 auto 1.4rem!important;',
     '  max-width:28rem!important;',
     '  line-height:1.5!important',
     '}',
+    'body.dr-is-customer #portal-customer .customer-tabs,',
     '#portal-customer.active .customer-tabs{',
     '  display:flex!important;',
-    '  gap:0.35rem!important;',
-    '  padding:0.35rem!important;',
+    '  gap:0.3rem!important;',
+    '  padding:0.3rem!important;',
     '  margin:0 auto 1.35rem!important;',
     '  width:100%!important;',
     '  max-width:640px!important;',
-    '  background:rgba(0,0,0,0.28)!important;',
+    '  background:rgba(0,0,0,0.32)!important;',
     '  border:1px solid var(--dr-c-border)!important;',
     '  border-radius:999px!important;',
-    '  box-shadow:inset 0 1px 0 rgba(255,255,255,0.04)!important;',
+    '  box-sizing:border-box!important;',
     '  overflow-x:auto!important;',
-    '  -webkit-overflow-scrolling:touch!important;',
     '  scrollbar-width:none!important',
     '}',
+    'body.dr-is-customer #portal-customer .customer-tabs::-webkit-scrollbar,',
     '#portal-customer.active .customer-tabs::-webkit-scrollbar{display:none!important}',
-    'html[data-theme="light"] #portal-customer.active .customer-tabs{',
-    '  background:rgba(109,94,245,0.08)!important',
+    'html[data-theme="light"] body.dr-is-customer #portal-customer .customer-tabs{',
+    '  background:rgba(109,94,245,0.1)!important',
     '}',
+    'body.dr-is-customer #portal-customer .customer-tabs .ctab,',
     '#portal-customer.active .customer-tabs .ctab{',
     '  flex:1 1 auto!important;',
     '  min-width:max-content!important;',
     '  border:none!important;',
     '  background:transparent!important;',
     '  color:var(--dr-c-muted)!important;',
-    '  font-size:0.82rem!important;',
+    '  font-size:0.8rem!important;',
     '  font-weight:600!important;',
-    '  padding:0.55rem 0.9rem!important;',
+    '  padding:0.55rem 0.85rem!important;',
     '  border-radius:999px!important;',
     '  cursor:pointer!important;',
     '  transition:background .15s,color .15s,box-shadow .15s!important;',
     '  white-space:nowrap!important',
     '}',
-    '#portal-customer.active .customer-tabs .ctab:hover{',
+    'body.dr-is-customer #portal-customer .customer-tabs .ctab:hover{',
     '  color:var(--dr-c-text)!important;',
-    '  background:rgba(139,124,247,0.12)!important',
+    '  background:rgba(139,124,247,0.14)!important',
     '}',
+    'body.dr-is-customer #portal-customer .customer-tabs .ctab.active,',
     '#portal-customer.active .customer-tabs .ctab.active{',
-    '  background:linear-gradient(135deg,var(--dr-c-accent),var(--dr-c-accent-2))!important;',
+    '  background:linear-gradient(135deg,#8b7cf7,#6d5ef5)!important;',
     '  color:#fff!important;',
-    '  box-shadow:0 4px 14px rgba(109,94,245,0.35)!important',
+    '  box-shadow:0 4px 16px rgba(109,94,245,0.4)!important',
     '}',
+    'body.dr-is-customer #portal-customer #customer-form,',
+    'body.dr-is-customer #portal-customer .ticket-form,',
+    'body.dr-is-customer #portal-customer .ctab-panel.active,',
     '#portal-customer.active #customer-form,',
-    '#portal-customer.active .ticket-form,',
-    '#portal-customer.active .ctab-panel{',
+    '#portal-customer.active .ticket-form{',
     '  background:var(--dr-c-surface)!important;',
     '  border:1px solid var(--dr-c-border)!important;',
-    '  border-radius:var(--dr-c-radius)!important;',
-    '  padding:1.35rem 1.4rem 1.5rem!important;',
-    '  box-shadow:0 12px 40px rgba(0,0,0,0.28)!important;',
-    '  backdrop-filter:blur(12px)!important;',
-    '  -webkit-backdrop-filter:blur(12px)!important',
+    '  border-radius:16px!important;',
+    '  padding:1.35rem 1.35rem 1.5rem!important;',
+    '  box-shadow:0 16px 48px rgba(0,0,0,0.35)!important;',
+    '  backdrop-filter:blur(14px)!important;',
+    '  -webkit-backdrop-filter:blur(14px)!important;',
+    '  box-sizing:border-box!important;',
+    '  width:100%!important;',
+    '  max-width:100%!important',
     '}',
-    '#portal-customer.active .ctab-panel:not(.active){display:none!important}',
-    '#portal-customer.active label,',
-    '#portal-customer.active .form-group label{',
+    'body.dr-is-customer #portal-customer label,',
+    '#portal-customer.active label{',
     '  display:block!important;',
-    '  font-size:0.78rem!important;',
+    '  font-size:0.76rem!important;',
     '  font-weight:600!important;',
-    '  letter-spacing:0.02em!important;',
+    '  letter-spacing:0.03em!important;',
     '  color:var(--dr-c-muted)!important;',
     '  margin-bottom:0.4rem!important',
     '}',
-    '#portal-customer.active .form-group{margin-bottom:1.05rem!important}',
+    'body.dr-is-customer #portal-customer .form-group{margin-bottom:1rem!important}',
+    'body.dr-is-customer #portal-customer input[type="text"],',
+    'body.dr-is-customer #portal-customer input[type="search"],',
+    'body.dr-is-customer #portal-customer textarea,',
+    'body.dr-is-customer #portal-customer select,',
     '#portal-customer.active input[type="text"],',
-    '#portal-customer.active input[type="search"],',
     '#portal-customer.active textarea,',
     '#portal-customer.active select{',
     '  width:100%!important;',
     '  box-sizing:border-box!important;',
-    '  border-radius:var(--dr-c-radius-sm)!important;',
-    '  border:1px solid rgba(139,124,247,0.28)!important;',
-    '  background:rgba(0,0,0,0.28)!important;',
+    '  border-radius:10px!important;',
+    '  border:1px solid rgba(139,124,247,0.32)!important;',
+    '  background:rgba(0,0,0,0.32)!important;',
     '  color:var(--dr-c-text)!important;',
-    '  padding:0.7rem 0.9rem!important;',
+    '  padding:0.72rem 0.9rem!important;',
     '  font-size:0.92rem!important;',
-    '  line-height:1.4!important;',
-    '  transition:border-color .15s,box-shadow .15s!important;',
-    '  outline:none!important',
+    '  outline:none!important;',
+    '  transition:border-color .15s,box-shadow .15s!important',
     '}',
-    'html[data-theme="light"] #portal-customer.active input[type="text"],',
-    'html[data-theme="light"] #portal-customer.active input[type="search"],',
-    'html[data-theme="light"] #portal-customer.active textarea,',
-    'html[data-theme="light"] #portal-customer.active select{',
+    'html[data-theme="light"] body.dr-is-customer #portal-customer input[type="text"],',
+    'html[data-theme="light"] body.dr-is-customer #portal-customer textarea,',
+    'html[data-theme="light"] body.dr-is-customer #portal-customer select{',
     '  background:#fff!important;',
-    '  border-color:rgba(109,94,245,0.22)!important',
+    '  border-color:rgba(109,94,245,0.25)!important',
     '}',
-    '#portal-customer.active input:focus,',
-    '#portal-customer.active textarea:focus,',
-    '#portal-customer.active select:focus{',
-    '  border-color:var(--dr-c-accent)!important;',
-    '  box-shadow:0 0 0 3px rgba(139,124,247,0.22)!important',
+    'body.dr-is-customer #portal-customer input:focus,',
+    'body.dr-is-customer #portal-customer textarea:focus,',
+    'body.dr-is-customer #portal-customer select:focus{',
+    '  border-color:#8b7cf7!important;',
+    '  box-shadow:0 0 0 3px rgba(139,124,247,0.25)!important',
     '}',
-    '#portal-customer.active textarea{min-height:110px!important;resize:vertical!important}',
-    '#portal-customer.active .form-row,',
-    '#portal-customer.active .ticket-form .row{',
+    'body.dr-is-customer #portal-customer textarea{min-height:110px!important;resize:vertical!important}',
+    'body.dr-is-customer #portal-customer .form-row,',
+    'body.dr-is-customer #portal-customer .ticket-form .row{',
     '  display:grid!important;',
     '  grid-template-columns:1fr 1fr!important;',
     '  gap:0.85rem!important',
     '}',
     '@media (max-width:520px){',
-    '  #portal-customer.active .form-row,',
-    '  #portal-customer.active .ticket-form .row{grid-template-columns:1fr!important}',
+    '  body.dr-is-customer #portal-customer .form-row,',
+    '  body.dr-is-customer #portal-customer .ticket-form .row{grid-template-columns:1fr!important}',
     '}',
-    '#portal-customer.active #customer-form button[type="submit"],',
-    '#portal-customer.active .ticket-form button[type="submit"],',
-    '#portal-customer.active .btn-submit-ticket{',
+    'body.dr-is-customer #portal-customer button[type="submit"],',
+    '#portal-customer.active button[type="submit"]{',
     '  width:100%!important;',
-    '  margin-top:0.35rem!important;',
-    '  padding:0.85rem 1.25rem!important;',
+    '  margin-top:0.4rem!important;',
+    '  padding:0.88rem 1.2rem!important;',
     '  border:none!important;',
     '  border-radius:12px!important;',
     '  font-size:0.95rem!important;',
     '  font-weight:700!important;',
-    '  letter-spacing:0.01em!important;',
     '  color:#fff!important;',
-    '  background:linear-gradient(135deg,var(--dr-c-accent),var(--dr-c-accent-2))!important;',
-    '  box-shadow:0 8px 24px rgba(109,94,245,0.38)!important;',
+    '  background:linear-gradient(135deg,#8b7cf7,#6d5ef5)!important;',
+    '  box-shadow:0 8px 28px rgba(109,94,245,0.42)!important;',
     '  cursor:pointer!important;',
-    '  transition:transform .12s,box-shadow .12s,filter .12s!important',
+    '  transition:transform .12s,filter .12s!important',
     '}',
-    '#portal-customer.active #customer-form button[type="submit"]:hover,',
-    '#portal-customer.active .ticket-form button[type="submit"]:hover{',
-    '  filter:brightness(1.06)!important;',
-    '  box-shadow:0 10px 28px rgba(109,94,245,0.45)!important;',
+    'body.dr-is-customer #portal-customer button[type="submit"]:hover{',
+    '  filter:brightness(1.07)!important;',
     '  transform:translateY(-1px)!important',
     '}',
-    '#portal-customer.active #customer-form button[type="submit"]:active{',
-    '  transform:translateY(0)!important',
-    '}',
-    '#portal-customer.active .dr-field-hint{',
+    'body.dr-is-customer #portal-customer .dr-field-hint{',
     '  font-size:0.72rem!important;',
     '  color:var(--dr-c-muted)!important;',
-    '  margin:-0.35rem 0 0.85rem!important;',
+    '  margin:0.35rem 0 0.85rem!important;',
     '  line-height:1.35!important',
     '}',
-    '#portal-customer.active .dr-feature-strip{',
+    'body.dr-is-customer #portal-customer .dr-feature-strip{',
     '  display:grid!important;',
     '  grid-template-columns:repeat(3,1fr)!important;',
-    '  gap:0.65rem!important;',
-    '  margin-top:1.15rem!important',
+    '  gap:0.6rem!important;',
+    '  margin-top:1.1rem!important',
     '}',
     '@media (max-width:560px){',
-    '  #portal-customer.active .dr-feature-strip{grid-template-columns:1fr!important}',
+    '  body.dr-is-customer #portal-customer .dr-feature-strip{grid-template-columns:1fr!important}',
     '}',
-    '#portal-customer.active .dr-feature-card{',
-    '  background:rgba(0,0,0,0.22)!important;',
+    'body.dr-is-customer #portal-customer .dr-feature-card{',
+    '  background:rgba(0,0,0,0.25)!important;',
     '  border:1px solid var(--dr-c-border)!important;',
     '  border-radius:12px!important;',
-    '  padding:0.85rem 0.95rem!important;',
+    '  padding:0.85rem!important;',
     '  text-align:left!important',
     '}',
-    'html[data-theme="light"] #portal-customer.active .dr-feature-card{',
-    '  background:rgba(109,94,245,0.05)!important',
+    'body.dr-is-customer #portal-customer .dr-feature-card h4{',
+    '  margin:0 0 0.25rem!important;font-size:0.82rem!important;font-weight:700!important;color:var(--dr-c-text)!important',
     '}',
-    '#portal-customer.active .dr-feature-card .ico{',
-    '  font-size:1.1rem!important;margin-bottom:0.35rem!important',
+    'body.dr-is-customer #portal-customer .dr-feature-card p{',
+    '  margin:0!important;font-size:0.74rem!important;line-height:1.4!important;color:var(--dr-c-muted)!important',
     '}',
-    '#portal-customer.active .dr-feature-card h4{',
-    '  margin:0 0 0.25rem!important;',
-    '  font-size:0.82rem!important;',
-    '  font-weight:700!important;',
-    '  color:var(--dr-c-text)!important',
-    '}',
-    '#portal-customer.active .dr-feature-card p{',
-    '  margin:0!important;',
-    '  font-size:0.75rem!important;',
-    '  line-height:1.4!important;',
-    '  color:var(--dr-c-muted)!important',
-    '}',
-    '#portal-customer.active .ticket-card,',
-    '#portal-customer.active .cust-ticket-row,',
-    '#portal-customer.active .my-tickets-list > *{',
-    '  border-radius:12px!important;',
-    '  border:1px solid var(--dr-c-border)!important;',
-    '  background:rgba(0,0,0,0.2)!important;',
-    '  transition:border-color .15s,background .15s!important',
-    '}',
-    '#portal-customer.active .ticket-card:hover,',
-    '#portal-customer.active .cust-ticket-row:hover{',
-    '  border-color:rgba(139,124,247,0.45)!important;',
-    '  background:rgba(139,124,247,0.08)!important',
-    '}',
-    '#portal-customer.active .dr-empty-state{',
-    '  text-align:center!important;',
-    '  padding:2rem 1rem!important;',
-    '  color:var(--dr-c-muted)!important',
-    '}',
-    '#portal-customer.active .dr-empty-state .dr-empty-ico{',
-    '  font-size:2rem!important;',
-    '  margin-bottom:0.5rem!important;',
-    '  opacity:0.85!important',
-    '}',
-    '#portal-customer.active .dr-empty-state h3{',
-    '  margin:0 0 0.35rem!important;',
-    '  font-size:1rem!important;',
-    '  color:var(--dr-c-text)!important',
-    '}',
-    '#portal-customer.active .dr-empty-state p{',
-    '  margin:0!important;',
-    '  font-size:0.85rem!important;',
-    '  line-height:1.45!important',
-    '}',
-    '#portal-customer.active #track-form,',
-    '#portal-customer.active .track-form{',
-    '  display:flex!important;',
-    '  gap:0.55rem!important;',
-    '  flex-wrap:wrap!important',
-    '}',
-    '#portal-customer.active #track-form input,',
-    '#portal-customer.active .track-form input{flex:1 1 180px!important}',
-    '#portal-customer.active #track-form button,',
-    '#portal-customer.active .track-form button{',
-    '  border-radius:10px!important;',
-    '  padding:0.7rem 1.1rem!important;',
-    '  font-weight:600!important;',
-    '  border:none!important;',
-    '  background:linear-gradient(135deg,var(--dr-c-accent),var(--dr-c-accent-2))!important;',
-    '  color:#fff!important;',
-    '  cursor:pointer!important',
-    '}',
-    '#dr-tour-help{',
-    '  background:rgba(22,22,34,0.85)!important;',
-    '  border:1px solid var(--dr-c-border)!important;',
+    'body.dr-is-customer #dr-tour-help{',
+    '  background:rgba(22,22,34,0.9)!important;',
+    '  border:1px solid rgba(139,124,247,0.28)!important;',
     '  color:#c4b5fd!important;',
     '  font-size:0.78rem!important;',
     '  font-weight:600!important;',
-    '  padding:0.5rem 0.9rem!important;',
-    '  box-shadow:0 6px 20px rgba(0,0,0,0.35)!important',
-    '}',
-    '#portal-customer.active .badge,',
-    '#portal-customer.active .status-badge{',
-    '  border-radius:6px!important;',
-    '  font-size:0.7rem!important;',
-    '  font-weight:700!important;',
-    '  letter-spacing:0.03em!important;',
-    '  text-transform:uppercase!important;',
-    '  padding:0.2rem 0.45rem!important',
+    '  border-radius:999px!important;',
+    '  padding:0.5rem 0.95rem!important',
     '}'
   ].join('');
 
@@ -303,75 +246,74 @@
     if (!el) {
       el = document.createElement('style');
       el.id = STYLE_ID;
-      document.head.appendChild(el);
+      (document.head || document.documentElement).appendChild(el);
     }
     el.textContent = CSS;
   }
 
-  function isCustomer() {
+  function isCustomerView() {
     var pc = document.getElementById('portal-customer');
-    return !!(pc && pc.classList.contains('active'));
+    var pa = document.getElementById('portal-agent');
+    if (!pc) return false;
+    if (pa && pa.classList.contains('active')) return false;
+    if (pc.classList.contains('active')) return true;
+    try {
+      var st = window.getComputedStyle(pc);
+      if (st.display === 'none' || st.visibility === 'hidden') return false;
+      if (pc.offsetHeight > 30) return true;
+    } catch (e) {}
+    if (document.getElementById('customer-form')) return true;
+    return false;
   }
 
-  function polishHero() {
-    if (!isCustomer()) return;
-    var h1 = document.querySelector('#portal-customer h1, #portal-customer .welcome-title');
-    if (!h1) return;
-    var next = h1.nextElementSibling;
-    if (next && next.tagName === 'P' && !next.classList.contains('dr-hero-sub')) {
-      next.classList.add('dr-hero-sub', 'welcome-sub');
-      if (!(next.textContent || '').trim()) {
-        next.textContent = 'Submit a request or manage your tickets.';
-      }
-    }
+  function syncBodyClass() {
+    try {
+      document.body.classList.toggle('dr-is-customer', isCustomerView());
+    } catch (e) {}
   }
 
-  function polishFormHints() {
-    if (!isCustomer()) return;
+  function polishForm() {
+    if (!isCustomerView()) return;
     var form = document.getElementById('customer-form') || document.querySelector('#portal-customer .ticket-form');
     if (!form) return;
-
-    var titleInput = form.querySelector('#c-title, input[name="title"], input[type="text"]');
-    if (titleInput && !form.querySelector('.dr-field-hint-title')) {
-      var hint = document.createElement('div');
-      hint.className = 'dr-field-hint dr-field-hint-title';
-      hint.textContent = 'Short and clear works best — e.g. “Printer offline in Baybay branch”.';
-      var group = titleInput.closest('.form-group') || titleInput.parentNode;
-      if (group && group.parentNode) {
-        if (titleInput.nextSibling) group.insertBefore(hint, titleInput.nextSibling);
-        else group.appendChild(hint);
+    if (!form.querySelector('.dr-field-hint-title')) {
+      var titleInput = form.querySelector('#c-title, input[name="title"]') || form.querySelector('input[type="text"]');
+      if (titleInput) {
+        var hint = document.createElement('div');
+        hint.className = 'dr-field-hint dr-field-hint-title';
+        hint.textContent = 'Keep it short — e.g. “Printer offline at Baybay branch”.';
+        var parent = titleInput.parentNode;
+        if (parent) {
+          if (titleInput.nextSibling) parent.insertBefore(hint, titleInput.nextSibling);
+          else parent.appendChild(hint);
+        }
       }
     }
-
     var btn = form.querySelector('button[type="submit"]');
-    if (btn && /submit ticket/i.test(btn.textContent || '')) {
+    if (btn && /submit\s*ticket/i.test(btn.textContent || '')) {
       btn.textContent = 'Submit ticket';
     }
   }
 
-  function refineFeatureCards() {
-    if (!isCustomer()) return;
-    document.querySelectorAll('#portal-customer .dr-feature-card h4').forEach(function (h) {
-      var t = (h.textContent || '').trim();
-      if (t === 'Live updates') h.textContent = 'Live status';
-      if (t === 'Remote help') h.textContent = 'Remote assist';
-    });
-  }
-
   function tick() {
     injectCss();
-    if (!isCustomer()) return;
-    polishHero();
-    polishFormHints();
-    refineFeatureCards();
+    syncBodyClass();
+    polishForm();
   }
 
-  setTimeout(tick, 500);
-  setTimeout(tick, 1500);
+  injectCss();
+  setTimeout(tick, 200);
+  setTimeout(tick, 800);
+  setTimeout(tick, 1800);
   setTimeout(tick, 3500);
-  setInterval(function () {
-    if (isCustomer()) tick();
-  }, 4000);
+  setInterval(tick, 2500);
 
-  window.DRCustomerProUi = { refresh: tick };
+  try {
+    var obs = new MutationObserver(function () { tick(); });
+    if (document.body) {
+      obs.observe(document.body, { attributes: true, childList: true, subtree: true, attributeFilter: ['class', 'hidden', 'style'] });
+    }
+  } catch (e) {}
+
+  window.DRCustomerProUi = { refresh: tick, v: 2 };
 })();
