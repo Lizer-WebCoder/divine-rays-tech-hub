@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.2.5" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.1.5" />
   <style>
     html,body{margin:0;background:#0c0c14;color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
     #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae;flex-direction:column;gap:0.75rem;padding:1.5rem;text-align:center}
@@ -36,8 +36,7 @@
     var TEAM_BOARD_SHA = '6f7d941cf16542de5868a7ed0abaacae83f4d133';
     var TEAM_SEP_SHA = '85337adc33ac049cdbf1317bbc20388b4f774739';
     var SIDEBAR_SHA = 'f54ca62b389e67557d902e630612372b9db32710';
-    var APPROVAL_GATE_SHA = '95399ebc6bf10275331a35b96b9b589bf25b6d7b';
-    var FORCE_PENDING_SHA = '2b6d572d435dcf55a631350e7a03d5f2d752b356';
+    var APPROVAL_GATE_SHA = '931797f512058d3f957b1a043b7d9e4d23af0793';
     var STAFF_NOTIF_SHA = 'ad42d4238ecd55ec0bb66aa9a842fe2c57b936bd';
     var REPLY_FIX_SHA = '5307c296fc8868d23fdc61bde79cad23f3c71dba';
     var COMMENTS_LIVE_SHA = '4181ae9900f29ec307555a38e62ae6be7e6b9a8f';
@@ -51,6 +50,7 @@
     var FILTER_SHA = '1bfe6c0e93dedc361cf1f3e15eb520c3aea13930';
     var DESIGN_SHA = '7d6d66cbe63fda91cf71d64bbddd1af80f3adfc3';
     var TICKET_DESIGN_SHA = '01d6078d7a6a6ff64a1c9f53621d1bc2446156cf';
+    var CUSTOMER_FILTER_SHA = '3a771e7d1e2f10ea747880c20f39477196f5fdfd';
     var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
     var BUST = String(Date.now());
     var TIP = 'dd3d27c0c8190f4f85781c8f2477678d538768b0';
@@ -63,12 +63,12 @@
       'team-board.js': TEAM_BOARD_SHA,
       'kb.js': KB_JS_SHA,
       'agent-approval-gate.js': APPROVAL_GATE_SHA,
-      'force-pending-block.js': FORCE_PENDING_SHA,
       'staff-ticket-notifs.js': STAFF_NOTIF_SHA,
       'customer-reply-fix.js': REPLY_FIX_SHA,
       'sidebar-design.js': SIDEBAR_SHA,
       'design-system-v10.js': DESIGN_SHA,
-      'ticket-list-design.js': TICKET_DESIGN_SHA
+      'ticket-list-design.js': TICKET_DESIGN_SHA,
+      'customer-my-tickets-filter.js': CUSTOMER_FILTER_SHA
     };
 
     var SKIP = {
@@ -168,11 +168,6 @@
       clearTimeout(bootTimer);
 
       setTimeout(function () {
-        loadScript(CDN + APPROVAL_GATE_SHA + '/js/agent-approval-gate.js');
-        loadScript(CDN + FORCE_PENDING_SHA + '/js/force-pending-block.js');
-      }, 50);
-
-      setTimeout(function () {
         Promise.all([
           loadScript(CDN + DESIGN_SHA + '/js/design-system-v10.js'),
           loadScript(CDN + TIP + '/js/polish-fixes.js'),
@@ -192,15 +187,16 @@
           loadScript(CDN + USERS_NAV_SHA + '/js/users-nav.js'),
           loadScript(CDN + FILTER_SHA + '/js/users-filter-enforce.js'),
           loadScript(CDN + APPROVAL_GATE_SHA + '/js/agent-approval-gate.js'),
-          loadScript(CDN + FORCE_PENDING_SHA + '/js/force-pending-block.js'),
           loadScript(CDN + STAFF_NOTIF_SHA + '/js/staff-ticket-notifs.js'),
-          loadScript(CDN + TICKET_DESIGN_SHA + '/js/ticket-list-design.js')
+          loadScript(CDN + TICKET_DESIGN_SHA + '/js/ticket-list-design.js'),
+          loadScript(CDN + CUSTOMER_FILTER_SHA + '/js/customer-my-tickets-filter.js')
         ]).then(function () {
           try { if (window.DRUsersNav && window.DRUsersNav.refresh) window.DRUsersNav.refresh(); } catch (e) {}
           try { if (window.DRSidebarDesign && window.DRSidebarDesign.refresh) window.DRSidebarDesign.refresh(); } catch (e2) {}
           try { if (window.DRStaffNotifs && window.DRStaffNotifs.refresh) window.DRStaffNotifs.refresh(); } catch (e3) {}
           try { if (window.DRCommentsLive && window.DRCommentsLive.refresh) window.DRCommentsLive.refresh(); } catch (e4) {}
           try { if (window.DRUsersFilterEnforce && window.DRUsersFilterEnforce.refresh) window.DRUsersFilterEnforce.refresh(); } catch (e5) {}
+          try { if (window.DRCustomerMyTicketsFilter && window.DRCustomerMyTicketsFilter.refresh) window.DRCustomerMyTicketsFilter.refresh(); } catch (e6) {}
         });
       }, 1600);
 
