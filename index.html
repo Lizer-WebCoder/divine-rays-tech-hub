@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.2.0" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.2.1" />
   <style>
     html,body{margin:0;background:#0c0c14;color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
     #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae;flex-direction:column;gap:0.75rem;padding:1.5rem;text-align:center}
@@ -36,7 +36,7 @@
     var TEAM_BOARD_SHA = '6f7d941cf16542de5868a7ed0abaacae83f4d133';
     var TEAM_SEP_SHA = '85337adc33ac049cdbf1317bbc20388b4f774739';
     var SIDEBAR_SHA = 'f54ca62b389e67557d902e630612372b9db32710';
-    var APPROVAL_GATE_SHA = '6afe88de30d913f8cdf2a3b26d4ed8ee51e24a62';
+    var APPROVAL_GATE_SHA = '95399ebc6bf10275331a35b96b9b589bf25b6d7b';
     var STAFF_NOTIF_SHA = 'ad42d4238ecd55ec0bb66aa9a842fe2c57b936bd';
     var REPLY_FIX_SHA = '5307c296fc8868d23fdc61bde79cad23f3c71dba';
     var COMMENTS_LIVE_SHA = '4181ae9900f29ec307555a38e62ae6be7e6b9a8f';
@@ -165,7 +165,6 @@
       document.close();
       clearTimeout(bootTimer);
 
-      /* Load approval gate IMMEDIATELY so pending intercept is ready before user clicks Sign in */
       setTimeout(function () {
         loadScript(CDN + APPROVAL_GATE_SHA + '/js/agent-approval-gate.js');
       }, 80);
