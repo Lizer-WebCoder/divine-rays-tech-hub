@@ -1,12 +1,12 @@
 /**
- * Divine Rays — Knowledge Base table v3
- * Column lines + readable side-by-side Edit/Delete
+ * Divine Rays — Knowledge Base table v4
+ * Column lines, Action header, balanced Edit/Delete spacing
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_KB_TABLE_FIX >= 3) return;
-  window.__DR_KB_TABLE_FIX = 3;
+  if (window.__DR_KB_TABLE_FIX >= 4) return;
+  window.__DR_KB_TABLE_FIX = 4;
 
   var CSS = [
     '#view-kb table.kb-table, #view-kb table.perf-table, #kb-manage-list table, table.kb-table, table.perf-table.kb-table {',
@@ -17,9 +17,8 @@
     '#view-kb table.kb-table th, #view-kb table.kb-table td,',
     '#kb-manage-list table th, #kb-manage-list table td, table.kb-table th, table.kb-table td {',
     '  border-right:1px solid rgba(139,124,247,.22)!important; border-bottom:1px solid rgba(139,124,247,.12)!important;',
-    '  padding:.7rem .85rem!important; vertical-align:middle!important; text-align:left!important }',
+    '  padding:.75rem 1rem!important; vertical-align:middle!important; text-align:left!important }',
 
-    /* Data columns can ellipsis; NOT the actions column */
     '#view-kb table.kb-table th:not(:last-child), #view-kb table.kb-table td:not(:last-child),',
     'table.kb-table th:not(:last-child), table.kb-table td:not(:last-child) {',
     '  overflow:hidden!important; text-overflow:ellipsis!important; white-space:nowrap!important }',
@@ -31,7 +30,6 @@
     '  background:rgba(0,0,0,.35)!important; color:#a8a8c0!important; font-size:.68rem!important;',
     '  font-weight:700!important; letter-spacing:.06em!important; text-transform:uppercase!important }',
 
-    /* Wider last column for buttons */
     '#view-kb table.kb-table th:nth-child(1), #view-kb table.kb-table td:nth-child(1),',
     'table.kb-table th:nth-child(1), table.kb-table td:nth-child(1) { width:26%!important }',
     '#view-kb table.kb-table th:nth-child(2), #view-kb table.kb-table td:nth-child(2),',
@@ -44,21 +42,35 @@
     'table.kb-table th:nth-child(5), table.kb-table td:nth-child(5) { width:13%!important }',
     '#view-kb table.kb-table th:nth-child(6), #view-kb table.kb-table td:nth-child(6),',
     'table.kb-table th:nth-child(6), table.kb-table td:nth-child(6) {',
-    '  width:24%!important; min-width:160px!important; overflow:visible!important;',
-    '  white-space:nowrap!important; text-overflow:clip!important; text-align:right!important }',
+    '  width:24%!important; min-width:170px!important; overflow:visible!important;',
+    '  white-space:nowrap!important; text-overflow:clip!important; text-align:center!important }',
 
-    '.kb-row-actions, #view-kb table.kb-table td.kb-row-actions, table.kb-table td.kb-row-actions {',
+    /* Action header centered */
+    '#view-kb table.kb-table thead th:last-child, table.kb-table thead th:last-child {',
+    '  text-align:center!important }',
+
+    /* Actions cell — balanced padding, centered buttons */
+    '.kb-row-actions, #view-kb table.kb-table td.kb-row-actions, table.kb-table td.kb-row-actions,',
+    '#view-kb table.kb-table td:last-child, table.kb-table td:last-child {',
+    '  display:table-cell!important; text-align:center!important; overflow:visible!important;',
+    '  white-space:nowrap!important; padding:.55rem .75rem!important }',
+
+    '.kb-row-actions {',
     '  display:inline-flex!important; flex-direction:row!important; flex-wrap:nowrap!important;',
-    '  align-items:center!important; justify-content:flex-end!important; gap:8px!important;',
-    '  overflow:visible!important; white-space:nowrap!important; width:100%!important }',
+    '  align-items:center!important; justify-content:center!important; gap:10px!important;',
+    '  width:auto!important }',
+
+    /* Ensure the cell itself lays out the flex row centered */
+    '#view-kb table.kb-table td:last-child, table.kb-table td:last-child {',
+    '  text-align:center!important }',
 
     '.kb-row-actions .btn, .kb-row-actions .kb-edit, .kb-row-actions .kb-del,',
     '#view-kb table.kb-table .kb-edit, #view-kb table.kb-table .kb-del,',
     'table.kb-table .kb-edit, table.kb-table .kb-del {',
     '  display:inline-flex!important; align-items:center!important; justify-content:center!important;',
-    '  height:28px!important; min-height:28px!important; padding:0 12px!important; margin:0!important;',
+    '  height:30px!important; min-height:30px!important; padding:0 14px!important; margin:0!important;',
     '  font-size:12px!important; font-weight:600!important; line-height:1!important;',
-    '  border-radius:7px!important; width:auto!important; min-width:58px!important;',
+    '  border-radius:8px!important; width:auto!important; min-width:62px!important;',
     '  max-width:none!important; flex:0 0 auto!important; box-shadow:none!important;',
     '  overflow:visible!important; white-space:nowrap!important; text-overflow:clip!important;',
     '  letter-spacing:0!important }',
@@ -90,8 +102,23 @@
     el.textContent = CSS;
   }
 
-  inject();
-  setTimeout(inject, 400);
-  setTimeout(inject, 1200);
-  setTimeout(inject, 3000);
+  function labelActionHeader() {
+    document.querySelectorAll('#view-kb table.kb-table thead th:last-child, table.kb-table thead th:last-child, #kb-manage-list table thead th:last-child').forEach(function (th) {
+      var t = (th.textContent || '').trim();
+      if (!t || t === '' || /^\s*$/.test(t)) {
+        th.textContent = 'Action';
+      }
+    });
+  }
+
+  function tick() {
+    inject();
+    labelActionHeader();
+  }
+
+  tick();
+  setTimeout(tick, 400);
+  setTimeout(tick, 1200);
+  setTimeout(tick, 2500);
+  setInterval(labelActionHeader, 2000);
 })();
