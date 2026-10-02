@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.7.5" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=8.7.6" />
   <style>
     html,body{margin:0;background:#0c0c14;color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
     #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae;flex-direction:column;gap:0.75rem;padding:1.5rem;text-align:center}
@@ -42,8 +42,9 @@
     var REPLY_FIX_SHA = '5307c296fc8868d23fdc61bde79cad23f3c71dba';
     var COMMENTS_LIVE_SHA = '8878afaabe7d3ac426616162f462a57605ec235e';
     var UI_LAYOUT_SHA = '611051ab7677b0232aa545595a49c223eac5cfad';
-    var KB_TABLE_SHA = '9f1dd5db258b54fac1a7ba7be12d73e0ea1b380c';
+    var KB_TABLE_SHA = '057efa589371be7a05114c786f31a89bb28fe009';
     var KB_JS_SHA = 'd4e9498db74b26a08bf7c8acec52ac3496c6ff86';
+    var USERS_NAV_SHA = '1ec3cd6228ea870af9fd1a6d56137857b8f104f9';
     var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
     var BUST = String(Date.now());
 
@@ -124,11 +125,12 @@
         loadScript(CDN + UI_LAYOUT_SHA + '/js/ui-layout-notifs.js');
         loadScript(CDN + KB_TABLE_SHA + '/js/kb-table-fix.js');
         loadScript(CDN + KB_JS_SHA + '/js/kb.js');
+        loadScript(CDN + USERS_NAV_SHA + '/js/users-nav.js');
       }, 1500);
 
       setTimeout(function () {
         loadScript(CDN + FIX_SHA + '/js/admin.js');
-        loadScript(CDN + FIX_SHA + '/js/users-nav.js');
+        loadScript(CDN + USERS_NAV_SHA + '/js/users-nav.js');
         loadScript(CDN + APPROVAL_GATE_SHA + '/js/agent-approval-gate.js');
         loadScript(CDN + STAFF_NOTIF_SHA + '/js/staff-ticket-notifs.js');
         loadScript(CDN + COMMENTS_LIVE_SHA + '/js/comments-live.js');
