@@ -1,17 +1,18 @@
 /**
- * Divine Rays — Users nav v4
- * Users dropdown with chevron arrow; highlight active End-Users / Admin
+ * Divine Rays — Users nav v5
+ * Dropdown arrow; highlight active; force view-admin + load users list
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_USERS_NAV_V4) return;
+  if (window.__DR_USERS_NAV_V5) return;
+  window.__DR_USERS_NAV_V5 = 1;
   window.__DR_USERS_NAV_V4 = 1;
   window.__DR_USERS_NAV_V3 = 1;
   window.__DR_USERS_NAV_V2 = 1;
   window.__DR_USERS_NAV = 1;
 
-  var DEVELOPER_USERNAMES = { kirzhian: 1, jamesjerlow123: 1 };
+  var DEVELOPER_USERNAMES = { kirzhian: 1, jamesjerlow123: 1, liya: 1 };
 
   function isDeveloperUser(u) {
     if (!u) return false;
@@ -55,6 +56,7 @@
       '#portal-agent .nav-btn[data-view="admin"]:not([data-dr-users-root]){display:none!important}' +
       'body.dr-view-endusers #filter-status,body.dr-view-endusers #filter-priority,body.dr-view-endusers #filter-sort,body.dr-view-endusers #btn-clear-filters{display:none!important}' +
       'body.dr-view-admin-staff #filter-status,body.dr-view-admin-staff #filter-priority,body.dr-view-admin-staff #filter-sort,body.dr-view-admin-staff #btn-clear-filters{display:none!important}' +
+      '#view-admin.active{display:block!important;visibility:visible!important;opacity:1!important}' +
       '.badge-role-developer{background:rgba(251,191,36,0.2)!important;color:#fbbf24!important}' +
       '.badge-role-pending{background:rgba(251,146,60,0.2)!important;color:#fb923c!important}' +
       '.badge-role-customer{background:rgba(96,165,250,0.2)!important;color:#60a5fa!important}';
@@ -91,7 +93,6 @@
     var chev = root.querySelector('.dr-users-chevron');
 
     if (!labelSpan) {
-      // rebuild content carefully
       var kids = Array.prototype.slice.call(root.childNodes);
       kids.forEach(function (n) {
         if (n !== keep) root.removeChild(n);
@@ -180,33 +181,54 @@
     }
   }
 
+  function forceAdminView() {
+    var v = document.getElementById('view-admin');
+    if (!v) return false;
+    document.querySelectorAll('#portal-agent .view').forEach(function (x) {
+      x.classList.remove('active');
+      try { x.style.display = 'none'; } catch (e) {}
+    });
+    v.classList.add('active');
+    v.style.display = 'block';
+    v.style.visibility = 'visible';
+    v.style.opacity = '1';
+    document.querySelectorAll('#portal-agent .nav-btn').forEach(function (b) {
+      if (b.closest('#dr-users-sub')) return;
+      if (b.getAttribute('data-dr-users-root')) b.classList.add('active');
+      else b.classList.remove('active');
+    });
+    return true;
+  }
+
+  function loadUsersList(mode) {
+    function go() {
+      if (typeof window.renderAdminUsers === 'function') {
+        try {
+          window.renderAdminUsers(mode);
+          return true;
+        } catch (e) {
+          return false;
+        }
+      }
+      return false;
+    }
+    if (!go()) {
+      setTimeout(function () { go(); }, 300);
+      setTimeout(function () { go(); }, 900);
+      setTimeout(function () { go(); }, 1800);
+    }
+  }
+
   function openEndUsers() {
     document.body.classList.add('dr-view-endusers');
     document.body.classList.remove('dr-view-admin-staff');
     window.__DR_USERS_LIST_MODE = 'endusers';
     var sub = document.getElementById('dr-users-sub');
     if (sub) sub.classList.add('open');
-    try {
-      if (typeof window.showView === 'function') window.showView('view-admin');
-      else {
-        var v = document.getElementById('view-admin');
-        if (v) {
-          document.querySelectorAll('#portal-agent .view').forEach(function (x) {
-            x.classList.remove('active');
-            x.style.display = 'none';
-          });
-          v.classList.add('active');
-          v.style.display = '';
-        }
-      }
-    } catch (e) {}
+    forceAdminView();
     var pt = document.getElementById('page-title');
     if (pt) pt.textContent = 'Users · End-Users';
-    if (typeof window.renderAdminUsers === 'function') {
-      try {
-        window.renderAdminUsers('endusers');
-      } catch (e2) {}
-    }
+    loadUsersList('endusers');
     syncActiveHighlight();
   }
 
@@ -216,27 +238,10 @@
     window.__DR_USERS_LIST_MODE = 'staff';
     var sub = document.getElementById('dr-users-sub');
     if (sub) sub.classList.add('open');
-    try {
-      if (typeof window.showView === 'function') window.showView('view-admin');
-      else {
-        var v = document.getElementById('view-admin');
-        if (v) {
-          document.querySelectorAll('#portal-agent .view').forEach(function (x) {
-            x.classList.remove('active');
-            x.style.display = 'none';
-          });
-          v.classList.add('active');
-          v.style.display = '';
-        }
-      }
-    } catch (e) {}
+    forceAdminView();
     var pt = document.getElementById('page-title');
     if (pt) pt.textContent = 'Users · Admin';
-    if (typeof window.renderAdminUsers === 'function') {
-      try {
-        window.renderAdminUsers('staff');
-      } catch (e2) {}
-    }
+    loadUsersList('staff');
     syncActiveHighlight();
   }
 
