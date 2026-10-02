@@ -1,16 +1,17 @@
 /**
- * Divine Rays — customer My Tickets: page size + category filter v2
- * Theme-aware select/option colors (dark + light)
+ * Divine Rays — customer My Tickets filter v3
+ * Category + page size + Prev/Next; single chevron on selects
  * Credit: Lizzz · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_CUST_MY_TICKETS_FILTER_V2) return;
-  window.__DR_CUST_MY_TICKETS_FILTER_V2 = 1;
+  if (window.__DR_CUST_MY_TICKETS_FILTER_V3) return;
+  window.__DR_CUST_MY_TICKETS_FILTER_V3 = 1;
 
   var BAR_ID = 'dr-cust-ticket-toolbar';
   var STYLE_ID = 'dr-cust-ticket-toolbar-css';
   var pageSize = 10;
+  var pageIndex = 0;
   var category = 'all';
   var lastRun = 0;
 
@@ -23,6 +24,11 @@
     { value: 'other', label: 'Other' }
   ];
 
+  var CHEV_DARK =
+    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23c4b5fd' d='M1 1l5 5 5-5'/%3E%3C/svg%3E\")";
+  var CHEV_LIGHT =
+    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%235b21b6' d='M1 1l5 5 5-5'/%3E%3C/svg%3E\")";
+
   var CSS = [
     '#' + BAR_ID + '{',
     '  display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:0.65rem;',
@@ -32,74 +38,74 @@
     '  border:1px solid rgba(139,124,247,0.22)',
     '}',
     'html[data-theme="light"] #' + BAR_ID + '{',
-    '  background:rgba(109,94,245,0.08);',
-    '  border-color:rgba(109,94,245,0.2)',
+    '  background:rgba(109,94,245,0.08);border-color:rgba(109,94,245,0.2)',
     '}',
     '#' + BAR_ID + ' .dr-ct-left{display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center}',
+    '#' + BAR_ID + ' .dr-ct-right{display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center}',
     '#' + BAR_ID + ' label{font-size:0.72rem;font-weight:600;color:#a5a5bd;margin:0 0.15rem 0 0}',
     'html[data-theme="light"] #' + BAR_ID + ' label{color:#5b5b72}',
 
-    /* Closed select — dark */
+    /* Single custom chevron — kill native arrows */
     '#' + BAR_ID + ' select{',
     '  border-radius:8px;',
     '  border:1px solid rgba(167,139,250,0.4);',
-    '  background:#1a1a28;',
-    '  color:#f3f0ff;',
-    '  padding:0.42rem 1.75rem 0.42rem 0.6rem;',
-    '  font-size:0.8rem;',
-    '  font-weight:600;',
-    '  outline:none;',
-    '  cursor:pointer;',
-    '  color-scheme:dark;',
-    '  appearance:none;',
-    '  -webkit-appearance:none;',
-    '  background-image:url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'8\' viewBox=\'0 0 12 8\'%3E%3Cpath fill=\'%23c4b5fd\' d=\'M1 1l5 5 5-5\'/%3E%3C/svg%3E");',
+    '  background-color:#1a1a28;',
+    '  background-image:' + CHEV_DARK + ';',
     '  background-repeat:no-repeat;',
     '  background-position:right 0.55rem center;',
-    '  background-size:10px 7px',
+    '  background-size:10px 7px;',
+    '  color:#f3f0ff;',
+    '  padding:0.42rem 1.85rem 0.42rem 0.6rem;',
+    '  font-size:0.8rem;font-weight:600;',
+    '  outline:none;cursor:pointer;',
+    '  color-scheme:dark;',
+    '  -webkit-appearance:none;',
+    '  -moz-appearance:none;',
+    '  appearance:none',
     '}',
+    '#' + BAR_ID + ' select::-ms-expand{display:none}',
     '#' + BAR_ID + ' select:focus{',
-    '  border-color:#a78bfa;',
-    '  box-shadow:0 0 0 3px rgba(139,124,247,0.25)',
+    '  border-color:#a78bfa;box-shadow:0 0 0 3px rgba(139,124,247,0.25)',
     '}',
-    '#' + BAR_ID + ' select option{',
-    '  background-color:#1a1a28;',
-    '  color:#f3f0ff',
-    '}',
-    '#' + BAR_ID + ' select option:checked,',
-    '#' + BAR_ID + ' select option:hover{',
-    '  background-color:#4c1d95;',
-    '  color:#fff',
-    '}',
+    '#' + BAR_ID + ' select option{background-color:#1a1a28;color:#f3f0ff}',
 
-    /* Closed select — light */
     'html[data-theme="light"] #' + BAR_ID + ' select{',
-    '  background:#ffffff;',
+    '  background-color:#ffffff;',
+    '  background-image:' + CHEV_LIGHT + ';',
+    '  background-repeat:no-repeat;',
+    '  background-position:right 0.55rem center;',
+    '  background-size:10px 7px;',
     '  color:#1a1a28;',
     '  border-color:rgba(109,94,245,0.35);',
-    '  color-scheme:light;',
-    '  background-image:url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'8\' viewBox=\'0 0 12 8\'%3E%3Cpath fill=\'%235b21b6\' d=\'M1 1l5 5 5-5\'/%3E%3C/svg%3E");',
-    '  background-repeat:no-repeat;',
-    '  background-position:right 0.55rem center;',
-    '  background-size:10px 7px',
+    '  color-scheme:light',
     '}',
-    'html[data-theme="light"] #' + BAR_ID + ' select:focus{',
-    '  border-color:#7c3aed;',
-    '  box-shadow:0 0 0 3px rgba(124,58,237,0.2)',
-    '}',
-    'html[data-theme="light"] #' + BAR_ID + ' select option{',
-    '  background-color:#ffffff;',
-    '  color:#1a1a28',
-    '}',
-    'html[data-theme="light"] #' + BAR_ID + ' select option:checked{',
-    '  background-color:#ede9fe;',
-    '  color:#4c1d95',
-    '}',
+    'html[data-theme="light"] #' + BAR_ID + ' select option{background-color:#fff;color:#1a1a28}',
 
     '#' + BAR_ID + ' .dr-ct-count{font-size:0.75rem;color:#9898b0;white-space:nowrap}',
     'html[data-theme="light"] #' + BAR_ID + ' .dr-ct-count{color:#6b6b80}',
     '#' + BAR_ID + ' .dr-ct-count strong{color:#c4b5fd;font-weight:700}',
     'html[data-theme="light"] #' + BAR_ID + ' .dr-ct-count strong{color:#6d28d9}',
+
+    '#' + BAR_ID + ' .dr-ct-nav{display:flex;align-items:center;gap:0.35rem}',
+    '#' + BAR_ID + ' .dr-ct-nav button{',
+    '  border:1px solid rgba(167,139,250,0.4);',
+    '  background:rgba(124,106,240,0.18);',
+    '  color:#e9e5ff;',
+    '  border-radius:8px;',
+    '  padding:0.38rem 0.7rem;',
+    '  font-size:0.75rem;font-weight:700;',
+    '  cursor:pointer',
+    '}',
+    '#' + BAR_ID + ' .dr-ct-nav button:hover:not(:disabled){background:rgba(124,106,240,0.32)}',
+    '#' + BAR_ID + ' .dr-ct-nav button:disabled{opacity:0.4;cursor:not-allowed}',
+    'html[data-theme="light"] #' + BAR_ID + ' .dr-ct-nav button{',
+    '  background:#ede9fe;color:#4c1d95;border-color:rgba(109,94,245,0.3)',
+    '}',
+    '#' + BAR_ID + ' .dr-ct-page{',
+    '  font-size:0.75rem;font-weight:600;color:#c4b5fd;min-width:4.5rem;text-align:center',
+    '}',
+    'html[data-theme="light"] #' + BAR_ID + ' .dr-ct-page{color:#6d28d9}',
+
     '#portal-customer .ticket-card.dr-ct-hidden{display:none!important}'
   ].join('');
 
@@ -177,7 +183,14 @@
       '<option value="50">50</option>' +
       '<option value="100">All</option>' +
       '</select></div>' +
-      '<div class="dr-ct-count" id="dr-ct-count"></div>';
+      '<div class="dr-ct-right">' +
+      '<div class="dr-ct-count" id="dr-ct-count"></div>' +
+      '<div class="dr-ct-nav">' +
+      '<button type="button" id="dr-ct-prev" aria-label="Previous page">← Prev</button>' +
+      '<span class="dr-ct-page" id="dr-ct-page">1 / 1</span>' +
+      '<button type="button" id="dr-ct-next" aria-label="Next page">Next →</button>' +
+      '</div></div>';
+
     var cat = bar.querySelector('#dr-ct-cat');
     CATEGORIES.forEach(function (c) {
       var o = document.createElement('option');
@@ -186,14 +199,26 @@
       cat.appendChild(o);
     });
     cat.value = category;
-    bar.querySelector('#dr-ct-size').value = String(pageSize === 100 ? 100 : pageSize);
+    bar.querySelector('#dr-ct-size').value = String(pageSize >= 100 ? 100 : pageSize);
 
     cat.addEventListener('change', function () {
       category = cat.value || 'all';
+      pageIndex = 0;
       applyFilter();
     });
     bar.querySelector('#dr-ct-size').addEventListener('change', function (e) {
       pageSize = parseInt(e.target.value, 10) || 10;
+      pageIndex = 0;
+      applyFilter();
+    });
+    bar.querySelector('#dr-ct-prev').addEventListener('click', function () {
+      if (pageIndex > 0) {
+        pageIndex -= 1;
+        applyFilter();
+      }
+    });
+    bar.querySelector('#dr-ct-next').addEventListener('click', function () {
+      pageIndex += 1;
       applyFilter();
     });
 
@@ -219,21 +244,25 @@
     var matched = [];
     cards.forEach(function (card) {
       var cat = cardCategory(card);
-      var ok = category === 'all' || cat === category;
-      if (ok) matched.push(card);
+      if (category === 'all' || cat === category) matched.push(card);
       else card.classList.add('dr-ct-hidden');
     });
+
+    var size = pageSize >= 100 ? matched.length || 1 : pageSize;
+    var totalPages = Math.max(1, Math.ceil(matched.length / size));
+    if (pageIndex >= totalPages) pageIndex = totalPages - 1;
+    if (pageIndex < 0) pageIndex = 0;
+    var start = pageIndex * size;
+    var end = start + size;
 
     matched.forEach(function (card, i) {
-      if (i < pageSize) card.classList.remove('dr-ct-hidden');
+      if (i >= start && i < end) card.classList.remove('dr-ct-hidden');
       else card.classList.add('dr-ct-hidden');
     });
 
+    var shown = Math.min(size, Math.max(0, matched.length - start));
     var countEl = document.getElementById('dr-ct-count');
     if (countEl) {
-      var shown = matched.filter(function (c) {
-        return !c.classList.contains('dr-ct-hidden');
-      }).length;
       countEl.innerHTML =
         'Showing <strong>' +
         shown +
@@ -242,6 +271,17 @@
         '</strong>' +
         (category !== 'all' ? ' · ' + category : '');
     }
+
+    var pageEl = document.getElementById('dr-ct-page');
+    if (pageEl) pageEl.textContent = pageIndex + 1 + ' / ' + totalPages;
+
+    var prev = document.getElementById('dr-ct-prev');
+    var next = document.getElementById('dr-ct-next');
+    if (prev) prev.disabled = pageIndex <= 0;
+    if (next) next.disabled = pageIndex >= totalPages - 1;
+
+    var nav = bar.querySelector('.dr-ct-nav');
+    if (nav) nav.style.display = totalPages > 1 ? 'flex' : 'none';
   }
 
   function tick() {
@@ -274,5 +314,5 @@
     }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
   } catch (e) {}
 
-  window.DRCustomerMyTicketsFilter = { refresh: applyFilter, v: 2 };
+  window.DRCustomerMyTicketsFilter = { refresh: applyFilter, v: 3 };
 })();
