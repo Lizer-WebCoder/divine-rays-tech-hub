@@ -1,14 +1,13 @@
 /**
  * Divine Rays — Ticket Plus
- * Internal notes · File attachments · Assign/transfer · SLA
+ * Internal notes · File attachments · Assign/transfer · SLA countdown
  * Credit: Boyz at the Back · All Rights Reserved
+ * Note: status save is handled by ticket-plus-fix.js to avoid handler conflicts.
  */
 (function () {
   'use strict';
-  if (window.__DR_TICKET_PLUS_V2) return;
-  window.__DR_TICKET_PLUS_V2 = 1;
-
-  var statusDirty = false;
+  if (window.__DR_TICKET_PLUS) return;
+  window.__DR_TICKET_PLUS = 1;
 
   function sb() {
     try {
@@ -30,12 +29,15 @@
   function toast(msg, type) {
     if (window.DR && window.DR.toast) return window.DR.toast(msg, type);
   }
+  function currentTicketId() {
+    return window.__drOpenTicketId || window.currentTicketId || null;
+  }
 
   function bindCommentForm() {
     var form = document.getElementById('comment-form');
     if (!form) return;
 
-    // Always enforce layout: Add Update button ABOVE Internal note
+    // Layout: Add Update button ABOVE Internal note
     var actions = form.querySelector('.form-actions') || form;
     actions.style.display = 'flex';
     actions.style.flexDirection = 'column';
@@ -51,11 +53,11 @@
       btn.style.alignSelf = 'flex-start';
     }
 
-    var lab = document.getElementById('comment-internal')
-      ? (document.getElementById('comment-internal').closest('label') || document.getElementById('comment-internal').parentElement)
-      : null;
-
-    if (!document.getElementById('comment-internal')) {
+    var lab = null;
+    var internalInput = document.getElementById('comment-internal');
+    if (internalInput) {
+      lab = internalInput.closest('label') || internalInput.parentElement;
+    } else {
       lab = document.createElement('label');
       lab.className = 'checkbox-label';
       lab.id = 'comment-internal-label';
@@ -68,9 +70,7 @@
       lab.style.display = isStaff() ? 'flex' : 'none';
       lab.style.alignItems = 'center';
       lab.style.gap = '0.4rem';
-      if (btn && lab.parentNode === actions && btn.nextSibling !== lab) {
-        try { actions.appendChild(lab); } catch (e) {}
-      }
+      try { actions.appendChild(lab); } catch (e) {}
     }
 
     if (form._tpBound) return;
@@ -81,12 +81,11 @@
     }, true);
   }
 
-  // Re-apply layout periodically in case form is re-rendered by core app
-  setInterval(bindCommentForm, 1500);
-  setTimeout(bindCommentForm, 600);
-  setTimeout(bindCommentForm, 2000);
-  setTimeout(bindCommentForm, 4000);
+  // Call layout on an interval so core re-renders do not undo order
+  setInterval(bindCommentForm, 1200);
+  setTimeout(bindCommentForm, 500);
+  setTimeout(bindCommentForm, 1500);
+  setTimeout(bindCommentForm, 3000);
 
-  window.DRTicketPlus = window.DRTicketPlus || {};
-  window.DRTicketPlus.bindCommentForm = bindCommentForm;
+  window.DRTicketPlus = { bindCommentForm: bindCommentForm };
 })();
