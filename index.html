@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.3.2" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.3.3" />
   <style>
     html,body{margin:0;background:#0c0c14;color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
     #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae;flex-direction:column;gap:0.75rem;padding:1.5rem;text-align:center}
@@ -38,6 +38,7 @@
     var SIDEBAR_SHA = 'f54ca62b389e67557d902e630612372b9db32710';
     var APPROVAL_GATE_SHA = '95399ebc6bf10275331a35b96b9b589bf25b6d7b';
     var FORCE_PENDING_SHA = 'b94a35dd990906d8e1f37b622fa30a1d335d0e7e';
+    var LOGIN_TAB_SHA = '731c1830ce00ef961df9c79c1ca6f5c8a4550087';
     var STAFF_NOTIF_SHA = 'ad42d4238ecd55ec0bb66aa9a842fe2c57b936bd';
     var REPLY_FIX_SHA = '5307c296fc8868d23fdc61bde79cad23f3c71dba';
     var COMMENTS_LIVE_SHA = '4181ae9900f29ec307555a38e62ae6be7e6b9a8f';
@@ -65,6 +66,7 @@
       'kb.js': KB_JS_SHA,
       'agent-approval-gate.js': APPROVAL_GATE_SHA,
       'force-pending-block.js': FORCE_PENDING_SHA,
+      'login-tab-labels.js': LOGIN_TAB_SHA,
       'staff-ticket-notifs.js': STAFF_NOTIF_SHA,
       'customer-reply-fix.js': REPLY_FIX_SHA,
       'sidebar-design.js': SIDEBAR_SHA,
@@ -169,8 +171,8 @@
       document.close();
       clearTimeout(bootTimer);
 
-      /* Force-pending FIRST so it owns the login submit on first click */
       setTimeout(function () {
+        loadScript(CDN + LOGIN_TAB_SHA + '/js/login-tab-labels.js');
         loadScript(CDN + FORCE_PENDING_SHA + '/js/force-pending-block.js');
         loadScript(CDN + APPROVAL_GATE_SHA + '/js/agent-approval-gate.js');
       }, 50);
@@ -196,6 +198,7 @@
           loadScript(CDN + FILTER_SHA + '/js/users-filter-enforce.js'),
           loadScript(CDN + FORCE_PENDING_SHA + '/js/force-pending-block.js'),
           loadScript(CDN + APPROVAL_GATE_SHA + '/js/agent-approval-gate.js'),
+          loadScript(CDN + LOGIN_TAB_SHA + '/js/login-tab-labels.js'),
           loadScript(CDN + STAFF_NOTIF_SHA + '/js/staff-ticket-notifs.js'),
           loadScript(CDN + TICKET_DESIGN_SHA + '/js/ticket-list-design.js'),
           loadScript(CDN + CUSTOMER_FILTER_SHA + '/js/customer-my-tickets-filter.js')
