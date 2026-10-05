@@ -1,12 +1,12 @@
 /**
- * Divine Rays — force pending staff block V6
+ * Divine Rays — force pending staff block V7 — Enter submits Admin login
  * Only blocks EXPLICITLY pending accounts. Approved staff log in normally.
  * Shows toast on auth errors. Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_FORCE_PENDING_BLOCK >= 6) return;
-  window.__DR_FORCE_PENDING_BLOCK = 6;
+  if (window.__DR_FORCE_PENDING_BLOCK >= 7) return;
+  window.__DR_FORCE_PENDING_BLOCK = 7;
 
   var KEY = 'dr_staff_approval';
   var MSG =
@@ -359,9 +359,35 @@
     } catch (e) {}
   }
 
-  if (!window.__drForcePendingSubmitV6) {
-    window.__drForcePendingSubmitV6 = 1;
+  /* Enter key → same path as clicking Sign in as Admin */
+  function onEnterKey(ev) {
+    if (ev.key !== 'Enter' && ev.keyCode !== 13) return;
+    var t = ev.target;
+    if (!t || !t.closest) return;
+    var form = t.closest('#login-agent');
+    if (!form) return;
+    if (t.tagName === 'TEXTAREA' || t.tagName === 'BUTTON' || t.tagName === 'A') return;
+    try {
+      ev.preventDefault();
+      ev.stopPropagation();
+    } catch (e) {}
+    var b = form.querySelector('button[type="submit"]');
+    if (b && !b.disabled) {
+      try {
+        b.click();
+      } catch (e2) {
+        try {
+          if (form.requestSubmit) form.requestSubmit(b);
+          else form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+        } catch (e3) {}
+      }
+    }
+  }
+
+  if (!window.__drForcePendingSubmitV7) {
+    window.__drForcePendingSubmitV7 = 1;
     document.addEventListener('submit', onSubmit, true);
+    document.addEventListener('keydown', onEnterKey, true);
   }
 
   ensureCss();
