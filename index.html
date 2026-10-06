@@ -38,11 +38,11 @@
     var TEAM_SEP_SHA = '85337adc33ac049cdbf1317bbc20388b4f774739';
     var SIDEBAR_SHA = 'f54ca62b389e67557d902e630612372b9db32710';
 
-    var ADMIN_LOCK_SHA = '61caa12d784ef14dbce219a4ad0825e33a108552';
+    var ADMIN_LOCK_SHA = 'f2337f5fd0e3db003cf3a829301e0c19ea027213';
     var SIDEBAR_ROLE_SHA = 'e1b64444ddb0dbeea9ec05d05cf843032414c738';
     var USERS_NAV_SHA = '2f3c4bdbe2f06820e0427ce220ece58252b9fc13';
     var THEME_SHA = 'e1b64444ddb0dbeea9ec05d05cf843032414c738';
-    var TOPBAR_SHA = 'c49dd3bd4b8cd07fa3608633c3d096ce1ac5db04';
+    var TOPBAR_SHA = 'e1b64444ddb0dbeea9ec05d05cf843032414c738';
     var DASH_NO_TICKETS_SHA = 'e1b64444ddb0dbeea9ec05d05cf843032414c738';
     var PENDING_FIX_SHA = '94a5aeaaa38fafaaa1ac94872341ce3bf992dfd1';
     var APPROVAL_GATE_SHA = '95399ebc6bf10275331a35b96b9b589bf25b6d7b';
@@ -161,7 +161,7 @@
 
       html = html.replace(/var LIVE_SHA = '[^']*';/, "var LIVE_SHA = '" + COMMENTS_LIVE_SHA + "';");
       html = html.replace(/var KB_JS_SHA = '[^']*';/, "var KB_JS_SHA = '" + KB_JS_SHA + "';");
-      html = html.replace(/var THEME_SHA = '[^']*';/, "var THEME_SHA = '" + THEME_SHA + "';");
+      html = html.replace(/var THEME_SHA = '[^']*';/, "var THEME_SHA = 'e1b64444ddb0dbeea9ec05d05cf843032414c738';");
       html = html.replace(
         /var EXTRA_FILES = \[[^\]]*\];/,
         "var EXTRA_FILES = ['email-notify.js','ticket-plus.js','ticket-plus-fix.js','status-lock.js','kb.js','polish-fixes.js'];"
