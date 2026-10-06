@@ -1,0 +1,30 @@
+name: Protect Admin portal pins
+on:
+  push:
+    paths:
+      - 'index.html'
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+jobs:
+  ensure:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Ensure Admin pins in index.html
+        run: python3 tools/ensure-admin-pins.py
+      - name: Commit if changed
+        run: |
+          if git diff --quiet index.html; then
+            echo "No changes"
+            exit 0
+          fi
+          git config user.name "Admin Pin Guard"
+          git config user.email "admin-pin-guard@users.noreply.github.com"
+          git add index.html
+          git commit -m "auto: restore Admin portal pins (do not drop ADMIN_LOCK / Users / role)"
+          git push
