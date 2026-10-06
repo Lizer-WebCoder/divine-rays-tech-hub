@@ -1,13 +1,13 @@
 /**
- * Divine Rays — End-User UI polish v3
+ * Divine Rays — End-User UI polish v3.1
  * Chat: mine right / theirs left. Filter: single chevron, compact layout.
- * Scoped to #portal-customer only.
+ * Tabs: only .active is purple. Scoped to #portal-customer only.
  * Credit: Boyz at the Back LRK · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_ENDUSER_UI_V3) return;
-  window.__DR_ENDUSER_UI_V3 = 1;
+  if (window.__DR_ENDUSER_UI_V31) return;
+  window.__DR_ENDUSER_UI_V31 = 1;
 
   var STYLE_ID = 'dr-enduser-ui-css';
 
@@ -35,16 +35,23 @@
     '  border-radius:12px',
     '}',
     '#portal-customer .customer-tabs .ctab,',
-    '#portal-customer .customer-tabs button{',
-    '  flex:1;min-width:6.5rem;border:none;cursor:pointer;font-family:inherit;',
+    '#portal-customer .customer-tabs button,',
+    '#portal-customer .customer-tabs .ctab.btn,',
+    '#portal-customer .customer-tabs .ctab.btn-primary{',
+    '  flex:1;min-width:6.5rem;border:none!important;cursor:pointer;font-family:inherit;',
     '  padding:0.55rem 0.85rem;border-radius:9px;',
     '  font-size:0.86rem;font-weight:600;',
-    '  background:transparent;color:var(--eu-muted)',
+    '  background:transparent!important;color:var(--eu-muted)!important;',
+    '  box-shadow:none!important',
+    '}',
+    '#portal-customer .customer-tabs .ctab:hover{',
+    '  color:var(--eu-text)!important;background:rgba(139,124,247,0.12)!important',
     '}',
     '#portal-customer .customer-tabs .ctab.active,',
-    '#portal-customer .customer-tabs button.active{',
-    '  background:linear-gradient(135deg,#7c6af0,#9b8afb);',
-    '  color:#fff;box-shadow:0 4px 14px rgba(124,106,240,0.35)',
+    '#portal-customer .customer-tabs button.active,',
+    '#portal-customer .customer-tabs .ctab.active.btn-primary{',
+    '  background:linear-gradient(135deg,#7c6af0,#9b8afb)!important;',
+    '  color:#fff!important;box-shadow:0 4px 14px rgba(124,106,240,0.35)!important',
     '}',
 
     '#portal-customer .ticket-form,',
@@ -66,16 +73,11 @@
     '#portal-customer #my-tickets-list{display:flex!important;flex-direction:column!important;gap:0.75rem!important}',
     '#portal-customer #my-tickets-list .ticket-card,',
     '#portal-customer .ticket-card{',
-    '  display:grid!important;',
-    '  grid-template-columns:1fr auto!important;',
-    '  grid-template-areas:"main badges"!important;',
-    '  gap:0.75rem 1rem!important;',
-    '  align-items:center!important;',
-    '  padding:1rem 1.15rem!important;',
-    '  background:var(--eu-surface)!important;',
-    '  border:1px solid var(--eu-border)!important;',
-    '  border-radius:14px!important;',
-    '  box-shadow:0 4px 18px rgba(0,0,0,0.2)!important;',
+    '  display:grid!important;grid-template-columns:1fr auto!important;',
+    '  grid-template-areas:"main badges"!important;gap:0.75rem 1rem!important;',
+    '  align-items:center!important;padding:1rem 1.15rem!important;',
+    '  background:var(--eu-surface)!important;border:1px solid var(--eu-border)!important;',
+    '  border-radius:14px!important;box-shadow:0 4px 18px rgba(0,0,0,0.2)!important;',
     '  cursor:pointer!important;text-align:left!important',
     '}',
     '#portal-customer #my-tickets-list .ticket-av{display:none!important}',
@@ -99,89 +101,36 @@
 
     '#portal-customer #cust-comments-list,',
     '#portal-customer #cust-comments-list.dr-eu-chat{',
-    '  display:flex!important;',
-    '  flex-direction:column!important;',
-    '  gap:0.7rem!important;',
-    '  padding:0.35rem 0.15rem 0.5rem!important;',
-    '  margin-bottom:0.85rem!important;',
+    '  display:flex!important;flex-direction:column!important;gap:0.7rem!important;',
+    '  padding:0.35rem 0.15rem 0.5rem!important;margin-bottom:0.85rem!important;',
     '  max-height:min(52vh,480px);overflow-y:auto',
     '}',
     '#portal-customer #cust-comments-list .comment{',
-    '  max-width:min(88%,26rem)!important;',
-    '  padding:0.7rem 0.9rem!important;',
-    '  border-radius:14px!important;',
-    '  border:1px solid rgba(139,124,247,0.22)!important;',
-    '  background:rgba(26,24,42,0.88)!important;',
-    '  box-shadow:0 4px 14px rgba(0,0,0,0.18)!important;',
-    '  align-self:flex-start!important;',
-    '  margin-left:0!important;margin-right:auto!important',
+    '  max-width:min(88%,26rem)!important;padding:0.7rem 0.9rem!important;',
+    '  border-radius:14px!important;border:1px solid rgba(139,124,247,0.22)!important;',
+    '  background:rgba(26,24,42,0.88)!important;box-shadow:0 4px 14px rgba(0,0,0,0.18)!important;',
+    '  align-self:flex-start!important;margin-left:0!important;margin-right:auto!important',
     '}',
     '#portal-customer #cust-comments-list .comment.dr-eu-mine{',
-    '  align-self:flex-end!important;',
-    '  margin-left:auto!important;margin-right:0!important;',
-    '  background:rgba(109,94,245,0.28)!important;',
-    '  border-color:rgba(167,139,250,0.45)!important',
+    '  align-self:flex-end!important;margin-left:auto!important;margin-right:0!important;',
+    '  background:rgba(109,94,245,0.28)!important;border-color:rgba(167,139,250,0.45)!important',
     '}',
     '#portal-customer #cust-comments-list .comment.dr-eu-theirs{',
-    '  align-self:flex-start!important;',
-    '  margin-left:0!important;margin-right:auto!important',
+    '  align-self:flex-start!important;margin-left:0!important;margin-right:auto!important',
     '}',
     '#portal-customer #cust-comments-list .comment-header{',
     '  display:flex!important;justify-content:space-between!important;',
-    '  gap:0.75rem!important;font-size:0.75rem!important;opacity:0.9!important;',
-    '  margin-bottom:0.3rem!important',
+    '  gap:0.75rem!important;font-size:0.75rem!important;opacity:0.9!important;margin-bottom:0.3rem!important',
     '}',
     '#portal-customer #cust-comments-list .comment-body{',
-    '  font-size:0.9rem!important;line-height:1.45!important;',
-    '  white-space:pre-wrap!important;word-break:break-word!important',
-    '}',
-    'html[data-theme="light"] #portal-customer #cust-comments-list .comment{',
-    '  background:#fff!important;border-color:rgba(109,94,245,0.22)!important',
-    '}',
-    'html[data-theme="light"] #portal-customer #cust-comments-list .comment.dr-eu-mine{',
-    '  background:rgba(109,94,245,0.14)!important',
+    '  font-size:0.9rem!important;line-height:1.45!important;white-space:pre-wrap!important;word-break:break-word!important',
     '}',
 
-    '#portal-customer #dr-cust-ticket-toolbar{',
-    '  display:flex!important;',
-    '  flex-wrap:wrap!important;',
-    '  align-items:center!important;',
-    '  justify-content:flex-start!important;',
-    '  gap:0.65rem 1rem!important;',
-    '  margin:0 0 1rem!important;',
-    '  padding:0.65rem 0.85rem!important;',
-    '  border-radius:12px!important;',
-    '  background:rgba(0,0,0,0.28)!important;',
-    '  border:1px solid var(--eu-border)!important',
-    '}',
-    '#portal-customer #dr-cust-ticket-toolbar .dr-ct-left{',
-    '  display:flex!important;flex-wrap:wrap!important;align-items:center!important;',
-    '  gap:0.4rem 0.55rem!important;flex:0 1 auto!important',
-    '}',
-    '#portal-customer #dr-cust-ticket-toolbar .dr-ct-right{',
-    '  display:flex!important;flex-wrap:wrap!important;align-items:center!important;',
-    '  gap:0.45rem!important;margin-left:auto!important',
-    '}',
-    '#portal-customer #dr-cust-ticket-toolbar label{',
-    '  font-size:0.72rem!important;font-weight:600!important;',
-    '  color:var(--eu-muted)!important;margin:0!important;white-space:nowrap',
-    '}',
     '#portal-customer #dr-cust-ticket-toolbar select{',
-    '  width:auto!important;min-width:7.5rem!important;max-width:12rem!important;flex:0 0 auto!important;',
-    '  border-radius:8px!important;border:1px solid rgba(167,139,250,0.4)!important;',
-    '  background-color:#1a1a28!important;',
-    '  background-image:url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'8\' viewBox=\'0 0 12 8\'%3E%3Cpath fill=\'%23c4b5fd\' d=\'M1 1l5 5 5-5\'/%3E%3C/svg%3E")!important;',
-    '  background-repeat:no-repeat!important;background-position:right 0.55rem center!important;background-size:10px 7px!important;',
-    '  color:#f3f0ff!important;padding:0.42rem 1.85rem 0.42rem 0.65rem!important;',
-    '  font-size:0.8rem!important;font-weight:600!important;',
-    '  -webkit-appearance:none!important;-moz-appearance:none!important;appearance:none!important;color-scheme:dark!important',
+    '  width:auto!important;min-width:7.5rem!important;max-width:12rem!important;',
+    '  -webkit-appearance:none!important;-moz-appearance:none!important;appearance:none!important',
     '}',
     '#portal-customer #dr-cust-ticket-toolbar select::-ms-expand{display:none!important}',
-    'html[data-theme="light"] #portal-customer #dr-cust-ticket-toolbar select{',
-    '  background-color:#fff!important;',
-    '  background-image:url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'8\' viewBox=\'0 0 12 8\'%3E%3Cpath fill=\'%235b21b6\' d=\'M1 1l5 5 5-5\'/%3E%3C/svg%3E")!important;',
-    '  color:#1a1a28!important;border-color:rgba(109,94,245,0.35)!important',
-    '}',
 
     '#portal-customer .form-group{margin-bottom:0.9rem}',
     '#portal-customer label{display:block;margin-bottom:0.3rem;font-size:0.78rem;font-weight:600;color:var(--eu-muted)}',
@@ -248,15 +197,11 @@
     '  --eu-border:rgba(109,94,245,0.22);--eu-surface:#fff;--eu-surface-2:#f5f3ff;',
     '  --eu-text:#1e1b4b;--eu-muted:#5b5675;--eu-accent:#6d5ef5',
     '}',
-    'html[data-theme="light"] #portal-customer input,',
-    'html[data-theme="light"] #portal-customer select:not(#dr-ct-cat):not(#dr-ct-size),',
-    'html[data-theme="light"] #portal-customer textarea{background:#fff;color:#1e1b4b}',
 
     '@media (max-width:640px){',
     '  #portal-customer{padding:0.8rem 0.85rem 1.6rem}',
     '  #portal-customer #my-tickets-list .ticket-card{grid-template-columns:1fr!important;grid-template-areas:"main" "badges"!important}',
     '  #portal-customer #my-tickets-list .ticket-card .badges{flex-direction:row!important}',
-    '  #portal-customer #dr-cust-ticket-toolbar .dr-ct-right{margin-left:0!important}',
     '}',
   ].join('');
 
@@ -337,11 +282,27 @@
     });
   }
 
+  function fixTabs() {
+    var panels = document.querySelectorAll('#portal-customer .ctab-panel.active, #portal-customer [id^="ctab-"].active');
+    var activeName = null;
+    panels.forEach(function (p) {
+      var id = p.id || '';
+      if (id.indexOf('ctab-') === 0) activeName = id.replace('ctab-', '');
+    });
+    document.querySelectorAll('#portal-customer .ctab, #portal-customer [data-ctab]').forEach(function (t) {
+      var name = t.getAttribute('data-ctab') || '';
+      if (activeName && name === activeName) t.classList.add('active');
+      else if (activeName) t.classList.remove('active');
+      if (!t.classList.contains('active')) t.classList.remove('btn-primary');
+    });
+  }
+
   function run() {
     inject();
     normalizeCards();
     alignChat();
     fixFilterSelects();
+    fixTabs();
   }
 
   run();
