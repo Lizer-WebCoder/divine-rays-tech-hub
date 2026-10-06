@@ -1,5 +1,5 @@
 /**
- * Divine Rays - Users nav v12 — keep Users visible while profile loads
+ * Divine Rays - Users nav v13 — End-Users stat size + centered Role/Joined/Actions
  * Users tab: Admins + Developers.
  * End-Users list: Admins and Developers.
  * Admin staff list: Developers only.
@@ -7,11 +7,10 @@
  */
 (function () {
   'use strict';
-  if (window.__DR_USERS_NAV_V12 >= 1) return;
+  if (window.__DR_USERS_NAV_V13 >= 1) return;
+  window.__DR_USERS_NAV_V13 = 1;
   window.__DR_USERS_NAV_V12 = 1;
   window.__DR_USERS_NAV_V11 = 1;
-  window.__DR_USERS_NAV_V10 = 1;
-  window.__DR_USERS_NAV_V9 = 2;
   window.__DR_USERS_NAV = 1;
 
   var DEVELOPER_USERNAMES = { kirzhian: 1, kirzhianquijano: 1, kirzhianthegreat: 1, jamesjerlow123: 1, liya: 1 };
@@ -40,12 +39,8 @@
     var r = String(u.role || u.staff_role || '').toLowerCase().trim();
     if (r === 'customer' || r === 'end-user' || r === 'enduser' || r === 'end_user' || r === 'user') return false;
     return (
-      r === 'admin' ||
-      r === 'agent' ||
-      r === 'staff' ||
-      r === 'administrator' ||
-      r === 'it tech support' ||
-      r.indexOf('tech support') !== -1
+      r === 'admin' || r === 'agent' || r === 'staff' || r === 'administrator' ||
+      r === 'it tech support' || r.indexOf('tech support') !== -1
     );
   }
 
@@ -56,14 +51,11 @@
     return false;
   }
 
-  function canSeeEndUsersList() {
-    return canSeeUsersTab();
-  }
+  function canSeeEndUsersList() { return canSeeUsersTab(); }
 
   function canSeeAdminStaffList() {
     var p = currentProfile();
     if (isDeveloperUser(p)) return true;
-    /* While profile loads, allow Admin sub if name looks like developer */
     if (!p) {
       var el = document.getElementById('agent-name-display');
       var t = el ? (el.textContent || '') : '';
@@ -105,9 +97,15 @@
       'body.dr-view-endusers #view-admin,body.dr-view-admin-staff #view-admin{display:block!important;visibility:visible!important;opacity:1!important}',
       '#view-admin.active{display:block!important;visibility:visible!important;opacity:1!important}',
       'body.dr-view-endusers .admin-stats .stat-card{display:none!important}',
-      'body.dr-view-endusers .admin-stats .stat-card.dr-stat-endusers{display:flex!important;align-items:center!important;justify-content:center!important;text-align:center!important}',
+      'body.dr-view-endusers .admin-stats{display:flex!important;gap:0.75rem!important;max-width:14rem!important;width:auto!important}',
+      'body.dr-view-endusers .admin-stats .stat-card.dr-stat-endusers,body.dr-view-endusers .admin-stats .stat-card:nth-child(2){display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;text-align:center!important;min-width:10rem!important;max-width:12rem!important;width:10rem!important;padding:0.85rem 1rem!important;box-sizing:border-box!important}',
+      'body.dr-view-endusers .admin-stats .stat-card.dr-stat-endusers .stat-label,body.dr-view-endusers .admin-stats .stat-card.dr-stat-endusers .stat-value{text-align:center!important;width:100%!important}',
       'body.dr-view-admin-staff .admin-stats .stat-card{display:none!important}',
-      'body.dr-view-admin-staff .admin-stats .stat-card.dr-stat-admins,body.dr-view-admin-staff .admin-stats .stat-card.me{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;text-align:center!important;min-width:10rem!important}'
+      'body.dr-view-admin-staff .admin-stats{display:flex!important;gap:0.75rem!important;max-width:14rem!important}',
+      'body.dr-view-admin-staff .admin-stats .stat-card.dr-stat-admins,body.dr-view-admin-staff .admin-stats .stat-card.me{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;text-align:center!important;min-width:10rem!important;max-width:12rem!important;width:10rem!important}',
+      'body.dr-view-endusers .admin-table th:nth-child(3),body.dr-view-endusers .admin-table td:nth-child(3),body.dr-view-endusers .admin-table th:nth-child(4),body.dr-view-endusers .admin-table td:nth-child(4),body.dr-view-endusers .admin-table th:nth-child(5),body.dr-view-endusers .admin-table td:nth-child(5){text-align:center!important;vertical-align:middle!important}',
+      'body.dr-view-endusers .admin-table .admin-actions,body.dr-view-endusers .admin-table td:nth-child(5){display:flex!important;justify-content:center!important;align-items:center!important;gap:0.35rem!important;flex-wrap:wrap!important}',
+      'body.dr-view-admin-staff .admin-table th:nth-child(3),body.dr-view-admin-staff .admin-table td:nth-child(3),body.dr-view-admin-staff .admin-table th:nth-child(4),body.dr-view-admin-staff .admin-table td:nth-child(4),body.dr-view-admin-staff .admin-table th:nth-child(5),body.dr-view-admin-staff .admin-table td:nth-child(5),body.dr-view-admin-staff .admin-table th:nth-child(6),body.dr-view-admin-staff .admin-table td:nth-child(6){text-align:center!important;vertical-align:middle!important}'
     ].join('');
   }
 
@@ -119,11 +117,7 @@
   function isStaffRole(role) {
     var r = String(role || '').toLowerCase().trim();
     if (isEndUserRole(r)) return false;
-    return (
-      r === 'admin' || r === 'agent' || r === 'developer' || r === 'owner' ||
-      r === 'staff' || r === 'administrator' || r === 'it tech support' ||
-      r.indexOf('tech support') !== -1
-    );
+    return r === 'admin' || r === 'agent' || r === 'developer' || r === 'owner' || r === 'staff' || r === 'administrator' || r === 'it tech support' || r.indexOf('tech support') !== -1;
   }
 
   async function refreshStatCounts() {
@@ -359,10 +353,7 @@
 
   function wire() {
     injectCss();
-    if (!canSeeUsersTab()) {
-      hideUsersNav();
-      return;
-    }
+    if (!canSeeUsersTab()) { hideUsersNav(); return; }
     var root = findAdminNavBtn();
     if (!root) return;
     showUsersNavChrome(root);
@@ -386,10 +377,7 @@
 
   function tick() {
     wire();
-    if (!canSeeUsersTab()) {
-      hideUsersNav();
-      return;
-    }
+    if (!canSeeUsersTab()) { hideUsersNav(); return; }
     applySubmenuVisibility();
     if (
       document.body.classList.contains('dr-view-endusers') ||
@@ -409,8 +397,8 @@
     }
   }
 
-  if (!window.__drUsersNavClickV12) {
-    window.__drUsersNavClickV12 = 1;
+  if (!window.__drUsersNavClickV13) {
+    window.__drUsersNavClickV13 = 1;
     document.addEventListener(
       'click',
       function (e) {
