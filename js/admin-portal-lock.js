@@ -9,16 +9,10 @@
   window.__DR_ADMIN_PORTAL_LOCK = 3;
 
   var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
+  /* Do not force-load polling UI scripts — they caused full-UI flicker every 1–5s.
+     index.html pins load Users/theme once; this lock only applies light DOM fixes. */
   var PINS = {
-    'users-nav.js': 'f87daa9cf712394f08b7c3150b834322e54f1265',
-    'sidebar-role-label.js': '44b94a0ad4abfd721e4b09d03a1eda83670d7a87',
-    'theme.js': '7ee0f900415b2bb33aaa4e9b212250814b7068eb',
-    'topbar-brand-role.js': '7ee0f900415b2bb33aaa4e9b212250814b7068eb',
-    'dashboard-no-tickets.js': '9cd76a3ce81dad052eb98af306130ca5c8b70032',
-    'pending-approved-fix.js': '94a5aeaaa38fafaaa1ac94872341ce3bf992dfd1',
-    'force-pending-block.js': 'f3988b77a2f35efc5cd53a040d78a56becb58261',
-    'agent-approval-gate.js': '95399ebc6bf10275331a35b96b9b589bf25b6d7b',
-    'login-tab-labels.js': '9beff1f929318ca08d9a71a1d4718ec4afebf539'
+    'pending-approved-fix.js': '94a5aeaaa38fafaaa1ac94872341ce3bf992dfd1'
   };
 
   var scriptsLoaded = false;
