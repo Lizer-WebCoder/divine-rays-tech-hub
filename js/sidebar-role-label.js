@@ -1,13 +1,12 @@
 /**
- * Divine Rays — Sidebar role label + brand v4 (no flicker)
- * Force Developer role, Divine Rays Tech Hub brand, hide TECH SUPPORT
- * MutationObserver removed — it caused innerHTML rewrite loops.
+ * Divine Rays — Sidebar profile v5
+ * Name + role (no pill), divider under profile, glowing avatar ring
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_SIDEBAR_ROLE_LABEL >= 4) return;
-  window.__DR_SIDEBAR_ROLE_LABEL = 4;
+  if (window.__DR_SIDEBAR_ROLE_LABEL >= 5) return;
+  window.__DR_SIDEBAR_ROLE_LABEL = 5;
 
   var DEVS = { kirzhian: 1, kirzhianquijano: 1, kirzhianthegreat: 1, jamesjerlow123: 1, liya: 1, iiya: 1 };
 
@@ -61,19 +60,64 @@
   }
 
   function css() {
-    if (document.getElementById('dr-sidebar-role-css')) return;
+    if (document.getElementById('dr-sidebar-role-css')) {
+      document.getElementById('dr-sidebar-role-css').remove();
+    }
     var el = document.createElement('style');
     el.id = 'dr-sidebar-role-css';
     el.textContent = [
       '#portal-agent .sidebar .brand-text p, #portal-agent .brand-text p { display:none!important; }',
-      '#agent-name-display .dr-side-name { margin-right:0.25rem; }',
-      '#agent-name-display .dr-role-pill, #agent-name-display .dr-side-role {',
-      'display:inline-block;margin-left:.35rem;padding:.12rem .55rem;border-radius:999px;',
-      'font-size:.68rem;font-weight:700;letter-spacing:.02em;vertical-align:middle}',
-      '#agent-name-display .dr-side-role.developer, #agent-name-display .dr-role-pill[data-role="developer"]{background:rgba(234,179,8,.2);color:#fbbf24;border:1px solid rgba(234,179,8,.45)}',
-      '#agent-name-display .dr-side-role.admin, #agent-name-display .dr-role-pill[data-role="admin"]{background:rgba(45,212,191,.15);color:#2dd4bf;border:1px solid rgba(45,212,191,.4)}',
-      '#agent-name-display .dr-side-role.owner, #agent-name-display .dr-role-pill[data-role="owner"]{background:rgba(168,85,247,.18);color:#c084fc;border:1px solid rgba(168,85,247,.4)}',
-      '#agent-name-display .dr-side-role.agent, #agent-name-display .dr-role-pill[data-role="agent"]{background:rgba(96,165,250,.15);color:#60a5fa;border:1px solid rgba(96,165,250,.4)}'
+
+      '#agent-name-display{',
+      'display:flex!important;align-items:baseline!important;justify-content:center!important;',
+      'flex-wrap:wrap!important;gap:0.25rem 0.4rem!important;',
+      'background:transparent!important;border:none!important;box-shadow:none!important;',
+      'padding:0.15rem 0.25rem!important;border-radius:0!important}',
+
+      '#agent-name-display .dr-side-name{',
+      'font-weight:600!important;font-size:0.9rem!important;color:inherit!important}',
+
+      '#agent-name-display .dr-side-role, #agent-name-display .dr-role-pill{',
+      'display:inline!important;margin:0!important;padding:0!important;',
+      'border:none!important;border-radius:0!important;background:transparent!important;',
+      'box-shadow:none!important;font-size:0.78rem!important;font-weight:600!important;',
+      'letter-spacing:0.01em!important}',
+
+      '#agent-name-display .dr-side-role.developer, #agent-name-display .dr-role-pill[data-role="developer"]{color:#fbbf24!important}',
+      '#agent-name-display .dr-side-role.admin, #agent-name-display .dr-role-pill[data-role="admin"]{color:#2dd4bf!important}',
+      '#agent-name-display .dr-side-role.owner, #agent-name-display .dr-role-pill[data-role="owner"]{color:#c084fc!important}',
+      '#agent-name-display .dr-side-role.agent, #agent-name-display .dr-role-pill[data-role="agent"]{color:#60a5fa!important}',
+
+      '#portal-agent .sidebar .agent-badge{',
+      'padding-bottom:0.85rem!important;margin-bottom:0.65rem!important;',
+      'border-bottom:1px solid rgba(148,148,174,0.28)!important}',
+
+      '#portal-agent #sidebar-avatar-chip,',
+      '#portal-agent .sidebar-avatar-chip{',
+      'display:inline-flex!important;align-items:center!important;justify-content:center!important;',
+      'border-radius:50%!important;padding:3px!important;',
+      'background:linear-gradient(135deg,#a78bfa,#7c6af0 40%,#60a5fa)!important;',
+      'box-shadow:0 0 0 2px rgba(124,106,240,0.35),0 0 14px 3px rgba(124,106,240,0.55),0 0 28px 6px rgba(96,165,250,0.25)!important;',
+      'animation:dr-avatar-glow 2.8s ease-in-out infinite!important}',
+
+      '#portal-agent #sidebar-avatar-chip img,',
+      '#portal-agent #sidebar-avatar-chip .avatar-img,',
+      '#portal-agent .sidebar-avatar-chip img,',
+      '#portal-agent .sidebar-avatar-chip .avatar-img{',
+      'border-radius:50%!important;display:block!important;',
+      'box-shadow:0 0 0 2px #1a1625!important}',
+
+      '#portal-agent .agent-badge .avatar-img,',
+      '#portal-agent .agent-badge img.avatar{',
+      'border-radius:50%!important;',
+      'box-shadow:0 0 0 2px rgba(124,106,240,0.5),0 0 12px 2px rgba(124,106,240,0.45)!important}',
+
+      '@keyframes dr-avatar-glow{',
+      '0%,100%{box-shadow:0 0 0 2px rgba(124,106,240,0.35),0 0 12px 3px rgba(124,106,240,0.45),0 0 22px 5px rgba(96,165,250,0.2)}',
+      '50%{box-shadow:0 0 0 2px rgba(167,139,250,0.55),0 0 18px 5px rgba(124,106,240,0.7),0 0 32px 8px rgba(96,165,250,0.35)}}',
+
+      'html[data-theme="light"] #portal-agent .sidebar .agent-badge{',
+      'border-bottom-color:rgba(90,90,120,0.25)!important}'
     ].join('');
     (document.head || document.documentElement).appendChild(el);
   }
@@ -97,36 +141,41 @@
     var role = roleOf(p);
     var name = nameOf(p);
     if (isDev(name)) role = { label: 'Developer', cls: 'developer' };
-    var key = name + '|' + role.label;
-    if (el.getAttribute('data-dr-role-key') === key) {
-      if (el.querySelector('.dr-side-role') || el.querySelector('.dr-role-pill')) return;
-    }
+    var key = name + '|' + role.label + '|plain';
+    if (el.getAttribute('data-dr-role-key') === key && el.querySelector('.dr-side-role')) return;
     el.setAttribute('data-dr-role-key', key);
     el.innerHTML =
-      '<span class="dr-side-name">' + esc(name) + '</span> ' +
-      '<span class="dr-role-pill dr-side-role ' + esc(role.cls) + '" data-role="' + esc(role.cls) + '">' + esc(role.label) + '</span>';
+      '<span class="dr-side-name">' + esc(name) + '</span>' +
+      '<span class="dr-side-role ' + esc(role.cls) + '" data-role="' + esc(role.cls) + '">' + esc(role.label) + '</span>';
   }
 
-  function capture() {
-    try {
-      if (window.DR && window.DR.profile) window.__drProfile = window.DR.profile;
-      if (window.currentProfile) window.__drProfile = window.currentProfile;
-    } catch (e) {}
+  function ensureAvatarGlow() {
+    var badge = document.querySelector('#portal-agent .agent-badge');
+    if (badge) badge.classList.add('dr-profile-block');
   }
 
   function tick() {
     css();
-    capture();
     applyBrand();
     applyRole();
+    ensureAvatarGlow();
   }
 
   tick();
+  setTimeout(tick, 500);
   setTimeout(tick, 1500);
-  setInterval(tick, 15000);
-  document.addEventListener('click', function (e) {
-    if (e.target && e.target.closest && e.target.closest('#portal-agent .nav-btn')) {
-      setTimeout(tick, 100);
-    }
-  }, true);
+  setTimeout(tick, 3500);
+  setInterval(tick, 20000);
+
+  document.addEventListener(
+    'click',
+    function (e) {
+      if (e.target && e.target.closest && e.target.closest('#portal-agent .nav-btn')) {
+        setTimeout(tick, 100);
+      }
+    },
+    true
+  );
+
+  window.DRSidebarRole = { refresh: tick, v: 5 };
 })();
