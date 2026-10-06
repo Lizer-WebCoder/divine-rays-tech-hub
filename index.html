@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.7.8-theme-v8" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.7.9-p1" />
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@main/js/admin-portal-lock.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@main/js/theme.js"></script>
   <style>
@@ -65,6 +65,7 @@
     var TICKET_DESIGN_SHA = '01d6078d7a6a6ff64a1c9f53621d1bc2446156cf';
 
     var CUSTOMER_FILTER_SHA = '517014018e6fae9383c57a5c02e51bbacfc73991';
+    var PRIORITY_P1_SHA = '37d90f9d9de1e6636dc0a3b478c6cb67bd786f28';
     var ENDUSER_PRO_SHA = '9fe374cd480c99d3530cbfc4c7d685292b24a29e';
     var ENDUSER_UI_SHA = '21cb83c9fcfb8a00b170f6efc25051b63d9fbff2';
     var CHAT_UI_SHA = 'c03c31b5baab763cee98ae37ae023991ade8164b';
@@ -99,6 +100,7 @@
       'design-system-v10.js': DESIGN_SHA,
       'ticket-list-design.js': TICKET_DESIGN_SHA,
       'customer-my-tickets-filter.js': CUSTOMER_FILTER_SHA,
+      'priority-p1-display.js': PRIORITY_P1_SHA,
       'enduser-pro.js': ENDUSER_PRO_SHA,
       'enduser-ui.js': ENDUSER_UI_SHA,
       'chat-ui.js': CHAT_UI_SHA,
@@ -244,6 +246,8 @@
           loadScript(CDN + STAFF_NOTIF_SHA + '/js/staff-ticket-notifs.js'),
           loadScript(CDN + TICKET_DESIGN_SHA + '/js/ticket-list-design.js'),
           loadScript(CDN + CUSTOMER_FILTER_SHA + '/js/customer-my-tickets-filter.js'),
+          loadScript(CDN + PRIORITY_P1_SHA + '/js/priority-p1-display.js'),
+          loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@main/js/customer-priority-matrix.js'),
           loadScript(CDN + ENDUSER_PRO_SHA + '/js/enduser-pro.js'),
           loadScript(CDN + ENDUSER_UI_SHA + '/js/enduser-ui.js'),
           loadScript(CDN + CHAT_UI_SHA + '/js/chat-ui.js'),
@@ -264,6 +268,7 @@
           try { if (window.DRTopbarBrand && window.DRTopbarBrand.refresh) window.DRTopbarBrand.refresh(); } catch (e11) {}
           try { if (window.DRTopbarActions && window.DRTopbarActions.refresh) window.DRTopbarActions.refresh(); } catch (e12) {}
           try { if (window.DRTheme && window.DRTheme.ensure) window.DRTheme.ensure(); } catch (e13) {}
+          try { if (window.DRPriorityP1Display && window.DRPriorityP1Display.refresh) window.DRPriorityP1Display.refresh(); } catch (e14) {}
         });
       }, 1600);
 
