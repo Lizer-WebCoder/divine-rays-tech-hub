@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.7.4-noflicker" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.7.5-portal-topbar" />
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@main/js/admin-portal-lock.js"></script>
   <style>
     html,body{margin:0;background:#0c0c14;color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
@@ -38,11 +38,11 @@
     var TEAM_SEP_SHA = '85337adc33ac049cdbf1317bbc20388b4f774739';
     var SIDEBAR_SHA = 'f54ca62b389e67557d902e630612372b9db32710';
 
-    var ADMIN_LOCK_SHA = 'f2337f5fd0e3db003cf3a829301e0c19ea027213';
+    var ADMIN_LOCK_SHA = '61caa12d784ef14dbce219a4ad0825e33a108552';
     var SIDEBAR_ROLE_SHA = 'e1b64444ddb0dbeea9ec05d05cf843032414c738';
     var USERS_NAV_SHA = '2f3c4bdbe2f06820e0427ce220ece58252b9fc13';
     var THEME_SHA = 'e1b64444ddb0dbeea9ec05d05cf843032414c738';
-    var TOPBAR_SHA = 'e1b64444ddb0dbeea9ec05d05cf843032414c738';
+    var TOPBAR_SHA = 'c49dd3bd4b8cd07fa3608633c3d096ce1ac5db04';
     var DASH_NO_TICKETS_SHA = 'e1b64444ddb0dbeea9ec05d05cf843032414c738';
     var PENDING_FIX_SHA = '94a5aeaaa38fafaaa1ac94872341ce3bf992dfd1';
     var APPROVAL_GATE_SHA = '95399ebc6bf10275331a35b96b9b589bf25b6d7b';
@@ -67,8 +67,8 @@
     var ENDUSER_UI_SHA = '21cb83c9fcfb8a00b170f6efc25051b63d9fbff2';
     var CHAT_UI_SHA = 'c03c31b5baab763cee98ae37ae023991ade8164b';
     var LIGHT_MODE_POLISH_SHA = '9a741396a6d1bafc57a4988841112afe0c79997f';
-    var FORCE_LIGHT_BG_SHA = '1e9f9e75949531d12d1f734d0a37b914b51061cc';
-    var LOGIN_CHROME_HIDE_SHA = '4a548ecc9cf7c4b82a37bb8d8e9a540f39f4d682';
+    var FORCE_LIGHT_BG_SHA = '06cb1f6b344b3908e790bd20f764d4f5aa9b468a';
+    var LOGIN_CHROME_HIDE_SHA = '60c3368efd15da0e8d15cac0674b28eaed22d973';
 
     var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
     var BUST = String(Date.now());
@@ -256,6 +256,7 @@
           try { if (window.DREndUserUI && window.DREndUserUI.refresh) window.DREndUserUI.refresh(); } catch (e8) {}
           try { if (window.DRChatUI && window.DRChatUI.refresh) window.DRChatUI.refresh(); } catch (e9) {}
           try { if (window.DRLightModePolish && window.DRLightModePolish.refresh) window.DRLightModePolish.refresh(); } catch (e10) {}
+          try { if (window.DRTopbarBrand && window.DRTopbarBrand.refresh) window.DRTopbarBrand.refresh(); } catch (e11) {}
         });
       }, 1600);
 
