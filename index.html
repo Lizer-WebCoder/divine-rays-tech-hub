@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.6.7" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.6.8" />
   <style>
     html,body{margin:0;background:#0c0c14;color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
     #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae;flex-direction:column;gap:0.75rem;padding:1.5rem;text-align:center}
@@ -36,29 +36,38 @@
     var TEAM_BOARD_SHA = '6f7d941cf16542de5868a7ed0abaacae83f4d133';
     var TEAM_SEP_SHA = '85337adc33ac049cdbf1317bbc20388b4f774739';
     var SIDEBAR_SHA = 'f54ca62b389e67557d902e630612372b9db32710';
-    var SIDEBAR_ROLE_SHA = '396413b4889347a186bc0327ecbe33ef990ddfe2';
+
+    var ADMIN_LOCK_SHA = 'e8d1899f3de59d4c285e2dc8514b27c0657ccc40';
+    var SIDEBAR_ROLE_SHA = '44b94a0ad4abfd721e4b09d03a1eda83670d7a87';
+    var USERS_NAV_SHA = 'f87daa9cf712394f08b7c3150b834322e54f1265';
+    var THEME_SHA = '7ee0f900415b2bb33aaa4e9b212250814b7068eb';
+    var TOPBAR_SHA = '7ee0f900415b2bb33aaa4e9b212250814b7068eb';
+    var DASH_NO_TICKETS_SHA = '9cd76a3ce81dad052eb98af306130ca5c8b70032';
+    var PENDING_FIX_SHA = '94a5aeaaa38fafaaa1ac94872341ce3bf992dfd1';
     var APPROVAL_GATE_SHA = '95399ebc6bf10275331a35b96b9b589bf25b6d7b';
     var FORCE_PENDING_SHA = 'f3988b77a2f35efc5cd53a040d78a56becb58261';
     var LOGIN_TAB_SHA = '9beff1f929318ca08d9a71a1d4718ec4afebf539';
+
     var STAFF_NOTIF_SHA = 'ad42d4238ecd55ec0bb66aa9a842fe2c57b936bd';
     var REPLY_FIX_SHA = '5307c296fc8868d23fdc61bde79cad23f3c71dba';
     var COMMENTS_LIVE_SHA = '4181ae9900f29ec307555a38e62ae6be7e6b9a8f';
     var UI_LAYOUT_SHA = 'ce5a1fde308a9d38438b60df40497902b607690c';
     var KB_TABLE_SHA = '057efa589371be7a05114c786f31a89bb28fe009';
     var KB_JS_SHA = 'd4e9498db74b26a08bf7c8acec52ac3496c6ff86';
-    var USERS_NAV_SHA = 'd0bd758b16b8bc38286488128c64a224d7baead6';
     var ADMIN_SHA = 'dd3d27c0c8190f4f85781c8f2477678d538768b0';
     var ADMIN_STATS_SHA = 'a84ce631450b3b57b11f852de982bf83206ea26b';
     var TOOLBAR_SHA = '2ea9190cbbb3dbfbf3a159ca47d585a61b2f6e2b';
     var FILTER_SHA = '1bfe6c0e93dedc361cf1f3e15eb520c3aea13930';
     var DESIGN_SHA = '7d6d66cbe63fda91cf71d64bbddd1af80f3adfc3';
     var TICKET_DESIGN_SHA = '01d6078d7a6a6ff64a1c9f53621d1bc2446156cf';
+
     var CUSTOMER_FILTER_SHA = '517014018e6fae9383c57a5c02e51bbacfc73991';
     var ENDUSER_PRO_SHA = '9fe374cd480c99d3530cbfc4c7d685292b24a29e';
     var ENDUSER_UI_SHA = '21cb83c9fcfb8a00b170f6efc25051b63d9fbff2';
     var CHAT_UI_SHA = 'c03c31b5baab763cee98ae37ae023991ade8164b';
     var LIGHT_MODE_POLISH_SHA = 'b5fd1eb01ffbf87e284ab2996312d08f624e741b';
     var FORCE_LIGHT_BG_SHA = '1e9f9e75949531d12d1f734d0a37b914b51061cc';
+
     var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
     var BUST = String(Date.now());
     var TIP = 'dd3d27c0c8190f4f85781c8f2477678d538768b0';
@@ -72,6 +81,11 @@
       'kb.js': KB_JS_SHA,
       'agent-approval-gate.js': APPROVAL_GATE_SHA,
       'force-pending-block.js': FORCE_PENDING_SHA,
+      'pending-approved-fix.js': PENDING_FIX_SHA,
+      'theme.js': THEME_SHA,
+      'topbar-brand-role.js': TOPBAR_SHA,
+      'dashboard-no-tickets.js': DASH_NO_TICKETS_SHA,
+      'admin-portal-lock.js': ADMIN_LOCK_SHA,
       'login-tab-labels.js': LOGIN_TAB_SHA,
       'staff-ticket-notifs.js': STAFF_NOTIF_SHA,
       'customer-reply-fix.js': REPLY_FIX_SHA,
@@ -142,15 +156,9 @@
       }
       if (!html) throw new Error('Could not load app shell');
 
-      html = html.replace(
-        /var LIVE_SHA = '[^']*';/,
-        "var LIVE_SHA = '" + COMMENTS_LIVE_SHA + "';"
-      );
-      html = html.replace(
-        /var KB_JS_SHA = '[^']*';/,
-        "var KB_JS_SHA = '" + KB_JS_SHA + "';"
-      );
-
+      html = html.replace(/var LIVE_SHA = '[^']*';/, "var LIVE_SHA = '" + COMMENTS_LIVE_SHA + "';");
+      html = html.replace(/var KB_JS_SHA = '[^']*';/, "var KB_JS_SHA = '" + KB_JS_SHA + "';");
+      html = html.replace(/var THEME_SHA = '[^']*';/, "var THEME_SHA = '" + THEME_SHA + "';");
       html = html.replace(
         /var EXTRA_FILES = \[[^\]]*\];/,
         "var EXTRA_FILES = ['email-notify.js','ticket-plus.js','ticket-plus-fix.js','status-lock.js','kb.js','polish-fixes.js'];"
@@ -184,10 +192,17 @@
       clearTimeout(bootTimer);
 
       setTimeout(function () {
-        loadScript(CDN + LOGIN_TAB_SHA + '/js/login-tab-labels.js');
+        loadScript(CDN + ADMIN_LOCK_SHA + '/js/admin-portal-lock.js');
+        loadScript(CDN + USERS_NAV_SHA + '/js/users-nav.js');
+        loadScript(CDN + SIDEBAR_ROLE_SHA + '/js/sidebar-role-label.js');
+        loadScript(CDN + TOPBAR_SHA + '/js/topbar-brand-role.js');
+        loadScript(CDN + THEME_SHA + '/js/theme.js');
+        loadScript(CDN + DASH_NO_TICKETS_SHA + '/js/dashboard-no-tickets.js');
+        loadScript(CDN + PENDING_FIX_SHA + '/js/pending-approved-fix.js');
         loadScript(CDN + FORCE_PENDING_SHA + '/js/force-pending-block.js');
         loadScript(CDN + APPROVAL_GATE_SHA + '/js/agent-approval-gate.js');
-      }, 50);
+        loadScript(CDN + LOGIN_TAB_SHA + '/js/login-tab-labels.js');
+      }, 30);
 
       setTimeout(function () {
         Promise.all([
@@ -197,7 +212,11 @@
           loadScript(CDN + TIP + '/js/ui-fixes-v11.js'),
           loadScript(CDN + TOOLBAR_SHA + '/js/ui-toolbar-fix.js'),
           loadScript(CDN + SIDEBAR_SHA + '/js/sidebar-design.js'),
+          loadScript(CDN + ADMIN_LOCK_SHA + '/js/admin-portal-lock.js'),
           loadScript(CDN + SIDEBAR_ROLE_SHA + '/js/sidebar-role-label.js'),
+          loadScript(CDN + THEME_SHA + '/js/theme.js'),
+          loadScript(CDN + TOPBAR_SHA + '/js/topbar-brand-role.js'),
+          loadScript(CDN + DASH_NO_TICKETS_SHA + '/js/dashboard-no-tickets.js'),
           loadScript(CDN + TEAM_BOARD_SHA + '/js/team-board.js'),
           loadScript(CDN + TEAM_SEP_SHA + '/js/team-sep.js'),
           loadScript(CDN + COMMENTS_LIVE_SHA + '/js/comments-live.js'),
@@ -211,6 +230,7 @@
           loadScript(CDN + FILTER_SHA + '/js/users-filter-enforce.js'),
           loadScript(CDN + FORCE_PENDING_SHA + '/js/force-pending-block.js'),
           loadScript(CDN + APPROVAL_GATE_SHA + '/js/agent-approval-gate.js'),
+          loadScript(CDN + PENDING_FIX_SHA + '/js/pending-approved-fix.js'),
           loadScript(CDN + LOGIN_TAB_SHA + '/js/login-tab-labels.js'),
           loadScript(CDN + STAFF_NOTIF_SHA + '/js/staff-ticket-notifs.js'),
           loadScript(CDN + TICKET_DESIGN_SHA + '/js/ticket-list-design.js'),
@@ -218,7 +238,8 @@
           loadScript(CDN + ENDUSER_PRO_SHA + '/js/enduser-pro.js'),
           loadScript(CDN + ENDUSER_UI_SHA + '/js/enduser-ui.js'),
           loadScript(CDN + CHAT_UI_SHA + '/js/chat-ui.js'),
-          loadScript(CDN + LIGHT_MODE_POLISH_SHA + '/js/light-mode-polish.js')
+          loadScript(CDN + LIGHT_MODE_POLISH_SHA + '/js/light-mode-polish.js'),
+          loadScript(CDN + FORCE_LIGHT_BG_SHA + '/js/force-light-bg.js')
         ]).then(function () {
           try { if (window.DRUsersNav && window.DRUsersNav.refresh) window.DRUsersNav.refresh(); } catch (e) {}
           try { if (window.DRSidebarDesign && window.DRSidebarDesign.refresh) window.DRSidebarDesign.refresh(); } catch (e2) {}
