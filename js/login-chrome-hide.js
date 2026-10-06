@@ -1,100 +1,65 @@
 /**
  * Divine Rays — hide portal chrome on login; restore FAB sizes when logged in
+ * Quiet v3 — no 2s loop / no subtree MutationObserver (was causing flicker)
  * Credit: Lizzz · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_LOGIN_CHROME_HIDE_V2) return;
-  window.__DR_LOGIN_CHROME_HIDE_V2 = 1;
+  if (window.__DR_LOGIN_CHROME_HIDE >= 3) return;
+  window.__DR_LOGIN_CHROME_HIDE = 3;
 
-  var STYLE_ID = 'dr-login-chrome-hide-css';
-  var FAB_SIZE = '56px';
-  var ICON_SIZE = '24px';
   var SELECTORS = [
+    '#btn-logout',
+    '#logged-user-label',
+    '.mode-user',
+    '.mode-actions',
     '.mode-bar',
+    '#theme-toggle',
+    '[data-theme-toggle]',
     '#dr-staff-notif-fab',
-    '#dr-staff-notif-panel',
-    '#dr-staff-notif-bd',
     '#dr-notif-fab',
-    '#dr-notif-panel',
-    '#dr-notif-panel-bd',
-    '#dr-notif-btn',
     '#dr-chat-fab',
     '.dr-notif-fab',
-    '[id*="notif-fab"]'
+    '.dr-chat-fab'
   ];
 
-  function inject() {
-    var el = document.getElementById(STYLE_ID);
-    if (!el) {
-      el = document.createElement('style');
-      el.id = STYLE_ID;
-      document.head.appendChild(el);
+  function isLoginVisible() {
+    try {
+      var ls = document.getElementById('login-screen') || document.querySelector('.login-screen');
+      if (ls) {
+        var st = window.getComputedStyle(ls);
+        if (st.display === 'none' || st.visibility === 'hidden' || ls.hidden) return false;
+        if (ls.offsetParent === null && st.position !== 'fixed') return false;
+        return true;
+      }
+      var pa = document.getElementById('portal-agent');
+      var pc = document.getElementById('portal-customer');
+      if ((pa && pa.classList.contains('active')) || (pc && pc.classList.contains('active'))) return false;
+      return !document.body || !document.body.classList.contains('is-portal');
+    } catch (e) {
+      return false;
     }
-    el.textContent = [
-      'body.is-login .mode-bar,body:not(.is-portal) .mode-bar,',
-      'body.is-login #dr-staff-notif-fab,body:not(.is-portal) #dr-staff-notif-fab,',
-      'body.is-login #dr-staff-notif-panel,body:not(.is-portal) #dr-staff-notif-panel,',
-      'body.is-login #dr-staff-notif-bd,body:not(.is-portal) #dr-staff-notif-bd,',
-      'body.is-login #dr-notif-fab,body:not(.is-portal) #dr-notif-fab,',
-      'body.is-login #dr-notif-panel,body:not(.is-portal) #dr-notif-panel,',
-      'body.is-login #dr-notif-panel-bd,body:not(.is-portal) #dr-notif-panel-bd,',
-      'body.is-login #dr-notif-btn,body:not(.is-portal) #dr-notif-btn,',
-      'body.is-login #dr-chat-fab,body:not(.is-portal) #dr-chat-fab,',
-      'body.is-login .dr-notif-fab,body:not(.is-portal) .dr-notif-fab,',
-      'body.is-login [id*="notif-fab"],body:not(.is-portal) [id*="notif-fab"]{',
-      'display:none!important;visibility:hidden!important;pointer-events:none!important;opacity:0!important}',
-
-      'body.is-portal .mode-bar{display:flex!important;visibility:visible!important}',
-
-      'body.is-portal #dr-staff-notif-fab,body.is-portal #dr-notif-fab,body.is-portal #dr-chat-fab{',
-      'display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;',
-      'width:' + FAB_SIZE + '!important;height:' + FAB_SIZE + '!important;',
-      'min-width:' + FAB_SIZE + '!important;min-height:' + FAB_SIZE + '!important;',
-      'max-width:' + FAB_SIZE + '!important;max-height:' + FAB_SIZE + '!important;',
-      'border-radius:50%!important;box-sizing:border-box!important;',
-      'align-items:center!important;justify-content:center!important',
-      '}',
-      'body.is-portal #dr-staff-notif-fab svg,body.is-portal #dr-notif-fab svg,body.is-portal #dr-chat-fab svg{',
-      'width:' + ICON_SIZE + '!important;height:' + ICON_SIZE + '!important',
-      '}',
-    ].join('');
-    if (el.parentNode) el.parentNode.appendChild(el);
   }
 
-  function isLoginVisible() {
-    var shell = document.getElementById('app-shell');
-    if (shell) {
-      var shellHidden =
-        shell.hasAttribute('hidden') ||
-        shell.classList.contains('is-hidden') ||
-        shell.classList.contains('hidden') ||
-        shell.style.display === 'none';
-      if (!shellHidden) return false;
-    }
-    var login = document.getElementById('login-screen');
-    if (!login) return true;
-    if (login.hasAttribute('hidden') || login.classList.contains('hidden') || login.classList.contains('is-hidden')) return false;
-    if (login.style.display === 'none') return false;
-    return true;
+  function inject() {
+    if (document.getElementById('dr-login-chrome-css')) return;
+    var el = document.createElement('style');
+    el.id = 'dr-login-chrome-css';
+    el.textContent = [
+      'body.is-login .mode-bar,body:not(.is-portal) .mode-bar,',
+      'body.is-login #btn-logout,body.is-login #logged-user-label,',
+      'body.is-login #theme-toggle,body.is-login [data-theme-toggle],',
+      'body.is-login #dr-staff-notif-fab,body.is-login #dr-notif-fab,body.is-login #dr-chat-fab{',
+      'display:none!important;visibility:hidden!important;pointer-events:none!important}',
+      'body.is-portal .mode-bar{display:flex!important;visibility:visible!important}'
+    ].join('');
+    (document.head || document.documentElement).appendChild(el);
   }
 
   function sizeFab(el) {
     if (!el) return;
-    el.style.setProperty('width', FAB_SIZE, 'important');
-    el.style.setProperty('height', FAB_SIZE, 'important');
-    el.style.setProperty('min-width', FAB_SIZE, 'important');
-    el.style.setProperty('min-height', FAB_SIZE, 'important');
-    el.style.setProperty('max-width', FAB_SIZE, 'important');
-    el.style.setProperty('max-height', FAB_SIZE, 'important');
-    el.style.setProperty('border-radius', '50%', 'important');
-    el.style.setProperty('display', 'flex', 'important');
-    el.style.setProperty('align-items', 'center', 'important');
-    el.style.setProperty('justify-content', 'center', 'important');
-    el.querySelectorAll('svg').forEach(function (svg) {
-      svg.style.setProperty('width', ICON_SIZE, 'important');
-      svg.style.setProperty('height', ICON_SIZE, 'important');
-    });
+    el.style.setProperty('width', '56px', 'important');
+    el.style.setProperty('height', '56px', 'important');
   }
 
   function apply() {
@@ -134,17 +99,15 @@
   setTimeout(apply, 150);
   setTimeout(apply, 600);
   setTimeout(apply, 1500);
-  setInterval(apply, 2000);
+  setInterval(apply, 20000);
 
   try {
     new MutationObserver(function () {
       clearTimeout(window.__drLchT);
-      window.__drLchT = setTimeout(apply, 40);
+      window.__drLchT = setTimeout(apply, 500);
     }).observe(document.documentElement, {
       attributes: true,
-      childList: true,
-      subtree: true,
-      attributeFilter: ['hidden', 'class', 'style', 'data-theme']
+      attributeFilter: ['hidden', 'class', 'data-theme']
     });
   } catch (e) {}
 
@@ -157,5 +120,5 @@
     }
   }, true);
 
-  window.DRLoginChromeHide = { refresh: apply, v: 2 };
+  window.DRLoginChromeHide = { refresh: apply, v: 3 };
 })();
