@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.6.9" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.7.0" />
   <style>
     html,body{margin:0;background:#0c0c14;color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
     #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae;flex-direction:column;gap:0.75rem;padding:1.5rem;text-align:center}
@@ -59,6 +59,7 @@
     var CHAT_UI_SHA = 'c03c31b5baab763cee98ae37ae023991ade8164b';
     var LIGHT_MODE_POLISH_SHA = '9a741396a6d1bafc57a4988841112afe0c79997f';
     var FORCE_LIGHT_BG_SHA = '1e9f9e75949531d12d1f734d0a37b914b51061cc';
+    var LOGIN_CHROME_HIDE_SHA = '8c5a5591a787be78a7d223644b97a049c1d28d43';
     var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
     var BUST = String(Date.now());
     var TIP = 'dd3d27c0c8190f4f85781c8f2477678d538768b0';
@@ -84,7 +85,8 @@
       'enduser-ui.js': ENDUSER_UI_SHA,
       'chat-ui.js': CHAT_UI_SHA,
       'light-mode-polish.js': LIGHT_MODE_POLISH_SHA,
-      'force-light-bg.js': FORCE_LIGHT_BG_SHA
+      'force-light-bg.js': FORCE_LIGHT_BG_SHA,
+      'login-chrome-hide.js': LOGIN_CHROME_HIDE_SHA
     };
 
     var SKIP = {
@@ -218,7 +220,8 @@
           loadScript(CDN + ENDUSER_PRO_SHA + '/js/enduser-pro.js'),
           loadScript(CDN + ENDUSER_UI_SHA + '/js/enduser-ui.js'),
           loadScript(CDN + CHAT_UI_SHA + '/js/chat-ui.js'),
-          loadScript(CDN + LIGHT_MODE_POLISH_SHA + '/js/light-mode-polish.js')
+          loadScript(CDN + LIGHT_MODE_POLISH_SHA + '/js/light-mode-polish.js'),
+          loadScript(CDN + LOGIN_CHROME_HIDE_SHA + '/js/login-chrome-hide.js')
         ]).then(function () {
           try { if (window.DRUsersNav && window.DRUsersNav.refresh) window.DRUsersNav.refresh(); } catch (e) {}
           try { if (window.DRSidebarDesign && window.DRSidebarDesign.refresh) window.DRSidebarDesign.refresh(); } catch (e2) {}
@@ -230,6 +233,7 @@
           try { if (window.DREndUserUI && window.DREndUserUI.refresh) window.DREndUserUI.refresh(); } catch (e8) {}
           try { if (window.DRChatUI && window.DRChatUI.refresh) window.DRChatUI.refresh(); } catch (e9) {}
           try { if (window.DRLightModePolish && window.DRLightModePolish.refresh) window.DRLightModePolish.refresh(); } catch (e10) {}
+          try { if (window.DRLoginChromeHide && window.DRLoginChromeHide.refresh) window.DRLoginChromeHide.refresh(); } catch (e11) {}
         });
       }, 1600);
 
