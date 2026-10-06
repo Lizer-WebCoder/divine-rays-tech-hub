@@ -1,12 +1,12 @@
 /**
  * Divine Rays — larger nearer honeycomb (pointy-top regular mesh)
  * Login + agent/admin + end-user portal · Credit: Boyz at the Back LRK
- * mode-bar is sticky so Profile/theme/actions stay usable while scrolling
+ * mode-bar is fixed so Profile/theme/actions stay on screen while scrolling
  */
 (function () {
   'use strict';
-  if (window.__DR_FORCE_LIGHT_BG_STICKY) return;
-  window.__DR_FORCE_LIGHT_BG_STICKY = 1;
+  if (window.__DR_FORCE_LIGHT_BG_FIXED) return;
+  window.__DR_FORCE_LIGHT_BG_FIXED = 1;
 
   var LAYER_ID = 'dr-ambient-layer';
   var STYLE_ID = 'dr-force-light-bg-css';
@@ -57,8 +57,7 @@
       '}',
       'body.is-login #' + LAYER_ID + '{display:block!important;position:absolute!important}',
       'body.is-portal #' + LAYER_ID + '{',
-      'display:block!important;position:fixed!important;inset:0!important;',
-      'z-index:0!important',
+      'display:block!important;position:fixed!important;inset:0!important;z-index:0!important',
       '}',
       '#' + LAYER_ID + ' .dr-honeycomb{position:absolute;inset:-5%;width:110%;height:110%;opacity:' + hexOp + '}',
       '#' + LAYER_ID + ' .dr-network{position:absolute;inset:0;opacity:' + netOp + '}',
@@ -73,7 +72,8 @@
       '@media (prefers-reduced-motion:reduce){#' + LAYER_ID + ' .dr-particles span,#' + LAYER_ID + ' .dr-pulse{animation:none!important}}',
       'body.is-portal #portal-agent .sidebar,',
       'body.is-portal #portal-agent .mode-bar,',
-      'body.is-portal .mode-bar{position:sticky!important;top:0!important;z-index:500!important}',
+      'body.is-portal .mode-bar{position:fixed!important;top:0!important;left:0!important;right:0!important;width:100%!important;z-index:1000!important}',
+      'body.is-portal #app-shell,#app-shell{padding-top:52px!important}',
       'body.is-portal #portal-agent .main,',
       'body.is-portal #portal-agent main.main,',
       'body.is-portal #portal-customer .main,',
@@ -184,7 +184,6 @@
     injectAmbientCss(light);
     var layer = document.getElementById(LAYER_ID);
     var stroke = light ? 'rgba(109,94,245,0.45)' : 'rgba(167,139,250,0.35)';
-    var parent = onLogin && document.getElementById('login-screen') ? document.getElementById('login-screen') : document.body;
     if (!layer) {
       layer = document.createElement('div');
       layer.id = LAYER_ID;
@@ -294,11 +293,17 @@
     injectThemeCss();
     injectAmbientCss(light);
     ensureAmbient();
-    /* Keep top bar sticky so buttons stay clickable while content scrolls */
     document.querySelectorAll('.mode-bar').forEach(function (bar) {
-      bar.style.setProperty('position', 'sticky', 'important');
+      bar.style.setProperty('position', 'fixed', 'important');
       bar.style.setProperty('top', '0', 'important');
-      bar.style.setProperty('z-index', '500', 'important');
+      bar.style.setProperty('left', '0', 'important');
+      bar.style.setProperty('right', '0', 'important');
+      bar.style.setProperty('width', '100%', 'important');
+      bar.style.setProperty('z-index', '1000', 'important');
+      var shell = document.getElementById('app-shell');
+      if (shell) {
+        shell.style.setProperty('padding-top', Math.max(bar.offsetHeight || 52, 44) + 'px', 'important');
+      }
     });
   }
 
