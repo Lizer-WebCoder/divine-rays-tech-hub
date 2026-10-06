@@ -1,12 +1,13 @@
 /**
  * Divine Rays — premium agent sidebar redesign v2
  * Plain name+role (no pill), profile divider above nav, refined density
+ * Sidebar background at 20% opacity (dark + light)
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_SIDEBAR_DESIGN_V2 >= 3) return;
-  window.__DR_SIDEBAR_DESIGN_V2 = 3;
+  if (window.__DR_SIDEBAR_DESIGN_V2 >= 4) return;
+  window.__DR_SIDEBAR_DESIGN_V2 = 4;
 
   var STYLE_ID = 'dr-sidebar-design-css';
 
@@ -15,7 +16,8 @@
     'display:flex!important;flex-direction:column!important;',
     'width:250px!important;min-width:250px!important;',
     'padding:1rem 0.75rem!important;',
-    'background:linear-gradient(175deg,#16141f 0%,#12101a 100%)!important;',
+    'background:rgba(18,16,28,0.20)!important;',
+    'backdrop-filter:blur(12px)!important;-webkit-backdrop-filter:blur(12px)!important;',
     'border-right:1px solid rgba(139,124,247,0.12)!important;',
     'box-shadow:4px 0 20px rgba(0,0,0,0.25)!important}',
 
@@ -138,7 +140,8 @@
 
     /* Light theme */
     'html[data-theme="light"] #portal-agent .sidebar{',
-    'background:linear-gradient(175deg,#faf9ff 0%,#f3f0fa 100%)!important;',
+    'background:rgba(250,249,255,0.20)!important;',
+    'backdrop-filter:blur(12px)!important;-webkit-backdrop-filter:blur(12px)!important;',
     'border-right-color:rgba(109,94,245,0.12)!important;',
     'box-shadow:4px 0 20px rgba(30,30,60,0.05)!important}',
 
@@ -193,5 +196,5 @@
   setTimeout(boot, 400);
   setTimeout(boot, 1500);
 
-  window.DRSidebarDesign = { refresh: boot, v: 3 };
+  window.DRSidebarDesign = { refresh: boot, v: 4 };
 })();
