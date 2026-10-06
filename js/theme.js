@@ -1,5 +1,5 @@
 /**
- * Divine Rays — single theme toggle in mode-bar (never covers logout)
+ * Divine Rays — single theme toggle — no mode toasts (never covers logout)
  * Credit: Lizzz · All Rights Reserved
  */
 (function () {
@@ -79,9 +79,7 @@
         e.preventDefault();
         e.stopPropagation();
         apply(current() === 'dark' ? 'light' : 'dark');
-        if (window.DR && DR.toast) {
-          DR.toast(current() === 'light' ? 'Light mode' : 'Dark mode', 'info');
-        }
+        /* no Light/Dark mode toast — piles up and covers Logout */
       });
     }
 
