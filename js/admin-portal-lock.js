@@ -1,13 +1,12 @@
 /**
- * Divine Rays — Admin Portal lock v2 (self-healing)
- * Restores Admin UI even when index.html pins were overwritten.
- * Does not change End-User portal behavior.
+ * Divine Rays — Admin Portal lock v3 (no flicker)
+ * Restores Admin UI; updates only when needed; low-frequency poll.
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_ADMIN_PORTAL_LOCK >= 2) return;
-  window.__DR_ADMIN_PORTAL_LOCK = 2;
+  if (window.__DR_ADMIN_PORTAL_LOCK >= 3) return;
+  window.__DR_ADMIN_PORTAL_LOCK = 3;
 
   var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
   var PINS = {
@@ -22,21 +21,22 @@
     'login-tab-labels.js': '9beff1f929318ca08d9a71a1d4718ec4afebf539'
   };
 
-  var loaded = {};
-  function forceLoad(name) {
-    if (loaded[name] || !PINS[name]) return;
-    loaded[name] = 1;
-    var s = document.createElement('script');
-    s.src = CDN + PINS[name] + '/js/' + name + '?lock=2&b=' + Date.now();
-    s.async = false;
-    (document.head || document.documentElement).appendChild(s);
+  var scriptsLoaded = false;
+  function forceLoadAll() {
+    if (scriptsLoaded) return;
+    scriptsLoaded = true;
+    Object.keys(PINS).forEach(function (name) {
+      var s = document.createElement('script');
+      s.src = CDN + PINS[name] + '/js/' + name + '?lock=3&b=' + Date.now();
+      s.async = false;
+      (document.head || document.documentElement).appendChild(s);
+    });
   }
 
   function injectCss() {
-    var id = 'dr-admin-lock-css';
-    if (document.getElementById(id)) return;
+    if (document.getElementById('dr-admin-lock-css')) return;
     var el = document.createElement('style');
-    el.id = id;
+    el.id = 'dr-admin-lock-css';
     el.textContent = [
       '#portal-agent .sidebar .brand-text p,',
       '#portal-agent .sidebar .brand p.brand-sub,',
@@ -64,58 +64,53 @@
     return !!DEVS[s] || s.indexOf('kirzhian') === 0;
   }
 
+  function setText(el, next) {
+    if (!el) return;
+    if ((el.textContent || '').trim() !== next) el.textContent = next;
+  }
+
   function applyBrandAndRole() {
     var h1 = document.querySelector('#portal-agent .sidebar .brand-text h1, #portal-agent .sidebar .brand h1');
-    if (h1 && h1.textContent.trim() !== 'Divine Rays Tech Hub') {
-      h1.textContent = 'Divine Rays Tech Hub';
-    }
+    setText(h1, 'Divine Rays Tech Hub');
+
     document.querySelectorAll('#portal-agent .sidebar .brand-text p, #portal-agent .sidebar .brand p').forEach(function (p) {
       var t = (p.textContent || '').trim().toUpperCase();
-      if (t === 'TECH SUPPORT' || t === 'TECHSUPPORT' || t.indexOf('TECH SUPPORT') !== -1) {
-        p.style.display = 'none';
-        p.textContent = '';
+      if (t.indexOf('TECH SUPPORT') !== -1 || t === 'TECHSUPPORT') {
+        if (p.style.display !== 'none') p.style.display = 'none';
       }
     });
 
     var brand = 'Divine Rays Tech Hub \u2022 Admin Portal';
     var strong = document.querySelector('.mode-brand strong');
-    if (strong && strong.textContent.trim() !== brand) strong.textContent = brand;
-    else {
-      var mb = document.querySelector('.mode-brand');
-      if (mb) {
-        Array.prototype.forEach.call(mb.childNodes, function (n) {
-          if (n.nodeType === 3 && n.textContent.trim()) n.textContent = brand;
-        });
-      }
-    }
+    if (strong) setText(strong, brand);
 
     var lb = document.getElementById('logged-user-label');
     if (lb) {
       var raw = (lb.textContent || '').trim();
       var name = raw.replace(/\s*\(.*$/, '').trim().split(/\s+/)[0] || 'User';
-      var role = 'Admin';
-      if (isDev(name) || isDev(raw)) role = 'Developer';
-      var next = name + ' (' + role + ')';
-      if (lb.textContent.trim() !== next) lb.textContent = next;
+      var role = isDev(name) || isDev(raw) ? 'Developer' : 'Admin';
+      setText(lb, name + ' (' + role + ')');
     }
 
     var an = document.getElementById('agent-name-display');
     if (an) {
+      var sn = an.querySelector('.dr-side-name');
+      var rp = an.querySelector('.dr-role-pill');
       var text = (an.textContent || '').trim();
-      var sideName = text.replace(/[·\u00b7\-].*$/, '').trim().split(/\s+/)[0] || text;
+      var sideName = sn
+        ? sn.textContent.trim()
+        : text.replace(/[·\u00b7\-].*$/, '').trim().split(/\s+/)[0] || text;
       var sideRole = isDev(sideName) ? 'Developer' : 'Admin';
-      if (!an.querySelector('.dr-side-name')) {
-        an.innerHTML =
-          '<span class="dr-side-name">' + sideName + '</span> ' +
-          '<span class="dr-role-pill" data-role="' + sideRole.toLowerCase() + '">' + sideRole + '</span>';
-      } else {
-        var sn = an.querySelector('.dr-side-name');
-        var rp = an.querySelector('.dr-role-pill');
-        if (sn) sn.textContent = sideName;
-        if (rp) {
+      if (sn && rp) {
+        setText(sn, sideName);
+        if (rp.textContent !== sideRole) {
           rp.textContent = sideRole;
           rp.setAttribute('data-role', sideRole.toLowerCase());
         }
+      } else if (!sn) {
+        an.innerHTML =
+          '<span class="dr-side-name">' + sideName + '</span> ' +
+          '<span class="dr-role-pill" data-role="' + sideRole.toLowerCase() + '">' + sideRole + '</span>';
       }
     }
   }
@@ -127,13 +122,13 @@
       var v = (nav.getAttribute('data-view') || '').toLowerCase();
       var t = (nav.textContent || '').trim().toLowerCase();
       isDash = v === 'dashboard' || t === 'dashboard';
-      if (t.indexOf('my ticket') !== -1 || t.indexOf('unassigned') !== -1 || t.indexOf('all ticket') !== -1) isDash = false;
-      if (t.indexOf('users') !== -1 || t.indexOf('knowledge') !== -1) isDash = false;
+      if (/my ticket|unassigned|all ticket|users|knowledge|admin/.test(t) && t !== 'dashboard') isDash = false;
     }
-    document.body.classList.toggle('dr-view-dashboard', isDash);
+    var on = document.body.classList.contains('dr-view-dashboard');
+    if (isDash !== on) document.body.classList.toggle('dr-view-dashboard', isDash);
     if (isDash) {
       var list = document.getElementById('ticket-list');
-      if (list) list.style.setProperty('display', 'none', 'important');
+      if (list && list.style.display !== 'none') list.style.setProperty('display', 'none', 'important');
     }
   }
 
@@ -149,14 +144,6 @@
         window.DR.toast.__drNoThemeToast = 1;
       }
     } catch (e) {}
-    try {
-      document.querySelectorAll('.toast').forEach(function (el) {
-        var t = (el.textContent || '').trim();
-        if (t === 'Light mode' || t === 'Dark mode') {
-          if (el.parentNode) el.parentNode.removeChild(el);
-        }
-      });
-    } catch (e2) {}
   }
 
   function tick() {
@@ -166,19 +153,18 @@
     suppressThemeToasts();
   }
 
-  function boot() {
-    Object.keys(PINS).forEach(forceLoad);
-    tick();
-  }
+  forceLoadAll();
+  tick();
+  setTimeout(tick, 2500);
+  setInterval(tick, 10000);
 
-  boot();
-  setTimeout(boot, 600);
-  setTimeout(boot, 1800);
-  setTimeout(boot, 4000);
-  setInterval(tick, 1200);
-  document.addEventListener('click', function (e) {
-    if (e.target && e.target.closest && e.target.closest('#portal-agent .nav-btn')) {
-      setTimeout(tick, 40);
-    }
-  }, true);
+  document.addEventListener(
+    'click',
+    function (e) {
+      if (e.target && e.target.closest && e.target.closest('#portal-agent .nav-btn')) {
+        setTimeout(tick, 80);
+      }
+    },
+    true
+  );
 })();
