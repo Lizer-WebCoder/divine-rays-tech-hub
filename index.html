@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.4.1" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.5.0" />
   <style>
     html,body{margin:0;background:#0c0c14;color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
     #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae;flex-direction:column;gap:0.75rem;padding:1.5rem;text-align:center}
@@ -53,6 +53,7 @@
     var DESIGN_SHA = '7d6d66cbe63fda91cf71d64bbddd1af80f3adfc3';
     var TICKET_DESIGN_SHA = '01d6078d7a6a6ff64a1c9f53621d1bc2446156cf';
     var CUSTOMER_FILTER_SHA = '3e4928c3bb8f77e2f8f37e70b994f22c1dae60f3';
+    var ENDUSER_PRO_SHA = '9fe374cd480c99d3530cbfc4c7d685292b24a29e';
     var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
     var BUST = String(Date.now());
     var TIP = 'dd3d27c0c8190f4f85781c8f2477678d538768b0';
@@ -72,7 +73,8 @@
       'sidebar-design.js': SIDEBAR_SHA,
       'design-system-v10.js': DESIGN_SHA,
       'ticket-list-design.js': TICKET_DESIGN_SHA,
-      'customer-my-tickets-filter.js': CUSTOMER_FILTER_SHA
+      'customer-my-tickets-filter.js': CUSTOMER_FILTER_SHA,
+      'enduser-pro.js': ENDUSER_PRO_SHA
     };
 
     var SKIP = {
@@ -201,7 +203,8 @@
           loadScript(CDN + LOGIN_TAB_SHA + '/js/login-tab-labels.js'),
           loadScript(CDN + STAFF_NOTIF_SHA + '/js/staff-ticket-notifs.js'),
           loadScript(CDN + TICKET_DESIGN_SHA + '/js/ticket-list-design.js'),
-          loadScript(CDN + CUSTOMER_FILTER_SHA + '/js/customer-my-tickets-filter.js')
+          loadScript(CDN + CUSTOMER_FILTER_SHA + '/js/customer-my-tickets-filter.js'),
+          loadScript(CDN + ENDUSER_PRO_SHA + '/js/enduser-pro.js')
         ]).then(function () {
           try { if (window.DRUsersNav && window.DRUsersNav.refresh) window.DRUsersNav.refresh(); } catch (e) {}
           try { if (window.DRSidebarDesign && window.DRSidebarDesign.refresh) window.DRSidebarDesign.refresh(); } catch (e2) {}
@@ -209,6 +212,7 @@
           try { if (window.DRCommentsLive && window.DRCommentsLive.refresh) window.DRCommentsLive.refresh(); } catch (e4) {}
           try { if (window.DRUsersFilterEnforce && window.DRUsersFilterEnforce.refresh) window.DRUsersFilterEnforce.refresh(); } catch (e5) {}
           try { if (window.DRCustomerMyTicketsFilter && window.DRCustomerMyTicketsFilter.refresh) window.DRCustomerMyTicketsFilter.refresh(); } catch (e6) {}
+          try { if (window.DREndUserPro && window.DREndUserPro.refresh) window.DREndUserPro.refresh(); } catch (e7) {}
         });
       }, 1600);
 
