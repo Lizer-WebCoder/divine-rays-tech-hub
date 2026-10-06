@@ -1,12 +1,14 @@
 /**
- * Divine Rays - Users nav v10
- * Users tab (End-Users + Admin) visible to Developers only.
- * Other Admin staff get same portal UI as Developers, without Users nav.
+ * Divine Rays - Users nav v11
+ * Users tab: Admins + Developers.
+ * End-Users list: Admins and Developers.
+ * Admin staff list: Developers only.
  * Credit: Boyz at the Back - All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_USERS_NAV_V10 >= 1) return;
+  if (window.__DR_USERS_NAV_V11 >= 1) return;
+  window.__DR_USERS_NAV_V11 = 1;
   window.__DR_USERS_NAV_V10 = 1;
   window.__DR_USERS_NAV_V9 = 2;
   window.__DR_USERS_NAV = 1;
@@ -29,7 +31,31 @@
     return null;
   }
 
+  function isStaffAccount(u) {
+    if (!u) return false;
+    if (isDeveloperUser(u)) return true;
+    var r = String(u.role || u.staff_role || '').toLowerCase().trim();
+    if (r === 'customer' || r === 'end-user' || r === 'enduser' || r === 'end_user' || r === 'user') return false;
+    return (
+      r === 'admin' ||
+      r === 'agent' ||
+      r === 'staff' ||
+      r === 'administrator' ||
+      r === 'it tech support' ||
+      r.indexOf('tech support') !== -1
+    );
+  }
+
   function canSeeUsersTab() {
+    var p = currentProfile();
+    return isDeveloperUser(p) || isStaffAccount(p);
+  }
+
+  function canSeeEndUsersList() {
+    return canSeeUsersTab();
+  }
+
+  function canSeeAdminStaffList() {
     return isDeveloperUser(currentProfile());
   }
 
@@ -177,7 +203,23 @@
         '<button type="button" class="nav-btn" id="dr-users-admin">Admin</button>';
       rootBtn.insertAdjacentElement('afterend', sub);
     }
+    applySubmenuVisibility();
     return sub;
+  }
+
+  function applySubmenuVisibility() {
+    var ad = document.getElementById('dr-users-admin');
+    if (!ad) return;
+    if (canSeeAdminStaffList()) {
+      ad.style.removeProperty('display');
+      ad.hidden = false;
+    } else {
+      ad.style.setProperty('display', 'none', 'important');
+      ad.hidden = true;
+      if (document.body.classList.contains('dr-view-admin-staff')) {
+        openEndUsers();
+      }
+    }
   }
 
   function hideUsersNav() {
@@ -240,6 +282,7 @@
 
   function loadUsersList(mode) {
     if (!canSeeUsersTab()) return;
+    if (mode === 'staff' && !canSeeAdminStaffList()) mode = 'endusers';
     function go() {
       if (typeof window.renderAdminUsers === 'function') {
         try {
@@ -261,7 +304,7 @@
   }
 
   function openEndUsers() {
-    if (!canSeeUsersTab()) return;
+    if (!canSeeEndUsersList()) return;
     document.body.classList.add('dr-view-endusers');
     document.body.classList.remove('dr-view-admin-staff');
     window.__DR_USERS_LIST_MODE = 'endusers';
@@ -278,7 +321,7 @@
   }
 
   function openAdminStaff() {
-    if (!canSeeUsersTab()) return;
+    if (!canSeeAdminStaffList()) return;
     document.body.classList.add('dr-view-admin-staff');
     document.body.classList.remove('dr-view-endusers');
     window.__DR_USERS_LIST_MODE = 'staff';
@@ -350,6 +393,7 @@
       hideUsersNav();
       return;
     }
+    applySubmenuVisibility();
     if (
       document.body.classList.contains('dr-view-endusers') ||
       document.body.classList.contains('dr-view-admin-staff')
@@ -361,14 +405,15 @@
       var mode =
         window.__DR_USERS_LIST_MODE ||
         (document.body.classList.contains('dr-view-endusers') ? 'endusers' : 'staff');
+      if (mode === 'staff' && !canSeeAdminStaffList()) mode = 'endusers';
       if (empty && typeof window.renderAdminUsers === 'function') {
         try { window.renderAdminUsers(mode); } catch (e) {}
       }
     }
   }
 
-  if (!window.__drUsersNavClickV10) {
-    window.__drUsersNavClickV10 = 1;
+  if (!window.__drUsersNavClickV11) {
+    window.__drUsersNavClickV11 = 1;
     document.addEventListener(
       'click',
       function (e) {
@@ -377,13 +422,13 @@
         if (eu) {
           e.preventDefault();
           e.stopPropagation();
-          if (canSeeUsersTab()) openEndUsers();
+          if (canSeeEndUsersList()) openEndUsers();
           return;
         }
         if (ad) {
           e.preventDefault();
           e.stopPropagation();
-          if (canSeeUsersTab()) openAdminStaff();
+          if (canSeeAdminStaffList()) openAdminStaff();
         }
       },
       true
@@ -399,6 +444,8 @@
     openAdmin: openAdminStaff,
     isDeveloperUser: isDeveloperUser,
     canSeeUsersTab: canSeeUsersTab,
+    canSeeEndUsersList: canSeeEndUsersList,
+    canSeeAdminStaffList: canSeeAdminStaffList,
     refreshStats: refreshStatCounts
   };
 })();
