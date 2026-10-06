@@ -1,19 +1,14 @@
 /**
- * Divine Rays — Top bar brand + role (portal-aware, no flicker)
+ * Divine Rays — Top bar brand (portal-aware)
  * Admin: "Divine Rays Tech Hub • Admin Portal"
  * End-User: "Divine Rays Tech Hub • Employees"
+ * Does not write User (Role) label — sidebar shows role.
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_TOPBAR_BRAND_ROLE >= 3) return;
-  window.__DR_TOPBAR_BRAND_ROLE = 3;
-
-  var DEVS = { kirzhian: 1, kirzhianquijano: 1, kirzhianthegreat: 1, jamesjerlow123: 1, liya: 1, iiya: 1 };
-  function isDev(s) {
-    s = String(s || '').toLowerCase().trim();
-    return !!DEVS[s] || s.indexOf('kirzhian') === 0;
-  }
+  if (window.__DR_TOPBAR_BRAND_ROLE >= 4) return;
+  window.__DR_TOPBAR_BRAND_ROLE = 4;
 
   function setText(el, next) {
     if (!el) return;
@@ -30,9 +25,7 @@
     if (document.body && document.body.classList.contains('is-login')) return 'login';
     if (agentOn && !custOn) return 'admin';
     if (custOn) return 'enduser';
-    if (agent && document.getElementById('portal-agent')) {
-      if (agent.classList.contains('active')) return 'admin';
-    }
+    if (agent && agent.classList.contains('active')) return 'admin';
     return 'unknown';
   }
 
@@ -56,16 +49,7 @@
         });
       }
     }
-
-    if (portal === 'admin') {
-      var lb = document.getElementById('logged-user-label');
-      if (lb) {
-        var raw = (lb.textContent || '').trim();
-        var name = raw.replace(/\s*\(.*$/, '').trim().split(/\s+/)[0] || 'User';
-        var role = isDev(name) || isDev(raw) ? 'Developer' : 'Admin';
-        setText(lb, name + ' (' + role + ')');
-      }
-    }
+    /* logged-user-label hidden — role shown in sidebar */
   }
 
   tick();
@@ -82,5 +66,5 @@
     }
   }, true);
 
-  window.DRTopbarBrand = { refresh: tick, v: 3 };
+  window.DRTopbarBrand = { refresh: tick, v: 4 };
 })();
