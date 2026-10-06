@@ -1,42 +1,44 @@
 /**
- * Divine Rays — Light mode polish + fixed mode-bar (v5)
- * Moves .mode-bar under body so position:fixed sticks to the viewport while scrolling.
- * Does not remove the top bar — keeps it on screen.
+ * Divine Rays — Light mode polish + fixed mode-bar (v6)
+ * Top bar sticks while scrolling; hidden on login screen.
  * Credit: Lizzz · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_LIGHT_MODE_POLISH_V5) return;
-  window.__DR_LIGHT_MODE_POLISH_V5 = 1;
+  if (window.__DR_LIGHT_MODE_POLISH_V6) return;
+  window.__DR_LIGHT_MODE_POLISH_V6 = 1;
 
   var STYLE_ID = 'dr-light-mode-polish-css';
   var BAR_H = 52;
 
   var CSS = [
-    '.mode-bar,body .mode-bar,#app-shell .mode-bar,body.is-portal .mode-bar{',
+    'body.is-login .mode-bar,body:not(.is-portal) .mode-bar,.mode-bar.dr-login-hide{',
+    '  display:none!important;visibility:hidden!important;pointer-events:none!important;height:0!important;overflow:hidden!important',
+    '}',
+    'body.is-portal .mode-bar,body.is-portal .mode-bar:not(.dr-login-hide){',
     '  position:fixed!important;top:0!important;left:0!important;right:0!important;',
     '  width:100%!important;max-width:100vw!important;',
     '  z-index:2147483000!important;pointer-events:auto!important;',
-    '  box-sizing:border-box!important;transform:none!important;margin:0!important',
+    '  box-sizing:border-box!important;transform:none!important;margin:0!important;',
+    '  display:flex!important;visibility:visible!important',
     '}',
-    'body.is-portal #app-shell,#app-shell.portal-ready,#app-shell:not([hidden]){',
-    '  padding-top:' + BAR_H + 'px!important',
-    '}',
+    'body.is-portal #app-shell,#app-shell:not([hidden]){padding-top:' + BAR_H + 'px!important}',
+    'body.is-login #app-shell{padding-top:0!important}',
 
-    'html[data-theme="light"] .mode-bar{',
+    'html[data-theme="light"] body.is-portal .mode-bar{',
     '  background:rgba(255,255,255,0.96)!important;',
     '  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);',
     '  border-bottom:1px solid rgba(109,94,245,0.22)!important;',
     '  box-shadow:0 2px 14px rgba(91,33,182,0.1)',
     '}',
-    'html[data-theme="dark"] .mode-bar,html:not([data-theme="light"]) .mode-bar{',
+    'html[data-theme="dark"] body.is-portal .mode-bar,html:not([data-theme="light"]) body.is-portal .mode-bar{',
     '  background:rgba(18,16,28,0.96)!important;',
     '  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);',
     '  border-bottom:1px solid rgba(139,124,247,0.25)!important',
     '}',
-    'html[data-theme="light"] .mode-bar,html[data-theme="light"] .mode-bar .user-info,',
-    'html[data-theme="light"] .mode-bar span,html[data-theme="light"] .mode-bar a{color:#1e1b4b!important}',
-    'html[data-theme="light"] .mode-bar .brand,html[data-theme="light"] .mode-bar .logo-text{color:#4c1d95!important;font-weight:700}',
+    'html[data-theme="light"] body.is-portal .mode-bar,html[data-theme="light"] body.is-portal .mode-bar .user-info,',
+    'html[data-theme="light"] body.is-portal .mode-bar span,html[data-theme="light"] body.is-portal .mode-bar a{color:#1e1b4b!important}',
+    'html[data-theme="light"] body.is-portal .mode-bar .brand,html[data-theme="light"] body.is-portal .mode-bar .logo-text{color:#4c1d95!important;font-weight:700}',
 
     'html[data-theme="light"] #portal-customer .customer-tabs{',
     '  background:rgba(255,255,255,0.75)!important;',
@@ -48,9 +50,7 @@
     '  background:transparent!important;color:#5b21b6!important;',
     '  border:none!important;box-shadow:none!important',
     '}',
-    'html[data-theme="light"] #portal-customer .customer-tabs .ctab:hover{',
-    '  background:#f3f0ff!important;color:#4c1d95!important',
-    '}',
+    'html[data-theme="light"] #portal-customer .customer-tabs .ctab:hover{background:#f3f0ff!important;color:#4c1d95!important}',
     'html[data-theme="light"] #portal-customer .customer-tabs .ctab.active,',
     'html[data-theme="light"] #portal-customer .customer-tabs button.active{',
     '  background:linear-gradient(135deg,#7c6af0,#9b8afb)!important;color:#fff!important;',
@@ -69,19 +69,14 @@
     '}',
     'html[data-theme="light"] #portal-customer .dr-eu-faq .dr-eu-faq-item strong{color:#5b21b6!important}',
 
-    'html[data-theme="light"] #portal-customer .track-box,',
-    'html[data-theme="light"] #portal-customer .ticket-form,',
-    'html[data-theme="light"] #portal-customer .ticket-detail,',
-    'html[data-theme="light"] #portal-customer #cust-ticket-detail,',
+    'html[data-theme="light"] #portal-customer .track-box,html[data-theme="light"] #portal-customer .ticket-form,',
+    'html[data-theme="light"] #portal-customer .ticket-detail,html[data-theme="light"] #portal-customer #cust-ticket-detail,',
     'html[data-theme="light"] #portal-customer .success-box{',
     '  background:#fff!important;border:1px solid rgba(109,94,245,0.2)!important;',
     '  box-shadow:0 4px 18px rgba(91,33,182,0.07)!important',
     '}',
-    'html[data-theme="light"] #portal-customer label,',
-    'html[data-theme="light"] #portal-customer .form-group label{color:#4c1d95!important;font-weight:600!important}',
-    'html[data-theme="light"] #portal-customer input,',
-    'html[data-theme="light"] #portal-customer select,',
-    'html[data-theme="light"] #portal-customer textarea{',
+    'html[data-theme="light"] #portal-customer label,html[data-theme="light"] #portal-customer .form-group label{color:#4c1d95!important;font-weight:600!important}',
+    'html[data-theme="light"] #portal-customer input,html[data-theme="light"] #portal-customer select,html[data-theme="light"] #portal-customer textarea{',
     '  background:#f8f6ff!important;color:#1e1b4b!important;border:1px solid rgba(109,94,245,0.28)!important',
     '}',
     'html[data-theme="light"] #portal-customer .meta-chip{',
@@ -90,13 +85,11 @@
     'html[data-theme="light"] #portal-customer .detail-description{',
     '  background:#f5f3ff!important;border:1px solid rgba(109,94,245,0.18)!important;color:#1e1b4b!important',
     '}',
-    'html[data-theme="light"] #portal-customer #track-result,',
-    'html[data-theme="light"] #portal-customer .track-result{',
+    'html[data-theme="light"] #portal-customer #track-result,html[data-theme="light"] #portal-customer .track-result{',
     '  background:#fff!important;border:1px solid rgba(109,94,245,0.2)!important;',
     '  border-radius:14px!important;padding:1rem 1.15rem!important;color:#1e1b4b!important',
     '}',
-    'html[data-theme="light"] #portal-customer #track-result h3,',
-    'html[data-theme="light"] #portal-customer #track-result h4{color:#1e1b4b!important}',
+    'html[data-theme="light"] #portal-customer #track-result h3,html[data-theme="light"] #portal-customer #track-result h4{color:#1e1b4b!important}',
     'html[data-theme="light"] #portal-customer .customer-header h2{color:#1e1b4b!important}',
     'html[data-theme="light"] #portal-customer .customer-header p{color:#5b5675!important}',
 
@@ -161,12 +154,46 @@
     if (el.parentNode) el.parentNode.appendChild(el);
   }
 
+  function isLoginVisible() {
+    var login = document.getElementById('login-screen');
+    var shell = document.getElementById('app-shell');
+    if (shell) {
+      var shellHidden =
+        shell.hasAttribute('hidden') ||
+        shell.classList.contains('is-hidden') ||
+        shell.classList.contains('hidden') ||
+        shell.style.display === 'none';
+      if (!shellHidden) return false;
+    }
+    if (!login) return true;
+    if (login.hasAttribute('hidden') || login.classList.contains('hidden') || login.classList.contains('is-hidden')) return false;
+    if (login.style.display === 'none') return false;
+    return true;
+  }
+
   function pinBarToViewport() {
     var bars = document.querySelectorAll('.mode-bar');
     if (!bars.length) return;
+    var onLogin = isLoginVisible();
+    try {
+      if (document.body) {
+        document.body.classList.toggle('is-login', onLogin);
+        document.body.classList.toggle('is-portal', !onLogin);
+      }
+    } catch (e) {}
     bars.forEach(function (bar) {
+      if (onLogin) {
+        bar.classList.add('dr-login-hide');
+        bar.style.setProperty('display', 'none', 'important');
+        bar.style.setProperty('visibility', 'hidden', 'important');
+        bar.style.setProperty('pointer-events', 'none', 'important');
+        return;
+      }
+      bar.classList.remove('dr-login-hide');
+      bar.style.setProperty('display', 'flex', 'important');
+      bar.style.setProperty('visibility', 'visible', 'important');
       if (bar.parentElement !== document.body) {
-        try { document.body.appendChild(bar); } catch (e) {}
+        try { document.body.appendChild(bar); } catch (e2) {}
       }
       bar.style.setProperty('position', 'fixed', 'important');
       bar.style.setProperty('top', '0', 'important');
@@ -192,31 +219,28 @@
   setTimeout(run, 200);
   setTimeout(run, 800);
   setTimeout(run, 2000);
-  setInterval(run, 3500);
+  setInterval(run, 2500);
 
   try {
     new MutationObserver(function () {
       clearTimeout(window.__drLmpT);
-      window.__drLmpT = setTimeout(run, 60);
-    }).observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['data-theme', 'class']
-    });
-    var shell = document.getElementById('app-shell');
-    if (shell) {
-      new MutationObserver(function () {
-        clearTimeout(window.__drLmpT2);
-        window.__drLmpT2 = setTimeout(run, 80);
-      }).observe(shell, { childList: true, subtree: false, attributes: true });
-    }
+      window.__drLmpT = setTimeout(run, 50);
+    }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'class'] });
+    var root = document.body || document.documentElement;
+    new MutationObserver(function () {
+      clearTimeout(window.__drLmpT2);
+      window.__drLmpT2 = setTimeout(run, 50);
+    }).observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden', 'class', 'style'] });
   } catch (e) {}
 
   document.addEventListener('click', function (e) {
     var t = e.target;
     if (!t || !t.closest) return;
-    if (t.closest('#btn-theme') || t.id === 'btn-theme') {
+    if (t.closest('#btn-theme') || t.id === 'btn-theme' || t.closest('#btn-logout') || t.id === 'btn-logout' ||
+        (t.textContent && /logout|sign out/i.test(t.textContent) && t.closest('.mode-bar'))) {
       setTimeout(run, 40);
-      setTimeout(run, 250);
+      setTimeout(run, 300);
+      setTimeout(run, 800);
     }
   }, true);
 
@@ -225,5 +249,5 @@
     window.__drLmpR = setTimeout(pinBarToViewport, 100);
   });
 
-  window.DRLightModePolish = { refresh: run, v: 5 };
+  window.DRLightModePolish = { refresh: run, v: 6 };
 })();
