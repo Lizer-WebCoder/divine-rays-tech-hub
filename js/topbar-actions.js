@@ -1,12 +1,12 @@
 /**
- * Divine Rays — Top bar actions v2
- * One Profile, visible Light/Dark, red Logout — Admin + Employees shared mode-bar
+ * Divine Rays — Top bar actions v3
+ * One Profile, Light/Dark via theme.js, red Logout — Admin + Employees
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_TOPBAR_ACTIONS >= 2) return;
-  window.__DR_TOPBAR_ACTIONS = 2;
+  if (window.__DR_TOPBAR_ACTIONS >= 3) return;
+  window.__DR_TOPBAR_ACTIONS = 3;
 
   function injectCss() {
     if (document.getElementById('dr-topbar-actions-css')) return;
@@ -47,7 +47,7 @@
       'html[data-theme="light"] .mode-bar #btn-logout{',
       'background:rgba(220,38,38,0.08)!important;color:#dc2626!important;border-color:rgba(220,38,38,0.35)!important}',
 
-      'body.is-portal .mode-bar #btn-theme{display:inline-flex!important;visibility:visible!important}'
+      'body.is-portal .mode-bar #btn-theme{display:inline-flex!important;visibility:visible!important;pointer-events:auto!important}'
     ].join('');
     (document.head || document.documentElement).appendChild(el);
   }
@@ -91,6 +91,10 @@
     }
 
     btn.classList.add('dr-topbar-btn');
+    btn.setAttribute('data-theme-toggle', '1');
+    btn.type = 'button';
+    btn.style.pointerEvents = 'auto';
+    btn.style.cursor = 'pointer';
     btn.style.removeProperty('display');
     btn.style.removeProperty('visibility');
 
@@ -101,31 +105,7 @@
     btn.textContent = theme === 'light' ? 'Dark' : 'Light';
     btn.title = theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode';
 
-    if (!btn.__drThemeBoundV2) {
-      btn.__drThemeBoundV2 = 1;
-      btn.addEventListener('click', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        var cur = 'dark';
-        try {
-          cur = document.documentElement.getAttribute('data-theme') || localStorage.getItem('dr_theme') || 'dark';
-        } catch (err) {}
-        var next = cur === 'light' ? 'dark' : 'light';
-        try {
-          if (window.DRTheme && typeof window.DRTheme.apply === 'function') {
-            window.DRTheme.apply(next);
-          } else {
-            document.documentElement.setAttribute('data-theme', next);
-            localStorage.setItem('dr_theme', next);
-          }
-        } catch (err2) {
-          document.documentElement.setAttribute('data-theme', next);
-        }
-        btn.textContent = next === 'light' ? 'Dark' : 'Light';
-        btn.title = next === 'light' ? 'Switch to dark mode' : 'Switch to light mode';
-        try { if (window.DRForceLightBg && window.DRForceLightBg.refresh) window.DRForceLightBg.refresh(); } catch (e3) {}
-      });
-    }
+    /* click handled by theme.js capture-phase delegation */
     return btn;
   }
 
@@ -227,10 +207,10 @@
   setInterval(tick, 20000);
 
   document.addEventListener('click', function (e) {
-    if (e.target && e.target.closest && e.target.closest('.mode-bar')) {
+    if (e.target && e.target.closest && e.target.closest('.mode-bar') && !e.target.closest('#btn-theme')) {
       setTimeout(tick, 80);
     }
   }, true);
 
-  window.DRTopbarActions = { refresh: tick, v: 2 };
+  window.DRTopbarActions = { refresh: tick, v: 3 };
 })();
