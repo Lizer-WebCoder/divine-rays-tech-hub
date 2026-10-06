@@ -1,12 +1,12 @@
 /**
- * Divine Rays — Admin Portal lock v5 (no flicker, portal-aware brand)
- * Restores Admin UI; does not rewrite agent-name-display (sidebar owns it).
+ * Divine Rays — Admin Portal lock v6 (no flicker, portal-aware brand)
+ * Restores Admin UI; does not rewrite agent-name-display or top-bar role label.
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_ADMIN_PORTAL_LOCK >= 5) return;
-  window.__DR_ADMIN_PORTAL_LOCK = 5;
+  if (window.__DR_ADMIN_PORTAL_LOCK >= 6) return;
+  window.__DR_ADMIN_PORTAL_LOCK = 6;
 
   var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
   var PINS = {
@@ -19,7 +19,7 @@
     scriptsLoaded = true;
     Object.keys(PINS).forEach(function (name) {
       var s = document.createElement('script');
-      s.src = CDN + PINS[name] + '/js/' + name + '?lock=5&b=' + Date.now();
+      s.src = CDN + PINS[name] + '/js/' + name + '?lock=6&b=' + Date.now();
       s.async = false;
       (document.head || document.documentElement).appendChild(s);
     });
@@ -48,12 +48,6 @@
       'body.dr-view-dashboard h3.stats-heading.dr-recent-label{display:none!important;visibility:hidden!important;height:0!important;overflow:hidden!important}'
     ].join('');
     (document.head || document.documentElement).appendChild(el);
-  }
-
-  var DEVS = { kirzhian: 1, kirzhianquijano: 1, kirzhianthegreat: 1, jamesjerlow123: 1, liya: 1, iiya: 1 };
-  function isDev(s) {
-    s = String(s || '').toLowerCase().trim();
-    return !!DEVS[s] || s.indexOf('kirzhian') === 0;
   }
 
   function setText(el, next) {
@@ -86,13 +80,7 @@
       if (strongEu) setText(strongEu, brandEu);
     }
 
-    var lb = document.getElementById('logged-user-label');
-    if (lb && onAdmin && !onEnd) {
-      var raw = (lb.textContent || '').trim();
-      var name = raw.replace(/\s*\(.*$/, '').trim().split(/\s+/)[0] || 'User';
-      var role = isDev(name) || isDev(raw) ? 'Developer' : 'Admin';
-      setText(lb, name + ' (' + role + ')');
-    }
+    /* logged-user-label hidden by topbar-actions — role in sidebar */
   }
 
   function markDashboard() {
