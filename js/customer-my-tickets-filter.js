@@ -1,22 +1,22 @@
 /**
- * Divine Rays — customer My Tickets filter v5
- * Category/Show on top; Showing + Prev/Next under list.
- * Force-rebuild toolbar; event delegation for Prev/Next.
- * Single chevron. Credit: Lizzz · All Rights Reserved
+ * Divine Rays — customer My Tickets filter v6
+ * Fixes Show/Prev/Next: hide rule must beat #my-tickets-list .ticket-card display:grid.
+ * Credit: Lizzz · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_CUST_MY_TICKETS_FILTER_V5) return;
-  window.__DR_CUST_MY_TICKETS_FILTER_V5 = 1;
+  if (window.__DR_CUST_MY_TICKETS_FILTER_V6) return;
+  window.__DR_CUST_MY_TICKETS_FILTER_V6 = 1;
 
   var BAR_ID = 'dr-cust-ticket-toolbar';
   var FOOT_ID = 'dr-cust-ticket-footer';
   var STYLE_ID = 'dr-cust-ticket-toolbar-css';
-  var VER = '5';
+  var VER = '6';
   var pageSize = 10;
   var pageIndex = 0;
   var category = 'all';
   var lastRun = 0;
+  var applying = false;
 
   var CATEGORIES = [
     { value: 'all', label: 'All categories' },
@@ -41,7 +41,6 @@
     '}',
     'html[data-theme="light"] #' + BAR_ID + '{background:rgba(109,94,245,0.08);border-color:rgba(109,94,245,0.2)}',
     '#' + BAR_ID + ' label{font-size:0.72rem;font-weight:600;color:#a5a5bd;margin:0;white-space:nowrap}',
-    'html[data-theme="light"] #' + BAR_ID + ' label{color:#5b5b72}',
     '#' + BAR_ID + ' select{',
     '  width:auto!important;min-width:8rem;max-width:11rem;',
     '  border-radius:8px;border:1px solid rgba(167,139,250,0.4);',
@@ -52,13 +51,11 @@
     '  background-size:10px 7px!important;',
     '  color:#f3f0ff;padding:0.4rem 1.75rem 0.4rem 0.6rem;',
     '  font-size:0.8rem;font-weight:600;outline:none;cursor:pointer;',
-    '  -webkit-appearance:none!important;-moz-appearance:none!important;appearance:none!important;',
-    '  color-scheme:dark',
+    '  -webkit-appearance:none!important;-moz-appearance:none!important;appearance:none!important',
     '}',
     '#' + BAR_ID + ' select::-ms-expand{display:none!important}',
     'html[data-theme="light"] #' + BAR_ID + ' select{',
-    '  background-color:#fff!important;background-image:' + CHEV_L + '!important;',
-    '  color:#1a1a28;border-color:rgba(109,94,245,0.35);color-scheme:light',
+    '  background-color:#fff!important;background-image:' + CHEV_L + '!important;color:#1a1a28',
     '}',
     '#' + FOOT_ID + '{',
     '  display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;',
@@ -66,20 +63,27 @@
     '  border-radius:12px;background:rgba(0,0,0,0.22);',
     '  border:1px solid rgba(139,124,247,0.18)',
     '}',
-    'html[data-theme="light"] #' + FOOT_ID + '{background:rgba(109,94,245,0.06);border-color:rgba(109,94,245,0.18)}',
-    '#' + FOOT_ID + ' .dr-ct-count{font-size:0.78rem;color:#9898b0;white-space:nowrap}',
+    '#' + FOOT_ID + ' .dr-ct-count{font-size:0.78rem;color:#9898b0}',
     '#' + FOOT_ID + ' .dr-ct-count strong{color:#c4b5fd;font-weight:700}',
     '#' + FOOT_ID + ' .dr-ct-nav{display:flex;align-items:center;gap:0.4rem}',
     '#' + FOOT_ID + ' .dr-ct-nav button{',
-    '  appearance:none;border:1px solid rgba(139,124,247,0.3);',
-    '  background:rgba(124,106,240,0.18);color:#e9e5ff;',
-    '  border-radius:8px;padding:0.4rem 0.75rem;',
+    '  appearance:none;border:1px solid rgba(139,124,247,0.35);',
+    '  background:rgba(124,106,240,0.22);color:#e9e5ff;',
+    '  border-radius:8px;padding:0.4rem 0.8rem;',
     '  font-size:0.78rem;font-weight:600;cursor:pointer;font-family:inherit',
     '}',
-    '#' + FOOT_ID + ' .dr-ct-nav button:hover:not(:disabled){background:rgba(124,106,240,0.35)}',
-    '#' + FOOT_ID + ' .dr-ct-nav button:disabled{opacity:0.4;cursor:not-allowed;pointer-events:none}',
+    '#' + FOOT_ID + ' .dr-ct-nav button:hover:not(:disabled){background:rgba(124,106,240,0.4)}',
+    '#' + FOOT_ID + ' .dr-ct-nav button:disabled{opacity:0.4;cursor:not-allowed}',
     '#' + FOOT_ID + ' .dr-ct-page{font-size:0.8rem;font-weight:700;color:#c4b5fd;min-width:2.75rem;text-align:center}',
-    '#portal-customer .ticket-card.dr-ct-hidden{display:none!important}',
+    '#portal-customer #my-tickets-list .ticket-card.dr-ct-hidden,',
+    '#portal-customer #my-tickets-list > .ticket-card.dr-ct-hidden,',
+    '#my-tickets-list .ticket-card.dr-ct-hidden{',
+    '  display:none!important;',
+    '  visibility:hidden!important;',
+    '  height:0!important;max-height:0!important;',
+    '  margin:0!important;padding:0!important;border:none!important;',
+    '  overflow:hidden!important;pointer-events:none!important',
+    '}',
     '#portal-customer #kb-filter-cat,',
     '#portal-customer .kb-toolbar select{',
     '  -webkit-appearance:none!important;-moz-appearance:none!important;appearance:none!important;',
@@ -87,17 +91,9 @@
     '  background-repeat:no-repeat!important;',
     '  background-position:right 0.65rem center!important;',
     '  background-size:10px 7px!important;',
-    '  padding-right:1.85rem!important;',
-    '  background-color:rgba(0,0,0,0.35)!important;',
-    '  border:1px solid rgba(139,124,247,0.3)!important;',
-    '  border-radius:10px!important;color:#eeeef6!important',
+    '  padding-right:1.85rem!important',
     '}',
-    '#portal-customer #kb-filter-cat::-ms-expand,',
-    '#portal-customer .kb-toolbar select::-ms-expand{display:none!important}',
-    'html[data-theme="light"] #portal-customer #kb-filter-cat,',
-    'html[data-theme="light"] #portal-customer .kb-toolbar select{',
-    '  background-color:#fff!important;background-image:' + CHEV_L + '!important;color:#1a1a28!important',
-    '}',
+    '#portal-customer #kb-filter-cat::-ms-expand{display:none!important}',
   ].join('');
 
   function injectCss() {
@@ -114,15 +110,16 @@
   function isCustomerMyTickets() {
     var pc = document.getElementById('portal-customer');
     if (!pc || !pc.classList.contains('active')) return false;
+    var kb = document.getElementById('ctab-kb');
+    if (kb && kb.classList.contains('active')) return false;
+    var detail = document.getElementById('ctab-detail');
+    if (detail && detail.classList.contains('active')) return false;
     var panel = document.getElementById('ctab-mytickets');
     if (panel && panel.classList.contains('active')) return true;
     var tab = document.querySelector('.ctab[data-ctab="mytickets"]');
     if (tab && tab.classList.contains('active')) return true;
     var list = document.getElementById('my-tickets-list');
-    if (!list || list.offsetParent === null) return false;
-    var kb = document.getElementById('ctab-kb');
-    if (kb && kb.classList.contains('active')) return false;
-    return true;
+    return !!(list && list.offsetParent !== null);
   }
 
   function cardCategory(card) {
@@ -139,56 +136,39 @@
   function ensureBar() {
     var list = document.getElementById('my-tickets-list');
     if (!list || !list.parentNode) return null;
-
     var bar = document.getElementById(BAR_ID);
     if (bar && bar.getAttribute('data-ver') === VER) {
       var cat = bar.querySelector('#dr-ct-cat');
       var size = bar.querySelector('#dr-ct-size');
-      if (cat && cat.value !== category) cat.value = category;
-      if (size) {
-        var v = String(pageSize >= 100 ? 100 : pageSize);
-        if (size.value !== v) size.value = v;
-      }
+      if (cat) cat.value = category;
+      if (size) size.value = String(pageSize >= 100 ? 100 : pageSize);
       return bar;
     }
-    if (bar) { try { bar.remove(); } catch (e) {} }
-
+    if (bar) try { bar.remove(); } catch (e) {}
     bar = document.createElement('div');
     bar.id = BAR_ID;
     bar.setAttribute('data-ver', VER);
     bar.innerHTML =
       '<label for="dr-ct-cat">Category</label>' +
-      '<select id="dr-ct-cat" aria-label="Filter by category"></select>' +
+      '<select id="dr-ct-cat"></select>' +
       '<label for="dr-ct-size">Show</label>' +
-      '<select id="dr-ct-size" aria-label="Tickets to show">' +
-      '<option value="5">5</option>' +
-      '<option value="10">10</option>' +
-      '<option value="20">20</option>' +
-      '<option value="50">50</option>' +
-      '<option value="100">All</option>' +
-      '</select>';
-
+      '<select id="dr-ct-size">' +
+      '<option value="5">5</option><option value="10">10</option>' +
+      '<option value="20">20</option><option value="50">50</option>' +
+      '<option value="100">All</option></select>';
     var cat = bar.querySelector('#dr-ct-cat');
     CATEGORIES.forEach(function (c) {
       var o = document.createElement('option');
-      o.value = c.value;
-      o.textContent = c.label;
-      cat.appendChild(o);
+      o.value = c.value; o.textContent = c.label; cat.appendChild(o);
     });
     cat.value = category;
     bar.querySelector('#dr-ct-size').value = String(pageSize >= 100 ? 100 : pageSize);
-
     cat.addEventListener('change', function () {
-      category = cat.value || 'all';
-      pageIndex = 0;
-      applyFilter();
+      category = cat.value || 'all'; pageIndex = 0; applyFilter(true);
     });
     bar.querySelector('#dr-ct-size').addEventListener('change', function (e) {
-      pageSize = parseInt(e.target.value, 10) || 10;
-      pageIndex = 0;
-      applyFilter();
+      pageSize = parseInt(e.target.value, 10) || 10; pageIndex = 0; applyFilter(true);
     });
-
     list.parentNode.insertBefore(bar, list);
     return bar;
   }
@@ -196,11 +176,9 @@
   function ensureFooter() {
     var list = document.getElementById('my-tickets-list');
     if (!list || !list.parentNode) return null;
-
     var foot = document.getElementById(FOOT_ID);
     if (foot && foot.getAttribute('data-ver') === VER) return foot;
-    if (foot) { try { foot.remove(); } catch (e) {} }
-
+    if (foot) try { foot.remove(); } catch (e) {}
     foot = document.createElement('div');
     foot.id = FOOT_ID;
     foot.setAttribute('data-ver', VER);
@@ -209,121 +187,119 @@
       '<div class="dr-ct-nav">' +
       '<button type="button" id="dr-ct-prev">← Prev</button>' +
       '<span class="dr-ct-page" id="dr-ct-page">1 / 1</span>' +
-      '<button type="button" id="dr-ct-next">Next →</button>' +
-      '</div>';
-
+      '<button type="button" id="dr-ct-next">Next →</button></div>';
     if (list.nextSibling) list.parentNode.insertBefore(foot, list.nextSibling);
     else list.parentNode.appendChild(foot);
     return foot;
   }
 
-  function applyFilter() {
-    injectCss();
-
-    if (!isCustomerMyTickets()) {
-      var b = document.getElementById(BAR_ID);
-      var f = document.getElementById(FOOT_ID);
-      if (b) b.style.display = 'none';
-      if (f) f.style.display = 'none';
-      return;
-    }
-
-    var list = document.getElementById('my-tickets-list');
-    if (!list) return;
-
-    var bar = ensureBar();
-    var foot = ensureFooter();
-    if (bar) bar.style.display = '';
-    if (foot) foot.style.display = '';
-
-    var cards = Array.prototype.slice.call(list.querySelectorAll('.ticket-card'));
-    var matched = [];
-    cards.forEach(function (card) {
-      var ok = category === 'all' || cardCategory(card) === category;
-      if (ok) matched.push(card);
-      else card.classList.add('dr-ct-hidden');
-    });
-
-    var total = matched.length;
-    var size = pageSize >= 100 ? Math.max(total, 1) : pageSize;
-    var pages = Math.max(1, Math.ceil(total / size) || 1);
-    if (pageIndex >= pages) pageIndex = pages - 1;
-    if (pageIndex < 0) pageIndex = 0;
-    var start = pageIndex * size;
-    var end = start + size;
-
-    var shown = 0;
-    matched.forEach(function (card, i) {
-      if (i >= start && i < end) {
-        card.classList.remove('dr-ct-hidden');
-        shown += 1;
-      } else {
-        card.classList.add('dr-ct-hidden');
+  function applyFilter(force) {
+    if (applying && !force) return;
+    applying = true;
+    try {
+      injectCss();
+      if (!isCustomerMyTickets()) {
+        var b = document.getElementById(BAR_ID), f = document.getElementById(FOOT_ID);
+        if (b) b.style.display = 'none';
+        if (f) f.style.display = 'none';
+        return;
       }
-    });
+      var list = document.getElementById('my-tickets-list');
+      if (!list) return;
+      var bar = ensureBar(), foot = ensureFooter();
+      if (bar) bar.style.display = 'flex';
+      if (foot) foot.style.display = 'flex';
 
-    var countEl = document.getElementById('dr-ct-count');
-    if (countEl) {
-      countEl.innerHTML =
-        'Showing <strong>' + shown + '</strong> of <strong>' + total + '</strong>';
-    }
-    var pageEl = document.getElementById('dr-ct-page');
-    if (pageEl) pageEl.textContent = pageIndex + 1 + ' / ' + pages;
+      var cards = Array.prototype.slice.call(list.querySelectorAll('.ticket-card'));
+      var matched = [];
+      cards.forEach(function (card) {
+        var ok = category === 'all' || cardCategory(card) === category;
+        if (ok) matched.push(card);
+        else {
+          card.classList.add('dr-ct-hidden');
+          card.style.setProperty('display', 'none', 'important');
+        }
+      });
 
-    var prev = document.getElementById('dr-ct-prev');
-    var next = document.getElementById('dr-ct-next');
-    if (prev) prev.disabled = pageIndex <= 0;
-    if (next) next.disabled = pageIndex >= pages - 1 || total === 0;
+      var total = matched.length;
+      var size = pageSize >= 100 ? Math.max(total, 1) : pageSize;
+      var pages = Math.max(1, Math.ceil(total / size) || 1);
+      if (pageIndex >= pages) pageIndex = pages - 1;
+      if (pageIndex < 0) pageIndex = 0;
+      var start = pageIndex * size, end = start + size, shown = 0;
+
+      matched.forEach(function (card, i) {
+        if (i >= start && i < end) {
+          card.classList.remove('dr-ct-hidden');
+          card.style.removeProperty('display');
+          shown += 1;
+        } else {
+          card.classList.add('dr-ct-hidden');
+          card.style.setProperty('display', 'none', 'important');
+        }
+      });
+
+      var countEl = document.getElementById('dr-ct-count');
+      if (countEl) countEl.innerHTML = 'Showing <strong>' + shown + '</strong> of <strong>' + total + '</strong>';
+      var pageEl = document.getElementById('dr-ct-page');
+      if (pageEl) pageEl.textContent = pageIndex + 1 + ' / ' + pages;
+      var prev = document.getElementById('dr-ct-prev');
+      var next = document.getElementById('dr-ct-next');
+      if (prev) prev.disabled = pageIndex <= 0;
+      if (next) next.disabled = pageIndex >= pages - 1 || total === 0;
+    } finally { applying = false; }
   }
 
-  document.addEventListener(
-    'click',
-    function (e) {
-      var t = e.target;
-      if (!t || !t.closest) return;
-      if (t.closest('#dr-ct-prev')) {
-        e.preventDefault();
-        if (pageIndex > 0) {
-          pageIndex -= 1;
-          applyFilter();
-        }
-        return;
-      }
-      if (t.closest('#dr-ct-next')) {
-        e.preventDefault();
-        pageIndex += 1;
-        applyFilter();
-        return;
-      }
-      if (t.closest('.ctab') || t.closest('[data-ctab]')) {
-        setTimeout(applyFilter, 100);
-      }
-    },
-    true
-  );
+  document.addEventListener('click', function (e) {
+    var t = e.target;
+    if (!t || !t.closest) return;
+    if (t.closest('#dr-ct-prev')) {
+      e.preventDefault(); e.stopPropagation();
+      if (pageIndex > 0) { pageIndex -= 1; applyFilter(true); }
+      return;
+    }
+    if (t.closest('#dr-ct-next')) {
+      e.preventDefault(); e.stopPropagation();
+      pageIndex += 1; applyFilter(true);
+      return;
+    }
+    if (t.closest('.ctab') || t.closest('[data-ctab]')) setTimeout(function () { applyFilter(true); }, 150);
+  }, true);
 
   function tick() {
     var now = Date.now();
-    if (now - lastRun < 80) return;
+    if (now - lastRun < 100) return;
     lastRun = now;
-    applyFilter();
+    applyFilter(false);
   }
 
   injectCss();
-  setTimeout(tick, 500);
-  setTimeout(tick, 1200);
-  setTimeout(tick, 2500);
-  setInterval(tick, 2000);
+  setTimeout(function () { applyFilter(true); }, 400);
+  setTimeout(function () { applyFilter(true); }, 1000);
+  setTimeout(function () { applyFilter(true); }, 2200);
+  setInterval(tick, 2500);
 
   var pc = document.getElementById('portal-customer');
   if (pc) {
     try {
-      new MutationObserver(function () {
+      new MutationObserver(function (muts) {
+        var skip = true;
+        for (var i = 0; i < muts.length; i++) {
+          var m = muts[i];
+          if (m.type === 'childList') { skip = false; break; }
+          if (m.type === 'attributes' && m.attributeName === 'class') {
+            var el = m.target;
+            if (el && (el.id === 'portal-customer' || (el.id && el.id.indexOf('ctab') === 0) || (el.classList && el.classList.contains('ctab')))) {
+              skip = false; break;
+            }
+          }
+        }
+        if (skip) return;
         clearTimeout(window.__drCtMo);
-        window.__drCtMo = setTimeout(tick, 80);
+        window.__drCtMo = setTimeout(tick, 120);
       }).observe(pc, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
     } catch (e) {}
   }
 
-  window.DRCustomerMyTicketsFilter = { refresh: applyFilter, v: 5 };
+  window.DRCustomerMyTicketsFilter = { refresh: function () { applyFilter(true); }, v: 6 };
 })();
