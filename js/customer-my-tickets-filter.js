@@ -1,17 +1,17 @@
 /**
- * Divine Rays — customer My Tickets filter v6.3
- * No font flicker; centered Prev/Next footer.
+ * Divine Rays — customer My Tickets filter v6.4
+ * Showing on left; Prev/Next centered. No font flicker.
  * Customer My Tickets only. Credit: Lizzz · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_CUST_MY_TICKETS_FILTER_V63) return;
-  window.__DR_CUST_MY_TICKETS_FILTER_V63 = 1;
+  if (window.__DR_CUST_MY_TICKETS_FILTER_V64) return;
+  window.__DR_CUST_MY_TICKETS_FILTER_V64 = 1;
 
   var BAR_ID = 'dr-cust-ticket-toolbar';
   var FOOT_ID = 'dr-cust-ticket-footer';
   var STYLE_ID = 'dr-cust-ticket-toolbar-css';
-  var VER = '6.3';
+  var VER = '6.4';
   var pageSize = 10;
   var pageIndex = 0;
   var category = 'all';
@@ -64,13 +64,13 @@
     'html[data-theme="light"] #' + BAR_ID + ' select{',
     '  background-color:#fff!important;background-image:' + CHEV_L + '!important;color:#1a1a28!important',
     '}',
-    '#' + FOOT_ID + '{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;',
-    'gap:0.75rem 1.25rem;margin:0.85rem 0 0.25rem;padding:0.55rem 0.75rem;border-radius:12px;',
+    '#' + FOOT_ID + '{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;',
+    'gap:0.5rem;margin:0.85rem 0 0.25rem;padding:0.55rem 0.75rem;border-radius:12px;',
     'background:rgba(0,0,0,0.22);border:1px solid rgba(139,124,247,0.18);',
     'font-size:0.78rem}',
-    '#' + FOOT_ID + ' .dr-ct-count{font-size:0.78rem!important;color:#9898b0}',
+    '#' + FOOT_ID + ' .dr-ct-count{grid-column:1;justify-self:start;font-size:0.78rem!important;color:#9898b0;white-space:nowrap}',
     '#' + FOOT_ID + ' .dr-ct-count strong{color:#c4b5fd;font-weight:700}',
-    '#' + FOOT_ID + ' .dr-ct-nav{display:flex;align-items:center;justify-content:center;gap:0.4rem}',
+    '#' + FOOT_ID + ' .dr-ct-nav{grid-column:2;justify-self:center;display:flex;align-items:center;gap:0.4rem}',
     '#' + FOOT_ID + ' .dr-ct-nav button{appearance:none;border:1px solid rgba(139,124,247,0.35);',
     'background:rgba(124,106,240,0.22);color:#e9e5ff;border-radius:8px;padding:0.4rem 0.8rem;',
     'font-size:0.78rem!important;font-weight:600;cursor:pointer;font-family:inherit}',
@@ -89,15 +89,16 @@
   ].join('');
 
   function injectCss() {
-    if (cssReady && document.getElementById(STYLE_ID)) return;
     var s = document.getElementById(STYLE_ID);
     if (!s) {
       s = document.createElement('style');
       s.id = STYLE_ID;
       (document.head || document.documentElement).appendChild(s);
     }
-    s.textContent = CSS;
-    cssReady = true;
+    if (!cssReady) {
+      s.textContent = CSS;
+      cssReady = true;
+    }
   }
 
   function lockSelectLook(sel) {
@@ -242,7 +243,7 @@
       if (!list) return;
       var bar = ensureBar(), foot = ensureFooter();
       if (bar) bar.style.display = 'flex';
-      if (foot) foot.style.display = 'flex';
+      if (foot) foot.style.display = 'grid';
       var cards = getCards(list), matched = [];
       cards.forEach(function (card) {
         if (category === 'all' || cardCategory(card) === category) matched.push(card);
@@ -322,5 +323,5 @@
     } catch (e) {}
   }
 
-  window.DRCustomerMyTicketsFilter = { refresh: function () { applyFilter(true); }, v: 6.3 };
+  window.DRCustomerMyTicketsFilter = { refresh: function () { applyFilter(true); }, v: 6.4 };
 })();
