@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.5.5" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.5.6" />
   <style>
     html,body{margin:0;background:#0c0c14;color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
     #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae;flex-direction:column;gap:0.75rem;padding:1.5rem;text-align:center}
@@ -36,7 +36,7 @@
     var TEAM_BOARD_SHA = '6f7d941cf16542de5868a7ed0abaacae83f4d133';
     var TEAM_SEP_SHA = '85337adc33ac049cdbf1317bbc20388b4f774739';
     var SIDEBAR_SHA = 'f54ca62b389e67557d902e630612372b9db32710';
-    var SIDEBAR_ROLE_SHA = '396413b4889347a186bc0327ecbe33ef990ddfe2';
+    var SIDEBAR_ROLE_SHA = '44b94a0ad4abfd721e4b09d03a1eda83670d7a87';
     var APPROVAL_GATE_SHA = '95399ebc6bf10275331a35b96b9b589bf25b6d7b';
     var FORCE_PENDING_SHA = 'f3988b77a2f35efc5cd53a040d78a56becb58261';
     var LOGIN_TAB_SHA = '9beff1f929318ca08d9a71a1d4718ec4afebf539';
@@ -46,7 +46,7 @@
     var UI_LAYOUT_SHA = 'ce5a1fde308a9d38438b60df40497902b607690c';
     var KB_TABLE_SHA = '057efa589371be7a05114c786f31a89bb28fe009';
     var KB_JS_SHA = 'd4e9498db74b26a08bf7c8acec52ac3496c6ff86';
-    var USERS_NAV_SHA = 'd0bd758b16b8bc38286488128c64a224d7baead6';
+    var USERS_NAV_SHA = 'f87daa9cf712394f08b7c3150b834322e54f1265';
     var ADMIN_SHA = 'dd3d27c0c8190f4f85781c8f2477678d538768b0';
     var ADMIN_STATS_SHA = 'a84ce631450b3b57b11f852de982bf83206ea26b';
     var TOOLBAR_SHA = '2ea9190cbbb3dbfbf3a159ca47d585a61b2f6e2b';
@@ -181,6 +181,7 @@
         loadScript(CDN + LOGIN_TAB_SHA + '/js/login-tab-labels.js');
         loadScript(CDN + FORCE_PENDING_SHA + '/js/force-pending-block.js');
         loadScript(CDN + APPROVAL_GATE_SHA + '/js/agent-approval-gate.js');
+        loadScript(CDN + SIDEBAR_ROLE_SHA + '/js/sidebar-role-label.js');
       }, 50);
 
       setTimeout(function () {
