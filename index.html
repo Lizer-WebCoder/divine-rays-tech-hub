@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.7.5-portal-topbar" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.8.0" />
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@main/js/admin-portal-lock.js"></script>
   <style>
     html,body{margin:0;background:#0c0c14;color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
@@ -69,6 +69,7 @@
     var LIGHT_MODE_POLISH_SHA = '9a741396a6d1bafc57a4988841112afe0c79997f';
     var FORCE_LIGHT_BG_SHA = '06cb1f6b344b3908e790bd20f764d4f5aa9b468a';
     var LOGIN_CHROME_HIDE_SHA = '60c3368efd15da0e8d15cac0674b28eaed22d973';
+    var CUSTOMER_PRIORITY_MATRIX_SHA = 'f018d7f5bda6cbbd3e678efd192e5d60b616fb1b';
 
     var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
     var BUST = String(Date.now());
@@ -101,7 +102,8 @@
       'chat-ui.js': CHAT_UI_SHA,
       'light-mode-polish.js': LIGHT_MODE_POLISH_SHA,
       'force-light-bg.js': FORCE_LIGHT_BG_SHA,
-      'login-chrome-hide.js': LOGIN_CHROME_HIDE_SHA
+      'login-chrome-hide.js': LOGIN_CHROME_HIDE_SHA,
+      'customer-priority-matrix.js': CUSTOMER_PRIORITY_MATRIX_SHA
     };
 
     var SKIP = {
@@ -161,7 +163,7 @@
 
       html = html.replace(/var LIVE_SHA = '[^']*';/, "var LIVE_SHA = '" + COMMENTS_LIVE_SHA + "';");
       html = html.replace(/var KB_JS_SHA = '[^']*';/, "var KB_JS_SHA = '" + KB_JS_SHA + "';");
-      html = html.replace(/var THEME_SHA = '[^']*';/, "var THEME_SHA = 'e1b64444ddb0dbeea9ec05d05cf843032414c738';");
+      html = html.replace(/var THEME_SHA = '[^']*';/, "var THEME_SHA = '" + THEME_SHA + "';");
       html = html.replace(
         /var EXTRA_FILES = \[[^\]]*\];/,
         "var EXTRA_FILES = ['email-notify.js','ticket-plus.js','ticket-plus-fix.js','status-lock.js','kb.js','polish-fixes.js'];"
@@ -206,6 +208,7 @@
         loadScript(CDN + APPROVAL_GATE_SHA + '/js/agent-approval-gate.js');
         loadScript(CDN + LOGIN_TAB_SHA + '/js/login-tab-labels.js');
         loadScript(CDN + LOGIN_CHROME_HIDE_SHA + '/js/login-chrome-hide.js');
+        loadScript(CDN + CUSTOMER_PRIORITY_MATRIX_SHA + '/js/customer-priority-matrix.js');
       }, 30);
 
       setTimeout(function () {
@@ -244,7 +247,8 @@
           loadScript(CDN + CHAT_UI_SHA + '/js/chat-ui.js'),
           loadScript(CDN + LIGHT_MODE_POLISH_SHA + '/js/light-mode-polish.js'),
           loadScript(CDN + FORCE_LIGHT_BG_SHA + '/js/force-light-bg.js'),
-          loadScript(CDN + LOGIN_CHROME_HIDE_SHA + '/js/login-chrome-hide.js')
+          loadScript(CDN + LOGIN_CHROME_HIDE_SHA + '/js/login-chrome-hide.js'),
+          loadScript(CDN + CUSTOMER_PRIORITY_MATRIX_SHA + '/js/customer-priority-matrix.js')
         ]).then(function () {
           try { if (window.DRUsersNav && window.DRUsersNav.refresh) window.DRUsersNav.refresh(); } catch (e) {}
           try { if (window.DRSidebarDesign && window.DRSidebarDesign.refresh) window.DRSidebarDesign.refresh(); } catch (e2) {}
@@ -256,7 +260,7 @@
           try { if (window.DREndUserUI && window.DREndUserUI.refresh) window.DREndUserUI.refresh(); } catch (e8) {}
           try { if (window.DRChatUI && window.DRChatUI.refresh) window.DRChatUI.refresh(); } catch (e9) {}
           try { if (window.DRLightModePolish && window.DRLightModePolish.refresh) window.DRLightModePolish.refresh(); } catch (e10) {}
-          try { if (window.DRTopbarBrand && window.DRTopbarBrand.refresh) window.DRTopbarBrand.refresh(); } catch (e11) {}
+          try { if (window.DRCustomerPriorityMatrix && window.DRCustomerPriorityMatrix.refresh) window.DRCustomerPriorityMatrix.refresh(); } catch (ePri) {}
         });
       }, 1600);
 
