@@ -1,13 +1,15 @@
 /**
- * Divine Rays — hide portal chrome on login (mode-bar, notif FABs)
+ * Divine Rays — hide portal chrome on login; restore FAB sizes when logged in
  * Credit: Lizzz · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_LOGIN_CHROME_HIDE_V1) return;
-  window.__DR_LOGIN_CHROME_HIDE_V1 = 1;
+  if (window.__DR_LOGIN_CHROME_HIDE_V2) return;
+  window.__DR_LOGIN_CHROME_HIDE_V2 = 1;
 
   var STYLE_ID = 'dr-login-chrome-hide-css';
+  var FAB_SIZE = '56px';
+  var ICON_SIZE = '24px';
   var SELECTORS = [
     '.mode-bar',
     '#dr-staff-notif-fab',
@@ -17,6 +19,7 @@
     '#dr-notif-panel',
     '#dr-notif-panel-bd',
     '#dr-notif-btn',
+    '#dr-chat-fab',
     '.dr-notif-fab',
     '[id*="notif-fab"]'
   ];
@@ -37,14 +40,24 @@
       'body.is-login #dr-notif-panel,body:not(.is-portal) #dr-notif-panel,',
       'body.is-login #dr-notif-panel-bd,body:not(.is-portal) #dr-notif-panel-bd,',
       'body.is-login #dr-notif-btn,body:not(.is-portal) #dr-notif-btn,',
+      'body.is-login #dr-chat-fab,body:not(.is-portal) #dr-chat-fab,',
       'body.is-login .dr-notif-fab,body:not(.is-portal) .dr-notif-fab,',
       'body.is-login [id*="notif-fab"],body:not(.is-portal) [id*="notif-fab"]{',
-      'display:none!important;visibility:hidden!important;pointer-events:none!important;',
-      'opacity:0!important;height:0!important;overflow:hidden!important}',
+      'display:none!important;visibility:hidden!important;pointer-events:none!important;opacity:0!important}',
+
       'body.is-portal .mode-bar{display:flex!important;visibility:visible!important}',
-      'body.is-portal #dr-staff-notif-fab,body.is-portal #dr-notif-fab{',
-      'display:flex!important;visibility:visible!important;opacity:1!important;',
-      'height:auto!important;width:auto!important;pointer-events:auto!important}'
+
+      'body.is-portal #dr-staff-notif-fab,body.is-portal #dr-notif-fab,body.is-portal #dr-chat-fab{',
+      'display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;',
+      'width:' + FAB_SIZE + '!important;height:' + FAB_SIZE + '!important;',
+      'min-width:' + FAB_SIZE + '!important;min-height:' + FAB_SIZE + '!important;',
+      'max-width:' + FAB_SIZE + '!important;max-height:' + FAB_SIZE + '!important;',
+      'border-radius:50%!important;box-sizing:border-box!important;',
+      'align-items:center!important;justify-content:center!important',
+      '}',
+      'body.is-portal #dr-staff-notif-fab svg,body.is-portal #dr-notif-fab svg,body.is-portal #dr-chat-fab svg{',
+      'width:' + ICON_SIZE + '!important;height:' + ICON_SIZE + '!important',
+      '}',
     ].join('');
     if (el.parentNode) el.parentNode.appendChild(el);
   }
@@ -66,6 +79,24 @@
     return true;
   }
 
+  function sizeFab(el) {
+    if (!el) return;
+    el.style.setProperty('width', FAB_SIZE, 'important');
+    el.style.setProperty('height', FAB_SIZE, 'important');
+    el.style.setProperty('min-width', FAB_SIZE, 'important');
+    el.style.setProperty('min-height', FAB_SIZE, 'important');
+    el.style.setProperty('max-width', FAB_SIZE, 'important');
+    el.style.setProperty('max-height', FAB_SIZE, 'important');
+    el.style.setProperty('border-radius', '50%', 'important');
+    el.style.setProperty('display', 'flex', 'important');
+    el.style.setProperty('align-items', 'center', 'important');
+    el.style.setProperty('justify-content', 'center', 'important');
+    el.querySelectorAll('svg').forEach(function (svg) {
+      svg.style.setProperty('width', ICON_SIZE, 'important');
+      svg.style.setProperty('height', ICON_SIZE, 'important');
+    });
+  }
+
   function apply() {
     inject();
     var onLogin = isLoginVisible();
@@ -75,6 +106,7 @@
         document.body.classList.toggle('is-portal', !onLogin);
       }
     } catch (e) {}
+
     SELECTORS.forEach(function (sel) {
       document.querySelectorAll(sel).forEach(function (el) {
         if (onLogin) {
@@ -90,6 +122,12 @@
         }
       });
     });
+
+    if (!onLogin) {
+      ['dr-staff-notif-fab', 'dr-notif-fab', 'dr-chat-fab'].forEach(function (id) {
+        sizeFab(document.getElementById(id));
+      });
+    }
   }
 
   apply();
@@ -119,5 +157,5 @@
     }
   }, true);
 
-  window.DRLoginChromeHide = { refresh: apply, v: 1 };
+  window.DRLoginChromeHide = { refresh: apply, v: 2 };
 })();
