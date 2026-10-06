@@ -1,16 +1,14 @@
 /**
- * Divine Rays — Admin Portal lock v3 (no flicker)
- * Restores Admin UI; updates only when needed; low-frequency poll.
+ * Divine Rays — Admin Portal lock v4 (no flicker)
+ * Restores Admin UI; does not rewrite agent-name-display (sidebar owns it).
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_ADMIN_PORTAL_LOCK >= 3) return;
-  window.__DR_ADMIN_PORTAL_LOCK = 3;
+  if (window.__DR_ADMIN_PORTAL_LOCK >= 4) return;
+  window.__DR_ADMIN_PORTAL_LOCK = 4;
 
   var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
-  /* Do not force-load polling UI scripts — they caused full-UI flicker every 1–5s.
-     index.html pins load Users/theme once; this lock only applies light DOM fixes. */
   var PINS = {
     'pending-approved-fix.js': '94a5aeaaa38fafaaa1ac94872341ce3bf992dfd1'
   };
@@ -21,7 +19,7 @@
     scriptsLoaded = true;
     Object.keys(PINS).forEach(function (name) {
       var s = document.createElement('script');
-      s.src = CDN + PINS[name] + '/js/' + name + '?lock=3&b=' + Date.now();
+      s.src = CDN + PINS[name] + '/js/' + name + '?lock=4&b=' + Date.now();
       s.async = false;
       (document.head || document.documentElement).appendChild(s);
     });
@@ -35,13 +33,13 @@
       '#portal-agent .sidebar .brand-text p,',
       '#portal-agent .sidebar .brand p.brand-sub,',
       '#portal-agent .sidebar .brand-text .brand-sub{display:none!important}',
-      '#agent-name-display .dr-role-pill{',
+      '#agent-name-display .dr-role-pill, #agent-name-display .dr-side-role{',
       'display:inline-block;margin-left:.35rem;padding:.12rem .55rem;border-radius:999px;',
       'font-size:.68rem;font-weight:700;letter-spacing:.02em;vertical-align:middle}',
-      '#agent-name-display .dr-role-pill[data-role="developer"]{background:rgba(234,179,8,.2);color:#fbbf24;border:1px solid rgba(234,179,8,.45)}',
-      '#agent-name-display .dr-role-pill[data-role="admin"]{background:rgba(45,212,191,.15);color:#2dd4bf;border:1px solid rgba(45,212,191,.4)}',
-      '#agent-name-display .dr-role-pill[data-role="owner"]{background:rgba(168,85,247,.18);color:#c084fc;border:1px solid rgba(168,85,247,.4)}',
-      '#agent-name-display .dr-role-pill[data-role="it tech support"],',
+      '#agent-name-display .dr-role-pill[data-role="developer"], #agent-name-display .dr-side-role.developer{background:rgba(234,179,8,.2);color:#fbbf24;border:1px solid rgba(234,179,8,.45)}',
+      '#agent-name-display .dr-role-pill[data-role="admin"], #agent-name-display .dr-side-role.admin{background:rgba(45,212,191,.15);color:#2dd4bf;border:1px solid rgba(45,212,191,.4)}',
+      '#agent-name-display .dr-role-pill[data-role="owner"], #agent-name-display .dr-side-role.owner{background:rgba(168,85,247,.18);color:#c084fc;border:1px solid rgba(168,85,247,.4)}',
+      '#agent-name-display .dr-role-pill[data-role="it tech support"], #agent-name-display .dr-side-role.agent,',
       '#agent-name-display .dr-role-pill[data-role="agent"]{background:rgba(96,165,250,.15);color:#60a5fa;border:1px solid rgba(96,165,250,.4)}',
       'body.dr-view-dashboard #ticket-list,',
       'body.dr-view-dashboard #dr-ticket-pager,',
@@ -86,27 +84,7 @@
       setText(lb, name + ' (' + role + ')');
     }
 
-    var an = document.getElementById('agent-name-display');
-    if (an) {
-      var sn = an.querySelector('.dr-side-name');
-      var rp = an.querySelector('.dr-role-pill');
-      var text = (an.textContent || '').trim();
-      var sideName = sn
-        ? sn.textContent.trim()
-        : text.replace(/[·\u00b7\-].*$/, '').trim().split(/\s+/)[0] || text;
-      var sideRole = isDev(sideName) ? 'Developer' : 'Admin';
-      if (sn && rp) {
-        setText(sn, sideName);
-        if (rp.textContent !== sideRole) {
-          rp.textContent = sideRole;
-          rp.setAttribute('data-role', sideRole.toLowerCase());
-        }
-      } else if (!sn) {
-        an.innerHTML =
-          '<span class="dr-side-name">' + sideName + '</span> ' +
-          '<span class="dr-role-pill" data-role="' + sideRole.toLowerCase() + '">' + sideRole + '</span>';
-      }
-    }
+    /* agent-name-display owned by sidebar-role-label — do not rewrite (avoids flicker) */
   }
 
   function markDashboard() {
@@ -149,8 +127,8 @@
 
   forceLoadAll();
   tick();
-  setTimeout(tick, 2500);
-  setInterval(tick, 10000);
+  setTimeout(tick, 2000);
+  setInterval(tick, 30000);
 
   document.addEventListener(
     'click',
