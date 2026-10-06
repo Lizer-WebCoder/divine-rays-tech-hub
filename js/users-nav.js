@@ -1,5 +1,5 @@
 /**
- * Divine Rays - Users nav v13 — End-Users stat size + centered Role/Joined/Actions
+ * Divine Rays - Users nav v14 — slower tick (no flicker)
  * Users tab: Admins + Developers.
  * End-Users list: Admins and Developers.
  * Admin staff list: Developers only.
@@ -7,7 +7,8 @@
  */
 (function () {
   'use strict';
-  if (window.__DR_USERS_NAV_V13 >= 1) return;
+  if (window.__DR_USERS_NAV_V14 >= 1) return;
+  window.__DR_USERS_NAV_V14 = 1;
   window.__DR_USERS_NAV_V13 = 1;
   window.__DR_USERS_NAV_V12 = 1;
   window.__DR_USERS_NAV_V11 = 1;
@@ -383,8 +384,8 @@
       document.body.classList.contains('dr-view-endusers') ||
       document.body.classList.contains('dr-view-admin-staff')
     ) {
-      forceAdminView();
-      refreshStatCounts();
+      var va = document.getElementById('view-admin');
+      if (!va || !va.classList.contains('active')) forceAdminView();
       var list = document.getElementById('admin-users-list') || document.getElementById('staff-admin-list');
       var empty = !list || !list.querySelector('tbody tr');
       var mode =
@@ -397,8 +398,8 @@
     }
   }
 
-  if (!window.__drUsersNavClickV13) {
-    window.__drUsersNavClickV13 = 1;
+  if (!window.__drUsersNavClickV14) {
+    window.__drUsersNavClickV14 = 1;
     document.addEventListener(
       'click',
       function (e) {
@@ -421,7 +422,7 @@
   }
 
   tick();
-  setInterval(tick, 1200);
+  setInterval(tick, 8000);
 
   window.DRUsersNav = {
     refresh: tick,
