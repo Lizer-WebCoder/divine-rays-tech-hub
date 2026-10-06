@@ -1,20 +1,36 @@
 /**
- * Divine Rays - Users nav v9 - force Users views over Dashboard
- * End-Users + Admin subnav; keeps tables via renderAdminUsers
+ * Divine Rays - Users nav v10
+ * Users tab (End-Users + Admin) visible to Developers only.
+ * Other Admin staff get same portal UI as Developers, without Users nav.
  * Credit: Boyz at the Back - All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_USERS_NAV_V9 >= 2) return;
+  if (window.__DR_USERS_NAV_V10 >= 1) return;
+  window.__DR_USERS_NAV_V10 = 1;
   window.__DR_USERS_NAV_V9 = 2;
-  window.__DR_USERS_NAV_V8 = 2;
   window.__DR_USERS_NAV = 1;
 
   var DEVELOPER_USERNAMES = { kirzhian: 1, jamesjerlow123: 1, liya: 1 };
 
   function isDeveloperUser(u) {
     if (!u) return false;
-    return !!DEVELOPER_USERNAMES[String(u.username || '').toLowerCase().trim()];
+    if (DEVELOPER_USERNAMES[String(u.username || '').toLowerCase().trim()]) return true;
+    var r = String(u.role || u.staff_role || '').toLowerCase().trim();
+    return r === 'developer' || r === 'owner' || r === 'dev';
+  }
+
+  function currentProfile() {
+    try {
+      if (window.__drProfile) return window.__drProfile;
+      if (window.DR && window.DR.profile) return window.DR.profile;
+      if (window.DR && window.DR.user) return window.DR.user;
+    } catch (e) {}
+    return null;
+  }
+
+  function canSeeUsersTab() {
+    return isDeveloperUser(currentProfile());
   }
 
   function sb() {
@@ -42,6 +58,7 @@
       '#dr-users-sub .nav-btn{width:100%;text-align:left;margin:0.2rem 0;border-radius:10px;padding:0.45rem 0.75rem;font-size:0.88rem}',
       '#dr-users-sub .nav-btn.dr-users-active,#dr-users-sub .nav-btn.active{background:linear-gradient(90deg,rgba(124,106,240,0.35),rgba(124,106,240,0.12))!important;color:#e9e5ff!important;font-weight:600!important;box-shadow:inset 3px 0 0 #7c6af0}',
       '#portal-agent .nav-btn.nav-admin:not([data-dr-users-root]),#portal-agent .nav-btn[data-view="admin"]:not([data-dr-users-root]){display:none!important}',
+      'body.dr-hide-users-nav .nav-btn[data-dr-users-root],body.dr-hide-users-nav #dr-users-sub{display:none!important;visibility:hidden!important}',
       'body.dr-view-endusers #filter-status,body.dr-view-endusers #filter-priority,body.dr-view-endusers #filter-sort,body.dr-view-endusers #btn-clear-filters,body.dr-view-endusers #search-input{display:none!important}',
       'body.dr-view-admin-staff #filter-status,body.dr-view-admin-staff #filter-priority,body.dr-view-admin-staff #filter-sort,body.dr-view-admin-staff #btn-clear-filters,body.dr-view-admin-staff #search-input{display:none!important}',
       'body.dr-view-endusers #filter-hint,body.dr-view-admin-staff #filter-hint,body.dr-view-endusers .dr-ticket-pager,body.dr-view-admin-staff .dr-ticket-pager{display:none!important}',
@@ -76,6 +93,7 @@
   }
 
   async function refreshStatCounts() {
+    if (!canSeeUsersTab()) return;
     try {
       var client = sb();
       if (!client) return;
@@ -162,7 +180,34 @@
     return sub;
   }
 
+  function hideUsersNav() {
+    try {
+      document.body.classList.add('dr-hide-users-nav');
+      var root = document.querySelector('#portal-agent .nav-btn[data-dr-users-root]');
+      if (root) root.style.setProperty('display', 'none', 'important');
+      var sub = document.getElementById('dr-users-sub');
+      if (sub) {
+        sub.classList.remove('open');
+        sub.style.setProperty('display', 'none', 'important');
+      }
+      document.querySelectorAll('#portal-agent .nav-btn[data-view="admin"]').forEach(function (b) {
+        b.style.setProperty('display', 'none', 'important');
+      });
+      document.body.classList.remove('dr-view-endusers', 'dr-view-admin-staff');
+    } catch (e) {}
+  }
+
+  function showUsersNavChrome(root) {
+    try {
+      document.body.classList.remove('dr-hide-users-nav');
+      if (root) root.style.removeProperty('display');
+      var sub = document.getElementById('dr-users-sub');
+      if (sub) sub.style.removeProperty('display');
+    } catch (e) {}
+  }
+
   function forceAdminView() {
+    if (!canSeeUsersTab()) return false;
     var v = document.getElementById('view-admin');
     if (!v) return false;
     document.querySelectorAll('#portal-agent .view, .app-shell .view, section.view').forEach(function (x) {
@@ -194,6 +239,7 @@
   }
 
   function loadUsersList(mode) {
+    if (!canSeeUsersTab()) return;
     function go() {
       if (typeof window.renderAdminUsers === 'function') {
         try {
@@ -215,6 +261,7 @@
   }
 
   function openEndUsers() {
+    if (!canSeeUsersTab()) return;
     document.body.classList.add('dr-view-endusers');
     document.body.classList.remove('dr-view-admin-staff');
     window.__DR_USERS_LIST_MODE = 'endusers';
@@ -231,6 +278,7 @@
   }
 
   function openAdminStaff() {
+    if (!canSeeUsersTab()) return;
     document.body.classList.add('dr-view-admin-staff');
     document.body.classList.remove('dr-view-endusers');
     window.__DR_USERS_LIST_MODE = 'staff';
@@ -271,8 +319,13 @@
 
   function wire() {
     injectCss();
+    if (!canSeeUsersTab()) {
+      hideUsersNav();
+      return;
+    }
     var root = findAdminNavBtn();
     if (!root) return;
+    showUsersNavChrome(root);
     setUsersLabel(root);
     hideDuplicateAdminTabs(root);
     var sub = ensureSubmenu(root);
@@ -281,6 +334,7 @@
       root.addEventListener('click', function (e) {
         e.preventDefault();
         e.stopPropagation();
+        if (!canSeeUsersTab()) return;
         if (sub) {
           sub.classList.toggle('open');
           root.classList.toggle('dr-users-open', sub.classList.contains('open'));
@@ -292,6 +346,10 @@
 
   function tick() {
     wire();
+    if (!canSeeUsersTab()) {
+      hideUsersNav();
+      return;
+    }
     if (
       document.body.classList.contains('dr-view-endusers') ||
       document.body.classList.contains('dr-view-admin-staff')
@@ -309,8 +367,8 @@
     }
   }
 
-  if (!window.__drUsersNavClickV9) {
-    window.__drUsersNavClickV9 = 1;
+  if (!window.__drUsersNavClickV10) {
+    window.__drUsersNavClickV10 = 1;
     document.addEventListener(
       'click',
       function (e) {
@@ -319,13 +377,13 @@
         if (eu) {
           e.preventDefault();
           e.stopPropagation();
-          openEndUsers();
+          if (canSeeUsersTab()) openEndUsers();
           return;
         }
         if (ad) {
           e.preventDefault();
           e.stopPropagation();
-          openAdminStaff();
+          if (canSeeUsersTab()) openAdminStaff();
         }
       },
       true
@@ -340,6 +398,7 @@
     openEndUsers: openEndUsers,
     openAdmin: openAdminStaff,
     isDeveloperUser: isDeveloperUser,
+    canSeeUsersTab: canSeeUsersTab,
     refreshStats: refreshStatCounts
   };
 })();
