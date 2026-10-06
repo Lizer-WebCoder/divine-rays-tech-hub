@@ -1,14 +1,15 @@
 /**
- * Divine Rays — theme toggle v9
- * Icon (sun/moon), onclick nuclear bind, injects full light CSS so switch always visible
+ * Divine Rays — theme toggle v10
+ * Sun/moon icon. Single-fire toggle (no double-flip). Injects light CSS.
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_THEME_V9) return;
-  window.__DR_THEME_V9 = 1;
+  if (window.__DR_THEME_V10) return;
+  window.__DR_THEME_V10 = 1;
 
   var KEY = 'dr_theme';
+  var lastToggleAt = 0;
 
   var ICON_SUN =
     '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
@@ -32,9 +33,9 @@
   }
 
   function injectLightCss() {
-    if (document.getElementById('dr-theme-v9-css')) return;
+    if (document.getElementById('dr-theme-v10-css')) return;
     var el = document.createElement('style');
-    el.id = 'dr-theme-v9-css';
+    el.id = 'dr-theme-v10-css';
     el.textContent = [
       '.mode-bar #btn-theme, #btn-theme.dr-theme-icon{',
       'width:34px!important;min-width:34px!important;height:34px!important;padding:0!important;',
@@ -113,15 +114,14 @@
         window.DRHeartbeatDraw.refresh();
       }
     } catch (e3) {}
-    try {
-      document.dispatchEvent(new CustomEvent('dr-theme-change', { detail: { theme: theme } }));
-    } catch (e4) {}
     return theme;
   }
 
   function toggle() {
-    var next = current() === 'light' ? 'dark' : 'light';
-    return apply(next);
+    var now = Date.now();
+    if (now - lastToggleAt < 400) return current();
+    lastToggleAt = now;
+    return apply(current() === 'light' ? 'dark' : 'light');
   }
 
   function updateButtons(theme) {
@@ -148,18 +148,6 @@
       toggle();
       return false;
     };
-    if (!btn.__drThemeMousedown) {
-      btn.__drThemeMousedown = 1;
-      btn.addEventListener(
-        'mousedown',
-        function (e) {
-          e.preventDefault();
-          e.stopPropagation();
-          toggle();
-        },
-        true
-      );
-    }
   }
 
   function ensureButton() {
@@ -185,8 +173,8 @@
     return btn;
   }
 
-  if (!window.__drThemeClickV9) {
-    window.__drThemeClickV9 = 1;
+  if (!window.__drThemeClickV10) {
+    window.__drThemeClickV10 = 1;
     document.addEventListener(
       'click',
       function (e) {
@@ -208,9 +196,8 @@
   }
 
   boot();
-  setTimeout(boot, 200);
-  setTimeout(boot, 800);
-  setTimeout(boot, 2000);
+  setTimeout(boot, 300);
+  setTimeout(boot, 1200);
   setInterval(ensureButton, 25000);
 
   window.DRTheme = {
