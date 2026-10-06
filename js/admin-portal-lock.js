@@ -1,12 +1,12 @@
 /**
- * Divine Rays — Admin Portal lock v4 (no flicker)
+ * Divine Rays — Admin Portal lock v5 (no flicker, portal-aware brand)
  * Restores Admin UI; does not rewrite agent-name-display (sidebar owns it).
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_ADMIN_PORTAL_LOCK >= 4) return;
-  window.__DR_ADMIN_PORTAL_LOCK = 4;
+  if (window.__DR_ADMIN_PORTAL_LOCK >= 5) return;
+  window.__DR_ADMIN_PORTAL_LOCK = 5;
 
   var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
   var PINS = {
@@ -19,7 +19,7 @@
     scriptsLoaded = true;
     Object.keys(PINS).forEach(function (name) {
       var s = document.createElement('script');
-      s.src = CDN + PINS[name] + '/js/' + name + '?lock=4&b=' + Date.now();
+      s.src = CDN + PINS[name] + '/js/' + name + '?lock=5&b=' + Date.now();
       s.async = false;
       (document.head || document.documentElement).appendChild(s);
     });
@@ -72,19 +72,27 @@
       }
     });
 
-    var brand = 'Divine Rays Tech Hub \u2022 Admin Portal';
-    var strong = document.querySelector('.mode-brand strong');
-    if (strong) setText(strong, brand);
+    var pa = document.getElementById('portal-agent');
+    var pc = document.getElementById('portal-customer');
+    var onAdmin = pa && pa.classList.contains('active');
+    var onEnd = pc && pc.classList.contains('active');
+    if (onAdmin && !onEnd) {
+      var brand = 'Divine Rays Tech Hub \u2022 Admin Portal';
+      var strong = document.querySelector('.mode-brand strong');
+      if (strong) setText(strong, brand);
+    } else if (onEnd) {
+      var brandEu = 'Divine Rays Tech Hub \u2022 Employees';
+      var strongEu = document.querySelector('.mode-brand strong');
+      if (strongEu) setText(strongEu, brandEu);
+    }
 
     var lb = document.getElementById('logged-user-label');
-    if (lb) {
+    if (lb && onAdmin && !onEnd) {
       var raw = (lb.textContent || '').trim();
       var name = raw.replace(/\s*\(.*$/, '').trim().split(/\s+/)[0] || 'User';
       var role = isDev(name) || isDev(raw) ? 'Developer' : 'Admin';
       setText(lb, name + ' (' + role + ')');
     }
-
-    /* agent-name-display owned by sidebar-role-label — do not rewrite (avoids flicker) */
   }
 
   function markDashboard() {
