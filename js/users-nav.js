@@ -1,10 +1,11 @@
 /**
- * Divine Rays - Users nav v16 — leave Users restores target view fully
+ * Divine Rays - Users nav v17 — Users opens last sub-view; leave restores native tabs
  * Credit: Boyz at the Back - All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_USERS_NAV_V16 >= 1) return;
+  if (window.__DR_USERS_NAV_V17 >= 1) return;
+  window.__DR_USERS_NAV_V17 = 1;
   window.__DR_USERS_NAV_V16 = 1;
   window.__DR_USERS_NAV_V15 = 1;
   window.__DR_USERS_NAV_V14 = 1;
@@ -292,117 +293,67 @@
     }
   }
 
-  function resolveViewIdFromNav(nav) {
-    if (!nav) return 'view-dashboard';
-    var v = String(nav.getAttribute('data-view') || '').toLowerCase().trim();
-    var map = {
-      dashboard: 'view-dashboard',
-      home: 'view-dashboard',
-      tickets: 'view-tickets',
-      my: 'view-my',
-      'my-tickets': 'view-my',
-      unassigned: 'view-unassigned',
-      all: 'view-all',
-      'all-tickets': 'view-all',
-      kb: 'view-kb',
-      knowledge: 'view-kb',
-      admin: 'view-admin',
-      users: 'view-admin'
-    };
-    if (map[v]) return map[v];
-    var t = String(nav.textContent || '').toLowerCase().replace(/\s+/g, ' ').trim();
-    if (/dashboard|home/.test(t)) return 'view-dashboard';
-    if (/unassigned/.test(t)) return 'view-unassigned';
-    if (/all tickets|\ball\b/.test(t)) return 'view-all';
-    if (/my tickets|my ticket/.test(t)) return 'view-my';
-    if (/knowledge|\bkb\b/.test(t)) return 'view-kb';
-    if (/ticket/.test(t)) return 'view-tickets';
-    if (v) {
-      var tryId = 'view-' + v;
-      if (document.getElementById(tryId)) return tryId;
+  function clearUsersModeStyles() {
+    document.body.classList.remove('dr-view-endusers', 'dr-view-admin-staff');
+    window.__DR_USERS_LIST_MODE = '';
+    var sub = document.getElementById('dr-users-sub');
+    if (sub) sub.classList.remove('open');
+    var root = document.querySelector('#portal-agent .nav-btn[data-dr-users-root]');
+    if (root) {
+      root.classList.remove('dr-users-open', 'active');
+      root.setAttribute('aria-expanded', 'false');
     }
-    return 'view-dashboard';
-  }
-
-  function showPortalView(viewId) {
-    if (!viewId) viewId = 'view-dashboard';
-    var found = null;
+    var eu = document.getElementById('dr-users-endusers');
+    var ad = document.getElementById('dr-users-admin');
+    if (eu) eu.classList.remove('dr-users-active', 'active');
+    if (ad) ad.classList.remove('dr-users-active', 'active');
     document.querySelectorAll('#portal-agent .view, .app-shell .view, section.view, #portal-agent [id^="view-"]').forEach(function (x) {
-      var isTarget = x.id === viewId;
-      x.classList.toggle('active', isTarget);
       try {
-        if (isTarget) {
-          found = x;
-          x.hidden = false;
-          x.style.removeProperty('display');
-          x.style.removeProperty('visibility');
-          x.style.removeProperty('opacity');
-          x.style.setProperty('display', 'block', 'important');
-          x.style.setProperty('visibility', 'visible', 'important');
-          x.style.setProperty('opacity', '1', 'important');
-        } else {
-          x.classList.remove('active');
-          x.style.setProperty('display', 'none', 'important');
-          x.style.setProperty('visibility', 'hidden', 'important');
-        }
+        x.style.removeProperty('display');
+        x.style.removeProperty('visibility');
+        x.style.removeProperty('opacity');
       } catch (e) {}
     });
-    if (!found) {
-      var dash = document.getElementById('view-dashboard');
-      if (dash) {
-        dash.classList.add('active');
-        dash.hidden = false;
-        dash.style.setProperty('display', 'block', 'important');
-        dash.style.setProperty('visibility', 'visible', 'important');
-        dash.style.setProperty('opacity', '1', 'important');
-      }
-    }
-    var pt = document.getElementById('page-title');
-    if (pt) {
-      var titles = {
-        'view-dashboard': 'Dashboard',
-        'view-tickets': 'Tickets',
-        'view-my': 'My Tickets',
-        'view-unassigned': 'Unassigned',
-        'view-all': 'All Tickets',
-        'view-kb': 'Knowledge Base',
-        'view-admin': 'Users'
-      };
-      if (titles[viewId]) pt.textContent = titles[viewId];
+    var admin = document.getElementById('view-admin');
+    if (admin) {
+      admin.classList.remove('active');
+      try {
+        admin.style.setProperty('display', 'none', 'important');
+        admin.style.setProperty('visibility', 'hidden', 'important');
+      } catch (e2) {}
     }
   }
 
   function leaveUsersView(targetNav) {
     try {
-      document.body.classList.remove('dr-view-endusers', 'dr-view-admin-staff');
-      window.__DR_USERS_LIST_MODE = '';
-      var sub = document.getElementById('dr-users-sub');
-      if (sub) sub.classList.remove('open');
-      var root = document.querySelector('#portal-agent .nav-btn[data-dr-users-root]');
-      if (root) {
-        root.classList.remove('dr-users-open', 'active');
-        root.setAttribute('aria-expanded', 'false');
-      }
-      var eu = document.getElementById('dr-users-endusers');
-      var ad = document.getElementById('dr-users-admin');
-      if (eu) { eu.classList.remove('dr-users-active', 'active'); }
-      if (ad) { ad.classList.remove('dr-users-active', 'active'); }
-      document.querySelectorAll('#portal-agent .view, .app-shell .view, section.view, #portal-agent [id^="view-"]').forEach(function (x) {
+      clearUsersModeStyles();
+      var dash = document.getElementById('view-dashboard');
+      if (dash) {
+        dash.classList.add('active');
+        dash.hidden = false;
         try {
-          x.style.removeProperty('display');
-          x.style.removeProperty('visibility');
-          x.style.removeProperty('opacity');
+          dash.style.removeProperty('display');
+          dash.style.removeProperty('visibility');
+          dash.style.removeProperty('opacity');
+          dash.style.setProperty('display', 'block', 'important');
+          dash.style.setProperty('visibility', 'visible', 'important');
+          dash.style.setProperty('opacity', '1', 'important');
         } catch (e) {}
-      });
-      var viewId = resolveViewIdFromNav(targetNav);
-      showPortalView(viewId);
-      document.querySelectorAll('#portal-agent .nav-btn').forEach(function (b) {
-        if (b.closest('#dr-users-sub') || b.getAttribute('data-dr-users-root')) {
-          b.classList.remove('active');
-          return;
-        }
-        b.classList.toggle('active', b === targetNav);
-      });
+      }
+      var pt = document.getElementById('page-title');
+      if (pt && targetNav) {
+        var label = String(targetNav.textContent || '').replace(/\s+/g, ' ').trim();
+        if (label) pt.textContent = label;
+      }
+      if (targetNav) {
+        document.querySelectorAll('#portal-agent .nav-btn').forEach(function (b) {
+          if (b.closest('#dr-users-sub') || b.getAttribute('data-dr-users-root')) {
+            b.classList.remove('active');
+            return;
+          }
+          b.classList.toggle('active', b === targetNav);
+        });
+      }
     } catch (err) {}
   }
 
@@ -411,6 +362,7 @@
     document.body.classList.add('dr-view-endusers');
     document.body.classList.remove('dr-view-admin-staff');
     window.__DR_USERS_LIST_MODE = 'endusers';
+    window.__DR_USERS_LAST_MODE = 'endusers';
     var sub = document.getElementById('dr-users-sub');
     if (sub) sub.classList.add('open');
     forceAdminView();
@@ -428,6 +380,7 @@
     document.body.classList.add('dr-view-admin-staff');
     document.body.classList.remove('dr-view-endusers');
     window.__DR_USERS_LIST_MODE = 'staff';
+    window.__DR_USERS_LAST_MODE = 'staff';
     var sub = document.getElementById('dr-users-sub');
     if (sub) sub.classList.add('open');
     forceAdminView();
@@ -478,10 +431,13 @@
         e.stopPropagation();
         if (!canSeeUsersTab()) return;
         if (sub) {
-          sub.classList.toggle('open');
-          root.classList.toggle('dr-users-open', sub.classList.contains('open'));
-          root.setAttribute('aria-expanded', sub.classList.contains('open') ? 'true' : 'false');
+          sub.classList.add('open');
+          root.classList.add('dr-users-open');
+          root.setAttribute('aria-expanded', 'true');
         }
+        var mode = window.__DR_USERS_LAST_MODE || window.__DR_USERS_LIST_MODE || 'endusers';
+        if (mode === 'staff' && canSeeAdminStaffList()) openAdminStaff();
+        else openEndUsers();
       });
     }
   }
@@ -508,12 +464,14 @@
     }
   }
 
-  if (!window.__drUsersNavClickV16) {
-    window.__drUsersNavClickV16 = 1;
+  if (!window.__drUsersNavClickV17) {
+    window.__drUsersNavClickV17 = 1;
     document.addEventListener(
       'click',
       function (e) {
         if (!e.target || !e.target.closest) return;
+        if (e.__drUsersNavReplay) return;
+
         var eu = e.target.closest('#dr-users-endusers');
         var ad = e.target.closest('#dr-users-admin');
         if (eu) {
@@ -528,9 +486,11 @@
           if (canSeeAdminStaffList()) openAdminStaff();
           return;
         }
+
         var nav = e.target.closest('#portal-agent .nav-btn');
         if (!nav) return;
         if (nav.getAttribute('data-dr-users-root') || nav.closest('#dr-users-sub')) return;
+
         if (
           document.body.classList.contains('dr-view-endusers') ||
           document.body.classList.contains('dr-view-admin-staff')
@@ -538,7 +498,15 @@
           e.preventDefault();
           e.stopPropagation();
           leaveUsersView(nav);
-          setTimeout(function () { leaveUsersView(nav); }, 50);
+          setTimeout(function () {
+            try {
+              var ev = new MouseEvent('click', { bubbles: true, cancelable: true, view: window });
+              ev.__drUsersNavReplay = 1;
+              nav.dispatchEvent(ev);
+            } catch (err) {
+              try { nav.click(); } catch (err2) {}
+            }
+          }, 0);
         }
       },
       true
