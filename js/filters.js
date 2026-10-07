@@ -1,9 +1,10 @@
 /**
- * Divine Rays — filters v7 — accurate pager + Unassigned Tickets label
+ * Divine Rays — filters v8 — strict single-page hide + dedupe tickets
  * Credit: Boyz at the Back LRK · All Rights Reserved
  */
 (function () {
   'use strict';
+  window.__DR_FILTERS_V8 = 1;
   window.__DR_FILTERS_V7 = 1;
   window.__DR_FILTERS_V6 = 1;
   window.__DR_FILTERS_V5 = 1;
@@ -82,6 +83,22 @@
       } catch (e2) {}
     }
     return window.allTicketsCache || [];
+  }
+
+  function dedupeTickets(list) {
+    if (!Array.isArray(list) || !list.length) return [];
+    var seen = Object.create(null);
+    var out = [];
+    for (var i = 0; i < list.length; i++) {
+      var t = list[i];
+      if (!t) continue;
+      var id = t.id != null ? String(t.id) : '';
+      var key = id || ('row:' + i + ':' + (t.ticket_number || '') + ':' + (t.title || ''));
+      if (seen[key]) continue;
+      seen[key] = 1;
+      out.push(t);
+    }
+    return out;
   }
 
   function getNames() {
@@ -233,7 +250,6 @@
       if (p.length >= 2) return (p[0][0] + p[1][0]).toUpperCase();
       return (n.slice(0, 2) || '?').toUpperCase();
     })(req);
-
     return (
       '<div class="ticket-card" data-id="' + esc(t.id) + '">' +
       '<div class="ticket-av">' + esc(initials) + '</div>' +
@@ -284,17 +300,25 @@
     return pager;
   }
 
-  function updatePager(page, pages, matched) {
+  function updatePager(page, pages, matched, limit) {
     var pager = ensurePager();
     if (!pager) return;
     var prev = document.getElementById('dr-page-prev');
     var next = document.getElementById('dr-page-next');
     var info = document.getElementById('dr-page-info');
-    var totalPages = Math.max(1, parseInt(pages, 10) || 1);
+    matched = parseInt(matched, 10) || 0;
+    limit = parseInt(limit, 10) || 20;
+    if (limit < 1) limit = 20;
+    var totalPages = matched > limit ? Math.ceil(matched / limit) : 1;
+    if (totalPages < 1) totalPages = 1;
     var cur = Math.max(0, parseInt(page, 10) || 0);
     if (cur > totalPages - 1) cur = totalPages - 1;
-    var show = matched > 0 && totalPages > 1;
-    pager.style.display = show ? 'flex' : 'none';
+    var show = matched > limit && totalPages > 1;
+    try {
+      pager.style.setProperty('display', show ? 'flex' : 'none', 'important');
+    } catch (e) {
+      pager.style.display = show ? 'flex' : 'none';
+    }
     if (!show) {
       if (info) info.textContent = '';
       return;
@@ -407,6 +431,7 @@
     }
 
     var names = getNames();
+    all = dedupeTickets(all);
     var filtered = all.filter(function (t) {
       return matchesMode(t, lf.mode) &&
         matchesStatus(t.status, lf.status) &&
@@ -415,7 +440,7 @@
     });
     filtered = sortTickets(filtered, lf.sort);
     var matched = filtered.length;
-    var pages = matched > 0 ? Math.ceil(matched / limit) : 1;
+    var pages = matched > limit ? Math.ceil(matched / limit) : 1;
     if (pages < 1) pages = 1;
     if (lf.page < 0) lf.page = 0;
     if (lf.page > pages - 1) lf.page = pages - 1;
@@ -426,7 +451,7 @@
     var to = start + pageItems.length;
 
     updateHint(from, to, matched, all.length, page, pages);
-    updatePager(page, pages, matched);
+    updatePager(page, pages, matched, limit);
 
     var sig =
       limit + '|' + page + '|' + (lf.sort || '') + '|' + (lf.status || '') + '|' +
@@ -647,12 +672,29 @@
     (document.head || document.documentElement).appendChild(el);
   }
 
+  function forcePagerAccuracy() {
+    try {
+      var lf = getLF();
+      var limit = parseInt(lf.limit, 10) || 20;
+      var all = dedupeTickets(getTickets());
+      var filtered = all.filter(function (t) {
+        return matchesMode(t, lf.mode) &&
+          matchesStatus(t.status, lf.status) &&
+          matchesPriority(t.priority, lf.priority) &&
+          matchesQuery(t, lf.q);
+      });
+      var matched = filtered.length;
+      updatePager(lf.page || 0, matched > limit ? Math.ceil(matched / limit) : 1, matched, limit);
+    } catch (e) {}
+  }
+
   function boot() {
     injectFiltersCss();
     renameUnassignedNav();
     bindClear();
     bindSearchFilters();
     syncToolbarVisibility();
+    forcePagerAccuracy();
   }
 
   if (document.readyState === 'loading') {
@@ -666,6 +708,7 @@
   setTimeout(function () { boot(); applyTicketFilters(false); }, 2500);
   setTimeout(function () { applyTicketFilters(false); }, 4000);
   setTimeout(function () { applyTicketFilters(false); }, 7000);
+  setInterval(forcePagerAccuracy, 1200);
 
   document.addEventListener('click', function (e) {
     var t = e.target;
