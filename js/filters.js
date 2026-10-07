@@ -1,9 +1,10 @@
 /**
- * Divine Rays — filters v10 — stable pager matched count (no flicker)
+ * Divine Rays — filters v11 — fix empty Page 2 / inflated page count
  * Credit: Boyz at the Back LRK · All Rights Reserved
  */
 (function () {
   'use strict';
+  window.__DR_FILTERS_V11 = 1;
   window.__DR_FILTERS_V10 = 1;
   window.__DR_FILTERS_V9 = 1;
   window.__DR_FILTERS_V8 = 1;
@@ -294,16 +295,25 @@
     if ([10, 20, 50].indexOf(limit) === -1) limit = 20;
 
     var totalPages = 1;
-    if (matched > 0 && matched > limit) totalPages = Math.ceil(matched / limit);
-    try {
-      var cards = document.querySelectorAll('#ticket-list .ticket-card').length;
-      var curPage = Math.max(0, parseInt(page, 10) || 0);
-      if (curPage === 0 && cards > 0 && cards <= limit && matched <= limit) totalPages = 1;
-    } catch (e0) {}
-
+    if (matched > limit) totalPages = Math.ceil(matched / limit);
     if (totalPages < 1) totalPages = 1;
+
+    var cards = 0;
+    try { cards = document.querySelectorAll('#ticket-list .ticket-card').length; } catch (e0) {}
     var cur = Math.max(0, parseInt(page, 10) || 0);
-    if (cur > totalPages - 1) cur = totalPages - 1;
+
+    if (cur > 0 && cards === 0) {
+      totalPages = matched > limit ? totalPages : 1;
+      if (matched <= limit) { cur = 0; totalPages = 1; }
+    }
+    if (cur === 0 && cards > 0 && cards < limit) {
+      totalPages = 1;
+      matched = cards;
+    }
+    if (cur === 0 && cards > 0 && cards <= limit && matched <= limit) {
+      totalPages = 1;
+    }
+    if (cur > totalPages - 1) cur = Math.max(0, totalPages - 1);
 
     var mode = '';
     try { mode = (getLF().mode || ''); } catch (e1) {}
@@ -405,7 +415,7 @@
     });
     filtered = sortTickets(filtered, lf.sort);
     var matched = filtered.length;
-    var pages = (matched > 0 && matched > limit) ? Math.ceil(matched / limit) : 1;
+    var pages = matched > limit ? Math.ceil(matched / limit) : 1;
     if (pages < 1) pages = 1;
     if (lf.page < 0) lf.page = 0;
     if (lf.page > pages - 1) lf.page = pages - 1;
@@ -425,10 +435,19 @@
     _lastSig = sig;
 
     if (!pageItems.length) {
+      if (page > 0 && matched > 0) {
+        lf.page = 0;
+        _lastSig = '';
+        applyTicketFilters(false);
+        return;
+      }
+      if (page > 0 && matched === 0) {
+        lf.page = 0;
+      }
       container.innerHTML = '<div class="empty-state"><p>' +
         (all.length ? 'No tickets match these filters.' : 'No tickets.') + '</p></div>';
-      try { window.__drPagerMatched = 0; } catch (e0) {}
-      updatePager(0, 1, 0, limit);
+      try { window.__drPagerMatched = matched || 0; } catch (e0) {}
+      updatePager(0, 1, matched || 0, limit);
       return;
     }
 
@@ -440,6 +459,15 @@
         else if (typeof window.openTicket === 'function') window.openTicket(id);
       });
     });
+    try {
+      var shown = container.querySelectorAll('.ticket-card').length;
+      if (page === 0 && shown < limit) {
+        try { window.__drPagerMatched = shown || matched; } catch (eM3) {}
+        updatePager(0, 1, shown || matched, limit);
+      } else {
+        updatePager(page, pages, matched, limit);
+      }
+    } catch (eFinal) {}
   }
 
   window.applyTicketFilters = applyTicketFilters;
@@ -546,13 +574,26 @@
     try {
       var lf = getLF();
       var limit = parseInt(lf.limit, 10) || 20;
+      if ([10, 20, 50].indexOf(limit) === -1) limit = 20;
       var all = dedupeTickets(getTickets());
       var filtered = all.filter(function (t) {
         return matchesMode(t, lf.mode) && matchesStatus(t.status, lf.status) &&
           matchesPriority(t.priority, lf.priority) && matchesQuery(t, lf.q);
       });
       var matched = filtered.length;
-      var pages = (matched > 0 && matched > limit) ? Math.ceil(matched / limit) : 1;
+      var pages = matched > limit ? Math.ceil(matched / limit) : 1;
+      var cards = 0;
+      try { cards = document.querySelectorAll('#ticket-list .ticket-card').length; } catch (eC) {}
+      if ((lf.page || 0) > 0 && cards === 0) {
+        lf.page = 0;
+        _lastSig = '';
+        applyTicketFilters(false);
+        return;
+      }
+      if ((lf.page || 0) === 0 && cards > 0 && cards < limit) {
+        matched = cards;
+        pages = 1;
+      }
       try { window.__drPagerMatched = matched; } catch (eM2) {}
       updatePager(lf.page || 0, pages, matched, limit);
     } catch (e) {}
