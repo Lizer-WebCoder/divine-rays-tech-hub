@@ -1,13 +1,13 @@
 /**
- * Divine Rays — Light mode polish + fixed mode-bar (v8)
- * Top bar sticks while scrolling; hidden on login screen.
- * Sidebar 20% opacity; top-bar logo light plate.
+ * Divine Rays — Light mode polish + fixed mode-bar (v9)
+ * Light top bar: soft lavender (not browser-white).
+ * Dark top-bar logo: dark plate + purple gear.
  * Credit: Lizzz · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_LIGHT_MODE_POLISH_V8) return;
-  window.__DR_LIGHT_MODE_POLISH_V8 = 1;
+  if (window.__DR_LIGHT_MODE_POLISH_V9) return;
+  window.__DR_LIGHT_MODE_POLISH_V9 = 1;
 
   var STYLE_ID = 'dr-light-mode-polish-css';
   var BAR_H = 52;
@@ -27,10 +27,10 @@
     'body.is-login #app-shell{padding-top:0!important}',
 
     'html[data-theme="light"] body.is-portal .mode-bar{',
-    '  background:rgba(255,255,255,0.96)!important;',
+    '  background:linear-gradient(180deg,#ebe6ff 0%,#e2dbfc 100%)!important;',
     '  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);',
-    '  border-bottom:1px solid rgba(109,94,245,0.22)!important;',
-    '  box-shadow:0 2px 14px rgba(91,33,182,0.1)',
+    '  border-bottom:1px solid rgba(109,94,245,0.28)!important;',
+    '  box-shadow:0 2px 14px rgba(91,33,182,0.12)',
     '}',
     'html[data-theme="dark"] body.is-portal .mode-bar,html:not([data-theme="light"]) body.is-portal .mode-bar{',
     '  background:rgba(18,16,28,0.96)!important;',
@@ -101,6 +101,24 @@
     'html[data-theme="light"] .mode-bar .logo img,',
     'html[data-theme="light"] .mode-bar .mode-brand img{',
     '  filter:none!important;opacity:1!important',
+    '}',
+
+    'html[data-theme="dark"] .mode-bar .logo,',
+    'html[data-theme="dark"] .mode-bar .logo-gear,',
+    'html[data-theme="dark"] .mode-bar .mode-brand .logo,',
+    'html[data-theme="dark"] .mode-bar .brand .logo,',
+    'html:not([data-theme="light"]) .mode-bar .logo,',
+    'html:not([data-theme="light"]) .mode-bar .logo-gear{',
+    '  background:rgba(28,24,48,0.95)!important;',
+    '  border:1px solid rgba(139,124,247,0.35)!important;',
+    '  color:#a78bfa!important;',
+    '  box-shadow:0 1px 6px rgba(0,0,0,0.35)!important',
+    '}',
+    'html[data-theme="dark"] .mode-bar .logo svg,',
+    'html[data-theme="dark"] .mode-bar .logo-gear svg,',
+    'html[data-theme="dark"] .mode-bar .gear-icon,',
+    'html:not([data-theme="light"]) .mode-bar .gear-icon{',
+    '  color:#a78bfa!important;fill:#a78bfa!important;stroke:#a78bfa!important',
     '}'
   ].join('');
 
@@ -123,20 +141,42 @@
         side.style.setProperty('backdrop-filter', 'blur(12px)', 'important');
         side.style.setProperty('-webkit-backdrop-filter', 'blur(12px)', 'important');
       }
+      var logos = document.querySelectorAll('.mode-bar .logo, .mode-bar .logo-gear, .mode-bar .mode-brand .logo, .mode-bar .brand .logo');
+      var icons = document.querySelectorAll('.mode-bar .gear-icon, .mode-bar .logo svg, .mode-bar .logo-gear svg');
       if (theme === 'light') {
-        var logos = document.querySelectorAll('.mode-bar .logo, .mode-bar .logo-gear, .mode-bar .mode-brand .logo, .mode-bar .brand .logo');
         logos.forEach(function (el) {
           el.style.setProperty('background', '#ffffff', 'important');
           el.style.setProperty('border', '1px solid rgba(109,94,245,0.28)', 'important');
           el.style.setProperty('color', '#6d5ef5', 'important');
           el.style.setProperty('box-shadow', '0 1px 4px rgba(109,94,245,0.12)', 'important');
         });
-        var icons = document.querySelectorAll('.mode-bar .gear-icon, .mode-bar .logo svg, .mode-bar .logo-gear svg');
         icons.forEach(function (el) {
           el.style.setProperty('color', '#6d5ef5', 'important');
           el.style.setProperty('fill', '#6d5ef5', 'important');
           el.style.setProperty('stroke', '#6d5ef5', 'important');
         });
+        var bar = document.querySelector('body.is-portal .mode-bar');
+        if (bar) {
+          bar.style.setProperty('background', 'linear-gradient(180deg,#ebe6ff 0%,#e2dbfc 100%)', 'important');
+          bar.style.setProperty('border-bottom', '1px solid rgba(109,94,245,0.28)', 'important');
+        }
+      } else {
+        logos.forEach(function (el) {
+          el.style.setProperty('background', 'rgba(28,24,48,0.95)', 'important');
+          el.style.setProperty('border', '1px solid rgba(139,124,247,0.35)', 'important');
+          el.style.setProperty('color', '#a78bfa', 'important');
+          el.style.setProperty('box-shadow', '0 1px 6px rgba(0,0,0,0.35)', 'important');
+        });
+        icons.forEach(function (el) {
+          el.style.setProperty('color', '#a78bfa', 'important');
+          el.style.setProperty('fill', '#a78bfa', 'important');
+          el.style.setProperty('stroke', '#a78bfa', 'important');
+        });
+        var bar2 = document.querySelector('body.is-portal .mode-bar');
+        if (bar2) {
+          bar2.style.setProperty('background', 'rgba(18,16,28,0.96)', 'important');
+          bar2.style.setProperty('border-bottom', '1px solid rgba(139,124,247,0.25)', 'important');
+        }
       }
     } catch (e) {}
   }
@@ -151,5 +191,5 @@
   setTimeout(boot, 1200);
   setInterval(forceSidebarLight, 1500);
 
-  window.DRLightModePolish = { refresh: boot, v: 8 };
+  window.DRLightModePolish = { refresh: boot, v: 9 };
 })();
