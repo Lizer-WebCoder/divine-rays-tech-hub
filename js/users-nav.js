@@ -1,14 +1,14 @@
 /**
- * Divine Rays - Users nav v17 — Users opens last sub-view; leave restores native tabs
+ * Divine Rays - Users nav v18 — Users tab always opens End-Users
  * Credit: Boyz at the Back - All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_USERS_NAV_V17 >= 1) return;
+  if (window.__DR_USERS_NAV_V18 >= 1) return;
+  window.__DR_USERS_NAV_V18 = 1;
   window.__DR_USERS_NAV_V17 = 1;
   window.__DR_USERS_NAV_V16 = 1;
   window.__DR_USERS_NAV_V15 = 1;
-  window.__DR_USERS_NAV_V14 = 1;
   window.__DR_USERS_NAV = 1;
 
   var DEVELOPER_USERNAMES = { kirzhian: 1, kirzhianquijano: 1, kirzhianthegreat: 1, jamesjerlow123: 1, liya: 1 };
@@ -373,6 +373,14 @@
     loadUsersList('endusers');
     syncActiveHighlight();
     refreshStatCounts();
+    setTimeout(function () {
+      var t = document.getElementById('page-title');
+      if (t && document.body.classList.contains('dr-view-endusers')) t.textContent = 'Users · End-Users';
+    }, 50);
+    setTimeout(function () {
+      var t = document.getElementById('page-title');
+      if (t && document.body.classList.contains('dr-view-endusers')) t.textContent = 'Users · End-Users';
+    }, 300);
   }
 
   function openAdminStaff() {
@@ -435,9 +443,8 @@
           root.classList.add('dr-users-open');
           root.setAttribute('aria-expanded', 'true');
         }
-        var mode = window.__DR_USERS_LAST_MODE || window.__DR_USERS_LIST_MODE || 'endusers';
-        if (mode === 'staff' && canSeeAdminStaffList()) openAdminStaff();
-        else openEndUsers();
+        // Always open End-Users when Users tab is clicked
+        openEndUsers();
       });
     }
   }
@@ -464,8 +471,8 @@
     }
   }
 
-  if (!window.__drUsersNavClickV17) {
-    window.__drUsersNavClickV17 = 1;
+  if (!window.__drUsersNavClickV18) {
+    window.__drUsersNavClickV18 = 1;
     document.addEventListener(
       'click',
       function (e) {
