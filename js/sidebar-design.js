@@ -1,12 +1,12 @@
 /**
  * Divine Rays — premium agent sidebar redesign v2
- * Sidebar background forced to 20% opacity (dark + light)
+ * Sidebar background 20% opacity; solid logo plate (no float)
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_SIDEBAR_DESIGN_V2 >= 5) return;
-  window.__DR_SIDEBAR_DESIGN_V2 = 5;
+  if (window.__DR_SIDEBAR_DESIGN_V2 >= 6) return;
+  window.__DR_SIDEBAR_DESIGN_V2 = 6;
 
   var STYLE_ID = 'dr-sidebar-design-css';
 
@@ -31,8 +31,9 @@
     'width:38px!important;height:38px!important;flex-shrink:0!important;',
     'display:grid!important;place-items:center!important;',
     'border-radius:11px!important;',
-    'background:rgba(124,106,240,0.12)!important;',
-    'border:1px solid rgba(139,124,247,0.28)!important;',
+    'background:rgba(28,24,48,0.92)!important;',
+    'border:1px solid rgba(139,124,247,0.35)!important;',
+    'box-shadow:0 2px 8px rgba(0,0,0,0.25)!important;',
     'color:#a78bfa!important}',
 
     '#portal-agent .sidebar .gear-icon{width:22px!important;height:22px!important;color:inherit!important}',
@@ -142,7 +143,9 @@
 
     'html[data-theme="light"] #portal-agent .sidebar .logo.logo-gear,',
     'html[data-theme="light"] #portal-agent .sidebar .brand .logo{',
-    'background:#fff!important;border-color:rgba(109,94,245,0.25)!important;',
+    'background:#ffffff!important;',
+    'border:1px solid rgba(109,94,245,0.28)!important;',
+    'box-shadow:0 2px 8px rgba(109,94,245,0.12)!important;',
     'color:#6d5ef5!important}',
 
     'html[data-theme="light"] #portal-agent .sidebar .gear-icon{color:#6d5ef5!important}',
@@ -197,6 +200,20 @@
     }
     side.style.setProperty('backdrop-filter', 'blur(12px)', 'important');
     side.style.setProperty('-webkit-backdrop-filter', 'blur(12px)', 'important');
+    var logos = side.querySelectorAll('.logo, .logo-gear, .brand .logo');
+    logos.forEach(function (el) {
+      if (theme === 'light') {
+        el.style.setProperty('background', '#ffffff', 'important');
+        el.style.setProperty('border', '1px solid rgba(109,94,245,0.28)', 'important');
+        el.style.setProperty('box-shadow', '0 2px 8px rgba(109,94,245,0.12)', 'important');
+        el.style.setProperty('color', '#6d5ef5', 'important');
+      } else {
+        el.style.setProperty('background', 'rgba(28,24,48,0.92)', 'important');
+        el.style.setProperty('border', '1px solid rgba(139,124,247,0.35)', 'important');
+        el.style.setProperty('box-shadow', '0 2px 8px rgba(0,0,0,0.25)', 'important');
+        el.style.setProperty('color', '#a78bfa', 'important');
+      }
+    });
   }
 
   function boot() {
@@ -215,5 +232,5 @@
     });
   } catch (e) {}
 
-  window.DRSidebarDesign = { refresh: boot, v: 5 };
+  window.DRSidebarDesign = { refresh: boot, v: 6 };
 })();
