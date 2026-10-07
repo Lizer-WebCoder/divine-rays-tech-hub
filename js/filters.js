@@ -1,9 +1,10 @@
 /**
- * Divine Rays — filters v9 — Page 1 of 1 when single page; accurate totals
+ * Divine Rays — filters v10 — stable pager matched count (no flicker)
  * Credit: Boyz at the Back LRK · All Rights Reserved
  */
 (function () {
   'use strict';
+  window.__DR_FILTERS_V10 = 1;
   window.__DR_FILTERS_V9 = 1;
   window.__DR_FILTERS_V8 = 1;
   window.__DR_FILTERS_V7 = 1;
@@ -297,7 +298,7 @@
     try {
       var cards = document.querySelectorAll('#ticket-list .ticket-card').length;
       var curPage = Math.max(0, parseInt(page, 10) || 0);
-      if (curPage === 0 && cards > 0 && cards <= limit) totalPages = 1;
+      if (curPage === 0 && cards > 0 && cards <= limit && matched <= limit) totalPages = 1;
     } catch (e0) {}
 
     if (totalPages < 1) totalPages = 1;
@@ -310,6 +311,9 @@
     try {
       pager.style.setProperty('display', onList ? 'flex' : 'none', 'important');
       pager.style.setProperty('justify-content', 'center', 'important');
+      pager.style.setProperty('background', 'transparent', 'important');
+      pager.style.setProperty('box-shadow', 'none', 'important');
+      pager.style.setProperty('border', 'none', 'important');
     } catch (e) {
       pager.style.display = onList ? 'flex' : 'none';
     }
@@ -317,7 +321,8 @@
       if (info) info.textContent = '';
       return;
     }
-    if (info) info.textContent = 'Page ' + (cur + 1) + ' of ' + totalPages;
+    var want = 'Page ' + (cur + 1) + ' of ' + totalPages;
+    if (info && info.textContent !== want) info.textContent = want;
     if (prev) {
       prev.disabled = cur <= 0 || totalPages <= 1;
       prev.classList.toggle('is-disabled', cur <= 0 || totalPages <= 1);
@@ -411,6 +416,7 @@
     var to = start + pageItems.length;
 
     updateHint(from, to, matched, all.length, page, pages);
+    try { window.__drPagerMatched = matched; } catch (eM) {}
     updatePager(page, pages, matched, limit);
 
     var sig = limit + '|' + page + '|' + (lf.q || '') + '|' + (lf.mode || '') + '|' +
@@ -421,6 +427,7 @@
     if (!pageItems.length) {
       container.innerHTML = '<div class="empty-state"><p>' +
         (all.length ? 'No tickets match these filters.' : 'No tickets.') + '</p></div>';
+      try { window.__drPagerMatched = 0; } catch (e0) {}
       updatePager(0, 1, 0, limit);
       return;
     }
@@ -546,6 +553,7 @@
       });
       var matched = filtered.length;
       var pages = (matched > 0 && matched > limit) ? Math.ceil(matched / limit) : 1;
+      try { window.__drPagerMatched = matched; } catch (eM2) {}
       updatePager(lf.page || 0, pages, matched, limit);
     } catch (e) {}
   }
@@ -562,7 +570,7 @@
   setTimeout(boot, 400);
   setTimeout(function () { boot(); applyTicketFilters(false); }, 1500);
   setTimeout(function () { applyTicketFilters(false); }, 3500);
-  setInterval(forcePagerAccuracy, 1000);
+  setInterval(forcePagerAccuracy, 2500);
 
   document.addEventListener('click', function (e) {
     var t = e.target;
