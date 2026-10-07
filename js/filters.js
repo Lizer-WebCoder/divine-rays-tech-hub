@@ -1,9 +1,11 @@
 /**
- * Divine Rays — filters v11 — fix empty Page 2 / inflated page count
+ * Divine Rays — filters v13 — prev/next always restores page list
  * Credit: Boyz at the Back LRK · All Rights Reserved
  */
 (function () {
   'use strict';
+  window.__DR_FILTERS_V13 = 1;
+  window.__DR_FILTERS_V12 = 1;
   window.__DR_FILTERS_V11 = 1;
   window.__DR_FILTERS_V10 = 1;
   window.__DR_FILTERS_V9 = 1;
@@ -19,10 +21,7 @@
   function esc(s) {
     if (window.DR && DR.esc) return DR.esc(s);
     return String(s == null ? '' : s)
-      .replace(/&/g, '&')
-      .replace(/</g, '<')
-      .replace(/>/g, '>')
-      .replace(/"/g, '"');
+      .replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>').replace(/"/g, '"');
   }
 
   function fmt(iso) {
@@ -42,25 +41,27 @@
   }
 
   function getLF() {
-    if (window.DR && typeof DR.getListFilter === 'function') {
-      try {
-        var lf = DR.getListFilter();
-        if (lf) {
-          if (lf.limit == null) lf.limit = 20;
-          if (lf.sort == null) lf.sort = 'newest';
-          if (lf.page == null) lf.page = 0;
-          return lf;
-        }
-      } catch (e) {}
-    }
     if (!window.__drListFilter) {
       window.__drListFilter = {
         mode: 'all', q: '', status: '', priority: '', sort: 'newest', limit: 20, page: 0
       };
     }
-    if (window.__drListFilter.limit == null) window.__drListFilter.limit = 20;
-    if (window.__drListFilter.page == null) window.__drListFilter.page = 0;
-    return window.__drListFilter;
+    var lf = window.__drListFilter;
+    try {
+      if (window.DR && typeof DR.getListFilter === 'function') {
+        var drLf = DR.getListFilter();
+        if (drLf && drLf !== lf) {
+          ['mode', 'q', 'status', 'priority', 'sort', 'limit'].forEach(function (k) {
+            if (drLf[k] != null && lf[k] !== drLf[k] && k !== 'page') lf[k] = drLf[k];
+          });
+          try { drLf.page = lf.page; } catch (e0) {}
+        }
+      }
+    } catch (e) {}
+    if (lf.limit == null) lf.limit = 20;
+    if (lf.sort == null) lf.sort = 'newest';
+    if (lf.page == null || isNaN(lf.page)) lf.page = 0;
+    return lf;
   }
 
   function getTickets() {
@@ -383,6 +384,12 @@
 
     var container = document.getElementById('ticket-list');
     if (!container) return;
+    try {
+      container.style.removeProperty('display');
+      container.style.removeProperty('visibility');
+      container.style.setProperty('display', 'flex', 'important');
+      container.style.setProperty('visibility', 'visible', 'important');
+    } catch (eShow) {}
 
     var all = getTickets();
     if ((!all || !all.length) && window.DR && typeof DR.fetchTickets === 'function') {
@@ -431,13 +438,16 @@
 
     var sig = limit + '|' + page + '|' + (lf.q || '') + '|' + (lf.mode || '') + '|' +
       pageItems.map(function (t) { return t.id; }).join(',');
-    if (sig === _lastSig && container.querySelector('.ticket-card')) return;
+    var pageChanged = (window.__drLastPageRender != null && window.__drLastPageRender !== page);
+    window.__drLastPageRender = page;
+    if (!pageChanged && sig === _lastSig && container.querySelector('.ticket-card')) return;
     _lastSig = sig;
 
     if (!pageItems.length) {
       if (page > 0 && matched > 0) {
         lf.page = 0;
         _lastSig = '';
+        window.__drLastPageRender = null;
         applyTicketFilters(false);
         return;
       }
@@ -509,22 +519,40 @@
     ensurePager();
     var prev = document.getElementById('dr-page-prev');
     var next = document.getElementById('dr-page-next');
+    function goPage(delta) {
+      var lf = getLF();
+      var nextPage = (parseInt(lf.page, 10) || 0) + delta;
+      if (nextPage < 0) nextPage = 0;
+      lf.page = nextPage;
+      window.__drListFilter = lf;
+      try {
+        if (window.DR && typeof DR.getListFilter === 'function') {
+          var d = DR.getListFilter();
+          if (d) d.page = nextPage;
+        }
+      } catch (e1) {}
+      _lastSig = '';
+      window.__drLastPageRender = null;
+      try {
+        var box = document.getElementById('ticket-list');
+        if (box) box.innerHTML = '<div class="empty-state"><p>Loading…</p></div>';
+      } catch (e2) {}
+      applyTicketFilters(false);
+    }
     if (prev && !prev.__drBound) {
       prev.__drBound = true;
       prev.addEventListener('click', function (e) {
         e.preventDefault();
-        var lf = getLF();
-        if (lf.page > 0) { lf.page -= 1; _lastSig = ''; refreshList(); }
+        e.stopPropagation();
+        goPage(-1);
       });
     }
     if (next && !next.__drBound) {
       next.__drBound = true;
       next.addEventListener('click', function (e) {
         e.preventDefault();
-        var lf = getLF();
-        lf.page = (lf.page || 0) + 1;
-        _lastSig = '';
-        refreshList();
+        e.stopPropagation();
+        goPage(1);
       });
     }
   }
@@ -587,6 +615,7 @@
       if ((lf.page || 0) > 0 && cards === 0) {
         lf.page = 0;
         _lastSig = '';
+        window.__drLastPageRender = null;
         applyTicketFilters(false);
         return;
       }
