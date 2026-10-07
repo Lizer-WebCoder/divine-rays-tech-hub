@@ -1,14 +1,13 @@
 /**
- * Divine Rays - Users nav v18 — Users tab always opens End-Users
+ * Divine Rays - Users nav v19 — fix KB view + End-Users flash
  * Credit: Boyz at the Back - All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_USERS_NAV_V18 >= 1) return;
+  if (window.__DR_USERS_NAV_V19 >= 1) return;
+  window.__DR_USERS_NAV_V19 = 1;
   window.__DR_USERS_NAV_V18 = 1;
   window.__DR_USERS_NAV_V17 = 1;
-  window.__DR_USERS_NAV_V16 = 1;
-  window.__DR_USERS_NAV_V15 = 1;
   window.__DR_USERS_NAV = 1;
 
   var DEVELOPER_USERNAMES = { kirzhian: 1, kirzhianquijano: 1, kirzhianthegreat: 1, jamesjerlow123: 1, liya: 1 };
@@ -279,17 +278,17 @@
       if (typeof window.renderAdminUsers === 'function') {
         try {
           window.renderAdminUsers(mode);
-          setTimeout(refreshStatCounts, 200);
-          setTimeout(refreshStatCounts, 800);
+          setTimeout(refreshStatCounts, 120);
+          setTimeout(refreshStatCounts, 500);
           return true;
         } catch (e) { return false; }
       }
       return false;
     }
     if (!go()) {
-      setTimeout(go, 300);
-      setTimeout(go, 900);
-      setTimeout(go, 1800);
+      setTimeout(go, 80);
+      setTimeout(go, 250);
+      setTimeout(go, 700);
     }
   }
 
@@ -312,40 +311,39 @@
         x.style.removeProperty('display');
         x.style.removeProperty('visibility');
         x.style.removeProperty('opacity');
+        x.hidden = false;
       } catch (e) {}
     });
-    var admin = document.getElementById('view-admin');
-    if (admin) {
-      admin.classList.remove('active');
+  }
+
+  function activateViewById(viewId, titleText) {
+    document.querySelectorAll('#portal-agent .view, .app-shell .view, section.view, #portal-agent [id^="view-"]').forEach(function (x) {
+      var on = x.id === viewId;
+      x.classList.toggle('active', on);
       try {
-        admin.style.setProperty('display', 'none', 'important');
-        admin.style.setProperty('visibility', 'hidden', 'important');
-      } catch (e2) {}
-    }
+        if (on) {
+          x.hidden = false;
+          x.style.setProperty('display', 'block', 'important');
+          x.style.setProperty('visibility', 'visible', 'important');
+          x.style.setProperty('opacity', '1', 'important');
+        } else {
+          x.style.setProperty('display', 'none', 'important');
+          x.style.setProperty('visibility', 'hidden', 'important');
+        }
+      } catch (e) {}
+    });
+    var pt = document.getElementById('page-title');
+    if (pt && titleText) pt.textContent = titleText;
   }
 
   function leaveUsersView(targetNav) {
     try {
       clearUsersModeStyles();
-      var dash = document.getElementById('view-dashboard');
-      if (dash) {
-        dash.classList.add('active');
-        dash.hidden = false;
-        try {
-          dash.style.removeProperty('display');
-          dash.style.removeProperty('visibility');
-          dash.style.removeProperty('opacity');
-          dash.style.setProperty('display', 'block', 'important');
-          dash.style.setProperty('visibility', 'visible', 'important');
-          dash.style.setProperty('opacity', '1', 'important');
-        } catch (e) {}
-      }
-      var pt = document.getElementById('page-title');
-      if (pt && targetNav) {
-        var label = String(targetNav.textContent || '').replace(/\s+/g, ' ').trim();
-        if (label) pt.textContent = label;
-      }
+      var view = '';
+      var label = '';
       if (targetNav) {
+        view = String(targetNav.getAttribute('data-view') || '').toLowerCase().trim();
+        label = String(targetNav.textContent || '').replace(/\s+/g, ' ').trim();
         document.querySelectorAll('#portal-agent .nav-btn').forEach(function (b) {
           if (b.closest('#dr-users-sub') || b.getAttribute('data-dr-users-root')) {
             b.classList.remove('active');
@@ -354,6 +352,15 @@
           b.classList.toggle('active', b === targetNav);
         });
       }
+      if (view === 'kb' || (targetNav && targetNav.id === 'nav-kb') || /knowledge/i.test(label)) {
+        if (window.DR_KB && typeof window.DR_KB.show === 'function') {
+          window.DR_KB.show();
+        } else {
+          activateViewById('view-kb', 'Knowledge Base');
+        }
+        return;
+      }
+      activateViewById('view-dashboard', label || 'Dashboard');
     } catch (err) {}
   }
 
@@ -365,22 +372,23 @@
     window.__DR_USERS_LAST_MODE = 'endusers';
     var sub = document.getElementById('dr-users-sub');
     if (sub) sub.classList.add('open');
-    forceAdminView();
     var pt = document.getElementById('page-title');
     if (pt) pt.textContent = 'Users · End-Users';
     var fh = document.getElementById('filter-hint');
     if (fh) { fh.style.display = 'none'; fh.textContent = ''; }
+    forceAdminView();
     loadUsersList('endusers');
     syncActiveHighlight();
     refreshStatCounts();
     setTimeout(function () {
       var t = document.getElementById('page-title');
       if (t && document.body.classList.contains('dr-view-endusers')) t.textContent = 'Users · End-Users';
-    }, 50);
+      if (document.body.classList.contains('dr-view-endusers')) forceAdminView();
+    }, 40);
     setTimeout(function () {
       var t = document.getElementById('page-title');
       if (t && document.body.classList.contains('dr-view-endusers')) t.textContent = 'Users · End-Users';
-    }, 300);
+    }, 200);
   }
 
   function openAdminStaff() {
@@ -443,7 +451,6 @@
           root.classList.add('dr-users-open');
           root.setAttribute('aria-expanded', 'true');
         }
-        // Always open End-Users when Users tab is clicked
         openEndUsers();
       });
     }
@@ -471,8 +478,8 @@
     }
   }
 
-  if (!window.__drUsersNavClickV18) {
-    window.__drUsersNavClickV18 = 1;
+  if (!window.__drUsersNavClickV19) {
+    window.__drUsersNavClickV19 = 1;
     document.addEventListener(
       'click',
       function (e) {
@@ -505,6 +512,8 @@
           e.preventDefault();
           e.stopPropagation();
           leaveUsersView(nav);
+          var v = String(nav.getAttribute('data-view') || '').toLowerCase();
+          if (v === 'kb' || nav.id === 'nav-kb') return;
           setTimeout(function () {
             try {
               var ev = new MouseEvent('click', { bubbles: true, cancelable: true, view: window });
