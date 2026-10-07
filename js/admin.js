@@ -1,11 +1,12 @@
 /**
- * Divine Rays — Admin V13 — centered pager, no range text
+ * Divine Rays — Admin V14 — light glass tables + detached pager
  * End-Users: customers only | Admin: staff Status/Approve/Deny (deny deletes)
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_ADMIN_V13) return;
+  if (window.__DR_ADMIN_V14) return;
+  window.__DR_ADMIN_V14 = 1;
   window.__DR_ADMIN_V13 = 1;
   window.__DR_ADMIN_V12 = 1;
   window.__DR_ADMIN_V10 = 1;
@@ -200,7 +201,11 @@
       '#view-admin > .admin-hint{display:none!important}' +
       'body.dr-view-admin-staff #filter-hint,body.dr-view-endusers #filter-hint{display:none!important}' +
       'body.dr-view-admin-staff #dr-ticket-pager,body.dr-view-endusers #dr-ticket-pager{display:none!important}' +
-      'body.dr-view-admin-staff .dr-users-pager,body.dr-view-endusers .dr-users-pager{display:flex!important;justify-content:center!important;width:100%!important}' +
+      'body.dr-view-admin-staff .dr-users-pager,body.dr-view-endusers .dr-users-pager{' +
+      'display:flex!important;justify-content:center!important;align-items:center!important;' +
+      'width:100%!important;margin:1.1rem 0 0.25rem!important;padding:0.35rem 0!important;' +
+      'background:transparent!important;border:none!important;box-shadow:none!important;' +
+      'backdrop-filter:none!important;-webkit-backdrop-filter:none!important}' +
       'body.dr-view-admin-staff #search-input,body.dr-view-endusers #search-input,' +
       'body.dr-view-admin-staff #filter-status,body.dr-view-endusers #filter-status,' +
       'body.dr-view-admin-staff #filter-priority,body.dr-view-endusers #filter-priority,' +
@@ -228,7 +233,29 @@
       '.badge-role-owner{background:rgba(244,114,182,0.22)!important;color:#f472b6!important}' +
       'body.dr-view-admin-staff .admin-role-select,' +
       'body.dr-view-admin-staff .admin-btn-edit,' +
-      'body.dr-view-admin-staff .admin-btn-del{display:none!important}';
+      'body.dr-view-admin-staff .admin-btn-del{display:none!important}' +
+      'html[data-theme="light"] #admin-users-list,' +
+      'html[data-theme="light"] #view-admin #admin-users-list,' +
+      'html[data-theme="light"] body.dr-view-endusers #admin-users-list,' +
+      'html[data-theme="light"] body.dr-view-admin-staff #admin-users-list{' +
+      'background:rgba(255,255,255,0.42)!important;' +
+      'backdrop-filter:blur(14px) saturate(1.15)!important;' +
+      '-webkit-backdrop-filter:blur(14px) saturate(1.15)!important;' +
+      'border:1px solid rgba(255,255,255,0.55)!important;' +
+      'box-shadow:0 8px 28px rgba(80,60,140,0.08)!important;' +
+      'border-radius:1rem!important}' +
+      'html[data-theme="light"] #admin-users-list .admin-table,' +
+      'html[data-theme="light"] #admin-users-list .perf-table{background:transparent!important}' +
+      'html[data-theme="light"] #admin-users-list .admin-table thead,' +
+      'html[data-theme="light"] #admin-users-list .admin-table th{background:rgba(255,255,255,0.35)!important}' +
+      'html[data-theme="light"] #admin-users-list .admin-table tbody tr{background:transparent!important}' +
+      'html[data-theme="light"] #admin-users-list .admin-table tbody tr:nth-child(even){background:rgba(255,255,255,0.18)!important}' +
+      'html[data-theme="light"] #view-admin .card,' +
+      'html[data-theme="light"] #view-admin .panel,' +
+      'html[data-theme="light"] #view-admin .table-wrap{' +
+      'background:rgba(255,255,255,0.4)!important;' +
+      'backdrop-filter:blur(12px)!important;' +
+      '-webkit-backdrop-filter:blur(12px)!important}';
   }
   function hideShowingMeta() {
     try {
@@ -331,7 +358,7 @@
     var pageStart = window.__drUsersPage * PAGE_SIZE;
     var pageRows = filtered.slice(pageStart, pageStart + PAGE_SIZE);
     var pagerHtml =
-      '<div class="dr-users-pager" id="dr-users-pager" style="display:flex!important;align-items:center;justify-content:center;gap:0.5rem;margin:0.85rem 0 0.35rem;flex-wrap:wrap;width:100%">' +
+      '<div class="dr-users-pager" id="dr-users-pager">' +
       '<button type="button" class="dr-page-btn" id="dr-users-page-prev" aria-label="Previous page"' +
       (window.__drUsersPage <= 0 || totalPages <= 1 ? ' disabled' : '') + '>← Prev</button>' +
       '<span class="dr-page-info" id="dr-users-page-info">Page ' + (window.__drUsersPage + 1) + ' of ' + totalPages + '</span>' +
@@ -394,8 +421,13 @@
         }).join('') + '</tbody></table>';
     }
     if (token !== _renderToken) return;
+    try {
+      var oldPager = document.getElementById('dr-users-pager');
+      if (oldPager) oldPager.remove();
+    } catch (eP) {}
     if (pagerHtml) {
-      box.insertAdjacentHTML('beforeend', pagerHtml);
+      if (box.parentNode) box.insertAdjacentHTML('afterend', pagerHtml);
+      else box.insertAdjacentHTML('beforeend', pagerHtml);
       var prevB = document.getElementById('dr-users-page-prev');
       var nextB = document.getElementById('dr-users-page-next');
       if (prevB && !prevB.__drBound) {
