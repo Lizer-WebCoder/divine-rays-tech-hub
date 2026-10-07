@@ -1,5 +1,5 @@
 /**
- * Divine Rays — Admin V10
+ * Divine Rays — Admin V12 — users pager always accurate
  * End-Users: customers only | Admin: staff Status/Approve/Deny (deny deletes)
  * Role filter: Admin, IT Tech Support, Owner, Developer
  * Role badge fonts/colors from css; Admin = teal, Developer = gold
@@ -7,7 +7,8 @@
  */
 (function () {
   'use strict';
-  if (window.__DR_ADMIN_V10) return;
+  if (window.__DR_ADMIN_V12) return;
+  window.__DR_ADMIN_V12 = 1;
   window.__DR_ADMIN_V10 = 1;
   window.__DR_ADMIN_V9 = 1;
   window.__DR_ADMIN_V7 = 1;
@@ -221,7 +222,8 @@
     el.textContent =
       '#view-admin > .admin-hint{display:none!important}' +
       'body.dr-view-admin-staff #filter-hint,body.dr-view-endusers #filter-hint{display:none!important}' +
-      'body.dr-view-admin-staff .dr-ticket-pager,body.dr-view-endusers .dr-ticket-pager{display:none!important}' +
+      'body.dr-view-admin-staff #dr-ticket-pager,body.dr-view-endusers #dr-ticket-pager{display:none!important}' +
+      'body.dr-view-admin-staff .dr-users-pager,body.dr-view-endusers .dr-users-pager{display:flex!important}' +
       'body.dr-view-admin-staff #search-input,body.dr-view-endusers #search-input,' +
       'body.dr-view-admin-staff #filter-status,body.dr-view-endusers #filter-status,' +
       'body.dr-view-admin-staff #filter-priority,body.dr-view-endusers #filter-priority,' +
@@ -357,29 +359,28 @@
     window.__adminUsersCache = users;
     window.__adminUsersListMode = listMode;
 
-    // Pagination (10 per page)
     var PAGE_SIZE = 10;
     if (window.__drUsersPage == null || typeof window.__drUsersPage !== 'number') window.__drUsersPage = 0;
     if (window.__drUsersPageMode !== listMode) { window.__drUsersPage = 0; window.__drUsersPageMode = listMode; }
     var totalUsers = filtered.length;
-    var totalPages = Math.max(1, Math.ceil(totalUsers / PAGE_SIZE));
+    var totalPages = totalUsers > PAGE_SIZE ? Math.ceil(totalUsers / PAGE_SIZE) : 1;
+    if (totalPages < 1) totalPages = 1;
     if (window.__drUsersPage > totalPages - 1) window.__drUsersPage = totalPages - 1;
     if (window.__drUsersPage < 0) window.__drUsersPage = 0;
     var pageStart = window.__drUsersPage * PAGE_SIZE;
     var pageRows = filtered.slice(pageStart, pageStart + PAGE_SIZE);
-    var pagerHtml = '';
-    if (totalPages > 1) {
-      pagerHtml =
-        '<div class="dr-users-pager" id="dr-users-pager" style="display:flex;align-items:center;gap:0.55rem;margin:0.85rem 0 0.25rem;flex-wrap:wrap">' +
-        '<button type="button" class="btn btn-ghost btn-sm" id="dr-users-page-prev"' +
-        (window.__drUsersPage <= 0 ? ' disabled' : '') + '>← Prev</button>' +
-        '<span class="dr-page-info" id="dr-users-page-info">Page ' + (window.__drUsersPage + 1) + ' of ' + totalPages + '</span>' +
-        '<button type="button" class="btn btn-ghost btn-sm" id="dr-users-page-next"' +
-        (window.__drUsersPage >= totalPages - 1 ? ' disabled' : '') + '>Next →</button>' +
-        '<span style="opacity:0.65;font-size:0.8rem;margin-left:0.35rem">' +
-        (pageStart + 1) + '–' + Math.min(pageStart + pageRows.length, totalUsers) + ' of ' + totalUsers +
-        '</span></div>';
-    }
+    var fromN = totalUsers ? pageStart + 1 : 0;
+    var toN = pageStart + pageRows.length;
+    var pagerHtml =
+      '<div class="dr-users-pager" id="dr-users-pager" style="display:flex!important;align-items:center;gap:0.5rem;margin:0.85rem 0 0.35rem;flex-wrap:wrap">' +
+      '<button type="button" class="dr-page-btn" id="dr-users-page-prev" aria-label="Previous page"' +
+      (window.__drUsersPage <= 0 ? ' disabled' : '') + '>← Prev</button>' +
+      '<span class="dr-page-info" id="dr-users-page-info">Page ' + (window.__drUsersPage + 1) + ' of ' + totalPages + '</span>' +
+      '<button type="button" class="dr-page-btn" id="dr-users-page-next" aria-label="Next page"' +
+      (window.__drUsersPage >= totalPages - 1 ? ' disabled' : '') + '>Next →</button>' +
+      '<span style="opacity:0.7;font-size:0.8rem;margin-left:0.25rem">' +
+      fromN + '–' + toN + ' of ' + totalUsers +
+      '</span></div>';
 
     if (listMode === 'endusers') {
       box.innerHTML =
@@ -508,9 +509,9 @@
     var ar = document.getElementById('admin-refresh');
     if (ar && !ar.__v10) { ar.__v10 = 1; ar.addEventListener('click', function () { renderAdminUsers(); }); }
     var as = document.getElementById('admin-search');
-    if (as && !as.__v10) { as.__v10 = 1; as.addEventListener('input', function () { renderAdminUsers(); }); }
+    if (as && !as.__v10) { as.__v10 = 1; as.addEventListener('input', function () { window.__drUsersPage = 0; renderAdminUsers(); }); }
     var afr = document.getElementById('admin-filter-role');
-    if (afr && !afr.__v10) { afr.__v10 = 1; afr.addEventListener('change', function () { renderAdminUsers(); }); }
+    if (afr && !afr.__v10) { afr.__v10 = 1; afr.addEventListener('change', function () { window.__drUsersPage = 0; renderAdminUsers(); }); }
   }
 
   function boot() {
