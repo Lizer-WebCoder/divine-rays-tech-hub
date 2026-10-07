@@ -1,13 +1,12 @@
 /**
  * Divine Rays — premium agent sidebar redesign v2
- * Plain name+role (no pill), profile divider above nav, refined density
- * Sidebar background at 20% opacity (dark + light)
+ * Sidebar background forced to 20% opacity (dark + light)
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_SIDEBAR_DESIGN_V2 >= 4) return;
-  window.__DR_SIDEBAR_DESIGN_V2 = 4;
+  if (window.__DR_SIDEBAR_DESIGN_V2 >= 5) return;
+  window.__DR_SIDEBAR_DESIGN_V2 = 5;
 
   var STYLE_ID = 'dr-sidebar-design-css';
 
@@ -46,7 +45,6 @@
     'margin:0.12rem 0 0!important;font-size:0.62rem!important;font-weight:600!important;',
     'color:#8b7cf7!important;letter-spacing:0.06em!important;text-transform:uppercase!important}',
 
-    /* Profile block — no card, divider under it */
     '#portal-agent .sidebar .agent-badge,',
     '#portal-agent .sidebar .sidebar-profile,',
     '#portal-agent .sidebar .profile-chip{',
@@ -67,7 +65,6 @@
     'border:2px solid rgba(167,139,250,0.55)!important;',
     'box-shadow:0 0 0 3px rgba(124,106,240,0.12),0 3px 10px rgba(0,0,0,0.3)!important}',
 
-    /* Name + role — plain text, no outer pill */
     '#portal-agent .sidebar #agent-name-display,',
     '#portal-agent .sidebar .agent-badge > span:not(.dr-nav-ico),',
     '#portal-agent .sidebar .profile-name{',
@@ -80,7 +77,6 @@
     'line-height:1.3!important;color:#d4d0ef!important;',
     'white-space:normal!important;overflow:visible!important}',
 
-    /* Nav */
     '#portal-agent .sidebar .nav{',
     'display:flex!important;flex-direction:column!important;',
     'gap:0.18rem!important;flex:1!important;',
@@ -138,9 +134,8 @@
     'background:#7c6af8!important;color:#fff!important;border:none!important;',
     'font-weight:600!important;font-size:0.78rem!important;cursor:pointer!important}',
 
-    /* Light theme */
     'html[data-theme="light"] #portal-agent .sidebar{',
-    'background:rgba(250,249,255,0.20)!important;',
+    'background:rgba(255,255,255,0.20)!important;',
     'backdrop-filter:blur(12px)!important;-webkit-backdrop-filter:blur(12px)!important;',
     'border-right-color:rgba(109,94,245,0.12)!important;',
     'box-shadow:4px 0 20px rgba(30,30,60,0.05)!important}',
@@ -169,10 +164,10 @@
     'background:rgba(124,106,240,0.14)!important;color:#4c1d95!important}',
 
     'html[data-theme="light"] #portal-agent .sidebar .sidebar-user-card{',
-    'background:#fff!important;border-color:rgba(109,94,245,0.15)!important}',
+    'background:rgba(255,255,255,0.55)!important;border-color:rgba(109,94,245,0.15)!important}',
     'html[data-theme="light"] #portal-agent .sidebar .presence-row{color:#1e1b4b!important}',
     'html[data-theme="light"] #portal-agent .sidebar .stat-pill{',
-    'background:#f7f5fc!important}',
+    'background:rgba(247,245,252,0.7)!important}',
     'html[data-theme="light"] #portal-agent .sidebar .stat-pill .n{color:#1e1b4b!important}',
     'html[data-theme="light"] #portal-agent .sidebar #btn-export{',
     'background:#7c6af8!important;color:#fff!important;border:none!important}'
@@ -188,13 +183,37 @@
     el.textContent = CSS;
   }
 
+  function forceSidebarBg() {
+    var side = document.querySelector('#portal-agent .sidebar');
+    if (!side) return;
+    var theme = 'dark';
+    try {
+      theme = document.documentElement.getAttribute('data-theme') || 'dark';
+    } catch (e) {}
+    if (theme === 'light') {
+      side.style.setProperty('background', 'rgba(255,255,255,0.20)', 'important');
+    } else {
+      side.style.setProperty('background', 'rgba(18,16,28,0.20)', 'important');
+    }
+    side.style.setProperty('backdrop-filter', 'blur(12px)', 'important');
+    side.style.setProperty('-webkit-backdrop-filter', 'blur(12px)', 'important');
+  }
+
   function boot() {
     injectCss();
+    forceSidebarBg();
   }
 
   boot();
   setTimeout(boot, 400);
   setTimeout(boot, 1500);
+  setInterval(forceSidebarBg, 1500);
+  try {
+    new MutationObserver(function () { forceSidebarBg(); }).observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme']
+    });
+  } catch (e) {}
 
-  window.DRSidebarDesign = { refresh: boot, v: 4 };
+  window.DRSidebarDesign = { refresh: boot, v: 5 };
 })();
