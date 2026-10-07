@@ -1,12 +1,13 @@
 /**
- * Divine Rays — Light mode polish + fixed mode-bar (v9)
+ * Divine Rays — Light mode polish + hide Showing meta (v10)
  * Light top bar: soft lavender (not browser-white).
  * Dark top-bar logo: dark plate + purple gear.
  * Credit: Lizzz · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_LIGHT_MODE_POLISH_V9) return;
+  if (window.__DR_LIGHT_MODE_POLISH_V10) return;
+  window.__DR_LIGHT_MODE_POLISH_V10 = 1;
   window.__DR_LIGHT_MODE_POLISH_V9 = 1;
 
   var STYLE_ID = 'dr-light-mode-polish-css';
@@ -119,6 +120,11 @@
     'html[data-theme="dark"] .mode-bar .gear-icon,',
     'html:not([data-theme="light"]) .mode-bar .gear-icon{',
     '  color:#a78bfa!important;fill:#a78bfa!important;stroke:#a78bfa!important',
+    '}',
+    /* Hide inaccurate "Showing 1-20 of N · Page X/Y" under tab headers */
+    '#filter-hint, .filter-hint, #list-hint, .list-hint{',
+    '  display:none!important;visibility:hidden!important;height:0!important;',
+    '  margin:0!important;padding:0!important;overflow:hidden!important;font-size:0!important',
     '}'
   ].join('');
 
@@ -130,6 +136,14 @@
       (document.head || document.documentElement).appendChild(el);
     }
     el.textContent = CSS;
+    try {
+      var fh = document.getElementById('filter-hint');
+      if (fh) { fh.textContent = ''; fh.style.display = 'none'; }
+      document.querySelectorAll('.filter-hint, #list-hint, .list-hint').forEach(function (n) {
+        n.textContent = '';
+        n.style.display = 'none';
+      });
+    } catch (e) {}
   }
 
   function forceSidebarLight() {
@@ -191,5 +205,5 @@
   setTimeout(boot, 1200);
   setInterval(forceSidebarLight, 1500);
 
-  window.DRLightModePolish = { refresh: boot, v: 9 };
+  window.DRLightModePolish = { refresh: boot, v: 10 };
 })();
