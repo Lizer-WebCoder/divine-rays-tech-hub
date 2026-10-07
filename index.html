@@ -57,11 +57,11 @@
     var UI_LAYOUT_SHA = 'ce5a1fde308a9d38438b60df40497902b607690c';
     var KB_TABLE_SHA = '057efa589371be7a05114c786f31a89bb28fe009';
     var KB_JS_SHA = 'd4e9498db74b26a08bf7c8acec52ac3496c6ff86';
-    var ADMIN_SHA = '6ea8b80da5a2b856ca03e6503d63084e6f0ae752';
+    var ADMIN_SHA = '8d133c8d34a34a23da76c25f797b00109629aa2c';
     var ADMIN_STATS_SHA = 'a84ce631450b3b57b11f852de982bf83206ea26b';
     var TOOLBAR_SHA = '2ea9190cbbb3dbfbf3a159ca47d585a61b2f6e2b';
     var FILTER_SHA = '1bfe6c0e93dedc361cf1f3e15eb520c3aea13930';
-    var FILTERS_SHA = 'e7c93a01b756be1eba3bcfa7e15714d99a11d713';
+    var FILTERS_SHA = '57e2454922584aaa286b0b92a8a2913ed4d4e8f4';
     var DESIGN_SHA = '7d6d66cbe63fda91cf71d64bbddd1af80f3adfc3';
     var TICKET_DESIGN_SHA = '01d6078d7a6a6ff64a1c9f53621d1bc2446156cf';
 
@@ -73,6 +73,7 @@
     var LIGHT_MODE_POLISH_SHA = 'a69083e578f483246d844a9d03da719710736036';
     var FORCE_LIGHT_BG_SHA = '06cb1f6b344b3908e790bd20f764d4f5aa9b468a';
     var LOGIN_CHROME_HIDE_SHA = '60c3368efd15da0e8d15cac0674b28eaed22d973';
+    var PAGER_FIX_SHA = '887f954e7d3a20414345d7b5d6241e8a45519dc6';
 
     var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
     var BUST = String(Date.now());
@@ -108,7 +109,8 @@
       'chat-ui.js': CHAT_UI_SHA,
       'light-mode-polish.js': LIGHT_MODE_POLISH_SHA,
       'force-light-bg.js': FORCE_LIGHT_BG_SHA,
-      'login-chrome-hide.js': LOGIN_CHROME_HIDE_SHA
+      'login-chrome-hide.js': LOGIN_CHROME_HIDE_SHA,
+      'pager-fix.js': PAGER_FIX_SHA
     };
 
     var SKIP = {
@@ -215,6 +217,7 @@
         loadScript(CDN + APPROVAL_GATE_SHA + '/js/agent-approval-gate.js');
         loadScript(CDN + LOGIN_TAB_SHA + '/js/login-tab-labels.js');
         loadScript(CDN + LOGIN_CHROME_HIDE_SHA + '/js/login-chrome-hide.js');
+        loadScript(CDN + PAGER_FIX_SHA + '/js/pager-fix.js');
       }, 30);
 
       setTimeout(function () {
@@ -256,7 +259,8 @@
           loadScript(CDN + CHAT_UI_SHA + '/js/chat-ui.js'),
           loadScript(CDN + LIGHT_MODE_POLISH_SHA + '/js/light-mode-polish.js'),
           loadScript(CDN + FORCE_LIGHT_BG_SHA + '/js/force-light-bg.js'),
-          loadScript(CDN + LOGIN_CHROME_HIDE_SHA + '/js/login-chrome-hide.js')
+          loadScript(CDN + LOGIN_CHROME_HIDE_SHA + '/js/login-chrome-hide.js'),
+          loadScript(CDN + PAGER_FIX_SHA + '/js/pager-fix.js')
         ]).then(function () {
           try { if (window.DRUsersNav && window.DRUsersNav.refresh) window.DRUsersNav.refresh(); } catch (e) {}
           try { if (window.DRSidebarDesign && window.DRSidebarDesign.refresh) window.DRSidebarDesign.refresh(); } catch (e2) {}
@@ -272,6 +276,7 @@
           try { if (window.DRTopbarActions && window.DRTopbarActions.refresh) window.DRTopbarActions.refresh(); } catch (e12) {}
           try { if (window.DRTheme && window.DRTheme.ensure) window.DRTheme.ensure(); } catch (e13) {}
           try { if (window.DRPriorityP1Display && window.DRPriorityP1Display.refresh) window.DRPriorityP1Display.refresh(); } catch (e14) {}
+          try { if (window.DRPagerFix && window.DRPagerFix.refresh) window.DRPagerFix.refresh(); } catch (e15) {}
         });
       }, 1600);
 
