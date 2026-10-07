@@ -1,9 +1,10 @@
 /**
- * Divine Rays — filters v6 — mode-aware search + hide toolbar on Dashboard
+ * Divine Rays — filters v7 — accurate pager + Unassigned Tickets label
  * Credit: Boyz at the Back LRK · All Rights Reserved
  */
 (function () {
   'use strict';
+  window.__DR_FILTERS_V7 = 1;
   window.__DR_FILTERS_V6 = 1;
   window.__DR_FILTERS_V5 = 1;
 
@@ -289,19 +290,56 @@
     var prev = document.getElementById('dr-page-prev');
     var next = document.getElementById('dr-page-next');
     var info = document.getElementById('dr-page-info');
-    var onList = document.body && document.body.classList.contains('dr-view-list');
-    var show = matched > 0 && (pages > 1 || onList);
+    var totalPages = Math.max(1, parseInt(pages, 10) || 1);
+    var cur = Math.max(0, parseInt(page, 10) || 0);
+    if (cur > totalPages - 1) cur = totalPages - 1;
+    var show = matched > 0 && totalPages > 1;
     pager.style.display = show ? 'flex' : 'none';
-    if (!show) return;
-    if (info) info.textContent = 'Page ' + (page + 1) + ' of ' + pages;
+    if (!show) {
+      if (info) info.textContent = '';
+      return;
+    }
+    if (info) info.textContent = 'Page ' + (cur + 1) + ' of ' + totalPages;
     if (prev) {
-      prev.disabled = page <= 0;
-      prev.classList.toggle('is-disabled', page <= 0);
+      prev.disabled = cur <= 0;
+      prev.classList.toggle('is-disabled', cur <= 0);
     }
     if (next) {
-      next.disabled = page >= pages - 1;
-      next.classList.toggle('is-disabled', page >= pages - 1);
+      next.disabled = cur >= totalPages - 1;
+      next.classList.toggle('is-disabled', cur >= totalPages - 1);
     }
+  }
+
+  function renameUnassignedNav() {
+    try {
+      document.querySelectorAll('#portal-agent .nav-btn[data-view="unassigned"]').forEach(function (btn) {
+        var kids = Array.prototype.slice.call(btn.childNodes);
+        var set = false;
+        kids.forEach(function (n) {
+          if (n.nodeType === 3 && (n.textContent || '').trim()) {
+            if (!set) {
+              n.textContent = ' Unassigned Tickets';
+              set = true;
+            }
+          }
+        });
+        if (!set) {
+          var label = (btn.textContent || '').replace(/\s+/g, ' ').trim();
+          if (/^unassigned$/i.test(label) || /^unassigned tickets$/i.test(label)) {
+            btn.childNodes.forEach(function (n) {
+              if (n.nodeType === 3) n.textContent = '';
+            });
+            var span = btn.querySelector('[data-dr-unassigned-label]');
+            if (!span) {
+              span = document.createElement('span');
+              span.setAttribute('data-dr-unassigned-label', '1');
+              btn.appendChild(span);
+            }
+            span.textContent = 'Unassigned Tickets';
+          }
+        }
+      });
+    } catch (e) {}
   }
 
   var _lastSig = '';
@@ -377,7 +415,8 @@
     });
     filtered = sortTickets(filtered, lf.sort);
     var matched = filtered.length;
-    var pages = Math.max(1, Math.ceil(matched / limit) || 1);
+    var pages = matched > 0 ? Math.ceil(matched / limit) : 1;
+    if (pages < 1) pages = 1;
     if (lf.page < 0) lf.page = 0;
     if (lf.page > pages - 1) lf.page = pages - 1;
     var page = lf.page;
@@ -610,6 +649,7 @@
 
   function boot() {
     injectFiltersCss();
+    renameUnassignedNav();
     bindClear();
     bindSearchFilters();
     syncToolbarVisibility();
