@@ -50,10 +50,10 @@ html[data-theme="light"] #portal-agent .sidebar-user-card {
 }
 
 html[data-theme="light"] .mode-bar {
-  background: #ffffff !important;
-  border-bottom: 1px solid #d0d3e4 !important;
+  background: linear-gradient(180deg, #ebe6ff 0%, #e2dbfc 100%) !important;
+  border-bottom: 1px solid rgba(109, 94, 245, 0.28) !important;
   color: #1a1a2e !important;
-  box-shadow: 0 1px 8px rgba(30, 30, 60, 0.06) !important;
+  box-shadow: 0 2px 12px rgba(91, 33, 182, 0.1) !important;
 }
 html[data-theme="light"] .mode-bar .user-info,
 html[data-theme="light"] #logged-user-label {
