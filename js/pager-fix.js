@@ -1,14 +1,56 @@
 /**
- * Divine Rays — pager-fix v1
- * Force accurate ticket pager: Page 1 of 1 when single page
- * Center Users pager and hide range text
+ * Divine Rays — pager-fix v2
+ * - No capsule/card around ticket, KB, or Users pagers
+ * - Stable All Tickets page text (no flicker)
  */
 (function () {
   'use strict';
-  if (window.__DR_PAGER_FIX_V1) return;
+  if (window.__DR_PAGER_FIX_V2) return;
+  window.__DR_PAGER_FIX_V2 = 1;
   window.__DR_PAGER_FIX_V1 = 1;
 
-  function fixTicketPager() {
+  function injectCss() {
+    if (document.getElementById('dr-pager-fix-css')) return;
+    var el = document.createElement('style');
+    el.id = 'dr-pager-fix-css';
+    el.textContent = [
+      /* Ticket list pager — flat, no capsule */
+      '.dr-ticket-pager, #dr-ticket-pager{',
+      '  display:flex!important;align-items:center;justify-content:center;gap:0.55rem;',
+      '  margin:1rem 0 0.4rem!important;padding:0.25rem 0!important;',
+      '  background:transparent!important;border:none!important;box-shadow:none!important;',
+      '  backdrop-filter:none!important;-webkit-backdrop-filter:none!important;',
+      '  border-radius:0!important}',
+      /* Users pager — already detached; keep flat */
+      '.dr-users-pager, #dr-users-pager{',
+      '  display:flex!important;align-items:center;justify-content:center;gap:0.55rem;',
+      '  margin:1.1rem 0 0.35rem!important;padding:0.25rem 0!important;',
+      '  background:transparent!important;border:none!important;box-shadow:none!important;',
+      '  backdrop-filter:none!important;-webkit-backdrop-filter:none!important;',
+      '  border-radius:0!important;width:100%!important}',
+      /* KB / generic pagers */
+      '#view-kb .pager, #view-kb .pagination, #view-kb .dr-ticket-pager,',
+      '#view-kb .page-controls, .kb-pager, .dr-kb-pager,',
+      '#portal-agent .pagination, #portal-agent .pager{',
+      '  display:flex!important;align-items:center;justify-content:center;gap:0.55rem;',
+      '  margin:1rem 0 0.4rem!important;padding:0.25rem 0!important;',
+      '  background:transparent!important;border:none!important;box-shadow:none!important;',
+      '  backdrop-filter:none!important;-webkit-backdrop-filter:none!important;',
+      '  border-radius:0!important}',
+      /* Buttons stay as small controls, not a bar */
+      '.dr-page-btn{',
+      '  background:rgba(26,24,42,0.55)!important;',
+      '  border:1px solid rgba(139,124,247,0.28)!important}',
+      'html[data-theme="light"] .dr-page-btn{',
+      '  background:rgba(255,255,255,0.55)!important;',
+      '  border:1px solid rgba(109,94,245,0.28)!important;',
+      '  color:#4c1d95!important}',
+      'html[data-theme="light"] .dr-page-info{color:#5b5675!important}'
+    ].join('');
+    (document.head || document.documentElement).appendChild(el);
+  }
+
+  function stableTicketPager() {
     try {
       var pager = document.getElementById('dr-ticket-pager');
       var info = document.getElementById('dr-page-info');
@@ -21,57 +63,68 @@
         return;
       }
 
-      var lf = (window.__drListFilter) || {};
-      var limit = parseInt(lf.limit, 10);
-      if ([10, 20, 50].indexOf(limit) === -1) limit = 20;
-
-      var cards = document.querySelectorAll('#ticket-list .ticket-card').length;
-      var page = parseInt(lf.page, 10) || 0;
-      var totalPages = 1;
-
-      var curText = (info.textContent || '');
-      var m = curText.match(/Page\s+(\d+)\s+of\s+(\d+)/i);
-      var claimedPages = m ? parseInt(m[2], 10) : 1;
-
-      if (page === 0 && cards <= limit) {
-        totalPages = 1;
-      } else if (claimedPages > 1 && page === 0 && cards > 0 && cards <= limit) {
-        totalPages = 1;
-      } else if (claimedPages > 1 && cards >= limit) {
-        totalPages = claimedPages;
-      } else {
-        totalPages = 1;
-      }
-
-      // If Next leads to empty, force single page
-      if (totalPages > 1 && page === 0 && cards > 0 && cards < limit) {
-        totalPages = 1;
-      }
-
-      info.textContent = 'Page ' + (page + 1) + ' of ' + totalPages;
       pager.style.setProperty('display', 'flex', 'important');
       pager.style.setProperty('justify-content', 'center', 'important');
+      pager.style.setProperty('background', 'transparent', 'important');
+      pager.style.setProperty('box-shadow', 'none', 'important');
+      pager.style.setProperty('border', 'none', 'important');
+
+      var lf = window.__drListFilter || {};
+      var limit = parseInt(lf.limit, 10);
+      if ([10, 20, 50].indexOf(limit) === -1) limit = 20;
+      var page = parseInt(lf.page, 10) || 0;
+
+      var cards = document.querySelectorAll('#ticket-list .ticket-card').length;
+      // Prefer list-filter matched if present from filters.js
+      var matched = null;
+      try {
+        if (typeof window.__drPagerMatched === 'number') matched = window.__drPagerMatched;
+      } catch (e0) {}
+
+      var totalPages = 1;
+      if (matched != null) {
+        totalPages = (matched > limit) ? Math.ceil(matched / limit) : 1;
+      } else {
+        // Fallback: full page of cards may imply more pages; partial page = single page
+        if (page === 0 && cards > 0 && cards < limit) totalPages = 1;
+        else if (page === 0 && cards === 0) totalPages = 1;
+        else {
+          var m = (info.textContent || '').match(/Page\s+(\d+)\s+of\s+(\d+)/i);
+          var claimed = m ? parseInt(m[2], 10) : 1;
+          if (page === 0 && cards < limit) totalPages = 1;
+          else if (claimed > 1 && cards >= limit) totalPages = claimed;
+          else totalPages = 1;
+        }
+      }
+      if (totalPages < 1) totalPages = 1;
+
+      var want = 'Page ' + (page + 1) + ' of ' + totalPages;
+      if (info.textContent !== want) info.textContent = want;
 
       var prev = document.getElementById('dr-page-prev');
       var next = document.getElementById('dr-page-next');
       if (prev) {
-        prev.disabled = page <= 0 || totalPages <= 1;
-        prev.classList.toggle('is-disabled', page <= 0 || totalPages <= 1);
+        var pd = page <= 0 || totalPages <= 1;
+        prev.disabled = pd;
+        prev.classList.toggle('is-disabled', pd);
       }
       if (next) {
-        next.disabled = page >= totalPages - 1 || totalPages <= 1;
-        next.classList.toggle('is-disabled', page >= totalPages - 1 || totalPages <= 1);
+        var nd = page >= totalPages - 1 || totalPages <= 1;
+        next.disabled = nd;
+        next.classList.toggle('is-disabled', nd);
       }
     } catch (e) {}
   }
 
-  function fixUsersPager() {
+  function styleUsersPager() {
     try {
       var p = document.getElementById('dr-users-pager');
       if (!p) return;
       p.style.setProperty('display', 'flex', 'important');
       p.style.setProperty('justify-content', 'center', 'important');
-      p.style.setProperty('width', '100%', 'important');
+      p.style.setProperty('background', 'transparent', 'important');
+      p.style.setProperty('box-shadow', 'none', 'important');
+      p.style.setProperty('border', 'none', 'important');
       Array.prototype.slice.call(p.querySelectorAll('span')).forEach(function (n) {
         if (n.classList.contains('dr-page-info')) return;
         var t = (n.textContent || '').replace(/\s+/g, ' ').trim();
@@ -80,20 +133,38 @@
     } catch (e) {}
   }
 
-  function tick() {
-    fixTicketPager();
-    fixUsersPager();
+  function styleKbPager() {
+    try {
+      var nodes = document.querySelectorAll(
+        '#view-kb .pager, #view-kb .pagination, #view-kb .page-controls, .kb-pager, .dr-kb-pager'
+      );
+      nodes.forEach(function (p) {
+        p.style.setProperty('background', 'transparent', 'important');
+        p.style.setProperty('box-shadow', 'none', 'important');
+        p.style.setProperty('border', 'none', 'important');
+        p.style.setProperty('justify-content', 'center', 'important');
+      });
+    } catch (e) {}
   }
 
-  setTimeout(tick, 300);
-  setTimeout(tick, 1000);
-  setTimeout(tick, 2500);
-  setInterval(tick, 800);
+  var _lastWant = '';
+  function tick() {
+    injectCss();
+    stableTicketPager();
+    styleUsersPager();
+    styleKbPager();
+  }
+
+  setTimeout(tick, 200);
+  setTimeout(tick, 900);
+  setTimeout(tick, 2200);
+  // Slower interval to avoid fighting filters and causing flicker
+  setInterval(tick, 2000);
 
   document.addEventListener('click', function (e) {
     if (e.target && e.target.closest && e.target.closest('.nav-btn, .dr-page-btn, #dr-users-pager, #dr-ticket-pager')) {
-      setTimeout(tick, 120);
-      setTimeout(tick, 400);
+      setTimeout(tick, 150);
+      setTimeout(tick, 500);
     }
   }, true);
 
