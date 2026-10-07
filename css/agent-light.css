@@ -24,8 +24,10 @@ html[data-theme="light"] .app-shell {
 }
 
 html[data-theme="light"] #portal-agent .sidebar {
-  background: #ffffff !important;
-  border-right: 1px solid #d0d3e4 !important;
+  background: rgba(255, 255, 255, 0.20) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-right: 1px solid rgba(109, 94, 245, 0.18) !important;
   color: #1a1a2e !important;
 }
 html[data-theme="light"] #portal-agent .nav-btn {
