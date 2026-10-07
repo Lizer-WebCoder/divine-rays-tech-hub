@@ -61,6 +61,7 @@
     var ADMIN_STATS_SHA = 'a84ce631450b3b57b11f852de982bf83206ea26b';
     var TOOLBAR_SHA = '2ea9190cbbb3dbfbf3a159ca47d585a61b2f6e2b';
     var FILTER_SHA = '1bfe6c0e93dedc361cf1f3e15eb520c3aea13930';
+    var FILTERS_SHA = '45d2ef1eb61519df29562d0cd6ad763a1b162e3a';
     var DESIGN_SHA = '7d6d66cbe63fda91cf71d64bbddd1af80f3adfc3';
     var TICKET_DESIGN_SHA = '01d6078d7a6a6ff64a1c9f53621d1bc2446156cf';
 
@@ -80,6 +81,7 @@
     var REWRITE = {
       'admin.js': ADMIN_SHA,
       'users-nav.js': USERS_NAV_SHA,
+      'filters.js': FILTERS_SHA,
       'comments-live.js': COMMENTS_LIVE_SHA,
       'team-sep.js': TEAM_SEP_SHA,
       'team-board.js': TEAM_BOARD_SHA,
@@ -202,6 +204,7 @@
       setTimeout(function () {
         loadScript(CDN + ADMIN_LOCK_SHA + '/js/admin-portal-lock.js');
         loadScript(CDN + USERS_NAV_SHA + '/js/users-nav.js');
+        loadScript(CDN + FILTERS_SHA + '/js/filters.js');
         loadScript(CDN + SIDEBAR_ROLE_SHA + '/js/sidebar-role-label.js');
         loadScript(CDN + TOPBAR_SHA + '/js/topbar-brand-role.js');
         loadScript(CDN + TOPBAR_ACTIONS_SHA + '/js/topbar-actions.js');
