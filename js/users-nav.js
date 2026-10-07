@@ -1,5 +1,5 @@
 /**
- * Divine Rays - Users nav v14 — slower tick (no flicker)
+ * Divine Rays - Users nav v15 — leaveUsersView restores Dashboard
  * Users tab: Admins + Developers.
  * End-Users list: Admins and Developers.
  * Admin staff list: Developers only.
@@ -7,7 +7,8 @@
  */
 (function () {
   'use strict';
-  if (window.__DR_USERS_NAV_V14 >= 1) return;
+  if (window.__DR_USERS_NAV_V15 >= 1) return;
+  window.__DR_USERS_NAV_V15 = 1;
   window.__DR_USERS_NAV_V14 = 1;
   window.__DR_USERS_NAV_V13 = 1;
   window.__DR_USERS_NAV_V12 = 1;
@@ -296,6 +297,39 @@
     }
   }
 
+  function leaveUsersView() {
+    try {
+      document.body.classList.remove('dr-view-endusers', 'dr-view-admin-staff');
+      window.__DR_USERS_LIST_MODE = '';
+      var sub = document.getElementById('dr-users-sub');
+      if (sub) sub.classList.remove('open');
+      var root = document.querySelector('#portal-agent .nav-btn[data-dr-users-root]');
+      if (root) {
+        root.classList.remove('dr-users-open', 'active');
+        root.setAttribute('aria-expanded', 'false');
+      }
+      var eu = document.getElementById('dr-users-endusers');
+      var ad = document.getElementById('dr-users-admin');
+      if (eu) { eu.classList.remove('dr-users-active', 'active'); }
+      if (ad) { ad.classList.remove('dr-users-active', 'active'); }
+      document.querySelectorAll('#portal-agent .view, .app-shell .view, section.view').forEach(function (x) {
+        try {
+          x.style.removeProperty('display');
+          x.style.removeProperty('visibility');
+          x.style.removeProperty('opacity');
+        } catch (e) {}
+      });
+      var admin = document.getElementById('view-admin');
+      if (admin) {
+        admin.classList.remove('active');
+        try {
+          admin.style.setProperty('display', 'none', 'important');
+          admin.style.setProperty('visibility', 'hidden', 'important');
+        } catch (e2) {}
+      }
+    } catch (err) {}
+  }
+
   function openEndUsers() {
     if (!canSeeEndUsersList()) return;
     document.body.classList.add('dr-view-endusers');
@@ -398,13 +432,14 @@
     }
   }
 
-  if (!window.__drUsersNavClickV14) {
-    window.__drUsersNavClickV14 = 1;
+  if (!window.__drUsersNavClickV15) {
+    window.__drUsersNavClickV15 = 1;
     document.addEventListener(
       'click',
       function (e) {
-        var eu = e.target && e.target.closest && e.target.closest('#dr-users-endusers');
-        var ad = e.target && e.target.closest && e.target.closest('#dr-users-admin');
+        if (!e.target || !e.target.closest) return;
+        var eu = e.target.closest('#dr-users-endusers');
+        var ad = e.target.closest('#dr-users-admin');
         if (eu) {
           e.preventDefault();
           e.stopPropagation();
@@ -415,6 +450,16 @@
           e.preventDefault();
           e.stopPropagation();
           if (canSeeAdminStaffList()) openAdminStaff();
+          return;
+        }
+        var nav = e.target.closest('#portal-agent .nav-btn');
+        if (!nav) return;
+        if (nav.getAttribute('data-dr-users-root') || nav.closest('#dr-users-sub')) return;
+        if (
+          document.body.classList.contains('dr-view-endusers') ||
+          document.body.classList.contains('dr-view-admin-staff')
+        ) {
+          leaveUsersView();
         }
       },
       true
@@ -426,6 +471,7 @@
 
   window.DRUsersNav = {
     refresh: tick,
+    leaveUsersView: leaveUsersView,
     openEndUsers: openEndUsers,
     openAdmin: openAdminStaff,
     isDeveloperUser: isDeveloperUser,
