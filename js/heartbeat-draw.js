@@ -1,11 +1,11 @@
 /**
- * Divine Rays — continuous gears + ECG v3 — safe start, no freeze
+ * Divine Rays — continuous gears + ECG v4 — restore lifeline + stable bg
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_HEARTBEAT_DRAW >= 3) return;
-  window.__DR_HEARTBEAT_DRAW = 3;
+  if (window.__DR_HEARTBEAT_DRAW >= 4) return;
+  window.__DR_HEARTBEAT_DRAW = 4;
 
   var CSS_ID = 'dr-gears-bg';
   var BOX_ID = 'dr-lifeline';
@@ -32,8 +32,14 @@
     if (login.hidden || login.classList.contains('is-hidden')) return false;
     try {
       var st = window.getComputedStyle(login);
-      if (st.display === 'none' || st.visibility === 'hidden') return false;
+      if (st.display === 'none' || st.visibility === 'hidden' || st.opacity === '0') return false;
     } catch (e) {}
+    try {
+      var pa = document.getElementById('portal-agent');
+      var pc = document.getElementById('portal-customer');
+      if (pa && window.getComputedStyle(pa).display !== 'none' && !pa.hidden) return false;
+      if (pc && window.getComputedStyle(pc).display !== 'none' && !pc.hidden) return false;
+    } catch (e2) {}
     return true;
   }
 
@@ -107,7 +113,8 @@
 
   var CSS = [
     '#' + BOX_ID + '{',
-    'z-index:0!important;pointer-events:none!important;overflow:visible!important;',
+    'z-index:1!important;pointer-events:none!important;overflow:visible!important;',
+    'opacity:1!important;visibility:visible!important;',
     'background:transparent!important;box-shadow:none!important;filter:none!important',
     '}',
     '#dr-lifeline,#dr-lifeline *{pointer-events:none!important}',
@@ -121,7 +128,7 @@
     '#dr-lifeline .dr-spin-ccw-slow{transform-origin:0 0;animation:drGearCCW 36s linear infinite}',
     '@keyframes drGearCW{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}',
     '@keyframes drGearCCW{from{transform:rotate(0deg)}to{transform:rotate(-360deg)}}',
-    '#login-screen,.login-screen{position:relative!important;z-index:2!important}',
+    '#login-screen,.login-screen{position:relative!important;z-index:2!important;background:transparent!important}',
     '#login-screen .login-card,.login-card{position:relative!important;z-index:5!important}',
     'body,.app-shell,#portal-customer,#portal-agent{position:relative;z-index:1}',
     '@keyframes drEcgDraw{',
@@ -320,9 +327,6 @@
         document.body.classList.toggle('is-portal', portalActive());
       } catch (e) {}
       ensureGears(!!force);
-      if (window.DRForceLightBg && window.DRForceLightBg.refresh) {
-        try { window.DRForceLightBg.refresh(); } catch (e) {}
-      }
     } finally {
       __tickBusy = false;
     }
@@ -334,11 +338,9 @@
       tick(true);
     });
   }
-  setTimeout(function () { tick(true); }, 50);
-  setTimeout(function () { tick(false); }, 250);
-  setTimeout(function () { tick(false); }, 800);
-
-  // MutationObserver removed — it rewrote DOM in a loop and froze login
+  [50, 150, 400, 900, 1800, 3500].forEach(function (ms) {
+    setTimeout(function () { tick(true); }, ms);
+  });
 
   document.addEventListener(
     'click',
@@ -363,7 +365,7 @@
 
   setInterval(function () {
     tick(false);
-  }, 2000);
+  }, 4000);
 
   if (!window.__drEcgResizeWired) {
     window.__drEcgResizeWired = 1;
