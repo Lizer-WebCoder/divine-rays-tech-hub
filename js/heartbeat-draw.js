@@ -1,11 +1,11 @@
 /**
- * Divine Rays — continuous gears + ECG v6 — brighter lifeline above honeycomb
+ * Divine Rays — continuous gears + ECG restored — original lifeline style
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_HEARTBEAT_DRAW >= 6) return;
-  window.__DR_HEARTBEAT_DRAW = 6;
+  if (window.__DR_HEARTBEAT_DRAW >= 8) return;
+  window.__DR_HEARTBEAT_DRAW = 8;
 
   var CSS_ID = 'dr-gears-bg';
   var BOX_ID = 'dr-lifeline';
@@ -29,11 +29,10 @@
   function loginVisible() {
     var login = document.getElementById('login-screen') || document.querySelector('.login-screen');
     if (!login) return false;
-    if (login.hidden || login.classList.contains('is-hidden') || login.classList.contains('hidden')) return false;
+    if (login.hidden || login.classList.contains('is-hidden')) return false;
     try {
       var st = window.getComputedStyle(login);
       if (st.display === 'none' || st.visibility === 'hidden') return false;
-      if (parseFloat(st.opacity || '1') < 0.05) return false;
     } catch (e) {}
     return true;
   }
@@ -108,8 +107,7 @@
 
   var CSS = [
     '#' + BOX_ID + '{',
-    'z-index:4!important;pointer-events:none!important;overflow:visible!important;',
-    'opacity:1!important;visibility:visible!important;',
+    'z-index:0!important;pointer-events:none!important;overflow:visible!important;',
     'background:transparent!important;box-shadow:none!important;filter:none!important',
     '}',
     '#dr-lifeline,#dr-lifeline *{pointer-events:none!important}',
@@ -123,12 +121,21 @@
     '#dr-lifeline .dr-spin-ccw-slow{transform-origin:0 0;animation:drGearCCW 36s linear infinite}',
     '@keyframes drGearCW{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}',
     '@keyframes drGearCCW{from{transform:rotate(0deg)}to{transform:rotate(-360deg)}}',
-    '#login-screen,.login-screen{position:relative!important;z-index:2!important;background:transparent!important}',
-    '#login-screen .login-card,.login-card{position:relative!important;z-index:6!important}',
+    '#login-screen,.login-screen{position:relative!important;z-index:2!important}',
+    '#login-screen .login-card,.login-card{position:relative!important;z-index:5!important}',
     'body,.app-shell,#portal-customer,#portal-agent{position:relative;z-index:1}',
-    '@keyframes drEcgDraw{0%{stroke-dashoffset:var(--dr-len)}100%{stroke-dashoffset:0}}',
-    '@keyframes drEcgGlowPulse{0%,100%{opacity:0.55}50%{opacity:0.9}}',
-    '@keyframes drEcgCorePulse{0%,100%{opacity:0.95}50%{opacity:1}}',
+    '@keyframes drEcgDraw{',
+    '0%{stroke-dashoffset:var(--dr-len)}',
+    '100%{stroke-dashoffset:0}',
+    '}',
+    '@keyframes drEcgGlowPulse{',
+    '0%,100%{opacity:0.5}',
+    '50%{opacity:0.7}',
+    '}',
+    '@keyframes drEcgCorePulse{',
+    '0%,100%{opacity:0.9}',
+    '50%{opacity:0.98}',
+    '}',
     '@media (prefers-reduced-motion:reduce){',
     '#dr-lifeline .dr-spin-cw,#dr-lifeline .dr-spin-ccw,#dr-lifeline .dr-spin-cw-fast,#dr-lifeline .dr-spin-ccw-slow{animation:none!important}',
     '#dr-lifeline .dr-ecg-core,#dr-lifeline .dr-ecg-glow{animation:none!important;stroke-dashoffset:0!important;opacity:0.5}',
@@ -156,8 +163,12 @@
   var __ecgBusy = false;
   var __tickBusy = false;
 
-  function ecgStroke() { return isLight() ? '#5b21b6' : '#f3e8ff'; }
-  function ecgGlowStroke() { return isLight() ? '#7c3aed' : '#e9d5ff'; }
+  function ecgStroke() {
+    return isLight() ? '#6d28d9' : '#e9d5ff';
+  }
+  function ecgGlowStroke() {
+    return isLight() ? '#a78bfa' : '#c4b5fd';
+  }
 
   function ecgMarkup() {
     var d = ECG_PATTERNS[ecgIndex % ECG_PATTERNS.length];
@@ -166,11 +177,16 @@
     return (
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 100" preserveAspectRatio="none" ' +
       'width="100%" height="100%" style="display:block;overflow:visible">' +
-      '<defs><filter id="drEcgBlur" x="-20%" y="-50%" width="140%" height="200%" color-interpolation-filters="sRGB">' +
+      '<defs>' +
+      '<filter id="drEcgBlur" x="-20%" y="-50%" width="140%" height="200%" color-interpolation-filters="sRGB">' +
       '<feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur"/>' +
-      '<feMerge><feMergeNode in="blur"/><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>' +
-      '<path class="dr-ecg-glow" fill="none" stroke="' + glow + '" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" filter="url(#drEcgBlur)" opacity="0.85" d="' + d + '"/>' +
-      '<path class="dr-ecg-core" fill="none" stroke="' + core + '" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" d="' + d + '"/>' +
+      '<feMerge><feMergeNode in="blur"/><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>' +
+      '</filter>' +
+      '</defs>' +
+      '<path class="dr-ecg-glow" fill="none" stroke="' + glow + '" stroke-width="4.5" ' +
+      'stroke-linecap="round" stroke-linejoin="round" filter="url(#drEcgBlur)" d="' + d + '"/>' +
+      '<path class="dr-ecg-core" fill="none" stroke="' + core + '" stroke-width="2.8" ' +
+      'stroke-linecap="round" stroke-linejoin="round" d="' + d + '"/>' +
       '</svg>'
     );
   }
@@ -181,7 +197,7 @@
       box = document.createElement('div');
       box.id = BOX_ID;
       box.setAttribute('aria-hidden', 'true');
-      document.body.appendChild(box);
+      document.body.insertBefore(box, document.body.firstChild);
     }
     return box;
   }
@@ -205,21 +221,29 @@
 
   function runEcgCycle() {
     if (__ecgBusy) return;
-    if (ecgTimer) { clearTimeout(ecgTimer); ecgTimer = null; }
+    if (ecgTimer) {
+      clearTimeout(ecgTimer);
+      ecgTimer = null;
+    }
     if (!loginVisible()) return;
     __ecgBusy = true;
+    var login = document.getElementById('login-screen') || document.querySelector('.login-screen');
     var box = ensureBox();
-    if (box.parentNode !== document.body) document.body.appendChild(box);
+    if (login && box.parentNode !== login) {
+      login.insertBefore(box, login.firstChild);
+    }
     box.style.cssText =
-      'display:block!important;position:fixed!important;left:0!important;right:0!important;' +
-      'width:100vw!important;top:50%!important;height:220px!important;margin-top:-110px!important;' +
-      'z-index:4!important;pointer-events:none!important;opacity:1!important;visibility:visible!important;' +
+      'display:block!important;position:absolute!important;left:0!important;right:0!important;' +
+      'width:100%!important;top:50%!important;height:180px!important;margin-top:-90px!important;' +
+      'z-index:1!important;pointer-events:none!important;opacity:1!important;visibility:visible!important;' +
       'background:transparent!important;overflow:visible!important;box-shadow:none!important;filter:none!important';
     box.innerHTML = ecgMarkup();
     var paths = box.querySelectorAll('.dr-ecg-core, .dr-ecg-glow');
     if (!paths.length) { __ecgBusy = false; return; }
     var len = 1600;
-    try { len = paths[paths.length - 1].getTotalLength() || 1600; } catch (e) {}
+    try {
+      len = paths[paths.length - 1].getTotalLength() || 1600;
+    } catch (e) {}
     var dur = ecgDurationSec(box, len);
     lastEcgWidth = box.clientWidth || 0;
     for (var i = 0; i < paths.length; i++) {
@@ -249,9 +273,10 @@
   function ensureGears(force) {
     var box = ensureBox();
     var mode = portalActive() ? 'portal' : 'login';
+
     if (mode === 'login') {
       var hasEcg = !!box.querySelector('.dr-ecg-core');
-      if (lastMode !== 'login' || force || !hasEcg) {
+      if (lastMode !== 'login' || (force && !hasEcg)) {
         lastMode = 'login';
         lastTheme = themeKey();
         runEcgCycle();
@@ -264,8 +289,14 @@
       }
       return;
     }
-    if (ecgTimer) { clearTimeout(ecgTimer); ecgTimer = null; }
-    if (box.parentNode !== document.body) document.body.insertBefore(box, document.body.firstChild);
+
+    if (ecgTimer) {
+      clearTimeout(ecgTimer);
+      ecgTimer = null;
+    }
+    if (box.parentNode !== document.body) {
+      document.body.insertBefore(box, document.body.firstChild);
+    }
     box.style.cssText =
       'position:fixed!important;inset:0!important;width:100%!important;height:100%!important;' +
       'z-index:0!important;pointer-events:none!important;overflow:hidden!important;' +
@@ -296,20 +327,38 @@
 
   tick(true);
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function () { tick(true); });
+    document.addEventListener('DOMContentLoaded', function () {
+      tick(true);
+    });
   }
-  [50, 150, 400, 900, 1800, 3500].forEach(function (ms) {
-    setTimeout(function () { tick(true); }, ms);
-  });
+  setTimeout(function () { tick(true); }, 50);
+  setTimeout(function () { tick(false); }, 250);
+  setTimeout(function () { tick(false); }, 800);
 
-  document.addEventListener('click', function (e) {
-    var t = e.target;
-    if (t && (t.id === 'btn-theme' || t.id === 'dr-login-theme' || (t.classList && t.classList.contains('btn-theme')))) {
-      setTimeout(function () { tick(true); }, 60);
-    }
-  }, true);
+  document.addEventListener(
+    'click',
+    function (e) {
+      var t = e.target;
+      if (t && (t.id === 'btn-theme' || t.id === 'dr-login-theme' || (t.classList && t.classList.contains('btn-theme')))) {
+        setTimeout(function () {
+          if (portalActive()) tick(true);
+          else {
+            var cores = document.querySelectorAll('#dr-lifeline .dr-ecg-core');
+            var glows = document.querySelectorAll('#dr-lifeline .dr-ecg-glow');
+            if (cores.length) {
+              for (var ci = 0; ci < cores.length; ci++) cores[ci].setAttribute('stroke', ecgStroke());
+              for (var gi = 0; gi < glows.length; gi++) glows[gi].setAttribute('stroke', ecgGlowStroke());
+            } else tick(true);
+          }
+        }, 60);
+      }
+    },
+    true
+  );
 
-  setInterval(function () { tick(false); }, 4000);
+  setInterval(function () {
+    tick(false);
+  }, 2000);
 
   if (!window.__drEcgResizeWired) {
     window.__drEcgResizeWired = 1;
@@ -319,7 +368,9 @@
       resizeT = setTimeout(function () {
         var box = document.getElementById(BOX_ID);
         var w = box ? box.clientWidth : 0;
-        if (Math.abs(w - lastEcgWidth) > 40 && loginVisible()) runEcgCycle();
+        if (Math.abs(w - lastEcgWidth) > 40 && loginVisible()) {
+          runEcgCycle();
+        }
       }, 200);
     });
   }
