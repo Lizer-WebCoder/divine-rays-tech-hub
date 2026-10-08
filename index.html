@@ -75,6 +75,7 @@
     var LOGIN_CHROME_HIDE_SHA = '60c3368efd15da0e8d15cac0674b28eaed22d973';
     var PAGER_FIX_SHA = '10037b1e4fdd1f855a0b1cbd558ec3af7bf71d2f';
     var DASH_UI_V2_SHA = '92f4070a0c125f2e3ce5d423fff1f68c4d3ba968';
+    var HB_SHA = '1eb5524fa4dc9804eb49810ec38dd678d1c83691';
 
     var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
     var BUST = String(Date.now());
@@ -112,7 +113,8 @@
       'force-light-bg.js': FORCE_LIGHT_BG_SHA,
       'login-chrome-hide.js': LOGIN_CHROME_HIDE_SHA,
       'pager-fix.js': PAGER_FIX_SHA,
-      'dashboard-ui-v2.js': DASH_UI_V2_SHA
+      'dashboard-ui-v2.js': DASH_UI_V2_SHA,
+      'heartbeat-draw.js': HB_SHA
     };
 
     var SKIP = {
@@ -173,6 +175,7 @@
       html = html.replace(/var LIVE_SHA = '[^']*';/, "var LIVE_SHA = '" + COMMENTS_LIVE_SHA + "';");
       html = html.replace(/var KB_JS_SHA = '[^']*';/, "var KB_JS_SHA = '" + KB_JS_SHA + "';");
       html = html.replace(/var THEME_SHA = '[^']*';/, "var THEME_SHA = 'e1b64444ddb0dbeea9ec05d05cf843032414c738';");
+      html = html.replace(/var HB_SHA = '[^']*';/, "var HB_SHA = '" + HB_SHA + "';");
       html = html.replace(
         /var EXTRA_FILES = \[[^\]]*\];/,
         "var EXTRA_FILES = ['email-notify.js','ticket-plus.js','ticket-plus-fix.js','status-lock.js','kb.js','polish-fixes.js'];"
@@ -206,6 +209,7 @@
       clearTimeout(bootTimer);
 
       setTimeout(function () {
+        loadScript(CDN + HB_SHA + '/js/heartbeat-draw.js');
         loadScript(CDN + ADMIN_LOCK_SHA + '/js/admin-portal-lock.js');
         loadScript(CDN + USERS_NAV_SHA + '/js/users-nav.js');
         loadScript(CDN + FILTERS_SHA + '/js/filters.js');
@@ -264,7 +268,8 @@
           loadScript(CDN + LIGHT_MODE_POLISH_SHA + '/js/light-mode-polish.js'),
           loadScript(CDN + FORCE_LIGHT_BG_SHA + '/js/force-light-bg.js'),
           loadScript(CDN + LOGIN_CHROME_HIDE_SHA + '/js/login-chrome-hide.js'),
-          loadScript(CDN + PAGER_FIX_SHA + '/js/pager-fix.js')
+          loadScript(CDN + PAGER_FIX_SHA + '/js/pager-fix.js'),
+          loadScript(CDN + HB_SHA + '/js/heartbeat-draw.js')
         ]).then(function () {
           try { if (window.DRUsersNav && window.DRUsersNav.refresh) window.DRUsersNav.refresh(); } catch (e) {}
           try { if (window.DRSidebarDesign && window.DRSidebarDesign.refresh) window.DRSidebarDesign.refresh(); } catch (e2) {}
@@ -282,6 +287,7 @@
           try { if (window.DRPriorityP1Display && window.DRPriorityP1Display.refresh) window.DRPriorityP1Display.refresh(); } catch (e14) {}
           try { if (window.DRPagerFix && window.DRPagerFix.refresh) window.DRPagerFix.refresh(); } catch (e15) {}
           try { if (window.DRDashUIV2 && window.DRDashUIV2.refresh) window.DRDashUIV2.refresh(); } catch (e16) {}
+          try { if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.force) window.DRHeartbeatDraw.force(); } catch (e17) {}
         });
       }, 1600);
 
