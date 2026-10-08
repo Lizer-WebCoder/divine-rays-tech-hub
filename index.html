@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.9.0-ecg-v20" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.9.1-no-boot-ecg" />
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@main/js/admin-portal-lock.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@main/js/theme.js"></script>
   <style>
@@ -15,6 +15,8 @@
     #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae;flex-direction:column;gap:0.75rem;padding:1.5rem;text-align:center}
     #boot .hint{font-size:0.8rem;color:#6b6b80;max-width:22rem}
     #login-screen,.login-screen{background:transparent!important;background-image:none!important}
+    #dr-lifeline{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}
+    html[data-ecg="on"] #dr-lifeline{display:block!important;visibility:visible!important;opacity:1!important}
   </style>
   <script>
   (function () {
@@ -77,7 +79,7 @@
     var LOGIN_CHROME_HIDE_SHA = '60c3368efd15da0e8d15cac0674b28eaed22d973';
     var PAGER_FIX_SHA = '10037b1e4fdd1f855a0b1cbd558ec3af7bf71d2f';
     var DASH_UI_V2_SHA = '92f4070a0c125f2e3ce5d423fff1f68c4d3ba968';
-    var HB_SHA = '829f7c393037fd701330e45726da9b061d859ae5';
+    var HB_SHA = '4668a5b55d82e8651ff281616628830fc317de43';
 
     var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
     var BUST = String(Date.now());
@@ -179,7 +181,8 @@
       html = html.replace(/var KB_JS_SHA = '[^']*';/, "var KB_JS_SHA = '" + KB_JS_SHA + "';");
       html = html.replace(/var THEME_SHA = '[^']*';/, "var THEME_SHA = '" + THEME_SHA + "';");
       html = html.replace(/var HB_SHA = '[^']*';/, "var HB_SHA = '" + HB_SHA + "';");
-      html = html.replace(/await loadScript\([^)]*heartbeat-draw[^)]*\);/gi, '/* heartbeat: single load from boot */');
+      html = html.replace(/await loadScript\([^)]*heartbeat-draw[^)]*\);?/gi, '/* heartbeat blocked */');
+      html = html.replace(/loadScript\([^)]*heartbeat-draw[^)]*\);?/gi, '/* heartbeat blocked */');
       html = html.replace(
         /var EXTRA_FILES = \[[^\]]*\];/,
         "var EXTRA_FILES = ['email-notify.js','ticket-plus.js','ticket-plus-fix.js','status-lock.js','kb.js','polish-fixes.js'];"
@@ -212,6 +215,8 @@
           'html,body{background:radial-gradient(ellipse 80% 60% at 50% 40%,#1a1530 0%,#0c0c14 55%,#08080f 100%)!important;}' +
           'html[data-theme="light"],html[data-theme="light"] body{background:radial-gradient(ellipse 80% 60% at 50% 35%,#e8e4ff 0%,#f4f2ff 45%,#eceaf8 100%)!important;}' +
           '#login-screen,.login-screen{background:transparent!important;background-image:none!important;}' +
+          '#dr-lifeline{display:none!important;visibility:hidden!important;opacity:0!important}' +
+          'html[data-ecg="on"] #dr-lifeline{display:block!important;visibility:visible!important;opacity:1!important}' +
         '</style>' +
         '<script src="' + withBust(CDN + FORCE_LIGHT_BG_SHA + '/js/force-light-bg.js') + '"><\/script>' +
         '</head>'
@@ -224,20 +229,26 @@
 
       try { loadScript(CDN + FORCE_LIGHT_BG_SHA + '/js/force-light-bg.js'); } catch (eFl) {}
       window.__DR_ECG_OK = false;
-      setTimeout(function () {
-        try {
-          var bootEl = document.getElementById('boot');
-          if (bootEl) bootEl.style.display = 'none';
-        } catch (eB) {}
-        window.__DR_ECG_OK = true;
-        try { loadScript(CDN + HB_SHA + '/js/heartbeat-draw.js'); } catch (eHb) {}
+      try { document.documentElement.removeAttribute('data-ecg'); } catch (e0) {}
+      function enableEcgWhenReady() {
+        var login = document.getElementById('login-screen') || document.querySelector('.login-screen');
+        if (!login || login.offsetWidth < 80) {
+          setTimeout(enableEcgWhenReady, 150);
+          return;
+        }
         setTimeout(function () {
-          try {
-            if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.force) window.DRHeartbeatDraw.force();
-            else if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.refresh) window.DRHeartbeatDraw.refresh();
-          } catch (eF) {}
-        }, 50);
-      }, 450);
+          window.__DR_ECG_OK = true;
+          try { document.documentElement.setAttribute('data-ecg', 'on'); } catch (e1) {}
+          try { loadScript(CDN + HB_SHA + '/js/heartbeat-draw.js'); } catch (eHb) {}
+          setTimeout(function () {
+            try {
+              if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.force) window.DRHeartbeatDraw.force();
+              else if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.refresh) window.DRHeartbeatDraw.refresh();
+            } catch (eF) {}
+          }, 80);
+        }, 600);
+      }
+      setTimeout(enableEcgWhenReady, 200);
       setTimeout(function () {
         loadScript(CDN + ADMIN_LOCK_SHA + '/js/admin-portal-lock.js');
         loadScript(CDN + USERS_NAV_SHA + '/js/users-nav.js');
