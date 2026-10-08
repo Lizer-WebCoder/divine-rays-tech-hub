@@ -71,11 +71,11 @@
     var ENDUSER_UI_SHA = '21cb83c9fcfb8a00b170f6efc25051b63d9fbff2';
     var CHAT_UI_SHA = 'c03c31b5baab763cee98ae37ae023991ade8164b';
     var LIGHT_MODE_POLISH_SHA = 'a69083e578f483246d844a9d03da719710736036';
-    var FORCE_LIGHT_BG_SHA = '06cb1f6b344b3908e790bd20f764d4f5aa9b468a';
+    var FORCE_LIGHT_BG_SHA = 'ebcbb4637a65511602a399006a8ccc29f346ecfa';
     var LOGIN_CHROME_HIDE_SHA = '60c3368efd15da0e8d15cac0674b28eaed22d973';
     var PAGER_FIX_SHA = '10037b1e4fdd1f855a0b1cbd558ec3af7bf71d2f';
     var DASH_UI_V2_SHA = '92f4070a0c125f2e3ce5d423fff1f68c4d3ba968';
-    var HB_SHA = '8e26849d76c6476a819baff7a8a88e95369a643b';
+    var HB_SHA = 'a38e4514f964ab95b424a9107d919614de99a115';
 
     var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
     var BUST = String(Date.now());
@@ -202,7 +202,6 @@
         '<head>',
         '<head><script>window.__DR_COMMENTS_LIVE=8;window.__DR_COMMENTS_LIVE_V2=1;window.__DR_BOOT_CLEAN=1;<\/script>'
       );
-      // Paint login bg + load heartbeat WITH the shell (no post-load delay)
       html = html.replace(
         '</head>',
         '<style id="dr-boot-login-bg">' +
@@ -219,7 +218,6 @@
       document.close();
       clearTimeout(bootTimer);
 
-      // Heartbeat already injected in <head>; reinforce immediately
       try { loadScript(CDN + HB_SHA + '/js/heartbeat-draw.js'); } catch (eHb) {}
       setTimeout(function () {
         try {
@@ -305,7 +303,7 @@
           try { if (window.DRPriorityP1Display && window.DRPriorityP1Display.refresh) window.DRPriorityP1Display.refresh(); } catch (e14) {}
           try { if (window.DRPagerFix && window.DRPagerFix.refresh) window.DRPagerFix.refresh(); } catch (e15) {}
           try { if (window.DRDashUIV2 && window.DRDashUIV2.refresh) window.DRDashUIV2.refresh(); } catch (e16) {}
-          try { if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.refresh) window.DRHeartbeatDraw.refresh(); } catch (e17) {}
+          try { if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.force) window.DRHeartbeatDraw.force(); } catch (e17) {}
         });
       }, 1600);
 
