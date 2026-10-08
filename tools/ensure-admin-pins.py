@@ -11,8 +11,8 @@ DASH = 'e1b64444ddb0dbeea9ec05d05cf843032414c738'
 PENDING = '94a5aeaaa38fafaaa1ac94872341ce3bf992dfd1'
 LOGIN_CHROME = '60c3368efd15da0e8d15cac0674b28eaed22d973'
 FORCE_LIGHT = 'ebcbb4637a65511602a399006a8ccc29f346ecfa'
-# ECG v18 full-width grow, no boot, block shell old HB
-HB = '3d7fee6f7dc4a8b3ba8866734ca7b7b5c2867ec9'
+# ECG v19 original stroke-draw, theme recolor without reset
+HB = '494d35e6fac7d506da3e90bfbac20eeb437a3b61'
 
 INDEX = pathlib.Path('index.html')
 if not INDEX.exists():
