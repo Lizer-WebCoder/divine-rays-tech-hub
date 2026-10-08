@@ -1,22 +1,21 @@
 /**
- * Divine Rays — heartbeat / ECG lifeline v13
- * Login: continuous neon ECG that NEVER stops while login is on screen
- * Portal: spinning gears
+ * Divine Rays — heartbeat / ECG lifeline v14
+ * Stable continuous neon ECG on login — no timer rebuild glitches
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
   try { delete window.__DR_HEARTBEAT_DRAW; } catch (e0) {}
-  window.__DR_HEARTBEAT_DRAW = 13;
+  window.__DR_HEARTBEAT_DRAW = 14;
 
-  var CSS_ID = 'dr-gears-bg';
+  var CSS_ID = 'dr-gears-bg-v14';
   var BOX_ID = 'dr-lifeline';
-  var lastTheme = null;
-  var lastMode = null;
   var rafId = null;
   var ecgOffset = 0;
   var lastTs = 0;
-  var keepAlive = null;
+  var mode = null;
+  var theme = null;
+  var started = false;
 
   function isLight() {
     try {
@@ -27,15 +26,10 @@
     }
   }
 
-  function loginEl() {
-    return document.getElementById('login-screen') || document.querySelector('.login-screen');
-  }
-
-  function isLoginScreen() {
-    var login = loginEl();
+  function loginVisible() {
+    var login = document.getElementById('login-screen') || document.querySelector('.login-screen');
     if (!login) return false;
-    if (login.hidden) return false;
-    if (login.classList.contains('is-hidden')) return false;
+    if (login.hidden || login.classList.contains('is-hidden')) return false;
     try {
       var st = window.getComputedStyle(login);
       if (st.display === 'none' || st.visibility === 'hidden') return false;
@@ -43,23 +37,96 @@
     return true;
   }
 
-  function isPortalActive() {
-    if (isLoginScreen()) return false;
+  function portalVisible() {
+    if (loginVisible()) return false;
     try {
       var pa = document.getElementById('portal-agent');
       var pc = document.getElementById('portal-customer');
       if (pa && pa.classList.contains('active')) return true;
       if (pc && pc.classList.contains('active')) return true;
-      if (document.body && document.body.classList.contains('is-portal')) return true;
     } catch (e) {}
     return false;
   }
 
-  function colors() {
-    if (isLight()) {
-      return { a: '#7c6af0', b: '#9b8af5', c: '#b8a9fc', opacity: '0.35' };
+  function wantLogin() {
+    if (loginVisible()) return true;
+    if (portalVisible()) return false;
+    return true;
+  }
+
+  function injectCss() {
+    var el = document.getElementById(CSS_ID);
+    if (!el) {
+      el = document.createElement('style');
+      el.id = CSS_ID;
+      (document.head || document.documentElement).appendChild(el);
     }
-    return { a: '#a78bfa', b: '#8b7cf0', c: '#6d5ef5', opacity: '0.42' };
+    el.textContent = [
+      '#' + BOX_ID + '{',
+      'position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;',
+      'z-index:1!important;pointer-events:none!important;overflow:hidden!important;',
+      'background:transparent!important;opacity:1!important;visibility:visible!important;',
+      'display:block!important;margin:0!important;padding:0!important}',
+      '#dr-lifeline,#dr-lifeline *{pointer-events:none!important}',
+      '#dr-lifeline .dr-spin-cw{transform-origin:0 0;animation:drGearCW 30s linear infinite}',
+      '#dr-lifeline .dr-spin-ccw{transform-origin:0 0;animation:drGearCCW 24s linear infinite}',
+      '#dr-lifeline .dr-spin-cw-fast{transform-origin:0 0;animation:drGearCW 18s linear infinite}',
+      '#dr-lifeline .dr-spin-ccw-slow{transform-origin:0 0;animation:drGearCCW 36s linear infinite}',
+      '@keyframes drGearCW{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}',
+      '@keyframes drGearCCW{from{transform:rotate(0deg)}to{transform:rotate(-360deg)}}',
+      'body.is-login #login-screen,body.is-login .login-screen,',
+      '#login-screen,.login-screen{',
+      'background:transparent!important;background-color:transparent!important;',
+      'background-image:none!important;position:relative!important;z-index:3!important}',
+      '#login-screen .login-card,.login-card{position:relative!important;z-index:6!important}',
+      'body.is-login{background:#0c0c14!important}',
+      'html[data-theme="light"] body.is-login{background:#f0f0f5!important}'
+    ].join('');
+  }
+
+  function ensureBox() {
+    var box = document.getElementById(BOX_ID);
+    if (!box) {
+      box = document.createElement('div');
+      box.id = BOX_ID;
+      box.setAttribute('aria-hidden', 'true');
+    }
+    if (document.body && box.parentNode !== document.body) {
+      document.body.insertBefore(box, document.body.firstChild);
+    }
+    box.style.cssText =
+      'position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;' +
+      'z-index:1!important;pointer-events:none!important;overflow:hidden!important;' +
+      'opacity:1!important;visibility:visible!important;display:block!important;' +
+      'background:transparent!important';
+    return box;
+  }
+
+  var ECG_UNIT =
+    'M0 50 H40 L48 50 L54 40 L60 50 L72 5 L90 95 L108 50 H160 ' +
+    'L168 50 L174 40 L180 50 L192 8 L210 92 L228 50 H280 ' +
+    'L288 50 L294 40 L300 50 L312 6 L330 94 L348 50 H400';
+
+  function buildEcgHtml() {
+    var core = isLight() ? '#6d28d9' : '#f3e8ff';
+    var glow = isLight() ? '#a78bfa' : '#e9d5ff';
+    var d =
+      ECG_UNIT +
+      ' ' + ECG_UNIT.replace(/M0 /g, 'M400 ') +
+      ' ' + ECG_UNIT.replace(/M0 /g, 'M800 ') +
+      ' ' + ECG_UNIT.replace(/M0 /g, 'M1200 ');
+    return (
+      '<svg id="dr-ecg-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 100" ' +
+      'preserveAspectRatio="none" width="300%" height="100%" ' +
+      'style="display:block;position:absolute;left:0;top:50%;height:260px;margin-top:-130px;' +
+      'overflow:visible;will-change:transform;' +
+      'filter:drop-shadow(0 0 8px ' + glow + ') drop-shadow(0 0 18px ' + glow + ')">' +
+      '<path fill="none" stroke="' + glow + '" stroke-width="10" stroke-linecap="round" ' +
+      'stroke-linejoin="round" opacity="0.45" d="' + d + '"/>' +
+      '<path class="dr-ecg-core" fill="none" stroke="' + core + '" stroke-width="3.8" ' +
+      'stroke-linecap="round" stroke-linejoin="round" d="' + d + '"/>' +
+      '</svg>'
+    );
   }
 
   function gearPath(teeth, outerR, innerR, holeR) {
@@ -80,31 +147,29 @@
       );
     }
     var d = 'M' + pts[0][0].toFixed(2) + ' ' + pts[0][1].toFixed(2);
-    for (var j = 1; j < pts.length; j++) {
-      d += ' L' + pts[j][0].toFixed(2) + ' ' + pts[j][1].toFixed(2);
-    }
+    for (var j = 1; j < pts.length; j++) d += ' L' + pts[j][0].toFixed(2) + ' ' + pts[j][1].toFixed(2);
     d += ' Z';
-    d +=
-      ' M' + holeR + ' 0 A' + holeR + ' ' + holeR + ' 0 1 0 ' + -holeR +
+    d += ' M' + holeR + ' 0 A' + holeR + ' ' + holeR + ' 0 1 0 ' + -holeR +
       ' 0 A' + holeR + ' ' + holeR + ' 0 1 0 ' + holeR + ' 0 Z';
     return d;
   }
 
   function oneGear(cls, fill, teeth, outer, inner, hole, cx, cy, scale) {
-    var d = gearPath(teeth, outer, inner, hole);
     return (
       '<g class="' + cls + '" transform="translate(' + cx + ' ' + cy + ') scale(' + scale + ')">' +
-      '<path d="' + d + '" fill="' + fill + '" fill-rule="evenodd"/>' +
+      '<path d="' + gearPath(teeth, outer, inner, hole) + '" fill="' + fill + '" fill-rule="evenodd"/>' +
       '<circle cx="0" cy="0" r="' + (hole * 0.55).toFixed(1) + '" fill="' + fill + '" opacity="0.85"/>' +
       '</g>'
     );
   }
 
-  function gearsSvg() {
-    var c = colors();
+  function buildGearsHtml() {
+    var c = isLight()
+      ? { a: '#7c6af0', b: '#9b8af5', c: '#b8a9fc', o: '0.35' }
+      : { a: '#a78bfa', b: '#8b7cf0', c: '#6d5ef5', o: '0.42' };
     return (
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice" ' +
-      'width="100%" height="100%" style="display:block;opacity:' + c.opacity + '">' +
+      'width="100%" height="100%" style="display:block;opacity:' + c.o + '">' +
       oneGear('dr-spin-cw', c.a, 12, 90, 62, 22, 180, 200, 1.15) +
       oneGear('dr-spin-ccw', c.b, 10, 70, 48, 18, 340, 280, 1) +
       oneGear('dr-spin-cw-fast', c.c, 14, 110, 76, 26, 620, 180, 1.25) +
@@ -117,83 +182,6 @@
     );
   }
 
-  var ECG_UNIT =
-    'M0 50 H40 L48 50 L54 40 L60 50 L72 5 L90 95 L108 50 H160 ' +
-    'L168 50 L174 40 L180 50 L192 8 L210 92 L228 50 H280 ' +
-    'L288 50 L294 40 L300 50 L312 6 L330 94 L348 50 H400';
-
-  function ecgSvg() {
-    var core = isLight() ? '#6d28d9' : '#f3e8ff';
-    var glow = isLight() ? '#a78bfa' : '#e9d5ff';
-    var d =
-      ECG_UNIT +
-      ' ' +
-      ECG_UNIT.replace(/M0 /g, 'M400 ') +
-      ' ' +
-      ECG_UNIT.replace(/M0 /g, 'M800 ') +
-      ' ' +
-      ECG_UNIT.replace(/M0 /g, 'M1200 ');
-    return (
-      '<svg id="dr-ecg-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 100" ' +
-      'preserveAspectRatio="none" width="300%" height="100%" ' +
-      'style="display:block;position:absolute;left:0;top:50%;height:260px;margin-top:-130px;' +
-      'overflow:visible;will-change:transform;' +
-      'filter:drop-shadow(0 0 8px ' + glow + ') drop-shadow(0 0 18px ' + glow + ')">' +
-      '<path fill="none" stroke="' + glow + '" stroke-width="10" stroke-linecap="round" ' +
-      'stroke-linejoin="round" opacity="0.45" d="' + d + '"/>' +
-      '<path class="dr-ecg-core" fill="none" stroke="' + core + '" stroke-width="3.8" ' +
-      'stroke-linecap="round" stroke-linejoin="round" opacity="1" d="' + d + '"/>' +
-      '</svg>'
-    );
-  }
-
-  var CSS = [
-    '#' + BOX_ID + '{',
-    'position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;',
-    'z-index:1!important;pointer-events:none!important;overflow:hidden!important;',
-    'background:transparent!important;opacity:1!important;visibility:visible!important;',
-    'display:block!important;margin:0!important;padding:0!important',
-    '}',
-    '#dr-lifeline,#dr-lifeline *{pointer-events:none!important}',
-    '#dr-lifeline svg{display:block;overflow:visible}',
-    '#dr-lifeline .dr-spin-cw{transform-origin:0 0;animation:drGearCW 30s linear infinite}',
-    '#dr-lifeline .dr-spin-ccw{transform-origin:0 0;animation:drGearCCW 24s linear infinite}',
-    '#dr-lifeline .dr-spin-cw-fast{transform-origin:0 0;animation:drGearCW 18s linear infinite}',
-    '#dr-lifeline .dr-spin-ccw-slow{transform-origin:0 0;animation:drGearCCW 36s linear infinite}',
-    '@keyframes drGearCW{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}',
-    '@keyframes drGearCCW{from{transform:rotate(0deg)}to{transform:rotate(-360deg)}}',
-    'body.is-login #login-screen,body.is-login .login-screen,',
-    '#login-screen,.login-screen{',
-    'background:transparent!important;background-color:transparent!important;',
-    'background-image:none!important;position:relative!important;z-index:3!important}',
-    '#login-screen .login-card,.login-card{position:relative!important;z-index:6!important}',
-    'body.is-login{background:#0c0c14!important}',
-    'html[data-theme="light"] body.is-login{background:#f0f0f5!important}'
-  ].join('');
-
-  function injectCss() {
-    var el = document.getElementById(CSS_ID);
-    if (!el) {
-      el = document.createElement('style');
-      el.id = CSS_ID;
-      (document.head || document.documentElement).appendChild(el);
-    }
-    el.textContent = CSS;
-  }
-
-  function ensureBox() {
-    var box = document.getElementById(BOX_ID);
-    if (!box) {
-      box = document.createElement('div');
-      box.id = BOX_ID;
-      box.setAttribute('aria-hidden', 'true');
-    }
-    if (document.body && box.parentNode !== document.body) {
-      document.body.insertBefore(box, document.body.firstChild);
-    }
-    return box;
-  }
-
   function stopRaf() {
     if (rafId) {
       cancelAnimationFrame(rafId);
@@ -202,128 +190,130 @@
     lastTs = 0;
   }
 
-  function startEcgLoop(forceRebuild) {
-    var box = ensureBox();
-    box.style.cssText =
-      'position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;' +
-      'z-index:1!important;pointer-events:none!important;overflow:hidden!important;' +
-      'opacity:1!important;visibility:visible!important;display:block!important;' +
-      'background:transparent!important';
-
-    var needBuild = forceRebuild || !box.querySelector('.dr-ecg-core') || !document.getElementById('dr-ecg-svg');
-    if (needBuild) {
-      box.innerHTML = ecgSvg();
-      ecgOffset = 0;
-      lastTs = 0;
+  function runEcgFrame(ts) {
+    if (mode !== 'login') {
+      rafId = null;
+      return;
     }
-
     var svg = document.getElementById('dr-ecg-svg');
-    if (!svg) return;
-
-    if (rafId && !forceRebuild) return;
-
-    stopRaf();
-    var speed = 120;
-
-    function frame(ts) {
-      if (!isLoginScreen() && isPortalActive()) {
-        rafId = null;
-        return;
-      }
-      if (!lastTs) lastTs = ts;
-      var dt = Math.min(50, ts - lastTs);
-      lastTs = ts;
-      ecgOffset += (speed * dt) / 1000;
-
-      var loopW = Math.max(400, (window.innerWidth || 1200) * 0.55);
-      if (ecgOffset >= loopW) ecgOffset -= loopW;
-
-      if (svg && svg.parentNode) {
-        svg.style.transform = 'translateX(' + (-ecgOffset) + 'px)';
-      } else {
-        rafId = null;
-        setTimeout(function () {
-          if (isLoginScreen() || !isPortalActive()) startEcgLoop(true);
-        }, 50);
-        return;
-      }
-      rafId = requestAnimationFrame(frame);
+    if (!svg || !svg.parentNode) {
+      rafId = null;
+      setTimeout(function () {
+        if (wantLogin()) ensureLoginEcg(true);
+      }, 100);
+      return;
     }
-    rafId = requestAnimationFrame(frame);
+    if (!lastTs) lastTs = ts;
+    var dt = Math.min(48, ts - lastTs);
+    lastTs = ts;
+    ecgOffset += (120 * dt) / 1000;
+    var loopW = Math.max(400, (window.innerWidth || 1200) * 0.55);
+    if (ecgOffset >= loopW) ecgOffset -= loopW;
+    svg.style.transform = 'translateX(' + (-ecgOffset) + 'px)';
+    rafId = requestAnimationFrame(runEcgFrame);
   }
 
-  function showGears(force) {
-    stopRaf();
-    var box = ensureBox();
-    box.style.cssText =
-      'position:fixed!important;inset:0!important;width:100%!important;height:100%!important;' +
-      'z-index:0!important;pointer-events:none!important;overflow:hidden!important;' +
-      'opacity:1!important;visibility:visible!important;display:block!important;' +
-      'background:transparent!important';
-    var theme = isLight() ? 'light' : 'dark';
-    if (force || !box.querySelector('.dr-spin-cw') || lastTheme !== theme || lastMode !== 'portal') {
-      box.innerHTML = gearsSvg();
-      lastTheme = theme;
-      lastMode = 'portal';
-    }
-  }
-
-  function tick(force) {
+  function ensureLoginEcg(rebuild) {
     injectCss();
     try {
-      document.body.classList.toggle('is-login', isLoginScreen());
-      document.body.classList.toggle('is-portal', isPortalActive());
+      document.body.classList.add('is-login');
+      document.body.classList.remove('is-portal');
     } catch (e) {}
 
-    if (isLoginScreen()) {
-      lastMode = 'login';
-      var theme = isLight() ? 'light' : 'dark';
-      var themeChanged = lastTheme !== theme;
-      lastTheme = theme;
-      startEcgLoop(!!force || themeChanged);
-      return;
+    var box = ensureBox();
+    var hasEcg = !!box.querySelector('.dr-ecg-core') && !!document.getElementById('dr-ecg-svg');
+    var t = isLight() ? 'light' : 'dark';
+
+    if (rebuild || !hasEcg || theme !== t) {
+      box.innerHTML = buildEcgHtml();
+      ecgOffset = 0;
+      lastTs = 0;
+      theme = t;
     }
 
-    if (isPortalActive()) {
-      lastMode = 'portal';
-      showGears(!!force);
-      return;
+    mode = 'login';
+    if (!rafId) {
+      rafId = requestAnimationFrame(runEcgFrame);
     }
+  }
 
-    lastMode = 'login';
-    startEcgLoop(!!force);
+  function ensurePortalGears(rebuild) {
+    stopRaf();
+    injectCss();
+    try {
+      document.body.classList.add('is-portal');
+      document.body.classList.remove('is-login');
+    } catch (e) {}
+
+    var box = ensureBox();
+    var t = isLight() ? 'light' : 'dark';
+    if (rebuild || !box.querySelector('.dr-spin-cw') || theme !== t || mode !== 'portal') {
+      box.innerHTML = buildGearsHtml();
+      theme = t;
+    }
+    mode = 'portal';
+  }
+
+  function sync(forceRebuild) {
+    injectCss();
+    if (wantLogin()) {
+      ensureLoginEcg(!!forceRebuild);
+    } else {
+      ensurePortalGears(!!forceRebuild);
+    }
   }
 
   function boot() {
-    tick(true);
+    if (!document.body) {
+      setTimeout(boot, 30);
+      return;
+    }
+    if (started && document.getElementById('dr-ecg-svg') && rafId) return;
+    started = true;
+    sync(true);
   }
 
   boot();
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function () { tick(true); });
+    document.addEventListener('DOMContentLoaded', function () { sync(true); });
   }
 
-  [40, 200, 600, 1200, 2500, 4000, 7000].forEach(function (ms) {
-    setTimeout(function () { tick(true); }, ms);
-  });
+  setTimeout(function () { started = false; boot(); }, 100);
+  setTimeout(function () { if (!document.getElementById('dr-ecg-svg')) sync(true); }, 500);
+  setTimeout(function () { if (!document.getElementById('dr-ecg-svg')) sync(true); }, 1500);
 
-  if (keepAlive) clearInterval(keepAlive);
-  keepAlive = setInterval(function () {
-    if (isPortalActive()) return;
-    var alive = document.getElementById('dr-ecg-svg') && document.getElementById(BOX_ID);
-    if (!alive || !rafId) tick(true);
-  }, 2000);
+  setInterval(function () {
+    if (portalVisible()) {
+      if (mode !== 'portal') sync(false);
+      return;
+    }
+    var svg = document.getElementById('dr-ecg-svg');
+    if (!svg || !rafId) {
+      sync(true);
+    }
+  }, 2500);
+
+  document.addEventListener(
+    'click',
+    function (e) {
+      var t = e.target;
+      if (t && (t.id === 'btn-theme' || t.id === 'dr-login-theme' || (t.classList && t.classList.contains('btn-theme')))) {
+        setTimeout(function () { sync(true); }, 60);
+      }
+    },
+    true
+  );
 
   window.addEventListener('resize', function () {
     clearTimeout(window.__drHbR);
     window.__drHbR = setTimeout(function () {
-      if (!isPortalActive()) tick(true);
-    }, 150);
+      if (!rafId && wantLogin()) sync(false);
+    }, 200);
   });
 
   window.DRHeartbeatDraw = {
-    refresh: function () { tick(false); },
-    force: function () { tick(true); }
+    refresh: function () { sync(false); },
+    force: function () { sync(true); }
   };
   window.DRGearsBg = window.DRHeartbeatDraw;
 })();
