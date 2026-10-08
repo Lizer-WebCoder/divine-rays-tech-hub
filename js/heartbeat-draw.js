@@ -1,11 +1,11 @@
 /**
- * Divine Rays — continuous gears + ECG v2 — start immediately (no refresh delay)
+ * Divine Rays — continuous gears + ECG v3 — safe start, no freeze
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_HEARTBEAT_DRAW >= 2) return;
-  window.__DR_HEARTBEAT_DRAW = 2;
+  if (window.__DR_HEARTBEAT_DRAW >= 3) return;
+  window.__DR_HEARTBEAT_DRAW = 3;
 
   var CSS_ID = 'dr-gears-bg';
   var BOX_ID = 'dr-lifeline';
@@ -160,6 +160,8 @@
   var ecgIndex = 0;
   var ecgTimer = null;
   var lastMode = null;
+  var __ecgBusy = false;
+  var __tickBusy = false;
 
   function ecgStroke() {
     return isLight() ? '#6d28d9' : '#e9d5ff';
@@ -218,11 +220,13 @@
   }
 
   function runEcgCycle() {
+    if (__ecgBusy) return;
     if (ecgTimer) {
       clearTimeout(ecgTimer);
       ecgTimer = null;
     }
     if (!loginVisible()) return;
+    __ecgBusy = true;
     var login = document.getElementById('login-screen') || document.querySelector('.login-screen');
     var box = ensureBox();
     if (login && box.parentNode !== login) {
@@ -235,7 +239,7 @@
       'background:transparent!important;overflow:visible!important;box-shadow:none!important;filter:none!important';
     box.innerHTML = ecgMarkup();
     var paths = box.querySelectorAll('.dr-ecg-core, .dr-ecg-glow');
-    if (!paths.length) return;
+    if (!paths.length) { __ecgBusy = false; return; }
     var len = 1600;
     try {
       len = paths[paths.length - 1].getTotalLength() || 1600;
@@ -259,6 +263,7 @@
         pj.style.animation = 'drEcgDraw ' + durCss + ' linear forwards, drEcgGlowPulse 2.4s ease-in-out infinite';
       }
     }
+    __ecgBusy = false;
     ecgTimer = setTimeout(function () {
       ecgIndex = (ecgIndex + 1) % ECG_PATTERNS.length;
       if (loginVisible()) runEcgCycle();
@@ -270,7 +275,8 @@
     var mode = portalActive() ? 'portal' : 'login';
 
     if (mode === 'login') {
-      if (lastMode !== 'login' || force) {
+      var hasEcg = !!box.querySelector('.dr-ecg-core');
+      if (lastMode !== 'login' || (force && !hasEcg)) {
         lastMode = 'login';
         lastTheme = themeKey();
         runEcgCycle();
@@ -305,18 +311,23 @@
   }
 
   function tick(force) {
-    injectCss();
+    if (__tickBusy) return;
+    __tickBusy = true;
     try {
-      document.body.classList.toggle('is-login', loginVisible());
-      document.body.classList.toggle('is-portal', portalActive());
-    } catch (e) {}
-    ensureGears(!!force);
-    if (window.DRForceLightBg && window.DRForceLightBg.refresh) {
-      try { window.DRForceLightBg.refresh(); } catch (e) {}
+      injectCss();
+      try {
+        document.body.classList.toggle('is-login', loginVisible());
+        document.body.classList.toggle('is-portal', portalActive());
+      } catch (e) {}
+      ensureGears(!!force);
+      if (window.DRForceLightBg && window.DRForceLightBg.refresh) {
+        try { window.DRForceLightBg.refresh(); } catch (e) {}
+      }
+    } finally {
+      __tickBusy = false;
     }
   }
 
-  // Start as soon as possible so login refresh does not look blank
   tick(true);
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function () {
@@ -327,18 +338,7 @@
   setTimeout(function () { tick(false); }, 250);
   setTimeout(function () { tick(false); }, 800);
 
-  try {
-    if (!window.__drHbMo && typeof MutationObserver !== 'undefined') {
-      window.__drHbMo = 1;
-      var mo = new MutationObserver(function () {
-        if (document.getElementById('login-screen') || document.querySelector('.login-screen')) {
-          tick(true);
-        }
-      });
-      mo.observe(document.documentElement, { childList: true, subtree: true });
-      setTimeout(function () { try { mo.disconnect(); } catch (e) {} }, 12000);
-    }
-  } catch (eMo) {}
+  // MutationObserver removed — it rewrote DOM in a loop and froze login
 
   document.addEventListener(
     'click',
