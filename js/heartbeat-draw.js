@@ -1,15 +1,15 @@
 /**
- * Divine Rays — ORIGINAL ECG stroke-draw (kirzhianquijano) v20
+ * Divine Rays — ORIGINAL ECG stroke-draw (kirzhianquijano) v21
  * Soft neon path draws left→right; theme change recolors without reset
- * No animation during boot; single load
+ * Requires __DR_ECG_OK + data-ecg=on — never during boot
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
   try { delete window.__DR_HEARTBEAT_DRAW; } catch (e0) {}
-  window.__DR_HEARTBEAT_DRAW = 20;
+  window.__DR_HEARTBEAT_DRAW = 21;
 
-  var CSS_ID = 'dr-gears-bg-v20';
+  var CSS_ID = 'dr-gears-bg-v21';
   var BOX_ID = 'dr-lifeline';
   var lastTheme = null;
   var lastMode = null;
@@ -38,7 +38,9 @@
 
   function shellReady() {
     try {
-      if (window.__DR_ECG_OK === true) return true;
+      if (window.__DR_ECG_OK !== true) return false;
+      if (document.documentElement.getAttribute('data-ecg') !== 'on') return false;
+      return true;
     } catch (e) {}
     return false;
   }
@@ -68,7 +70,8 @@
   }
 
   function portalActive() {
-    if (isBooting() || loginVisible()) return false;
+    if (isBooting() || !shellReady()) return false;
+    if (loginVisible()) return false;
     try {
       var pa = document.getElementById('portal-agent');
       var pc = document.getElementById('portal-customer');
