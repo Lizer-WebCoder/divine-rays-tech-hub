@@ -10,7 +10,10 @@ TOPBAR = 'c49dd3bd4b8cd07fa3608633c3d096ce1ac5db04'
 DASH = 'e1b64444ddb0dbeea9ec05d05cf843032414c738'
 PENDING = '94a5aeaaa38fafaaa1ac94872341ce3bf992dfd1'
 LOGIN_CHROME = '60c3368efd15da0e8d15cac0674b28eaed22d973'
-FORCE_LIGHT = '06cb1f6b344b3908e790bd20f764d4f5aa9b468a'
+# v3 — no 30s interval (old 06cb1f6b caused black/white flash)
+FORCE_LIGHT = 'ebcbb4637a65511602a399006a8ccc29f346ecfa'
+# heartbeat v5 — lifeline on login
+HB = 'fc0c5c3dfe15da2af1dc6ade36747044d4bde76c'
 
 INDEX = pathlib.Path('index.html')
 if not INDEX.exists():
@@ -21,7 +24,7 @@ def has_good_pins(t):
     return (
         ADMIN_LOCK in t and USERS_NAV in t and SIDEBAR_ROLE in t
         and TOPBAR in t and DASH in t and THEME in t
-        and LOGIN_CHROME in t and FORCE_LIGHT in t
+        and LOGIN_CHROME in t and FORCE_LIGHT in t and HB in t
     )
 
 if has_good_pins(text) and 'admin-portal-lock.js' in text:
@@ -40,6 +43,7 @@ replacements = [
     (r"var PENDING_FIX_SHA = '[^']*';", f"var PENDING_FIX_SHA = '{PENDING}';"),
     (r"var LOGIN_CHROME_HIDE_SHA = '[^']*';", f"var LOGIN_CHROME_HIDE_SHA = '{LOGIN_CHROME}';"),
     (r"var FORCE_LIGHT_BG_SHA = '[^']*';", f"var FORCE_LIGHT_BG_SHA = '{FORCE_LIGHT}';"),
+    (r"var HB_SHA = '[^']*';", f"var HB_SHA = '{HB}';"),
 ]
 for pat, rep in replacements:
     if re.search(pat, text):
