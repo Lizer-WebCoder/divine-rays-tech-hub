@@ -11,8 +11,8 @@ DASH = 'e1b64444ddb0dbeea9ec05d05cf843032414c738'
 PENDING = '94a5aeaaa38fafaaa1ac94872341ce3bf992dfd1'
 LOGIN_CHROME = '60c3368efd15da0e8d15cac0674b28eaed22d973'
 FORCE_LIGHT = 'ebcbb4637a65511602a399006a8ccc29f346ecfa'
-# ECG v14 stable continuous lifeline
-HB = 'df470b2f6468a33fab8489be8e1124b01f0feda6'
+# ECG v15 CSS continuous scroll
+HB = '1de6de42640e7cb101749c26edbb5bc7ed61bf18'
 
 INDEX = pathlib.Path('index.html')
 if not INDEX.exists():
