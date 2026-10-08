@@ -1,15 +1,23 @@
 /**
- * Divine Rays — ORIGINAL ECG lifeline (kirzhianquijano) — stroke-draw style v16
+ * Divine Rays — ORIGINAL ECG style (kirzhianquijano) v17
+ * Stroke-draw look, linear left→right reveal to full screen, then reset
+ * No ECG during boot loader
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
   try { delete window.__DR_HEARTBEAT_DRAW; } catch (e0) {}
-  window.__DR_HEARTBEAT_DRAW = 16;
+  window.__DR_HEARTBEAT_DRAW = 17;
 
   var CSS_ID = 'dr-gears-bg';
   var BOX_ID = 'dr-lifeline';
   var lastTheme = null;
+  var lastMode = null;
+  var ecgIndex = 0;
+  var ecgTimer = null;
+  var __ecgBusy = false;
+  var __tickBusy = false;
+  var lastEcgWidth = 0;
 
   function isLight() {
     try {
@@ -26,7 +34,19 @@
     return isLight() ? 'light' : 'dark';
   }
 
+  function isBooting() {
+    var boot = document.getElementById('boot');
+    if (!boot) return false;
+    try {
+      var st = window.getComputedStyle(boot);
+      if (st.display === 'none' || st.visibility === 'hidden') return false;
+      if (boot.hidden) return false;
+    } catch (e) {}
+    return true;
+  }
+
   function loginVisible() {
+    if (isBooting()) return false;
     var login = document.getElementById('login-screen') || document.querySelector('.login-screen');
     if (!login) return false;
     if (login.hidden || login.classList.contains('is-hidden')) return false;
@@ -38,6 +58,7 @@
   }
 
   function portalActive() {
+    if (isBooting()) return false;
     return !loginVisible();
   }
 
@@ -112,9 +133,9 @@
     '}',
     '#dr-lifeline,#dr-lifeline *{pointer-events:none!important}',
     '#dr-lifeline svg{width:100%;height:100%;display:block;overflow:visible}',
-    '#dr-lifeline .dr-ecg-core,#dr-lifeline .dr-ecg-glow{',
-    'will-change:stroke-dashoffset,opacity;transform:translateZ(0);',
-    'backface-visibility:hidden;-webkit-backface-visibility:hidden}',
+    '#dr-lifeline .dr-ecg-reveal{',
+    'will-change:clip-path;transform:translateZ(0)',
+    '}',
     '#dr-lifeline .dr-spin-cw{transform-origin:0 0;animation:drGearCW 30s linear infinite}',
     '#dr-lifeline .dr-spin-ccw{transform-origin:0 0;animation:drGearCCW 24s linear infinite}',
     '#dr-lifeline .dr-spin-cw-fast{transform-origin:0 0;animation:drGearCW 18s linear infinite}',
@@ -124,21 +145,21 @@
     '#login-screen,.login-screen{position:relative!important;z-index:2!important}',
     '#login-screen .login-card,.login-card{position:relative!important;z-index:5!important}',
     'body,.app-shell,#portal-customer,#portal-agent{position:relative;z-index:1}',
-    '@keyframes drEcgDraw{',
-    '0%{stroke-dashoffset:var(--dr-len)}',
-    '100%{stroke-dashoffset:0}',
+    '@keyframes drEcgReveal{',
+    '0%{clip-path:inset(0 100% 0 0)}',
+    '100%{clip-path:inset(0 0% 0 0)}',
     '}',
     '@keyframes drEcgGlowPulse{',
-    '0%,100%{opacity:0.5}',
-    '50%{opacity:0.7}',
+    '0%,100%{opacity:0.55}',
+    '50%{opacity:0.75}',
     '}',
     '@keyframes drEcgCorePulse{',
-    '0%,100%{opacity:0.9}',
-    '50%{opacity:0.98}',
+    '0%,100%{opacity:0.92}',
+    '50%{opacity:1}',
     '}',
     '@media (prefers-reduced-motion:reduce){',
     '#dr-lifeline .dr-spin-cw,#dr-lifeline .dr-spin-ccw,#dr-lifeline .dr-spin-cw-fast,#dr-lifeline .dr-spin-ccw-slow{animation:none!important}',
-    '#dr-lifeline .dr-ecg-core,#dr-lifeline .dr-ecg-glow{animation:none!important;stroke-dashoffset:0!important;opacity:0.5}',
+    '#dr-lifeline .dr-ecg-reveal{animation:none!important;clip-path:none!important}',
     '}'
   ].join('');
 
@@ -147,7 +168,7 @@
     if (!el) {
       el = document.createElement('style');
       el.id = CSS_ID;
-      document.head.appendChild(el);
+      (document.head || document.documentElement).appendChild(el);
     }
     if (el.textContent !== CSS) el.textContent = CSS;
   }
@@ -157,11 +178,6 @@
     'M0 50 H30 L38 46 L45 50 L52 38 L60 50 L72 3 L92 97 L110 50 H160 L168 46 L175 50 L182 38 L190 50 L202 5 L222 95 L240 50 H290 L298 46 L305 50 L312 38 L320 50 L332 4 L352 96 L370 50 H420 L428 46 L435 50 L442 38 L450 50 L462 6 L482 94 L500 50 H550 L558 46 L565 50 L572 38 L580 50 L592 3 L612 97 L630 50 H680 L688 46 L695 50 L702 38 L710 50 H720',
     'M0 50 H25 L33 42 L40 50 L48 32 L56 50 L68 8 L80 50 L88 28 L100 92 L115 50 L125 36 L135 50 H185 L193 42 L200 50 L208 32 L216 50 L228 6 L240 50 L248 28 L260 94 L275 50 L285 36 L295 50 H345 L353 42 L360 50 L368 32 L376 50 L388 8 L400 50 L408 28 L420 92 L435 50 L445 36 L455 50 H505 L513 42 L520 50 L528 32 L536 50 L548 6 L560 50 L568 28 L580 94 L595 50 L605 36 L615 50 H665 L673 42 L680 50 L688 32 L696 50 L708 8 L720 50'
   ];
-  var ecgIndex = 0;
-  var ecgTimer = null;
-  var lastMode = null;
-  var __ecgBusy = false;
-  var __tickBusy = false;
 
   function ecgStroke() {
     return isLight() ? '#6d28d9' : '#e9d5ff';
@@ -175,6 +191,7 @@
     var core = ecgStroke();
     var glow = ecgGlowStroke();
     return (
+      '<div class="dr-ecg-reveal" style="width:100%;height:100%;">' +
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 100" preserveAspectRatio="none" ' +
       'width="100%" height="100%" style="display:block;overflow:visible">' +
       '<defs>' +
@@ -184,10 +201,12 @@
       '</filter>' +
       '</defs>' +
       '<path class="dr-ecg-glow" fill="none" stroke="' + glow + '" stroke-width="4.5" ' +
-      'stroke-linecap="round" stroke-linejoin="round" filter="url(#drEcgBlur)" d="' + d + '"/>' +
+      'stroke-linecap="round" stroke-linejoin="round" filter="url(#drEcgBlur)" ' +
+      'style="animation:drEcgGlowPulse 2.4s ease-in-out infinite" d="' + d + '"/>' +
       '<path class="dr-ecg-core" fill="none" stroke="' + core + '" stroke-width="2.8" ' +
-      'stroke-linecap="round" stroke-linejoin="round" d="' + d + '"/>' +
-      '</svg>'
+      'stroke-linecap="round" stroke-linejoin="round" ' +
+      'style="animation:drEcgCorePulse 2.4s ease-in-out infinite" d="' + d + '"/>' +
+      '</svg></div>'
     );
   }
 
@@ -197,36 +216,40 @@
       box = document.createElement('div');
       box.id = BOX_ID;
       box.setAttribute('aria-hidden', 'true');
-      document.body.insertBefore(box, document.body.firstChild);
+      if (document.body) document.body.insertBefore(box, document.body.firstChild);
     }
     return box;
   }
 
-  var ECG_SPEED_PX_PER_SEC = 185;
-  var ECG_VIEWBOX_W = 720;
-  var lastEcgWidth = 0;
+  var ECG_SPEED_PX_PER_SEC = 160;
 
-  function ecgDurationSec(box, pathLen) {
+  function revealDurationSec(box) {
     var w = 0;
-    try { w = (box && box.clientWidth) || window.innerWidth || 1200; } catch (e) { w = 1200; }
+    try {
+      w = (box && box.clientWidth) || window.innerWidth || 1200;
+    } catch (e) {
+      w = 1200;
+    }
     if (w < 320) w = 320;
-    var scale = w / ECG_VIEWBOX_W;
-    var screenLen = (pathLen > 0 ? pathLen : ECG_VIEWBOX_W) * scale;
-    var travel = Math.max(w, screenLen * 0.85);
-    var sec = travel / ECG_SPEED_PX_PER_SEC;
-    if (sec < 2.5) sec = 2.5;
-    if (sec > 40) sec = 40;
+    var sec = w / ECG_SPEED_PX_PER_SEC;
+    if (sec < 4) sec = 4;
+    if (sec > 18) sec = 18;
     return sec;
   }
 
-  function runEcgCycle() {
-    if (__ecgBusy) return;
+  function clearEcg() {
     if (ecgTimer) {
       clearTimeout(ecgTimer);
       ecgTimer = null;
     }
+  }
+
+  function runEcgCycle() {
+    if (__ecgBusy) return;
+    clearEcg();
     if (!loginVisible()) return;
     __ecgBusy = true;
+
     var login = document.getElementById('login-screen') || document.querySelector('.login-screen');
     var box = ensureBox();
     if (login && box.parentNode !== login) {
@@ -236,47 +259,46 @@
       'display:block!important;position:absolute!important;left:0!important;right:0!important;' +
       'width:100%!important;top:50%!important;height:180px!important;margin-top:-90px!important;' +
       'z-index:1!important;pointer-events:none!important;opacity:1!important;visibility:visible!important;' +
-      'background:transparent!important;overflow:visible!important;box-shadow:none!important;filter:none!important';
+      'background:transparent!important;overflow:hidden!important;box-shadow:none!important;filter:none!important';
+
     box.innerHTML = ecgMarkup();
-    var paths = box.querySelectorAll('.dr-ecg-core, .dr-ecg-glow');
-    if (!paths.length) { __ecgBusy = false; return; }
-    var len = 1600;
-    try {
-      len = paths[paths.length - 1].getTotalLength() || 1600;
-    } catch (e) {}
-    var dur = ecgDurationSec(box, len);
-    lastEcgWidth = box.clientWidth || 0;
-    for (var i = 0; i < paths.length; i++) {
-      var p = paths[i];
-      p.style.setProperty('--dr-len', len);
-      p.style.strokeDasharray = String(len);
-      p.style.strokeDashoffset = String(len);
-      p.style.animation = 'none';
+    lastEcgWidth = box.clientWidth || window.innerWidth || 0;
+
+    var reveal = box.querySelector('.dr-ecg-reveal');
+    var dur = revealDurationSec(box);
+    if (reveal) {
+      reveal.style.clipPath = 'inset(0 100% 0 0)';
+      reveal.style.animation = 'none';
+      void box.getBoundingClientRect();
+      reveal.style.animation = 'drEcgReveal ' + dur.toFixed(2) + 's linear forwards';
     }
-    void box.getBoundingClientRect();
-    var durCss = dur.toFixed(2) + 's';
-    for (var j = 0; j < paths.length; j++) {
-      var pj = paths[j];
-      if (pj.classList.contains('dr-ecg-core')) {
-        pj.style.animation = 'drEcgDraw ' + durCss + ' linear forwards, drEcgCorePulse 2.4s ease-in-out infinite';
-      } else {
-        pj.style.animation = 'drEcgDraw ' + durCss + ' linear forwards, drEcgGlowPulse 2.4s ease-in-out infinite';
-      }
-    }
+
     __ecgBusy = false;
     ecgTimer = setTimeout(function () {
       ecgIndex = (ecgIndex + 1) % ECG_PATTERNS.length;
       if (loginVisible()) runEcgCycle();
-    }, Math.round(dur * 1000) + 40);
+    }, Math.round(dur * 1000) + 60);
   }
 
   function ensureGears(force) {
+    if (isBooting()) {
+      var box0 = document.getElementById(BOX_ID);
+      if (box0) {
+        clearEcg();
+        box0.innerHTML = '';
+        box0.style.display = 'none';
+      }
+      lastMode = 'boot';
+      return;
+    }
+
     var box = ensureBox();
     var mode = portalActive() ? 'portal' : 'login';
 
     if (mode === 'login') {
+      box.style.display = 'block';
       var hasEcg = !!box.querySelector('.dr-ecg-core');
-      if (lastMode !== 'login' || (force && !hasEcg)) {
+      if (lastMode !== 'login' || (force && !hasEcg) || !hasEcg) {
         lastMode = 'login';
         lastTheme = themeKey();
         runEcgCycle();
@@ -290,17 +312,14 @@
       return;
     }
 
-    if (ecgTimer) {
-      clearTimeout(ecgTimer);
-      ecgTimer = null;
-    }
+    clearEcg();
     if (box.parentNode !== document.body) {
       document.body.insertBefore(box, document.body.firstChild);
     }
     box.style.cssText =
       'position:fixed!important;inset:0!important;width:100%!important;height:100%!important;' +
       'z-index:0!important;pointer-events:none!important;overflow:hidden!important;' +
-      'opacity:1!important;visibility:visible!important;background:transparent!important';
+      'opacity:1!important;visibility:visible!important;display:block!important;background:transparent!important';
     var theme = themeKey();
     var hasGears = !!box.querySelector('.dr-spin-cw');
     if (force || !hasGears || lastTheme !== theme || lastMode !== 'portal') {
@@ -325,15 +344,23 @@
     }
   }
 
-  tick(true);
+  function bootSafe() {
+    if (isBooting() || !document.getElementById('login-screen')) {
+      setTimeout(bootSafe, 120);
+      return;
+    }
+    tick(true);
+  }
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function () {
-      tick(true);
+      setTimeout(bootSafe, 80);
     });
+  } else {
+    setTimeout(bootSafe, 80);
   }
-  setTimeout(function () { tick(true); }, 50);
-  setTimeout(function () { tick(false); }, 250);
-  setTimeout(function () { tick(false); }, 800);
+  setTimeout(bootSafe, 400);
+  setTimeout(bootSafe, 1000);
 
   document.addEventListener(
     'click',
@@ -357,8 +384,9 @@
   );
 
   setInterval(function () {
+    if (isBooting()) return;
     tick(false);
-  }, 2000);
+  }, 2500);
 
   if (!window.__drEcgResizeWired) {
     window.__drEcgResizeWired = 1;
