@@ -11,8 +11,8 @@ DASH = 'e1b64444ddb0dbeea9ec05d05cf843032414c738'
 PENDING = '94a5aeaaa38fafaaa1ac94872341ce3bf992dfd1'
 LOGIN_CHROME = '60c3368efd15da0e8d15cac0674b28eaed22d973'
 FORCE_LIGHT = 'ebcbb4637a65511602a399006a8ccc29f346ecfa'
-# restored original ECG lifeline
-HB = '957d7a0d98187fcd5e6256724c9753277f5378b1'
+# ECG v12 continuous rAF scroll (visible)
+HB = '208aead14557f617b38e3665bd872b25e9d4d02b'
 
 INDEX = pathlib.Path('index.html')
 if not INDEX.exists():
@@ -24,6 +24,7 @@ def has_good_pins(t):
         ADMIN_LOCK in t and USERS_NAV in t and SIDEBAR_ROLE in t
         and TOPBAR in t and DASH in t and THEME in t
         and LOGIN_CHROME in t and FORCE_LIGHT in t and HB in t
+        and "HB_SHA + \"'" in t  # not hardcoded shell rewrite
     )
 
 if has_good_pins(text) and 'admin-portal-lock.js' in text:
@@ -43,6 +44,7 @@ replacements = [
     (r"var LOGIN_CHROME_HIDE_SHA = '[^']*';", f"var LOGIN_CHROME_HIDE_SHA = '{LOGIN_CHROME}';"),
     (r"var FORCE_LIGHT_BG_SHA = '[^']*';", f"var FORCE_LIGHT_BG_SHA = '{FORCE_LIGHT}';"),
     (r"var HB_SHA = '[^']*';", f"var HB_SHA = '{HB}';"),
+    (r'"var HB_SHA = \'[a-f0-9]+\';"', '"var HB_SHA = \'" + HB_SHA + "\';"'),
 ]
 for pat, rep in replacements:
     if re.search(pat, text):
