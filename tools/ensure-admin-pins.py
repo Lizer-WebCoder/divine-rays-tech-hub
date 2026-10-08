@@ -10,10 +10,9 @@ TOPBAR = 'c49dd3bd4b8cd07fa3608633c3d096ce1ac5db04'
 DASH = 'e1b64444ddb0dbeea9ec05d05cf843032414c738'
 PENDING = '94a5aeaaa38fafaaa1ac94872341ce3bf992dfd1'
 LOGIN_CHROME = '60c3368efd15da0e8d15cac0674b28eaed22d973'
-# v3 — no 30s interval (old 06cb1f6b caused black/white flash)
 FORCE_LIGHT = 'ebcbb4637a65511602a399006a8ccc29f346ecfa'
-# heartbeat v6 — bright fixed lifeline above honeycomb
-HB = '76465abb56cf640a383f209258386a4eb84dbc2d'
+# restored original ECG lifeline
+HB = '957d7a0d98187fcd5e6256724c9753277f5378b1'
 
 INDEX = pathlib.Path('index.html')
 if not INDEX.exists():
