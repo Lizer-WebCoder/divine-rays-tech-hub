@@ -179,7 +179,7 @@
 
       html = html.replace(/var LIVE_SHA = '[^']*';/, "var LIVE_SHA = '" + COMMENTS_LIVE_SHA + "';");
       html = html.replace(/var KB_JS_SHA = '[^']*';/, "var KB_JS_SHA = '" + KB_JS_SHA + "';");
-      html = html.replace(/var THEME_SHA = '[^']*';/, "var THEME_SHA = '" + THEME_SHA + "';");
+      html = html.replace(/var THEME_SHA = '[^']*';/, "var THEME_SHA = 'e1b64444ddb0dbeea9ec05d05cf843032414c738';");
       html = html.replace(/var HB_SHA = '[^']*';/, "var HB_SHA = '" + HB_SHA + "';");
       html = html.replace(/await loadScript\([^)]*heartbeat-draw[^)]*\);?/gi, '/* heartbeat blocked */');
       html = html.replace(/loadScript\([^)]*heartbeat-draw[^)]*\);?/gi, '/* heartbeat blocked */');
