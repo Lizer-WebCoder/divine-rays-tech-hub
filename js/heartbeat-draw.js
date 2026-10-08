@@ -1,12 +1,13 @@
 /**
- * Divine Rays — heartbeat / ECG lifeline v12
- * Continuous rAF-drawn ECG on login (high visibility), gears on portal
+ * Divine Rays — heartbeat / ECG lifeline v13
+ * Login: continuous neon ECG that NEVER stops while login is on screen
+ * Portal: spinning gears
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
   try { delete window.__DR_HEARTBEAT_DRAW; } catch (e0) {}
-  window.__DR_HEARTBEAT_DRAW = 12;
+  window.__DR_HEARTBEAT_DRAW = 13;
 
   var CSS_ID = 'dr-gears-bg';
   var BOX_ID = 'dr-lifeline';
@@ -15,11 +16,11 @@
   var rafId = null;
   var ecgOffset = 0;
   var lastTs = 0;
+  var keepAlive = null;
 
   function isLight() {
     try {
-      var a = document.documentElement.getAttribute('data-theme');
-      if (a === 'light') return true;
+      if (document.documentElement.getAttribute('data-theme') === 'light') return true;
       return localStorage.getItem('dr_theme') === 'light';
     } catch (e) {
       return false;
@@ -30,10 +31,11 @@
     return document.getElementById('login-screen') || document.querySelector('.login-screen');
   }
 
-  function isLogin() {
+  function isLoginScreen() {
     var login = loginEl();
     if (!login) return false;
-    if (login.hidden || login.classList.contains('is-hidden')) return false;
+    if (login.hidden) return false;
+    if (login.classList.contains('is-hidden')) return false;
     try {
       var st = window.getComputedStyle(login);
       if (st.display === 'none' || st.visibility === 'hidden') return false;
@@ -41,12 +43,14 @@
     return true;
   }
 
-  function isPortal() {
+  function isPortalActive() {
+    if (isLoginScreen()) return false;
     try {
       var pa = document.getElementById('portal-agent');
       var pc = document.getElementById('portal-customer');
-      if (pa && pa.classList.contains('active') && !isLogin()) return true;
-      if (pc && pc.classList.contains('active') && !isLogin()) return true;
+      if (pa && pa.classList.contains('active')) return true;
+      if (pc && pc.classList.contains('active')) return true;
+      if (document.body && document.body.classList.contains('is-portal')) return true;
     } catch (e) {}
     return false;
   }
@@ -114,22 +118,30 @@
   }
 
   var ECG_UNIT =
-    'M0 50 H36 L44 50 L50 42 L56 50 L68 8 L84 92 L100 50 H148 ' +
-    'L156 50 L162 42 L168 50 L180 6 L196 94 L212 50 H260 ' +
-    'L268 50 L274 42 L280 50 L292 10 L308 90 L324 50 H360';
+    'M0 50 H40 L48 50 L54 40 L60 50 L72 5 L90 95 L108 50 H160 ' +
+    'L168 50 L174 40 L180 50 L192 8 L210 92 L228 50 H280 ' +
+    'L288 50 L294 40 L300 50 L312 6 L330 94 L348 50 H400';
 
   function ecgSvg() {
-    var core = isLight() ? '#5b21b6' : '#f3e8ff';
-    var glow = isLight() ? '#7c3aed' : '#e9d5ff';
-    var d = ECG_UNIT + ' ' + ECG_UNIT.replace(/M0 /g, 'M360 ') + ' ' + ECG_UNIT.replace(/M0 /g, 'M720 ');
+    var core = isLight() ? '#6d28d9' : '#f3e8ff';
+    var glow = isLight() ? '#a78bfa' : '#e9d5ff';
+    var d =
+      ECG_UNIT +
+      ' ' +
+      ECG_UNIT.replace(/M0 /g, 'M400 ') +
+      ' ' +
+      ECG_UNIT.replace(/M0 /g, 'M800 ') +
+      ' ' +
+      ECG_UNIT.replace(/M0 /g, 'M1200 ');
     return (
-      '<svg id="dr-ecg-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 100" ' +
-      'preserveAspectRatio="none" width="200%" height="100%" ' +
-      'style="display:block;position:absolute;left:0;top:50%;height:240px;margin-top:-120px;' +
-      'overflow:visible;filter:drop-shadow(0 0 6px ' + glow + ') drop-shadow(0 0 14px ' + glow + ')">' +
-      '<path class="dr-ecg-glow" fill="none" stroke="' + glow + '" stroke-width="8" ' +
-      'stroke-linecap="round" stroke-linejoin="round" opacity="0.55" d="' + d + '"/>' +
-      '<path class="dr-ecg-core" fill="none" stroke="' + core + '" stroke-width="3.6" ' +
+      '<svg id="dr-ecg-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 100" ' +
+      'preserveAspectRatio="none" width="300%" height="100%" ' +
+      'style="display:block;position:absolute;left:0;top:50%;height:260px;margin-top:-130px;' +
+      'overflow:visible;will-change:transform;' +
+      'filter:drop-shadow(0 0 8px ' + glow + ') drop-shadow(0 0 18px ' + glow + ')">' +
+      '<path fill="none" stroke="' + glow + '" stroke-width="10" stroke-linecap="round" ' +
+      'stroke-linejoin="round" opacity="0.45" d="' + d + '"/>' +
+      '<path class="dr-ecg-core" fill="none" stroke="' + core + '" stroke-width="3.8" ' +
       'stroke-linecap="round" stroke-linejoin="round" opacity="1" d="' + d + '"/>' +
       '</svg>'
     );
@@ -176,15 +188,13 @@
       box.id = BOX_ID;
       box.setAttribute('aria-hidden', 'true');
     }
-    if (document.body) {
-      if (box.parentNode !== document.body) {
-        document.body.insertBefore(box, document.body.firstChild);
-      }
+    if (document.body && box.parentNode !== document.body) {
+      document.body.insertBefore(box, document.body.firstChild);
     }
     return box;
   }
 
-  function stopEcg() {
+  function stopRaf() {
     if (rafId) {
       cancelAnimationFrame(rafId);
       rafId = null;
@@ -192,42 +202,58 @@
     lastTs = 0;
   }
 
-  function startEcgLoop() {
-    stopEcg();
+  function startEcgLoop(forceRebuild) {
     var box = ensureBox();
     box.style.cssText =
       'position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important;' +
       'z-index:1!important;pointer-events:none!important;overflow:hidden!important;' +
       'opacity:1!important;visibility:visible!important;display:block!important;' +
       'background:transparent!important';
-    box.innerHTML = ecgSvg();
+
+    var needBuild = forceRebuild || !box.querySelector('.dr-ecg-core') || !document.getElementById('dr-ecg-svg');
+    if (needBuild) {
+      box.innerHTML = ecgSvg();
+      ecgOffset = 0;
+      lastTs = 0;
+    }
 
     var svg = document.getElementById('dr-ecg-svg');
     if (!svg) return;
 
-    var speed = 140;
-    ecgOffset = 0;
+    if (rafId && !forceRebuild) return;
+
+    stopRaf();
+    var speed = 120;
 
     function frame(ts) {
-      if (!isLogin() || isPortal()) {
+      if (!isLoginScreen() && isPortalActive()) {
         rafId = null;
         return;
       }
       if (!lastTs) lastTs = ts;
-      var dt = Math.min(48, ts - lastTs);
+      var dt = Math.min(50, ts - lastTs);
       lastTs = ts;
       ecgOffset += (speed * dt) / 1000;
-      var loopW = (svg.clientWidth || window.innerWidth || 1200) * 0.5;
-      if (loopW < 200) loopW = 600;
+
+      var loopW = Math.max(400, (window.innerWidth || 1200) * 0.55);
       if (ecgOffset >= loopW) ecgOffset -= loopW;
-      svg.style.transform = 'translateX(' + (-ecgOffset) + 'px)';
+
+      if (svg && svg.parentNode) {
+        svg.style.transform = 'translateX(' + (-ecgOffset) + 'px)';
+      } else {
+        rafId = null;
+        setTimeout(function () {
+          if (isLoginScreen() || !isPortalActive()) startEcgLoop(true);
+        }, 50);
+        return;
+      }
       rafId = requestAnimationFrame(frame);
     }
     rafId = requestAnimationFrame(frame);
   }
 
   function showGears(force) {
-    stopEcg();
+    stopRaf();
     var box = ensureBox();
     box.style.cssText =
       'position:fixed!important;inset:0!important;width:100%!important;height:100%!important;' +
@@ -245,24 +271,27 @@
   function tick(force) {
     injectCss();
     try {
-      document.body.classList.toggle('is-login', isLogin() && !isPortal());
-      document.body.classList.toggle('is-portal', isPortal());
+      document.body.classList.toggle('is-login', isLoginScreen());
+      document.body.classList.toggle('is-portal', isPortalActive());
     } catch (e) {}
 
-    if (isPortal()) {
+    if (isLoginScreen()) {
+      lastMode = 'login';
+      var theme = isLight() ? 'light' : 'dark';
+      var themeChanged = lastTheme !== theme;
+      lastTheme = theme;
+      startEcgLoop(!!force || themeChanged);
+      return;
+    }
+
+    if (isPortalActive()) {
       lastMode = 'portal';
       showGears(!!force);
       return;
     }
 
-    if (force || lastMode !== 'login' || !document.querySelector('#dr-lifeline .dr-ecg-core')) {
-      lastMode = 'login';
-      lastTheme = isLight() ? 'light' : 'dark';
-      startEcgLoop();
-    } else if ((isLight() ? 'light' : 'dark') !== lastTheme) {
-      lastTheme = isLight() ? 'light' : 'dark';
-      startEcgLoop();
-    }
+    lastMode = 'login';
+    startEcgLoop(!!force);
   }
 
   function boot() {
@@ -273,17 +302,22 @@
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function () { tick(true); });
   }
-  setTimeout(function () { tick(true); }, 40);
-  setTimeout(function () { tick(true); }, 250);
-  setTimeout(function () { tick(true); }, 800);
-  setTimeout(function () { tick(true); }, 1800);
-  setTimeout(function () { tick(true); }, 3500);
-  setInterval(function () { tick(false); }, 6000);
+
+  [40, 200, 600, 1200, 2500, 4000, 7000].forEach(function (ms) {
+    setTimeout(function () { tick(true); }, ms);
+  });
+
+  if (keepAlive) clearInterval(keepAlive);
+  keepAlive = setInterval(function () {
+    if (isPortalActive()) return;
+    var alive = document.getElementById('dr-ecg-svg') && document.getElementById(BOX_ID);
+    if (!alive || !rafId) tick(true);
+  }, 2000);
 
   window.addEventListener('resize', function () {
     clearTimeout(window.__drHbR);
     window.__drHbR = setTimeout(function () {
-      if (isLogin() && !isPortal()) tick(true);
+      if (!isPortalActive()) tick(true);
     }, 150);
   });
 
