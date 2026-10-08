@@ -12,8 +12,8 @@ PENDING = '94a5aeaaa38fafaaa1ac94872341ce3bf992dfd1'
 LOGIN_CHROME = '60c3368efd15da0e8d15cac0674b28eaed22d973'
 # v3 — no 30s interval (old 06cb1f6b caused black/white flash)
 FORCE_LIGHT = 'ebcbb4637a65511602a399006a8ccc29f346ecfa'
-# heartbeat v5 — lifeline on login
-HB = 'fc0c5c3dfe15da2af1dc6ade36747044d4bde76c'
+# heartbeat v6 — bright fixed lifeline above honeycomb
+HB = '76465abb56cf640a383f209258386a4eb84dbc2d'
 
 INDEX = pathlib.Path('index.html')
 if not INDEX.exists():
