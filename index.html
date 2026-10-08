@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.8.7-ecg-v17" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.8.8-ecg-v18" />
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@main/js/admin-portal-lock.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@main/js/theme.js"></script>
   <style>
@@ -76,7 +76,7 @@
     var LOGIN_CHROME_HIDE_SHA = '60c3368efd15da0e8d15cac0674b28eaed22d973';
     var PAGER_FIX_SHA = '10037b1e4fdd1f855a0b1cbd558ec3af7bf71d2f';
     var DASH_UI_V2_SHA = '92f4070a0c125f2e3ce5d423fff1f68c4d3ba968';
-    var HB_SHA = 'eca1325d13e9833fbe6900e33829a15abf66bd6e';
+    var HB_SHA = '3d7fee6f7dc4a8b3ba8866734ca7b7b5c2867ec9';
 
     var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
     var BUST = String(Date.now());
@@ -178,6 +178,7 @@
       html = html.replace(/var KB_JS_SHA = '[^']*';/, "var KB_JS_SHA = '" + KB_JS_SHA + "';");
       html = html.replace(/var THEME_SHA = '[^']*';/, "var THEME_SHA = '" + THEME_SHA + "';");
       html = html.replace(/var HB_SHA = '[^']*';/, "var HB_SHA = '" + HB_SHA + "';");
+      html = html.replace(/await loadScript\([^)]*heartbeat-draw[^)]*\);/gi, '/* heartbeat: single load from boot */');
       html = html.replace(
         /var EXTRA_FILES = \[[^\]]*\];/,
         "var EXTRA_FILES = ['email-notify.js','ticket-plus.js','ticket-plus-fix.js','status-lock.js','kb.js','polish-fixes.js'];"
@@ -211,7 +212,6 @@
           'html[data-theme="light"],html[data-theme="light"] body{background:radial-gradient(ellipse 80% 60% at 50% 35%,#e8e4ff 0%,#f4f2ff 45%,#eceaf8 100%)!important;}' +
           '#login-screen,.login-screen{background:transparent!important;background-image:none!important;}' +
         '</style>' +
-        '<script src="' + withBust(CDN + HB_SHA + '/js/heartbeat-draw.js') + '"><\/script>' +
         '<script src="' + withBust(CDN + FORCE_LIGHT_BG_SHA + '/js/force-light-bg.js') + '"><\/script>' +
         '</head>'
       );
@@ -287,8 +287,7 @@
           loadScript(CDN + LIGHT_MODE_POLISH_SHA + '/js/light-mode-polish.js'),
           loadScript(CDN + FORCE_LIGHT_BG_SHA + '/js/force-light-bg.js'),
           loadScript(CDN + LOGIN_CHROME_HIDE_SHA + '/js/login-chrome-hide.js'),
-          loadScript(CDN + PAGER_FIX_SHA + '/js/pager-fix.js'),
-          loadScript(CDN + HB_SHA + '/js/heartbeat-draw.js')
+          loadScript(CDN + PAGER_FIX_SHA + '/js/pager-fix.js')
         ]).then(function () {
           try { if (window.DRUsersNav && window.DRUsersNav.refresh) window.DRUsersNav.refresh(); } catch (e) {}
           try { if (window.DRSidebarDesign && window.DRSidebarDesign.refresh) window.DRSidebarDesign.refresh(); } catch (e2) {}
