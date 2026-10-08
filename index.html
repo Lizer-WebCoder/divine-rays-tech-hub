@@ -11,7 +11,7 @@
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@main/js/admin-portal-lock.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@main/js/theme.js"></script>
   <style>
-    html,body{margin:0;background:#0c0c14;color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
+    html,body{margin:0;background:radial-gradient(ellipse 80% 60% at 50% 40%,#1a1530 0%,#0c0c14 55%,#08080f 100%);color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
     #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae;flex-direction:column;gap:0.75rem;padding:1.5rem;text-align:center}
     #boot .hint{font-size:0.8rem;color:#6b6b80;max-width:22rem}
   </style>
@@ -202,14 +202,32 @@
         '<head>',
         '<head><script>window.__DR_COMMENTS_LIVE=8;window.__DR_COMMENTS_LIVE_V2=1;window.__DR_BOOT_CLEAN=1;<\/script>'
       );
+      // Paint login bg + load heartbeat WITH the shell (no post-load delay)
+      html = html.replace(
+        '</head>',
+        '<style id="dr-boot-login-bg">' +
+          'html,body{background:radial-gradient(ellipse 80% 60% at 50% 40%,#1a1530 0%,#0c0c14 55%,#08080f 100%)!important;}' +
+          'html[data-theme="light"],html[data-theme="light"] body{background:radial-gradient(ellipse 80% 60% at 50% 35%,#e8e4ff 0%,#f4f2ff 45%,#eceaf8 100%)!important;}' +
+          '#login-screen,.login-screen{background:transparent!important;}' +
+        '</style>' +
+        '<script src="' + withBust(CDN + HB_SHA + '/js/heartbeat-draw.js') + '"><\/script>' +
+        '</head>'
+      );
 
       document.open();
       document.write(html);
       document.close();
       clearTimeout(bootTimer);
 
+      // Heartbeat already injected in <head>; reinforce immediately
+      try { loadScript(CDN + HB_SHA + '/js/heartbeat-draw.js'); } catch (eHb) {}
       setTimeout(function () {
-        loadScript(CDN + HB_SHA + '/js/heartbeat-draw.js');
+        try {
+          if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.force) window.DRHeartbeatDraw.force();
+          else if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.refresh) window.DRHeartbeatDraw.refresh();
+        } catch (eF) {}
+      }, 0);
+      setTimeout(function () {
         loadScript(CDN + ADMIN_LOCK_SHA + '/js/admin-portal-lock.js');
         loadScript(CDN + USERS_NAV_SHA + '/js/users-nav.js');
         loadScript(CDN + FILTERS_SHA + '/js/filters.js');
