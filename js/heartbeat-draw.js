@@ -1,29 +1,39 @@
 /**
- * Divine Rays — ORIGINAL ECG (kirzhianquijano) v18
- * Full-width left→right draw (overflow reveal), never during boot
+ * Divine Rays — ORIGINAL ECG stroke-draw (kirzhianquijano) v19
+ * Soft neon path draws left→right; theme change recolors without reset
+ * No animation during boot; single load
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
   try { delete window.__DR_HEARTBEAT_DRAW; } catch (e0) {}
-  window.__DR_HEARTBEAT_DRAW = 18;
+  window.__DR_HEARTBEAT_DRAW = 19;
 
-  var CSS_ID = 'dr-gears-bg-v18';
+  var CSS_ID = 'dr-gears-bg-v19';
   var BOX_ID = 'dr-lifeline';
   var lastTheme = null;
   var lastMode = null;
   var ecgIndex = 0;
   var ecgTimer = null;
-  var __busy = false;
-  var lastW = 0;
+  var __ecgBusy = false;
+  var __tickBusy = false;
+  var lastEcgWidth = 0;
+  var ECG_SPEED_PX_PER_SEC = 185;
+  var ECG_VIEWBOX_W = 720;
 
   function isLight() {
     try {
-      if (document.documentElement.getAttribute('data-theme') === 'light') return true;
-      return localStorage.getItem('dr_theme') === 'light';
+      return (
+        document.documentElement.getAttribute('data-theme') === 'light' ||
+        localStorage.getItem('dr_theme') === 'light'
+      );
     } catch (e) {
-      return false;
+      return document.documentElement.getAttribute('data-theme') === 'light';
     }
+  }
+
+  function themeKey() {
+    return isLight() ? 'light' : 'dark';
   }
 
   function isBooting() {
@@ -36,7 +46,7 @@
     return true;
   }
 
-  function loginReady() {
+  function loginVisible() {
     if (isBooting()) return false;
     var login = document.getElementById('login-screen') || document.querySelector('.login-screen');
     if (!login) return false;
@@ -49,8 +59,8 @@
     return true;
   }
 
-  function portalReady() {
-    if (isBooting() || loginReady()) return false;
+  function portalActive() {
+    if (isBooting() || loginVisible()) return false;
     try {
       var pa = document.getElementById('portal-agent');
       var pc = document.getElementById('portal-customer');
@@ -61,15 +71,27 @@
   }
 
   function colors() {
-    if (isLight()) return { a: '#7c6af0', b: '#9b8af5', c: '#b8a9fc', o: '0.28' };
-    return { a: '#a78bfa', b: '#8b7cf0', c: '#6d5ef5', o: '0.34' };
+    if (isLight()) {
+      return { a: '#7c6af0', b: '#9b8af5', c: '#b8a9fc', opacity: '0.28' };
+    }
+    return { a: '#a78bfa', b: '#8b7cf0', c: '#6d5ef5', opacity: '0.34' };
+  }
+
+  function ecgStroke() {
+    return isLight() ? '#6d28d9' : '#e9d5ff';
+  }
+  function ecgGlowStroke() {
+    return isLight() ? '#a78bfa' : '#c4b5fd';
   }
 
   function gearPath(teeth, outerR, innerR, holeR) {
-    var pts = [], step = (Math.PI * 2) / teeth, i;
-    for (i = 0; i < teeth; i++) {
+    var pts = [];
+    var step = (Math.PI * 2) / teeth;
+    for (var i = 0; i < teeth; i++) {
       var a0 = i * step - step * 0.5;
-      var a2 = a0 + step * 0.32, a3 = a0 + step * 0.68, a4 = a0 + step * 0.85;
+      var a2 = a0 + step * 0.32;
+      var a3 = a0 + step * 0.68;
+      var a4 = a0 + step * 0.85;
       pts.push(
         [Math.cos(a0 + step * 0.18) * outerR, Math.sin(a0 + step * 0.18) * outerR],
         [Math.cos(a2) * outerR, Math.sin(a2) * outerR],
@@ -80,27 +102,33 @@
       );
     }
     var d = 'M' + pts[0][0].toFixed(2) + ' ' + pts[0][1].toFixed(2);
-    for (i = 1; i < pts.length; i++) d += ' L' + pts[i][0].toFixed(2) + ' ' + pts[i][1].toFixed(2);
-    d += ' Z M' + holeR + ' 0 A' + holeR + ' ' + holeR + ' 0 1 0 ' + -holeR +
+    for (var j = 1; j < pts.length; j++) {
+      d += ' L' + pts[j][0].toFixed(2) + ' ' + pts[j][1].toFixed(2);
+    }
+    d += ' Z';
+    d +=
+      ' M' + holeR + ' 0 A' + holeR + ' ' + holeR + ' 0 1 0 ' + -holeR +
       ' 0 A' + holeR + ' ' + holeR + ' 0 1 0 ' + holeR + ' 0 Z';
     return d;
   }
 
   function oneGear(cls, fill, teeth, outer, inner, hole, cx, cy, scale) {
+    var d = gearPath(teeth, outer, inner, hole);
+    var s = scale || 1;
     return (
-      '<g transform="translate(' + cx + ' ' + cy + ') scale(' + (scale || 1) + ')">' +
+      '<g transform="translate(' + cx + ' ' + cy + ') scale(' + s + ')">' +
       '<g class="' + cls + '">' +
-      '<path fill="' + fill + '" fill-rule="evenodd" d="' + gearPath(teeth, outer, inner, hole) + '"/>' +
+      '<path fill="' + fill + '" fill-rule="evenodd" d="' + d + '"/>' +
       '<circle cx="0" cy="0" r="' + (hole * 0.55).toFixed(1) + '" fill="' + fill + '" opacity="0.85"/>' +
       '</g></g>'
     );
   }
 
-  function gearsHtml() {
+  function svgMarkup() {
     var c = colors();
     return (
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice" ' +
-      'width="100%" height="100%" style="display:block;opacity:' + c.o + '">' +
+      'width="100%" height="100%" style="display:block;opacity:' + c.opacity + '">' +
       oneGear('dr-spin-cw', c.a, 12, 90, 62, 22, 180, 200, 1.15) +
       oneGear('dr-spin-ccw', c.b, 10, 70, 48, 18, 340, 280, 1) +
       oneGear('dr-spin-cw-fast', c.c, 14, 110, 76, 26, 620, 180, 1.25) +
@@ -113,46 +141,41 @@
     );
   }
 
-  var ECG_PATTERNS = [
-    'M0 50 H40 L50 50 L58 42 L65 50 L78 5 L95 95 L112 50 H170 L180 50 L188 42 L195 50 L208 8 L225 92 L242 50 H300 L310 50 L318 42 L325 50 L338 4 L355 96 L372 50 H430 L440 50 L448 42 L455 50 L468 10 L485 90 L502 50 H560 L570 50 L578 42 L585 50 L598 6 L615 94 L632 50 H690 L700 50 L708 42 L715 50 H720',
-    'M0 50 H30 L38 46 L45 50 L52 38 L60 50 L72 3 L92 97 L110 50 H160 L168 46 L175 50 L182 38 L190 50 L202 5 L222 95 L240 50 H290 L298 46 L305 50 L312 38 L320 50 L332 4 L352 96 L370 50 H420 L428 46 L435 50 L442 38 L450 50 L462 6 L482 94 L500 50 H550 L558 46 L565 50 L572 38 L580 50 L592 3 L612 97 L630 50 H680 L688 46 L695 50 L702 38 L710 50 H720',
-    'M0 50 H25 L33 42 L40 50 L48 32 L56 50 L68 8 L80 50 L88 28 L100 92 L115 50 L125 36 L135 50 H185 L193 42 L200 50 L208 32 L216 50 L228 6 L240 50 L248 28 L260 94 L275 50 L285 36 L295 50 H345 L353 42 L360 50 L368 32 L376 50 L388 8 L400 50 L408 28 L420 92 L435 50 L445 36 L455 50 H505 L513 42 L520 50 L528 32 L536 50 L548 6 L560 50 L568 28 L580 94 L595 50 L605 36 L615 50 H665 L673 42 L680 50 L688 32 L696 50 L708 8 L720 50'
-  ];
-
-  function coreColor() { return isLight() ? '#6d28d9' : '#e9d5ff'; }
-  function glowColor() { return isLight() ? '#a78bfa' : '#c4b5fd'; }
-
-  function ecgHtml() {
-    var d = ECG_PATTERNS[ecgIndex % ECG_PATTERNS.length];
-    var core = coreColor(), glow = glowColor();
-    return (
-      '<div class="dr-ecg-clip" style="width:0%;height:100%;overflow:hidden;will-change:width">' +
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 100" preserveAspectRatio="none" ' +
-      'width="100%" height="100%" style="display:block;overflow:visible;min-width:100%" data-full="1">' +
-      '<defs><filter id="drEcgBlur18" x="-20%" y="-50%" width="140%" height="200%" color-interpolation-filters="sRGB">' +
-      '<feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur"/>' +
-      '<feMerge><feMergeNode in="blur"/><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>' +
-      '</filter></defs>' +
-      '<path class="dr-ecg-glow" fill="none" stroke="' + glow + '" stroke-width="4.5" ' +
-      'stroke-linecap="round" stroke-linejoin="round" filter="url(#drEcgBlur18)" d="' + d + '"/>' +
-      '<path class="dr-ecg-core" fill="none" stroke="' + core + '" stroke-width="2.8" ' +
-      'stroke-linecap="round" stroke-linejoin="round" d="' + d + '"/>' +
-      '</svg></div>'
-    );
-  }
-
   var CSS = [
-    '#' + BOX_ID + '{pointer-events:none!important;background:transparent!important}',
+    '#' + BOX_ID + '{',
+    'z-index:0!important;pointer-events:none!important;overflow:visible!important;',
+    'background:transparent!important;box-shadow:none!important;filter:none!important',
+    '}',
     '#dr-lifeline,#dr-lifeline *{pointer-events:none!important}',
+    '#dr-lifeline svg{width:100%;height:100%;display:block;overflow:visible}',
+    '#dr-lifeline .dr-ecg-core,#dr-lifeline .dr-ecg-glow{',
+    'will-change:stroke-dashoffset,opacity;transform:translateZ(0);',
+    'backface-visibility:hidden;-webkit-backface-visibility:hidden}',
     '#dr-lifeline .dr-spin-cw{transform-origin:0 0;animation:drGearCW 30s linear infinite}',
     '#dr-lifeline .dr-spin-ccw{transform-origin:0 0;animation:drGearCCW 24s linear infinite}',
     '#dr-lifeline .dr-spin-cw-fast{transform-origin:0 0;animation:drGearCW 18s linear infinite}',
     '#dr-lifeline .dr-spin-ccw-slow{transform-origin:0 0;animation:drGearCCW 36s linear infinite}',
     '@keyframes drGearCW{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}',
     '@keyframes drGearCCW{from{transform:rotate(0deg)}to{transform:rotate(-360deg)}}',
-    '@keyframes drEcgGrow{from{width:0%}to{width:100%}}',
     '#login-screen,.login-screen{position:relative!important;z-index:2!important}',
-    '#login-screen .login-card,.login-card{position:relative!important;z-index:5!important}'
+    '#login-screen .login-card,.login-card{position:relative!important;z-index:5!important}',
+    'body,.app-shell,#portal-customer,#portal-agent{position:relative;z-index:1}',
+    '@keyframes drEcgDraw{',
+    '0%{stroke-dashoffset:var(--dr-len)}',
+    '100%{stroke-dashoffset:0}',
+    '}',
+    '@keyframes drEcgGlowPulse{',
+    '0%,100%{opacity:0.5}',
+    '50%{opacity:0.7}',
+    '}',
+    '@keyframes drEcgCorePulse{',
+    '0%,100%{opacity:0.9}',
+    '50%{opacity:0.98}',
+    '}',
+    '@media (prefers-reduced-motion:reduce){',
+    '#dr-lifeline .dr-spin-cw,#dr-lifeline .dr-spin-ccw,#dr-lifeline .dr-spin-cw-fast,#dr-lifeline .dr-spin-ccw-slow{animation:none!important}',
+    '#dr-lifeline .dr-ecg-core,#dr-lifeline .dr-ecg-glow{animation:none!important;stroke-dashoffset:0!important;opacity:0.5}',
+    '}'
   ].join('');
 
   function injectCss() {
@@ -162,7 +185,34 @@
       el.id = CSS_ID;
       (document.head || document.documentElement).appendChild(el);
     }
-    el.textContent = CSS;
+    if (el.textContent !== CSS) el.textContent = CSS;
+  }
+
+  var ECG_PATTERNS = [
+    'M0 50 H40 L50 50 L58 42 L65 50 L78 5 L95 95 L112 50 H170 L180 50 L188 42 L195 50 L208 8 L225 92 L242 50 H300 L310 50 L318 42 L325 50 L338 4 L355 96 L372 50 H430 L440 50 L448 42 L455 50 L468 10 L485 90 L502 50 H560 L570 50 L578 42 L585 50 L598 6 L615 94 L632 50 H690 L700 50 L708 42 L715 50 H720',
+    'M0 50 H30 L38 46 L45 50 L52 38 L60 50 L72 3 L92 97 L110 50 H160 L168 46 L175 50 L182 38 L190 50 L202 5 L222 95 L240 50 H290 L298 46 L305 50 L312 38 L320 50 L332 4 L352 96 L370 50 H420 L428 46 L435 50 L442 38 L450 50 L462 6 L482 94 L500 50 H550 L558 46 L565 50 L572 38 L580 50 L592 3 L612 97 L630 50 H680 L688 46 L695 50 L702 38 L710 50 H720',
+    'M0 50 H25 L33 42 L40 50 L48 32 L56 50 L68 8 L80 50 L88 28 L100 92 L115 50 L125 36 L135 50 H185 L193 42 L200 50 L208 32 L216 50 L228 6 L240 50 L248 28 L260 94 L275 50 L285 36 L295 50 H345 L353 42 L360 50 L368 32 L376 50 L388 8 L400 50 L408 28 L420 92 L435 50 L445 36 L455 50 H505 L513 42 L520 50 L528 32 L536 50 L548 6 L560 50 L568 28 L580 94 L595 50 L605 36 L615 50 H665 L673 42 L680 50 L688 32 L696 50 L708 8 L720 50'
+  ];
+
+  function ecgMarkup() {
+    var d = ECG_PATTERNS[ecgIndex % ECG_PATTERNS.length];
+    var core = ecgStroke();
+    var glow = ecgGlowStroke();
+    return (
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 100" preserveAspectRatio="none" ' +
+      'width="100%" height="100%" style="display:block;overflow:visible">' +
+      '<defs>' +
+      '<filter id="drEcgBlur" x="-20%" y="-50%" width="140%" height="200%" color-interpolation-filters="sRGB">' +
+      '<feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur"/>' +
+      '<feMerge><feMergeNode in="blur"/><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>' +
+      '</filter>' +
+      '</defs>' +
+      '<path class="dr-ecg-glow" fill="none" stroke="' + glow + '" stroke-width="4.5" ' +
+      'stroke-linecap="round" stroke-linejoin="round" filter="url(#drEcgBlur)" d="' + d + '"/>' +
+      '<path class="dr-ecg-core" fill="none" stroke="' + core + '" stroke-width="2.8" ' +
+      'stroke-linecap="round" stroke-linejoin="round" d="' + d + '"/>' +
+      '</svg>'
+    );
   }
 
   function ensureBox() {
@@ -171,76 +221,141 @@
       box = document.createElement('div');
       box.id = BOX_ID;
       box.setAttribute('aria-hidden', 'true');
+      if (document.body) document.body.insertBefore(box, document.body.firstChild);
     }
     return box;
   }
 
-  function clearTimer() {
-    if (ecgTimer) { clearTimeout(ecgTimer); ecgTimer = null; }
-  }
-
-  function killBox() {
-    clearTimer();
-    var box = document.getElementById(BOX_ID);
-    if (box) {
-      box.innerHTML = '';
-      box.style.display = 'none';
+  function ecgDurationSec(box, pathLen) {
+    var w = 0;
+    try {
+      w = (box && box.clientWidth) || window.innerWidth || 1200;
+    } catch (e) {
+      w = 1200;
     }
-    lastMode = null;
-  }
-
-  function durationSec(w) {
-    var sec = (w || 1200) / 160;
+    if (w < 320) w = 320;
+    var scale = w / ECG_VIEWBOX_W;
+    var screenLen = (pathLen > 0 ? pathLen : ECG_VIEWBOX_W) * scale;
+    var travel = Math.max(w * 1.05, screenLen * 0.9);
+    var sec = travel / ECG_SPEED_PX_PER_SEC;
     if (sec < 5) sec = 5;
-    if (sec > 14) sec = 14;
+    if (sec > 22) sec = 22;
     return sec;
   }
 
-  function runEcg() {
-    if (__busy) return;
-    if (!loginReady()) return;
-    __busy = true;
-    clearTimer();
+  function recolorEcgOnly() {
+    var cores = document.querySelectorAll('#dr-lifeline .dr-ecg-core');
+    var glows = document.querySelectorAll('#dr-lifeline .dr-ecg-glow');
+    if (!cores.length) return false;
+    var core = ecgStroke();
+    var glow = ecgGlowStroke();
+    for (var i = 0; i < cores.length; i++) cores[i].setAttribute('stroke', core);
+    for (var j = 0; j < glows.length; j++) glows[j].setAttribute('stroke', glow);
+    lastTheme = themeKey();
+    return true;
+  }
+
+  function clearEcgTimer() {
+    if (ecgTimer) {
+      clearTimeout(ecgTimer);
+      ecgTimer = null;
+    }
+  }
+
+  function runEcgCycle() {
+    if (__ecgBusy) return;
+    clearEcgTimer();
+    if (!loginVisible()) return;
+    __ecgBusy = true;
 
     var login = document.getElementById('login-screen') || document.querySelector('.login-screen');
     var box = ensureBox();
-    if (login && box.parentNode !== login) login.insertBefore(box, login.firstChild);
-
+    if (login && box.parentNode !== login) {
+      login.insertBefore(box, login.firstChild);
+    }
     box.style.cssText =
       'display:block!important;position:absolute!important;left:0!important;right:0!important;' +
       'width:100%!important;top:50%!important;height:180px!important;margin-top:-90px!important;' +
       'z-index:1!important;pointer-events:none!important;opacity:1!important;visibility:visible!important;' +
-      'background:transparent!important;overflow:hidden!important';
+      'background:transparent!important;overflow:visible!important;box-shadow:none!important;filter:none!important';
 
-    box.innerHTML = ecgHtml();
-
-    var clip = box.querySelector('.dr-ecg-clip');
-    var svg = box.querySelector('svg');
-    var w = box.clientWidth || window.innerWidth || 1200;
-    lastW = w;
-    if (svg) svg.style.width = w + 'px';
-
-    var dur = durationSec(w);
-    if (clip) {
-      clip.style.width = '0%';
-      clip.style.animation = 'none';
-      void box.offsetWidth;
-      clip.style.animation = 'drEcgGrow ' + dur.toFixed(2) + 's linear forwards';
+    box.innerHTML = ecgMarkup();
+    var paths = box.querySelectorAll('.dr-ecg-core, .dr-ecg-glow');
+    if (!paths.length) {
+      __ecgBusy = false;
+      return;
     }
 
-    __busy = false;
+    var len = 1600;
+    try {
+      len = paths[paths.length - 1].getTotalLength() || 1600;
+    } catch (e) {}
+    var dur = ecgDurationSec(box, len);
+    lastEcgWidth = box.clientWidth || 0;
+    lastTheme = themeKey();
     lastMode = 'login';
-    lastTheme = isLight() ? 'light' : 'dark';
 
+    for (var i = 0; i < paths.length; i++) {
+      var p = paths[i];
+      p.style.setProperty('--dr-len', String(len));
+      p.style.strokeDasharray = String(len);
+      p.style.strokeDashoffset = String(len);
+      p.style.animation = 'none';
+    }
+    void box.getBoundingClientRect();
+
+    var durCss = dur.toFixed(2) + 's';
+    for (var j = 0; j < paths.length; j++) {
+      var pj = paths[j];
+      if (pj.classList.contains('dr-ecg-core')) {
+        pj.style.animation =
+          'drEcgDraw ' + durCss + ' linear forwards, drEcgCorePulse 2.4s ease-in-out infinite';
+      } else {
+        pj.style.animation =
+          'drEcgDraw ' + durCss + ' linear forwards, drEcgGlowPulse 2.4s ease-in-out infinite';
+      }
+    }
+
+    __ecgBusy = false;
     ecgTimer = setTimeout(function () {
       ecgIndex = (ecgIndex + 1) % ECG_PATTERNS.length;
-      if (loginReady()) runEcg();
-    }, Math.round(dur * 1000) + 80);
+      if (loginVisible()) runEcgCycle();
+    }, Math.round(dur * 1000) + 50);
   }
 
-  function showGears() {
-    clearTimer();
+  function ensureGears(force) {
+    if (isBooting()) {
+      clearEcgTimer();
+      var b0 = document.getElementById(BOX_ID);
+      if (b0) {
+        b0.innerHTML = '';
+        b0.style.display = 'none';
+      }
+      lastMode = 'boot';
+      return;
+    }
+
     var box = ensureBox();
+    var mode = portalActive() ? 'portal' : 'login';
+
+    if (mode === 'login') {
+      box.style.display = 'block';
+      var hasEcg = !!box.querySelector('.dr-ecg-core');
+
+      if (hasEcg && lastMode === 'login' && themeKey() !== lastTheme && !force) {
+        recolorEcgOnly();
+        return;
+      }
+
+      if (lastMode !== 'login' || force || !hasEcg) {
+        lastMode = 'login';
+        lastTheme = themeKey();
+        runEcgCycle();
+      }
+      return;
+    }
+
+    clearEcgTimer();
     if (box.parentNode !== document.body) {
       document.body.insertBefore(box, document.body.firstChild);
     }
@@ -248,41 +363,36 @@
       'position:fixed!important;inset:0!important;width:100%!important;height:100%!important;' +
       'z-index:0!important;pointer-events:none!important;overflow:hidden!important;' +
       'opacity:1!important;visibility:visible!important;display:block!important;background:transparent!important';
-    var t = isLight() ? 'light' : 'dark';
-    if (lastMode !== 'portal' || lastTheme !== t || !box.querySelector('.dr-spin-cw')) {
-      box.innerHTML = gearsHtml();
-      lastTheme = t;
+    var theme = themeKey();
+    var hasGears = !!box.querySelector('.dr-spin-cw');
+    if (force || !hasGears || lastTheme !== theme || lastMode !== 'portal') {
+      box.innerHTML = svgMarkup();
+      lastTheme = theme;
+      lastMode = 'portal';
     }
-    lastMode = 'portal';
   }
 
-  function sync(force) {
-    injectCss();
-    if (isBooting()) {
-      killBox();
-      return;
+  function tick(force) {
+    if (__tickBusy) return;
+    __tickBusy = true;
+    try {
+      injectCss();
+      try {
+        document.body.classList.toggle('is-login', loginVisible());
+        document.body.classList.toggle('is-portal', portalActive());
+      } catch (e) {}
+      ensureGears(!!force);
+    } finally {
+      __tickBusy = false;
     }
-    if (loginReady()) {
-      if (force || lastMode !== 'login' || !document.querySelector('#dr-lifeline .dr-ecg-core')) {
-        runEcg();
-      } else if ((isLight() ? 'light' : 'dark') !== lastTheme) {
-        runEcg();
-      }
-      return;
-    }
-    if (portalReady()) {
-      showGears();
-      return;
-    }
-    killBox();
   }
 
   function waitForLogin() {
-    if (isBooting() || !loginReady()) {
+    if (isBooting() || !loginVisible()) {
       setTimeout(waitForLogin, 100);
       return;
     }
-    sync(true);
+    tick(true);
   }
 
   if (document.readyState === 'loading') {
@@ -293,31 +403,65 @@
     setTimeout(waitForLogin, 50);
   }
   setTimeout(waitForLogin, 300);
-  setTimeout(waitForLogin, 800);
+  setTimeout(waitForLogin, 900);
+
+  document.addEventListener(
+    'click',
+    function (e) {
+      var t = e.target;
+      if (
+        t &&
+        (t.id === 'btn-theme' ||
+          t.id === 'dr-login-theme' ||
+          (t.classList && t.classList.contains('btn-theme')))
+      ) {
+        setTimeout(function () {
+          if (portalActive()) {
+            tick(true);
+          } else if (loginVisible()) {
+            if (!recolorEcgOnly()) tick(false);
+          }
+        }, 40);
+      }
+    },
+    true
+  );
+
+  try {
+    var mo = new MutationObserver(function () {
+      if (!loginVisible()) return;
+      if (themeKey() === lastTheme) return;
+      recolorEcgOnly();
+    });
+    mo.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme']
+    });
+  } catch (eMo) {}
 
   setInterval(function () {
-    if (isBooting()) { killBox(); return; }
-    if (loginReady() && !document.querySelector('#dr-lifeline .dr-ecg-core')) sync(true);
-    else if (portalReady() && lastMode !== 'portal') sync(false);
-  }, 3000);
+    if (isBooting()) return;
+    tick(false);
+  }, 2500);
 
-  document.addEventListener('click', function (e) {
-    var t = e.target;
-    if (t && (t.id === 'btn-theme' || t.id === 'dr-login-theme' || (t.classList && t.classList.contains('btn-theme')))) {
-      setTimeout(function () { sync(true); }, 50);
-    }
-  }, true);
-
-  window.addEventListener('resize', function () {
-    clearTimeout(window.__drHbR);
-    window.__drHbR = setTimeout(function () {
-      if (loginReady() && Math.abs((window.innerWidth || 0) - lastW) > 40) runEcg();
-    }, 200);
-  });
+  if (!window.__drEcgResizeWired) {
+    window.__drEcgResizeWired = 1;
+    var resizeT = null;
+    window.addEventListener('resize', function () {
+      if (resizeT) clearTimeout(resizeT);
+      resizeT = setTimeout(function () {
+        var box = document.getElementById(BOX_ID);
+        var w = box ? box.clientWidth : 0;
+        if (Math.abs(w - lastEcgWidth) > 40 && loginVisible()) {
+          runEcgCycle();
+        }
+      }, 200);
+    });
+  }
 
   window.DRHeartbeatDraw = {
-    refresh: function () { sync(false); },
-    force: function () { sync(true); }
+    refresh: function () { tick(false); },
+    force: function () { tick(true); }
   };
   window.DRGearsBg = window.DRHeartbeatDraw;
 })();
