@@ -11,8 +11,8 @@ DASH = 'e1b64444ddb0dbeea9ec05d05cf843032414c738'
 PENDING = '94a5aeaaa38fafaaa1ac94872341ce3bf992dfd1'
 LOGIN_CHROME = '60c3368efd15da0e8d15cac0674b28eaed22d973'
 FORCE_LIGHT = 'ebcbb4637a65511602a399006a8ccc29f346ecfa'
-# ECG v21 — requires data-ecg=on; CSS hides lifeline during boot
-HB = '4668a5b55d82e8651ff281616628830fc317de43'
+# ECG v24 — single start, never interrupt cycle
+HB = 'eb5307ac567bac02ee36296941bd767459b2f0d2'
 
 INDEX = pathlib.Path('index.html')
 if not INDEX.exists():
@@ -24,9 +24,8 @@ def has_good_pins(t):
         ADMIN_LOCK in t and USERS_NAV in t and SIDEBAR_ROLE in t
         and TOPBAR in t and DASH in t and THEME in t
         and LOGIN_CHROME in t and FORCE_LIGHT in t and HB in t
-        and "HB_SHA + \"'" in t
+        and 'startEcgWhenHoneycomb' in t
         and 'data-ecg' in t
-        and 'enableEcgWhenReady' in t
     )
 
 if has_good_pins(text) and 'admin-portal-lock.js' in text:
@@ -46,7 +45,6 @@ replacements = [
     (r"var LOGIN_CHROME_HIDE_SHA = '[^']*';", f"var LOGIN_CHROME_HIDE_SHA = '{LOGIN_CHROME}';"),
     (r"var FORCE_LIGHT_BG_SHA = '[^']*';", f"var FORCE_LIGHT_BG_SHA = '{FORCE_LIGHT}';"),
     (r"var HB_SHA = '[^']*';", f"var HB_SHA = '{HB}';"),
-    (r'"var HB_SHA = \'[a-f0-9]+\';"', '"var HB_SHA = \'" + HB_SHA + "\';"'),
 ]
 for pat, rep in replacements:
     if re.search(pat, text):
