@@ -1,16 +1,16 @@
 /**
- * Divine Rays — ORIGINAL ECG stroke-draw (kirzhianquijano) v23
- * Soft neon path draws left→right; theme change recolors without reset
- * Smooth fade-in; ignores force-restarts for 4s so first runs don't glitch
+ * Divine Rays — ORIGINAL ECG stroke-draw (kirzhianquijano) v24
+ * One start only. Running cycle is never interrupted (fixes 1st/2nd reset glitch).
+ * Next pattern only via timer forceNew. Theme = recolor only.
  * Requires __DR_ECG_OK + data-ecg=on — never during boot
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
   try { delete window.__DR_HEARTBEAT_DRAW; } catch (e0) {}
-  window.__DR_HEARTBEAT_DRAW = 23;
+  window.__DR_HEARTBEAT_DRAW = 24;
 
-  var CSS_ID = 'dr-gears-bg-v23';
+  var CSS_ID = 'dr-gears-bg-v24';
   var BOX_ID = 'dr-lifeline';
   var lastTheme = null;
   var lastMode = null;
@@ -22,7 +22,8 @@
   var ECG_SPEED_PX_PER_SEC = 185;
   var ECG_VIEWBOX_W = 720;
   var __cycleStartedAt = 0;
-  var __minCycleMs = 4000;
+  var __minCycleMs = 999999;
+  var __startedOnce = false;
 
   function isLight() {
     try {
@@ -280,12 +281,12 @@
     if (__ecgBusy) return;
     if (!loginVisible()) return;
     var forceNew = opt && opt.forceNew;
-    if (!forceNew && __cycleStartedAt && (Date.now() - __cycleStartedAt) < __minCycleMs) {
-      if (document.querySelector('#dr-lifeline .dr-ecg-core')) return;
-    }
+    if (__startedOnce && !forceNew) return;
+    if (!forceNew && document.querySelector('#dr-lifeline .dr-ecg-core')) return;
     clearEcgTimer();
     __ecgBusy = true;
     __cycleStartedAt = Date.now();
+    __startedOnce = true;
 
     var login = document.getElementById('login-screen') || document.querySelector('.login-screen');
     var box = ensureBox();
@@ -355,13 +356,6 @@
 
   function ensureGears(force) {
     if (isBooting() || !shellReady()) {
-      clearEcgTimer();
-      var b0 = document.getElementById(BOX_ID);
-      if (b0) {
-        b0.innerHTML = '';
-        b0.style.display = 'none';
-      }
-      lastMode = 'boot';
       return;
     }
 
@@ -372,16 +366,15 @@
       box.style.display = 'block';
       var hasEcg = !!box.querySelector('.dr-ecg-core');
 
-      if (hasEcg && lastMode === 'login' && themeKey() !== lastTheme && !force) {
-        recolorEcgOnly();
+      if (hasEcg) {
+        if (themeKey() !== lastTheme) recolorEcgOnly();
+        lastMode = 'login';
         return;
       }
 
-      if (lastMode !== 'login' || force || !hasEcg) {
-        lastMode = 'login';
-        lastTheme = themeKey();
-        runEcgCycle(force ? { forceNew: !hasEcg } : null);
-      }
+      lastMode = 'login';
+      lastTheme = themeKey();
+      runEcgCycle(null);
       return;
     }
 
@@ -422,6 +415,7 @@
       setTimeout(waitForLogin, 100);
       return;
     }
+    if (__startedOnce || document.querySelector('#dr-lifeline .dr-ecg-core')) return;
     tick(true);
   }
 
@@ -447,7 +441,7 @@
           if (portalActive()) {
             tick(true);
           } else if (loginVisible()) {
-            if (!recolorEcgOnly()) tick(false);
+            recolorEcgOnly();
           }
         }, 40);
       }
@@ -470,7 +464,7 @@
   setInterval(function () {
     if (isBooting() || !shellReady()) return;
     tick(false);
-  }, 2500);
+  }, 5000);
 
   if (!window.__drEcgResizeWired) {
     window.__drEcgResizeWired = 1;
@@ -490,9 +484,7 @@
   window.DRHeartbeatDraw = {
     refresh: function () { tick(false); },
     force: function () {
-      if (__cycleStartedAt && (Date.now() - __cycleStartedAt) < __minCycleMs) {
-        if (document.querySelector('#dr-lifeline .dr-ecg-core')) return;
-      }
+      if (__startedOnce || document.querySelector('#dr-lifeline .dr-ecg-core')) return;
       tick(true);
     }
   };
