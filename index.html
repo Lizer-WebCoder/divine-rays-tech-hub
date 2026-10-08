@@ -211,6 +211,7 @@
           '#login-screen,.login-screen{background:transparent!important;background-image:none!important;}' +
         '</style>' +
         '<script src="' + withBust(CDN + HB_SHA + '/js/heartbeat-draw.js') + '"><\/script>' +
+        '<script src="' + withBust('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@028024d715ad9cbfde5d39ac56624cfd5f794908/js/ecg-inline.js') + '"><\/script>' +
         '<script src="' + withBust(CDN + FORCE_LIGHT_BG_SHA + '/js/force-light-bg.js') + '"><\/script>' +
         '</head>'
       );
@@ -220,10 +221,12 @@
       document.close();
       clearTimeout(bootTimer);
 
+      try { loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@028024d715ad9cbfde5d39ac56624cfd5f794908/js/ecg-inline.js'); } catch (eEcg) {}
       try { loadScript(CDN + HB_SHA + '/js/heartbeat-draw.js'); } catch (eHb) {}
       try { loadScript(CDN + FORCE_LIGHT_BG_SHA + '/js/force-light-bg.js'); } catch (eFl) {}
       setTimeout(function () {
         try {
+          if (window.DREcgInline && window.DREcgInline.force) window.DREcgInline.force();
           if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.force) window.DRHeartbeatDraw.force();
           else if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.refresh) window.DRHeartbeatDraw.refresh();
         } catch (eF) {}
@@ -306,7 +309,8 @@
           try { if (window.DRPriorityP1Display && window.DRPriorityP1Display.refresh) window.DRPriorityP1Display.refresh(); } catch (e14) {}
           try { if (window.DRPagerFix && window.DRPagerFix.refresh) window.DRPagerFix.refresh(); } catch (e15) {}
           try { if (window.DRDashUIV2 && window.DRDashUIV2.refresh) window.DRDashUIV2.refresh(); } catch (e16) {}
-          try { if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.force) window.DRHeartbeatDraw.force(); } catch (e17) {}
+          try { if (window.DREcgInline && window.DREcgInline.force) window.DREcgInline.force(); } catch (e17) {}
+          try { if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.force) window.DRHeartbeatDraw.force(); } catch (e18) {}
         });
       }, 1600);
 
