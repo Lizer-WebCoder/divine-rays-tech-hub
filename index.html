@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.9.3-ecg-after-paint" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.9.4-vercel-bust" />
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@main/js/admin-portal-lock.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@main/js/theme.js"></script>
   <style>
@@ -183,10 +183,12 @@
 
       html = html.replace(/var LIVE_SHA = '[^']*';/, "var LIVE_SHA = '" + COMMENTS_LIVE_SHA + "';");
       html = html.replace(/var KB_JS_SHA = '[^']*';/, "var KB_JS_SHA = '" + KB_JS_SHA + "';");
-      html = html.replace(/var THEME_SHA = '[^']*';/, "var THEME_SHA = 'e1b64444ddb0dbeea9ec05d05cf843032414c738';");
+      html = html.replace(/var THEME_SHA = '[^']*';/, "var THEME_SHA = '" + THEME_SHA + "';");
       html = html.replace(/var HB_SHA = '[^']*';/, "var HB_SHA = '" + HB_SHA + "';");
       html = html.replace(/await loadScript\([^)]*heartbeat-draw[^)]*\);?/gi, '/* heartbeat blocked */');
       html = html.replace(/loadScript\([^)]*heartbeat-draw[^)]*\);?/gi, '/* heartbeat blocked */');
+      html = html.replace(/await loadScript\([^)]*ecg-inline[^)]*\);?/gi, '/* ecg-inline blocked */');
+      html = html.replace(/loadScript\([^)]*ecg-inline[^)]*\);?/gi, '/* ecg-inline blocked */');
       html = html.replace(
         /var EXTRA_FILES = \[[^\]]*\];/,
         "var EXTRA_FILES = ['email-notify.js','ticket-plus.js','ticket-plus-fix.js','status-lock.js','kb.js','polish-fixes.js'];"
