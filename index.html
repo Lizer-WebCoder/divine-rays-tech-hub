@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.8.4-ecg-v14" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.8.5-ecg-v15" />
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@main/js/admin-portal-lock.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@main/js/theme.js"></script>
   <style>
@@ -76,7 +76,7 @@
     var LOGIN_CHROME_HIDE_SHA = '60c3368efd15da0e8d15cac0674b28eaed22d973';
     var PAGER_FIX_SHA = '10037b1e4fdd1f855a0b1cbd558ec3af7bf71d2f';
     var DASH_UI_V2_SHA = '92f4070a0c125f2e3ce5d423fff1f68c4d3ba968';
-    var HB_SHA = 'df470b2f6468a33fab8489be8e1124b01f0feda6';
+    var HB_SHA = '1de6de42640e7cb101749c26edbb5bc7ed61bf18';
 
     var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
     var BUST = String(Date.now());
@@ -225,8 +225,7 @@
       try { loadScript(CDN + FORCE_LIGHT_BG_SHA + '/js/force-light-bg.js'); } catch (eFl) {}
       setTimeout(function () {
         try {
-          if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.force) window.DRHeartbeatDraw.force();
-          else if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.refresh) window.DRHeartbeatDraw.refresh();
+          if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.refresh) window.DRHeartbeatDraw.refresh();
         } catch (eF) {}
       }, 0);
       setTimeout(function () {
@@ -309,7 +308,7 @@
           try { if (window.DRDashUIV2 && window.DRDashUIV2.refresh) window.DRDashUIV2.refresh(); } catch (e16) {}
           try { if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.refresh) window.DRHeartbeatDraw.refresh(); } catch (e17) {}
         });
-      }, 1600);
+      }, 200);
 
     } catch (err) {
       clearTimeout(bootTimer);
