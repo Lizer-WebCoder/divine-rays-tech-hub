@@ -1,13 +1,11 @@
 /**
- * Divine Rays — continuous gears + ECG (resolution-based draw, soft neon glow)
+ * Divine Rays — continuous gears + ECG v2 — start immediately (no refresh delay)
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_HEARTBEAT_DRAW) {
-    try { delete window.__DR_HEARTBEAT_DRAW; } catch (e) {}
-  }
-  window.__DR_HEARTBEAT_DRAW = 1;
+  if (window.__DR_HEARTBEAT_DRAW >= 2) return;
+  window.__DR_HEARTBEAT_DRAW = 2;
 
   var CSS_ID = 'dr-gears-bg';
   var BOX_ID = 'dr-lifeline';
@@ -202,7 +200,6 @@
     return box;
   }
 
-  /* Constant visual speed (px/s). Duration scales with screen width so the line always reaches the right edge. */
   var ECG_SPEED_PX_PER_SEC = 185;
   var ECG_VIEWBOX_W = 720;
   var lastEcgWidth = 0;
@@ -319,14 +316,29 @@
     }
   }
 
+  // Start as soon as possible so login refresh does not look blank
   tick(true);
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function () {
-      tick(false);
+      tick(true);
     });
   }
+  setTimeout(function () { tick(true); }, 50);
+  setTimeout(function () { tick(false); }, 250);
   setTimeout(function () { tick(false); }, 800);
-  setTimeout(function () { tick(false); }, 2000);
+
+  try {
+    if (!window.__drHbMo && typeof MutationObserver !== 'undefined') {
+      window.__drHbMo = 1;
+      var mo = new MutationObserver(function () {
+        if (document.getElementById('login-screen') || document.querySelector('.login-screen')) {
+          tick(true);
+        }
+      });
+      mo.observe(document.documentElement, { childList: true, subtree: true });
+      setTimeout(function () { try { mo.disconnect(); } catch (e) {} }, 12000);
+    }
+  } catch (eMo) {}
 
   document.addEventListener(
     'click',
