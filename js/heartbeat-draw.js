@@ -1,15 +1,16 @@
 /**
- * Divine Rays — ORIGINAL ECG stroke-draw (kirzhianquijano) v21
+ * Divine Rays — ORIGINAL ECG stroke-draw (kirzhianquijano) v22
  * Soft neon path draws left→right; theme change recolors without reset
+ * Smooth fade-in on first start — no flash glitch
  * Requires __DR_ECG_OK + data-ecg=on — never during boot
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
   try { delete window.__DR_HEARTBEAT_DRAW; } catch (e0) {}
-  window.__DR_HEARTBEAT_DRAW = 21;
+  window.__DR_HEARTBEAT_DRAW = 22;
 
-  var CSS_ID = 'dr-gears-bg-v21';
+  var CSS_ID = 'dr-gears-bg-v22';
   var BOX_ID = 'dr-lifeline';
   var lastTheme = null;
   var lastMode = null;
@@ -287,8 +288,9 @@
     box.style.cssText =
       'display:block!important;position:absolute!important;left:0!important;right:0!important;' +
       'width:100%!important;top:50%!important;height:180px!important;margin-top:-90px!important;' +
-      'z-index:1!important;pointer-events:none!important;opacity:1!important;visibility:visible!important;' +
-      'background:transparent!important;overflow:visible!important;box-shadow:none!important;filter:none!important';
+      'z-index:1!important;pointer-events:none!important;opacity:0!important;visibility:visible!important;' +
+      'background:transparent!important;overflow:visible!important;box-shadow:none!important;filter:none!important;' +
+      'transition:opacity 0.45s ease-out!important';
 
     box.innerHTML = ecgMarkup();
     var paths = box.querySelectorAll('.dr-ecg-core, .dr-ecg-glow');
@@ -312,12 +314,14 @@
       p.style.strokeDasharray = String(len);
       p.style.strokeDashoffset = String(len);
       p.style.animation = 'none';
+      p.style.opacity = '0';
     }
     void box.getBoundingClientRect();
 
     var durCss = dur.toFixed(2) + 's';
     for (var j = 0; j < paths.length; j++) {
       var pj = paths[j];
+      pj.style.opacity = '1';
       if (pj.classList.contains('dr-ecg-core')) {
         pj.style.animation =
           'drEcgDraw ' + durCss + ' linear forwards, drEcgCorePulse 2.4s ease-in-out infinite';
@@ -326,6 +330,14 @@
           'drEcgDraw ' + durCss + ' linear forwards, drEcgGlowPulse 2.4s ease-in-out infinite';
       }
     }
+
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        try {
+          box.style.opacity = '1';
+        } catch (eOp) {}
+      });
+    });
 
     __ecgBusy = false;
     ecgTimer = setTimeout(function () {
@@ -408,13 +420,11 @@
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function () {
-      setTimeout(waitForLogin, 50);
+      setTimeout(waitForLogin, 80);
     });
   } else {
-    setTimeout(waitForLogin, 50);
+    setTimeout(waitForLogin, 80);
   }
-  setTimeout(waitForLogin, 300);
-  setTimeout(waitForLogin, 900);
 
   document.addEventListener(
     'click',
