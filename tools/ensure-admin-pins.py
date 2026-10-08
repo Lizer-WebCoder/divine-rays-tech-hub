@@ -11,8 +11,8 @@ DASH = 'e1b64444ddb0dbeea9ec05d05cf843032414c738'
 PENDING = '94a5aeaaa38fafaaa1ac94872341ce3bf992dfd1'
 LOGIN_CHROME = '60c3368efd15da0e8d15cac0674b28eaed22d973'
 FORCE_LIGHT = 'ebcbb4637a65511602a399006a8ccc29f346ecfa'
-# ECG v19 original stroke-draw, theme recolor without reset
-HB = '494d35e6fac7d506da3e90bfbac20eeb437a3b61'
+# ECG v20 gated on __DR_ECG_OK — no boot lifeline
+HB = '829f7c393037fd701330e45726da9b061d859ae5'
 
 INDEX = pathlib.Path('index.html')
 if not INDEX.exists():
@@ -26,6 +26,7 @@ def has_good_pins(t):
         and LOGIN_CHROME in t and FORCE_LIGHT in t and HB in t
         and "HB_SHA + \"'" in t
         and 'heartbeat: single load from boot' in t
+        and '__DR_ECG_OK' in t
     )
 
 if has_good_pins(text) and 'admin-portal-lock.js' in text:
@@ -50,13 +51,6 @@ replacements = [
 for pat, rep in replacements:
     if re.search(pat, text):
         text = re.sub(pat, rep, text)
-
-if 'heartbeat: single load from boot' not in text:
-    text = text.replace(
-        'html = html.replace(/var HB_SHA = \'[\^\']*\';/, "var HB_SHA = \'" + HB_SHA + "\';");',
-        'html = html.replace(/var HB_SHA = \'[\^\']*\';/, "var HB_SHA = \'" + HB_SHA + "\';");\n'
-        "      html = html.replace(/await loadScript\\([^)]*heartbeat-draw[^)]*\\);/gi, '/* heartbeat: single load from boot */');",
-    )
 
 if 'ADMIN_LOCK_SHA' not in text:
     block = f"""
