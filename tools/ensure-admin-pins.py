@@ -11,8 +11,8 @@ DASH = 'e1b64444ddb0dbeea9ec05d05cf843032414c738'
 PENDING = '94a5aeaaa38fafaaa1ac94872341ce3bf992dfd1'
 LOGIN_CHROME = '60c3368efd15da0e8d15cac0674b28eaed22d973'
 FORCE_LIGHT = 'ebcbb4637a65511602a399006a8ccc29f346ecfa'
-# ECG v20 gated on __DR_ECG_OK — no boot lifeline
-HB = '829f7c393037fd701330e45726da9b061d859ae5'
+# ECG v21 — requires data-ecg=on; CSS hides lifeline during boot
+HB = '4668a5b55d82e8651ff281616628830fc317de43'
 
 INDEX = pathlib.Path('index.html')
 if not INDEX.exists():
@@ -25,8 +25,8 @@ def has_good_pins(t):
         and TOPBAR in t and DASH in t and THEME in t
         and LOGIN_CHROME in t and FORCE_LIGHT in t and HB in t
         and "HB_SHA + \"'" in t
-        and 'heartbeat: single load from boot' in t
-        and '__DR_ECG_OK' in t
+        and 'data-ecg' in t
+        and 'enableEcgWhenReady' in t
     )
 
 if has_good_pins(text) and 'admin-portal-lock.js' in text:
@@ -51,25 +51,6 @@ replacements = [
 for pat, rep in replacements:
     if re.search(pat, text):
         text = re.sub(pat, rep, text)
-
-if 'ADMIN_LOCK_SHA' not in text:
-    block = f"""
-    var ADMIN_LOCK_SHA = '{ADMIN_LOCK}';
-    var SIDEBAR_ROLE_SHA = '{SIDEBAR_ROLE}';
-    var USERS_NAV_SHA = '{USERS_NAV}';
-    var THEME_SHA = '{THEME}';
-    var TOPBAR_SHA = '{TOPBAR}';
-    var DASH_NO_TICKETS_SHA = '{DASH}';
-    var PENDING_FIX_SHA = '{PENDING}';
-"""
-    text = re.sub(r"(var SIDEBAR_SHA = '[^']*';)", r"\1\n" + block, text, count=1)
-
-if 'admin-portal-lock.js' not in text[:2000]:
-    text = text.replace(
-        '</head>',
-        '  <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@main/js/admin-portal-lock.js"></script>\n</head>',
-        1,
-    )
 
 INDEX.write_text(text, encoding='utf-8')
 print('Patched index.html with quiet portal-aware Admin pins')
