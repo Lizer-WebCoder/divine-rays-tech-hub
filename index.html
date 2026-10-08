@@ -14,6 +14,7 @@
     html,body{margin:0;background:radial-gradient(ellipse 80% 60% at 50% 40%,#1a1530 0%,#0c0c14 55%,#08080f 100%);color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
     #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae;flex-direction:column;gap:0.75rem;padding:1.5rem;text-align:center}
     #boot .hint{font-size:0.8rem;color:#6b6b80;max-width:22rem}
+    #login-screen,.login-screen{background:transparent!important;background-image:none!important}
   </style>
   <script>
   (function () {
@@ -71,11 +72,11 @@
     var ENDUSER_UI_SHA = '21cb83c9fcfb8a00b170f6efc25051b63d9fbff2';
     var CHAT_UI_SHA = 'c03c31b5baab763cee98ae37ae023991ade8164b';
     var LIGHT_MODE_POLISH_SHA = 'a69083e578f483246d844a9d03da719710736036';
-    var FORCE_LIGHT_BG_SHA = '06cb1f6b344b3908e790bd20f764d4f5aa9b468a';
+    var FORCE_LIGHT_BG_SHA = 'ebcbb4637a65511602a399006a8ccc29f346ecfa';
     var LOGIN_CHROME_HIDE_SHA = '60c3368efd15da0e8d15cac0674b28eaed22d973';
     var PAGER_FIX_SHA = '10037b1e4fdd1f855a0b1cbd558ec3af7bf71d2f';
     var DASH_UI_V2_SHA = '92f4070a0c125f2e3ce5d423fff1f68c4d3ba968';
-    var HB_SHA = 'a38e4514f964ab95b424a9107d919614de99a115';
+    var HB_SHA = 'fc0c5c3dfe15da2af1dc6ade36747044d4bde76c';
 
     var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
     var BUST = String(Date.now());
@@ -207,9 +208,10 @@
         '<style id="dr-boot-login-bg">' +
           'html,body{background:radial-gradient(ellipse 80% 60% at 50% 40%,#1a1530 0%,#0c0c14 55%,#08080f 100%)!important;}' +
           'html[data-theme="light"],html[data-theme="light"] body{background:radial-gradient(ellipse 80% 60% at 50% 35%,#e8e4ff 0%,#f4f2ff 45%,#eceaf8 100%)!important;}' +
-          '#login-screen,.login-screen{background:transparent!important;}' +
+          '#login-screen,.login-screen{background:transparent!important;background-image:none!important;}' +
         '</style>' +
         '<script src="' + withBust(CDN + HB_SHA + '/js/heartbeat-draw.js') + '"><\/script>' +
+        '<script src="' + withBust(CDN + FORCE_LIGHT_BG_SHA + '/js/force-light-bg.js') + '"><\/script>' +
         '</head>'
       );
 
@@ -219,6 +221,7 @@
       clearTimeout(bootTimer);
 
       try { loadScript(CDN + HB_SHA + '/js/heartbeat-draw.js'); } catch (eHb) {}
+      try { loadScript(CDN + FORCE_LIGHT_BG_SHA + '/js/force-light-bg.js'); } catch (eFl) {}
       setTimeout(function () {
         try {
           if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.force) window.DRHeartbeatDraw.force();
