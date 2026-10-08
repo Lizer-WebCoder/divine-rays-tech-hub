@@ -1,16 +1,16 @@
 /**
- * Divine Rays — ORIGINAL ECG stroke-draw (kirzhianquijano) v22
+ * Divine Rays — ORIGINAL ECG stroke-draw (kirzhianquijano) v23
  * Soft neon path draws left→right; theme change recolors without reset
- * Smooth fade-in on first start — no flash glitch
+ * Smooth fade-in; ignores force-restarts for 4s so first runs don't glitch
  * Requires __DR_ECG_OK + data-ecg=on — never during boot
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
   try { delete window.__DR_HEARTBEAT_DRAW; } catch (e0) {}
-  window.__DR_HEARTBEAT_DRAW = 22;
+  window.__DR_HEARTBEAT_DRAW = 23;
 
-  var CSS_ID = 'dr-gears-bg-v22';
+  var CSS_ID = 'dr-gears-bg-v23';
   var BOX_ID = 'dr-lifeline';
   var lastTheme = null;
   var lastMode = null;
@@ -21,6 +21,8 @@
   var lastEcgWidth = 0;
   var ECG_SPEED_PX_PER_SEC = 185;
   var ECG_VIEWBOX_W = 720;
+  var __cycleStartedAt = 0;
+  var __minCycleMs = 4000;
 
   function isLight() {
     try {
@@ -274,11 +276,16 @@
     }
   }
 
-  function runEcgCycle() {
+  function runEcgCycle(opt) {
     if (__ecgBusy) return;
-    clearEcgTimer();
     if (!loginVisible()) return;
+    var forceNew = opt && opt.forceNew;
+    if (!forceNew && __cycleStartedAt && (Date.now() - __cycleStartedAt) < __minCycleMs) {
+      if (document.querySelector('#dr-lifeline .dr-ecg-core')) return;
+    }
+    clearEcgTimer();
     __ecgBusy = true;
+    __cycleStartedAt = Date.now();
 
     var login = document.getElementById('login-screen') || document.querySelector('.login-screen');
     var box = ensureBox();
@@ -342,7 +349,7 @@
     __ecgBusy = false;
     ecgTimer = setTimeout(function () {
       ecgIndex = (ecgIndex + 1) % ECG_PATTERNS.length;
-      if (loginVisible()) runEcgCycle();
+      if (loginVisible()) runEcgCycle({ forceNew: true });
     }, Math.round(dur * 1000) + 50);
   }
 
@@ -373,7 +380,7 @@
       if (lastMode !== 'login' || force || !hasEcg) {
         lastMode = 'login';
         lastTheme = themeKey();
-        runEcgCycle();
+        runEcgCycle(force ? { forceNew: !hasEcg } : null);
       }
       return;
     }
@@ -474,7 +481,7 @@
         var box = document.getElementById(BOX_ID);
         var w = box ? box.clientWidth : 0;
         if (Math.abs(w - lastEcgWidth) > 40 && loginVisible()) {
-          runEcgCycle();
+          runEcgCycle({ forceNew: true });
         }
       }, 200);
     });
@@ -482,7 +489,12 @@
 
   window.DRHeartbeatDraw = {
     refresh: function () { tick(false); },
-    force: function () { tick(true); }
+    force: function () {
+      if (__cycleStartedAt && (Date.now() - __cycleStartedAt) < __minCycleMs) {
+        if (document.querySelector('#dr-lifeline .dr-ecg-core')) return;
+      }
+      tick(true);
+    }
   };
   window.DRGearsBg = window.DRHeartbeatDraw;
 })();
