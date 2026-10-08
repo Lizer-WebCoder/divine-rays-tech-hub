@@ -11,8 +11,8 @@ DASH = 'e1b64444ddb0dbeea9ec05d05cf843032414c738'
 PENDING = '94a5aeaaa38fafaaa1ac94872341ce3bf992dfd1'
 LOGIN_CHROME = '60c3368efd15da0e8d15cac0674b28eaed22d973'
 FORCE_LIGHT = 'ebcbb4637a65511602a399006a8ccc29f346ecfa'
-# ECG v13 continuous never-stop on login
-HB = '61333067d14b8fd0a4bc4e8c6b874c76e017a8b7'
+# ECG v14 stable continuous lifeline
+HB = 'df470b2f6468a33fab8489be8e1124b01f0feda6'
 
 INDEX = pathlib.Path('index.html')
 if not INDEX.exists():
@@ -24,7 +24,7 @@ def has_good_pins(t):
         ADMIN_LOCK in t and USERS_NAV in t and SIDEBAR_ROLE in t
         and TOPBAR in t and DASH in t and THEME in t
         and LOGIN_CHROME in t and FORCE_LIGHT in t and HB in t
-        and "HB_SHA + \"'" in t  # not hardcoded shell rewrite
+        and "HB_SHA + \"'" in t
     )
 
 if has_good_pins(text) and 'admin-portal-lock.js' in text:
