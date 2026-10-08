@@ -74,6 +74,7 @@
     var FORCE_LIGHT_BG_SHA = '06cb1f6b344b3908e790bd20f764d4f5aa9b468a';
     var LOGIN_CHROME_HIDE_SHA = '60c3368efd15da0e8d15cac0674b28eaed22d973';
     var PAGER_FIX_SHA = '10037b1e4fdd1f855a0b1cbd558ec3af7bf71d2f';
+    var DASH_UI_V2_SHA = '92f4070a0c125f2e3ce5d423fff1f68c4d3ba968';
 
     var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
     var BUST = String(Date.now());
@@ -110,7 +111,8 @@
       'light-mode-polish.js': LIGHT_MODE_POLISH_SHA,
       'force-light-bg.js': FORCE_LIGHT_BG_SHA,
       'login-chrome-hide.js': LOGIN_CHROME_HIDE_SHA,
-      'pager-fix.js': PAGER_FIX_SHA
+      'pager-fix.js': PAGER_FIX_SHA,
+      'dashboard-ui-v2.js': DASH_UI_V2_SHA
     };
 
     var SKIP = {
@@ -212,6 +214,7 @@
         loadScript(CDN + TOPBAR_ACTIONS_SHA + '/js/topbar-actions.js');
         loadScript(CDN + THEME_SHA + '/js/theme.js');
         loadScript(CDN + DASH_NO_TICKETS_SHA + '/js/dashboard-no-tickets.js');
+        loadScript(CDN + DASH_UI_V2_SHA + '/js/dashboard-ui-v2.js');
         loadScript(CDN + PENDING_FIX_SHA + '/js/pending-approved-fix.js');
         loadScript(CDN + FORCE_PENDING_SHA + '/js/force-pending-block.js');
         loadScript(CDN + APPROVAL_GATE_SHA + '/js/agent-approval-gate.js');
@@ -234,6 +237,7 @@
           loadScript(CDN + TOPBAR_SHA + '/js/topbar-brand-role.js'),
           loadScript(CDN + TOPBAR_ACTIONS_SHA + '/js/topbar-actions.js'),
           loadScript(CDN + DASH_NO_TICKETS_SHA + '/js/dashboard-no-tickets.js'),
+          loadScript(CDN + DASH_UI_V2_SHA + '/js/dashboard-ui-v2.js'),
           loadScript(CDN + TEAM_BOARD_SHA + '/js/team-board.js'),
           loadScript(CDN + TEAM_SEP_SHA + '/js/team-sep.js'),
           loadScript(CDN + COMMENTS_LIVE_SHA + '/js/comments-live.js'),
@@ -277,6 +281,7 @@
           try { if (window.DRTheme && window.DRTheme.ensure) window.DRTheme.ensure(); } catch (e13) {}
           try { if (window.DRPriorityP1Display && window.DRPriorityP1Display.refresh) window.DRPriorityP1Display.refresh(); } catch (e14) {}
           try { if (window.DRPagerFix && window.DRPagerFix.refresh) window.DRPagerFix.refresh(); } catch (e15) {}
+          try { if (window.DRDashUIV2 && window.DRDashUIV2.refresh) window.DRDashUIV2.refresh(); } catch (e16) {}
         });
       }, 1600);
 
