@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.9.17-toast-tr" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.9.18-fast-chrome" />
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@main/js/admin-portal-lock.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@main/js/theme.js"></script>
   <style>
@@ -68,11 +68,11 @@
     var TEAM_SEP_SHA = '85337adc33ac049cdbf1317bbc20388b4f774739';
     var SIDEBAR_SHA = '2c09ded7569ad99b37af1e8ce43a8f69f387c770';
     var ADMIN_LOCK_SHA = '61caa12d784ef14dbce219a4ad0825e33a108552';
-    var SIDEBAR_ROLE_SHA = 'e1b64444ddb0dbeea9ec05d05cf843032414c738';
+    var SIDEBAR_ROLE_SHA = '1109e5e3d641779a008604ca5e3fd26698cf2157';
     var USERS_NAV_SHA = 'b6f328bf2f2e29c4ab6d88de2fc416c79e4bb070';
     var THEME_SHA = 'e1b64444ddb0dbeea9ec05d05cf843032414c738';
-    var TOPBAR_SHA = 'c49dd3bd4b8cd07fa3608633c3d096ce1ac5db04';
-    var TOPBAR_ACTIONS_SHA = 'c0e1878eef01fa881f6f1d372f647f60c7b34be3';
+    var TOPBAR_SHA = '1109e5e3d641779a008604ca5e3fd26698cf2157';
+    var TOPBAR_ACTIONS_SHA = '78a2cd6baf434009144d7b702caaf46ad7581536';
     var DASH_NO_TICKETS_SHA = 'e1b64444ddb0dbeea9ec05d05cf843032414c738';
     var PENDING_FIX_SHA = '94a5aeaaa38fafaaa1ac94872341ce3bf992dfd1';
     var APPROVAL_GATE_SHA = '95399ebc6bf10275331a35b96b9b589bf25b6d7b';
@@ -340,6 +340,7 @@
           try { if (window.DRTopbarActions && window.DRTopbarActions.refresh) window.DRTopbarActions.refresh(); } catch (e12) {}
           try { if (window.DRTheme && window.DRTheme.ensure) window.DRTheme.ensure(); } catch (e13) {}
           try { if (window.DRDashUIV2 && window.DRDashUIV2.refresh) window.DRDashUIV2.refresh(); } catch (e16) {}
+          try { if (window.DRSidebarRole && window.DRSidebarRole.refresh) window.DRSidebarRole.refresh(); } catch (e17) {}
         });
       }, 200);
     } catch (err) {
