@@ -7,84 +7,34 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.9.12-admin-v16" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.9.14-admin-v17" />
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@main/js/admin-portal-lock.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@main/js/theme.js"></script>
   <style>
-    html,body{
-      margin:0;min-height:100vh;font-family:Inter,system-ui,-apple-system,sans-serif;
-      background:radial-gradient(ellipse 80% 60% at 50% 40%,#1a1530 0%,#0c0c14 55%,#08080f 100%);
-      color:#eeeef6
-    }
-    html[data-theme="light"],html[data-theme="light"] body{
-      background:radial-gradient(ellipse 80% 60% at 50% 35%,#e8e4ff 0%,#f4f2ff 45%,#eceaf8 100%);
-      color:#1a1625
-    }
-    #boot{
-      display:flex;align-items:center;justify-content:center;min-height:100vh;
-      flex-direction:column;gap:1.25rem;padding:1.5rem;text-align:center;
-      box-sizing:border-box
-    }
-    #boot .boot-logo{
-      width:72px;height:72px;border-radius:16px;
-      box-shadow:0 8px 32px rgba(109,90,154,.35);
-      animation:bootLogoPulse 2.2s ease-in-out infinite
-    }
-    html[data-theme="light"] #boot .boot-logo{
-      box-shadow:0 8px 28px rgba(109,90,154,.22)
-    }
-    #boot .boot-title{
-      font-size:1.35rem;font-weight:650;letter-spacing:.02em;
-      color:#eeeef6;margin:0;line-height:1.3
-    }
+    html,body{margin:0;min-height:100vh;font-family:Inter,system-ui,-apple-system,sans-serif;background:radial-gradient(ellipse 80% 60% at 50% 40%,#1a1530 0%,#0c0c14 55%,#08080f 100%);color:#eeeef6}
+    html[data-theme="light"],html[data-theme="light"] body{background:radial-gradient(ellipse 80% 60% at 50% 35%,#e8e4ff 0%,#f4f2ff 45%,#eceaf8 100%);color:#1a1625}
+    #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:1.25rem;padding:1.5rem;text-align:center;box-sizing:border-box}
+    #boot .boot-logo{width:72px;height:72px;border-radius:16px;box-shadow:0 8px 32px rgba(109,90,154,.35);animation:bootLogoPulse 2.2s ease-in-out infinite}
+    html[data-theme="light"] #boot .boot-logo{box-shadow:0 8px 28px rgba(109,90,154,.22)}
+    #boot .boot-title{font-size:1.35rem;font-weight:650;letter-spacing:.02em;color:#eeeef6;margin:0;line-height:1.3}
     html[data-theme="light"] #boot .boot-title{color:#1a1625}
-    #boot .boot-sub{
-      font-size:.85rem;color:#9494ae;margin:0;opacity:.9
-    }
+    #boot .boot-sub{font-size:.85rem;color:#9494ae;margin:0;opacity:.9}
     html[data-theme="light"] #boot .boot-sub{color:#6b6b80}
-    #boot .boot-loader{
-      display:flex;align-items:center;justify-content:center;gap:8px;
-      margin-top:.35rem;height:28px
-    }
-    #boot .boot-dot{
-      width:8px;height:8px;border-radius:50%;
-      background:#a78bfa;
-      animation:bootDot 1.2s ease-in-out infinite
-    }
+    #boot .boot-loader{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:.35rem;height:28px}
+    #boot .boot-dot{width:8px;height:8px;border-radius:50%;background:#a78bfa;animation:bootDot 1.2s ease-in-out infinite}
     #boot .boot-dot:nth-child(2){animation-delay:.15s}
     #boot .boot-dot:nth-child(3){animation-delay:.3s}
     html[data-theme="light"] #boot .boot-dot{background:#7c6af0}
-    #boot .boot-bar{
-      width:120px;height:3px;border-radius:2px;overflow:hidden;
-      background:rgba(167,139,250,.15);margin-top:.15rem
-    }
+    #boot .boot-bar{width:120px;height:3px;border-radius:2px;overflow:hidden;background:rgba(167,139,250,.15);margin-top:.15rem}
     html[data-theme="light"] #boot .boot-bar{background:rgba(124,106,240,.15)}
-    #boot .boot-bar-fill{
-      height:100%;width:40%;border-radius:2px;
-      background:linear-gradient(90deg,#8b7cf0,#c4b5fd,#8b7cf0);
-      background-size:200% 100%;
-      animation:bootBar 1.4s ease-in-out infinite
-    }
+    #boot .boot-bar-fill{height:100%;width:40%;border-radius:2px;background:linear-gradient(90deg,#8b7cf0,#c4b5fd,#8b7cf0);background-size:200% 100%;animation:bootBar 1.4s ease-in-out infinite}
     #boot .hint{font-size:.8rem;color:#6b6b80;max-width:22rem;min-height:1.2em}
     html[data-theme="light"] #boot .hint{color:#8a8aa0}
-    @keyframes bootLogoPulse{
-      0%,100%{transform:scale(1);opacity:1}
-      50%{transform:scale(1.04);opacity:.92}
-    }
-    @keyframes bootDot{
-      0%,80%,100%{transform:translateY(0);opacity:.35}
-      40%{transform:translateY(-6px);opacity:1}
-    }
-    @keyframes bootBar{
-      0%{transform:translateX(-100%);background-position:0% 0}
-      100%{transform:translateX(280%);background-position:100% 0}
-    }
+    @keyframes bootLogoPulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.04);opacity:.92}}
+    @keyframes bootDot{0%,80%,100%{transform:translateY(0);opacity:.35}40%{transform:translateY(-6px);opacity:1}}
+    @keyframes bootBar{0%{transform:translateX(-100%);background-position:0% 0}100%{transform:translateX(280%);background-position:100% 0}}
     #login-screen,.login-screen{background:transparent!important;background-image:none!important}
-    html:not([data-ecg="on"]) #dr-lifeline,
-    html:not([data-ecg="on"]) #dr-lifeline *{
-      display:none!important;visibility:hidden!important;opacity:0!important;
-      pointer-events:none!important;width:0!important;height:0!important
-    }
+    html:not([data-ecg="on"]) #dr-lifeline,html:not([data-ecg="on"]) #dr-lifeline *{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;width:0!important;height:0!important}
     html[data-ecg="on"] #dr-lifeline{display:block!important;visibility:visible!important;opacity:1!important;width:auto!important;height:auto!important}
   </style>
   <script>
@@ -106,9 +56,7 @@
     <h1 class="boot-title">Divine Rays Tech Hub</h1>
     <p class="boot-sub">Loading…</p>
     <div class="boot-loader" aria-hidden="true">
-      <span class="boot-dot"></span>
-      <span class="boot-dot"></span>
-      <span class="boot-dot"></span>
+      <span class="boot-dot"></span><span class="boot-dot"></span><span class="boot-dot"></span>
     </div>
     <div class="boot-bar" aria-hidden="true"><div class="boot-bar-fill"></div></div>
     <div class="hint" id="boot-hint"></div>
@@ -119,7 +67,6 @@
     var TEAM_BOARD_SHA = '6f7d941cf16542de5868a7ed0abaacae83f4d133';
     var TEAM_SEP_SHA = '85337adc33ac049cdbf1317bbc20388b4f774739';
     var SIDEBAR_SHA = '2c09ded7569ad99b37af1e8ce43a8f69f387c770';
-
     var ADMIN_LOCK_SHA = '61caa12d784ef14dbce219a4ad0825e33a108552';
     var SIDEBAR_ROLE_SHA = 'e1b64444ddb0dbeea9ec05d05cf843032414c738';
     var USERS_NAV_SHA = 'b6f328bf2f2e29c4ab6d88de2fc416c79e4bb070';
@@ -131,21 +78,19 @@
     var APPROVAL_GATE_SHA = '95399ebc6bf10275331a35b96b9b589bf25b6d7b';
     var FORCE_PENDING_SHA = 'f3988b77a2f35efc5cd53a040d78a56becb58261';
     var LOGIN_TAB_SHA = '9beff1f929318ca08d9a71a1d4718ec4afebf539';
-
     var STAFF_NOTIF_SHA = 'ad42d4238ecd55ec0bb66aa9a842fe2c57b936bd';
     var REPLY_FIX_SHA = '5307c296fc8868d23fdc61bde79cad23f3c71dba';
     var COMMENTS_LIVE_SHA = '4181ae9900f29ec307555a38e62ae6be7e6b9a8f';
     var UI_LAYOUT_SHA = 'ce5a1fde308a9d38438b60df40497902b607690c';
     var KB_TABLE_SHA = '057efa589371be7a05114c786f31a89bb28fe009';
     var KB_JS_SHA = 'd4e9498db74b26a08bf7c8acec52ac3496c6ff86';
-    var ADMIN_SHA = '1ee6cc34228099ee8dd4780b3cd00a54c1136601';
+    var ADMIN_SHA = '120afc517b48078cc9a4a7f60150eb98cbb96cc3';
     var ADMIN_STATS_SHA = 'a84ce631450b3b57b11f852de982bf83206ea26b';
     var TOOLBAR_SHA = '2ea9190cbbb3dbfbf3a159ca47d585a61b2f6e2b';
     var FILTER_SHA = '1bfe6c0e93dedc361cf1f3e15eb520c3aea13930';
     var FILTERS_SHA = '8f52e79109370a95c51cb13f03120d7fcdad3d0f';
     var DESIGN_SHA = '7d6d66cbe63fda91cf71d64bbddd1af80f3adfc3';
     var TICKET_DESIGN_SHA = '01d6078d7a6a6ff64a1c9f53621d1bc2446156cf';
-
     var CUSTOMER_FILTER_SHA = '517014018e6fae9383c57a5c02e51bbacfc73991';
     var PRIORITY_P1_SHA = '37d90f9d9de1e6636dc0a3b478c6cb67bd786f28';
     var ENDUSER_PRO_SHA = '9fe374cd480c99d3530cbfc4c7d685292b24a29e';
@@ -157,11 +102,9 @@
     var PAGER_FIX_SHA = '10037b1e4fdd1f855a0b1cbd558ec3af7bf71d2f';
     var DASH_UI_V2_SHA = '92f4070a0c125f2e3ce5d423fff1f68c4d3ba968';
     var HB_SHA = 'eb5307ac567bac02ee36296941bd767459b2f0d2';
-
     var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
     var BUST = String(Date.now());
     var TIP = 'dd3d27c0c8190f4f85781c8f2477678d538768b0';
-
     var REWRITE = {
       'admin.js': ADMIN_SHA,
       'users-nav.js': USERS_NAV_SHA,
@@ -197,30 +140,15 @@
       'dashboard-ui-v2.js': DASH_UI_V2_SHA,
       'heartbeat-draw.js': HB_SHA
     };
-
     var SKIP = {
-      'ui-flicker-fix.js': 1,
-      'content-restore.js': 1,
-      'card-opacity.js': 1,
-      'smooth-refresh.js': 1,
-      'ux-dashboard-detail.js': 1,
-      'ux-session-polish.js': 1,
-      'customer-pro-ui.js': 1,
-      'ecg-inline.js': 1
+      'ui-flicker-fix.js': 1, 'content-restore.js': 1, 'card-opacity.js': 1, 'smooth-refresh.js': 1,
+      'ux-dashboard-detail.js': 1, 'ux-session-polish.js': 1, 'customer-pro-ui.js': 1, 'ecg-inline.js': 1
     };
-
     var bootHint = document.getElementById('boot-hint');
     var bootTimer = setTimeout(function () {
-      if (bootHint) {
-        bootHint.textContent =
-          'Still loading… Hard refresh with Ctrl+Shift+R (Cmd+Shift+R on Mac).';
-      }
+      if (bootHint) bootHint.textContent = 'Still loading… Hard refresh with Ctrl+Shift+R (Cmd+Shift+R on Mac).';
     }, 12000);
-
-    function withBust(u) {
-      return u + (u.indexOf('?') === -1 ? '?' : '&') + 'b=' + BUST;
-    }
-
+    function withBust(u) { return u + (u.indexOf('?') === -1 ? '?' : '&') + 'b=' + BUST; }
     var loaded = {};
     function loadScript(src) {
       var base = (src.match(/\/js\/([^/?#]+)/) || [])[1] || src;
@@ -235,25 +163,16 @@
         (document.body || document.documentElement).appendChild(s);
       });
     }
-
-    var urls = [
-      CDN + SHELL_SHA + '/index.html',
-      'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + SHELL_SHA + '/index.html'
-    ];
-
+    var urls = [CDN + SHELL_SHA + '/index.html', 'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + SHELL_SHA + '/index.html'];
     try {
       var html = null;
       for (var i = 0; i < urls.length; i++) {
         try {
           var r = await fetch(withBust(urls[i]), { cache: 'no-store', credentials: 'omit' });
-          if (r.ok) {
-            html = await r.text();
-            break;
-          }
+          if (r.ok) { html = await r.text(); break; }
         } catch (e) {}
       }
       if (!html) throw new Error('Could not load app shell');
-
       html = html.replace(/var LIVE_SHA = '[^']*';/, "var LIVE_SHA = '" + COMMENTS_LIVE_SHA + "';");
       html = html.replace(/var KB_JS_SHA = '[^']*';/, "var KB_JS_SHA = '" + KB_JS_SHA + "';");
       html = html.replace(/var THEME_SHA = '[^']*';/, "var THEME_SHA = '" + THEME_SHA + "';");
@@ -262,103 +181,31 @@
       html = html.replace(/loadScript\([^)]*heartbeat-draw[^)]*\);?/gi, '/* heartbeat blocked */');
       html = html.replace(/await loadScript\([^)]*ecg-inline[^)]*\);?/gi, '/* ecg-inline blocked */');
       html = html.replace(/loadScript\([^)]*ecg-inline[^)]*\);?/gi, '/* ecg-inline blocked */');
-      html = html.replace(
-        /var EXTRA_FILES = \[[^\]]*\];/,
-        "var EXTRA_FILES = ['email-notify.js','ticket-plus.js','ticket-plus-fix.js','status-lock.js','kb.js','polish-fixes.js'];"
-      );
-
-      html = html.replace(
-        /https:\/\/cdn\.jsdelivr\.net\/gh\/Lizer-WebCoder\/divine-rays-tech-hub@[a-f0-9]+\/js\/([a-z0-9._-]+\.js)/gi,
-        function (full, name) {
-          if (SKIP[name]) return full;
-          if (REWRITE[name]) return CDN + REWRITE[name] + '/js/' + name;
-          return full;
-        }
-      );
-
+      html = html.replace(/await loadScript\([^)]*\/js\/admin\.js[^)]*\);?/gi, '/* admin.js shell blocked — pin loads V17 */');
+      html = html.replace(/loadScript\([^)]*\/js\/admin\.js[^)]*\);?/gi, '/* admin.js shell blocked — pin loads V17 */');
+      html = html.replace(/var EXTRA_FILES = \[[^\]]*\];/, "var EXTRA_FILES = ['email-notify.js','ticket-plus.js','ticket-plus-fix.js','status-lock.js','kb.js','polish-fixes.js'];");
+      html = html.replace(/https:\/\/cdn\.jsdelivr\.net\/gh\/Lizer-WebCoder\/divine-rays-tech-hub@[a-f0-9]+\/js\/([a-z0-9._-]+\.js)/gi, function (full, name) {
+        if (SKIP[name]) return full;
+        if (REWRITE[name]) return CDN + REWRITE[name] + '/js/' + name;
+        return full;
+      });
       Object.keys(SKIP).forEach(function (name) {
-        var re = new RegExp(
-          'await loadScript\\([^)]*' + name.replace(/\./g, '\\.') + '[^)]*\\);',
-          'gi'
-        );
+        var re = new RegExp('await loadScript\\([^)]*' + name.replace(/\./g, '\\.') + '[^)]*\\);', 'gi');
         html = html.replace(re, '/* skipped ' + name + ' */');
       });
-
-      html = html.replace(
-        '<head>',
-        '<head><script>window.__DR_COMMENTS_LIVE=8;window.__DR_COMMENTS_LIVE_V2=1;window.__DR_BOOT_CLEAN=1;window.__DR_ECG_OK=false;<\/script>'
-      );
-      html = html.replace(
-        '</head>',
-        '<style id="dr-boot-login-bg">' +
-          'html,body{background:radial-gradient(ellipse 80% 60% at 50% 40%,#1a1530 0%,#0c0c14 55%,#08080f 100%)!important;}' +
-          'html[data-theme="light"],html[data-theme="light"] body{background:radial-gradient(ellipse 80% 60% at 50% 35%,#e8e4ff 0%,#f4f2ff 45%,#eceaf8 100%)!important;}' +
-          '#login-screen,.login-screen{background:transparent!important;background-image:none!important;}' +
-          'html:not([data-ecg="on"]) #dr-lifeline,html:not([data-ecg="on"]) #dr-lifeline *{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}' +
-          'html[data-ecg="on"] #dr-lifeline{display:block!important;visibility:visible!important;opacity:1!important}' +
-        '</style>' +
-        '<script src="' + withBust(CDN + FORCE_LIGHT_BG_SHA + '/js/force-light-bg.js') + '"><\/script>' +
-        '</head>'
-      );
-
-      document.open();
-      document.write(html);
-      document.close();
-      clearTimeout(bootTimer);
-
+      html = html.replace('<head>', '<head><script>window.__DR_COMMENTS_LIVE=8;window.__DR_COMMENTS_LIVE_V2=1;window.__DR_BOOT_CLEAN=1;window.__DR_ECG_OK=false;<\/script>');
+      html = html.replace('</head>', '<style id="dr-boot-login-bg">html,body{background:radial-gradient(ellipse 80% 60% at 50% 40%,#1a1530 0%,#0c0c14 55%,#08080f 100%)!important;}html[data-theme="light"],html[data-theme="light"] body{background:radial-gradient(ellipse 80% 60% at 50% 35%,#e8e4ff 0%,#f4f2ff 45%,#eceaf8 100%)!important;}#login-screen,.login-screen{background:transparent!important;background-image:none!important;}html:not([data-ecg="on"]) #dr-lifeline,html:not([data-ecg="on"]) #dr-lifeline *{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}html[data-ecg="on"] #dr-lifeline{display:block!important;visibility:visible!important;opacity:1!important}</style><script src="' + withBust(CDN + FORCE_LIGHT_BG_SHA + '/js/force-light-bg.js') + '"><\/script></head>');
+      document.open(); document.write(html); document.close(); clearTimeout(bootTimer);
       try {
         (function injectBootOverlay() {
           if (document.getElementById('dr-boot-overlay')) return;
           var st = document.createElement('style');
           st.id = 'dr-boot-overlay-css';
-          st.textContent = [
-            '#dr-boot-overlay{',
-            'position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;',
-            'flex-direction:column;gap:1.25rem;padding:1.5rem;text-align:center;',
-            'background:radial-gradient(ellipse 80% 60% at 50% 40%,#1a1530 0%,#0c0c14 55%,#08080f 100%);',
-            'color:#eeeef6;font-family:Inter,system-ui,-apple-system,sans-serif;',
-            'transition:opacity .55s ease,visibility .55s ease;opacity:1;visibility:visible',
-            '}',
-            'html[data-theme="light"] #dr-boot-overlay{',
-            'background:radial-gradient(ellipse 80% 60% at 50% 35%,#e8e4ff 0%,#f4f2ff 45%,#eceaf8 100%);',
-            'color:#1a1625',
-            '}',
-            '#dr-boot-overlay.is-done{opacity:0;visibility:hidden;pointer-events:none}',
-            '#dr-boot-overlay .boot-logo{width:72px;height:72px;border-radius:16px;',
-            'box-shadow:0 8px 32px rgba(109,90,154,.35);animation:drBootLogoPulse 2.2s ease-in-out infinite}',
-            'html[data-theme="light"] #dr-boot-overlay .boot-logo{box-shadow:0 8px 28px rgba(109,90,154,.22)}',
-            '#dr-boot-overlay .boot-title{font-size:1.35rem;font-weight:650;letter-spacing:.02em;margin:0;line-height:1.3;color:inherit}',
-            '#dr-boot-overlay .boot-sub{font-size:.85rem;margin:0;opacity:.9;color:#9494ae}',
-            'html[data-theme="light"] #dr-boot-overlay .boot-sub{color:#6b6b80}',
-            '#dr-boot-overlay .boot-loader{display:flex;gap:8px;height:28px;align-items:center;justify-content:center;margin-top:.35rem}',
-            '#dr-boot-overlay .boot-dot{width:8px;height:8px;border-radius:50%;background:#a78bfa;',
-            'animation:drBootDot 1.2s ease-in-out infinite}',
-            '#dr-boot-overlay .boot-dot:nth-child(2){animation-delay:.15s}',
-            '#dr-boot-overlay .boot-dot:nth-child(3){animation-delay:.3s}',
-            'html[data-theme="light"] #dr-boot-overlay .boot-dot{background:#7c6af0}',
-            '#dr-boot-overlay .boot-bar{width:120px;height:3px;border-radius:2px;overflow:hidden;',
-            'background:rgba(167,139,250,.15);margin-top:.15rem}',
-            'html[data-theme="light"] #dr-boot-overlay .boot-bar{background:rgba(124,106,240,.15)}',
-            '#dr-boot-overlay .boot-bar-fill{height:100%;width:40%;border-radius:2px;',
-            'background:linear-gradient(90deg,#8b7cf0,#c4b5fd,#8b7cf0);background-size:200% 100%;',
-            'animation:drBootBar 1.4s ease-in-out infinite}',
-            '@keyframes drBootLogoPulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.04);opacity:.92}}',
-            '@keyframes drBootDot{0%,80%,100%{transform:translateY(0);opacity:.35}40%{transform:translateY(-6px);opacity:1}}',
-            '@keyframes drBootBar{0%{transform:translateX(-100%)}100%{transform:translateX(280%)}}',
-            'body.dr-boot-holding #login-screen,body.dr-boot-holding .login-screen{opacity:0!important;pointer-events:none!important}'
-          ].join('');
+          st.textContent = '#dr-boot-overlay{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1.25rem;padding:1.5rem;text-align:center;background:radial-gradient(ellipse 80% 60% at 50% 40%,#1a1530 0%,#0c0c14 55%,#08080f 100%);color:#eeeef6;font-family:Inter,system-ui,sans-serif;transition:opacity .55s ease;opacity:1}html[data-theme="light"] #dr-boot-overlay{background:radial-gradient(ellipse 80% 60% at 50% 35%,#e8e4ff 0%,#f4f2ff 45%,#eceaf8 100%);color:#1a1625}#dr-boot-overlay.is-done{opacity:0;pointer-events:none}#dr-boot-overlay .boot-logo{width:72px;height:72px;border-radius:16px;box-shadow:0 8px 32px rgba(109,90,154,.35)}#dr-boot-overlay .boot-title{font-size:1.35rem;font-weight:650;margin:0}#dr-boot-overlay .boot-sub{font-size:.85rem;color:#9494ae;margin:0}#dr-boot-overlay .boot-loader{display:flex;gap:8px;height:28px;align-items:center}#dr-boot-overlay .boot-dot{width:8px;height:8px;border-radius:50%;background:#a78bfa;animation:drBootDot 1.2s ease-in-out infinite}#dr-boot-overlay .boot-dot:nth-child(2){animation-delay:.15s}#dr-boot-overlay .boot-dot:nth-child(3){animation-delay:.3s}@keyframes drBootDot{0%,80%,100%{transform:translateY(0);opacity:.35}40%{transform:translateY(-6px);opacity:1}}body.dr-boot-holding #login-screen,body.dr-boot-holding .login-screen{opacity:0!important;pointer-events:none!important}';
           (document.head || document.documentElement).appendChild(st);
           var ov = document.createElement('div');
           ov.id = 'dr-boot-overlay';
-          ov.setAttribute('role', 'status');
-          ov.setAttribute('aria-live', 'polite');
-          ov.setAttribute('aria-label', 'Loading Divine Rays Tech Hub');
-          ov.innerHTML =
-            '<img class="boot-logo" src="favicon.svg?v=9.9.9-boot" alt="Divine Rays" width="72" height="72" />' +
-            '<h1 class="boot-title">Divine Rays Tech Hub</h1>' +
-            '<p class="boot-sub">Loading…</p>' +
-            '<div class="boot-loader" aria-hidden="true"><span class="boot-dot"></span><span class="boot-dot"></span><span class="boot-dot"></span></div>' +
-            '<div class="boot-bar" aria-hidden="true"><div class="boot-bar-fill"></div></div>';
+          ov.innerHTML = '<img class="boot-logo" src="favicon.svg?v=9.9.9-boot" alt="Divine Rays" width="72" height="72" /><h1 class="boot-title">Divine Rays Tech Hub</h1><p class="boot-sub">Loading…</p><div class="boot-loader"><span class="boot-dot"></span><span class="boot-dot"></span><span class="boot-dot"></span></div>';
           (document.body || document.documentElement).appendChild(ov);
           try { document.body.classList.add('dr-boot-holding'); } catch (eH) {}
           window.__DR_DISMISS_BOOT = function () {
@@ -366,34 +213,19 @@
             if (!o || o.classList.contains('is-done')) return;
             o.classList.add('is-done');
             try { document.body.classList.remove('dr-boot-holding'); } catch (e2) {}
-            setTimeout(function () {
-              try { o.remove(); } catch (e3) {}
-              try {
-                var c = document.getElementById('dr-boot-overlay-css');
-                if (c) c.remove();
-              } catch (e4) {}
-            }, 600);
+            setTimeout(function () { try { o.remove(); } catch (e3) {} }, 600);
           };
         })();
       } catch (eOv) {}
-
       try { loadScript(CDN + FORCE_LIGHT_BG_SHA + '/js/force-light-bg.js'); } catch (eFl) {}
       window.__DR_ECG_OK = false;
       try { document.documentElement.removeAttribute('data-ecg'); } catch (e0) {}
-
       var killEarly = setInterval(function () {
-        if (document.documentElement.getAttribute('data-ecg') === 'on') {
-          clearInterval(killEarly);
-          return;
-        }
+        if (document.documentElement.getAttribute('data-ecg') === 'on') { clearInterval(killEarly); return; }
         var box = document.getElementById('dr-lifeline');
-        if (box) {
-          box.innerHTML = '';
-          box.style.cssText = 'display:none!important;opacity:0!important;visibility:hidden!important';
-        }
+        if (box) { box.innerHTML = ''; box.style.cssText = 'display:none!important;opacity:0!important;visibility:hidden!important'; }
       }, 80);
       setTimeout(function () { try { clearInterval(killEarly); } catch (e) {} }, 15000);
-
       setTimeout(function () {
         loadScript(CDN + ADMIN_LOCK_SHA + '/js/admin-portal-lock.js');
         loadScript(CDN + USERS_NAV_SHA + '/js/users-nav.js');
@@ -411,7 +243,6 @@
         loadScript(CDN + LOGIN_CHROME_HIDE_SHA + '/js/login-chrome-hide.js');
         loadScript(CDN + PAGER_FIX_SHA + '/js/pager-fix.js');
       }, 30);
-
       setTimeout(function () {
         Promise.all([
           loadScript(CDN + DESIGN_SHA + '/js/design-system-v10.js'),
@@ -459,54 +290,50 @@
             function startEcgWhenHoneycomb() {
               var amb = document.getElementById('dr-login-ambient');
               var honey = amb && (amb.querySelector('.dr-honeycomb') || amb.querySelector('svg'));
-              if (!honey) {
-                setTimeout(startEcgWhenHoneycomb, 200);
-                return;
-              }
+              if (!honey) { setTimeout(startEcgWhenHoneycomb, 200); return; }
               requestAnimationFrame(function () {
                 requestAnimationFrame(function () {
                   window.__DR_ECG_OK = true;
                   document.documentElement.setAttribute('data-ecg', 'on');
                   loadScript(CDN + HB_SHA + '/js/heartbeat-draw.js');
-                  try {
-                    if (window.__DR_DISMISS_BOOT) window.__DR_DISMISS_BOOT();
-                  } catch (eD) {}
+                  try { if (window.__DR_DISMISS_BOOT) window.__DR_DISMISS_BOOT(); } catch (eD) {}
                 });
               });
             }
             setTimeout(startEcgWhenHoneycomb, 300);
-            setTimeout(function () {
-              try { if (window.__DR_DISMISS_BOOT) window.__DR_DISMISS_BOOT(); } catch (eS) {}
-            }, 12000);
+            setTimeout(function () { try { if (window.__DR_DISMISS_BOOT) window.__DR_DISMISS_BOOT(); } catch (eS) {} }, 12000);
           } catch (eEcg) {}
+          try { loaded['admin.js'] = 0; loadScript(CDN + ADMIN_SHA + '/js/admin.js'); } catch (eA) {}
           try { if (window.DRUsersNav && window.DRUsersNav.refresh) window.DRUsersNav.refresh(); } catch (e) {}
+          try {
+            if (!window.__DR_ADMIN_RECLAIM) {
+              window.__DR_ADMIN_RECLAIM = 1;
+              setInterval(function () {
+                try {
+                  if (!document.body.classList.contains('dr-view-endusers') && !document.body.classList.contains('dr-view-admin-staff')) return;
+                  var box = document.getElementById('admin-users-list');
+                  if (!box) return;
+                  var oldUi = box.querySelector('.admin-role-select');
+                  var hasTable = box.querySelector('table');
+                  var hasPager = document.getElementById('dr-users-pager');
+                  if ((oldUi || (hasTable && !hasPager)) && typeof window.renderAdminUsers === 'function') {
+                    window.renderAdminUsers(window.__DR_USERS_LIST_MODE || 'endusers');
+                  }
+                } catch (eRec) {}
+              }, 1200);
+            }
+          } catch (eRec2) {}
           try { if (window.DRSidebarDesign && window.DRSidebarDesign.refresh) window.DRSidebarDesign.refresh(); } catch (e2) {}
-          try { if (window.DRStaffNotifs && window.DRStaffNotifs.refresh) window.DRStaffNotifs.refresh(); } catch (e3) {}
-          try { if (window.DRCommentsLive && window.DRCommentsLive.refresh) window.DRCommentsLive.refresh(); } catch (e4) {}
-          try { if (window.DRUsersFilterEnforce && window.DRUsersFilterEnforce.refresh) window.DRUsersFilterEnforce.refresh(); } catch (e5) {}
-          try { if (window.DRCustomerMyTicketsFilter && window.DRCustomerMyTicketsFilter.refresh) window.DRCustomerMyTicketsFilter.refresh(); } catch (e6) {}
-          try { if (window.DREndUserPro && window.DREndUserPro.refresh) window.DREndUserPro.refresh(); } catch (e7) {}
-          try { if (window.DREndUserUI && window.DREndUserUI.refresh) window.DREndUserUI.refresh(); } catch (e8) {}
-          try { if (window.DRChatUI && window.DRChatUI.refresh) window.DRChatUI.refresh(); } catch (e9) {}
-          try { if (window.DRLightModePolish && window.DRLightModePolish.refresh) window.DRLightModePolish.refresh(); } catch (e10) {}
           try { if (window.DRTopbarBrand && window.DRTopbarBrand.refresh) window.DRTopbarBrand.refresh(); } catch (e11) {}
           try { if (window.DRTopbarActions && window.DRTopbarActions.refresh) window.DRTopbarActions.refresh(); } catch (e12) {}
           try { if (window.DRTheme && window.DRTheme.ensure) window.DRTheme.ensure(); } catch (e13) {}
-          try { if (window.DRPriorityP1Display && window.DRPriorityP1Display.refresh) window.DRPriorityP1Display.refresh(); } catch (e14) {}
-          try { if (window.DRPagerFix && window.DRPagerFix.refresh) window.DRPagerFix.refresh(); } catch (e15) {}
           try { if (window.DRDashUIV2 && window.DRDashUIV2.refresh) window.DRDashUIV2.refresh(); } catch (e16) {}
         });
       }, 200);
-
     } catch (err) {
       clearTimeout(bootTimer);
       var boot = document.getElementById('boot');
-      if (boot) {
-        boot.innerHTML =
-          '<div>Load error: ' +
-          (err.message || err) +
-          '</div><div class="hint">Hard refresh (Ctrl+Shift+R) and try again.</div>';
-      }
+      if (boot) boot.innerHTML = '<div>Load error: ' + (err.message || err) + '</div><div class="hint">Hard refresh (Ctrl+Shift+R) and try again.</div>';
     }
   })();
   </script>
