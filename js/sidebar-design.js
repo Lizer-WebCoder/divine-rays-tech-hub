@@ -113,21 +113,9 @@
     'border-top:1px solid rgba(139,124,247,0.12)!important;',
     'margin-top:auto!important}',
 
-    '#portal-agent .sidebar .stat-pills{',
-    'display:flex!important;flex-wrap:wrap!important;gap:0.35rem!important;',
-    'padding:0.35rem 0.15rem!important}',
-
-    '#portal-agent .sidebar .stat-pill{',
-    'display:inline-flex!important;align-items:center!important;gap:0.25rem!important;',
-    'padding:0.2rem 0.45rem!important;border-radius:8px!important;',
-    'background:rgba(26,24,42,0.7)!important;',
-    'border:1px solid rgba(139,124,247,0.15)!important;',
-    'font-size:0.65rem!important}',
-
-    '#portal-agent .sidebar .stat-pill .n{font-weight:700!important;color:#c4b5fd!important}',
-    '#portal-agent .sidebar .stat-pill .l{color:#8b869e!important}',
-    '#portal-agent .sidebar .stat-pill.critical .n{color:#f87171!important}',
-    '#portal-agent .sidebar .stat-pill.critical{border-color:rgba(248,113,113,0.25)!important}',
+    /* Unassigned/Critical pills removed — stats live on Dashboard */
+    '#portal-agent .sidebar .stat-pills,',
+    '#portal-agent .sidebar .stat-pill{display:none!important}',
 
     '#portal-agent .sidebar #btn-export{',
     'width:100%!important;margin-top:0.35rem!important;',
@@ -169,9 +157,6 @@
     'html[data-theme="light"] #portal-agent .sidebar .sidebar-user-card{',
     'background:rgba(255,255,255,0.55)!important;border-color:rgba(109,94,245,0.15)!important}',
     'html[data-theme="light"] #portal-agent .sidebar .presence-row{color:#1e1b4b!important}',
-    'html[data-theme="light"] #portal-agent .sidebar .stat-pill{',
-    'background:rgba(247,245,252,0.7)!important}',
-    'html[data-theme="light"] #portal-agent .sidebar .stat-pill .n{color:#1e1b4b!important}',
     'html[data-theme="light"] #portal-agent .sidebar #btn-export{',
     'background:#7c6af8!important;color:#fff!important;border:none!important}'
   ].join('');
