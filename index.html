@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.9.15-topbar-fast" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.9.16-toast-pos" />
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@main/js/admin-portal-lock.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@main/js/theme.js"></script>
   <style>
@@ -102,6 +102,7 @@
     var PAGER_FIX_SHA = '10037b1e4fdd1f855a0b1cbd558ec3af7bf71d2f';
     var DASH_UI_V2_SHA = '92f4070a0c125f2e3ce5d423fff1f68c4d3ba968';
     var HB_SHA = 'eb5307ac567bac02ee36296941bd767459b2f0d2';
+    var TOAST_POS_SHA = 'd13b281543c350be5382fd32462522b3d2dc2e3d';
     var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
     var BUST = String(Date.now());
     var TIP = 'dd3d27c0c8190f4f85781c8f2477678d538768b0';
@@ -138,7 +139,8 @@
       'login-chrome-hide.js': LOGIN_CHROME_HIDE_SHA,
       'pager-fix.js': PAGER_FIX_SHA,
       'dashboard-ui-v2.js': DASH_UI_V2_SHA,
-      'heartbeat-draw.js': HB_SHA
+      'heartbeat-draw.js': HB_SHA,
+      'toast-position.js': TOAST_POS_SHA
     };
     var SKIP = {
       'ui-flicker-fix.js': 1, 'content-restore.js': 1, 'card-opacity.js': 1, 'smooth-refresh.js': 1,
@@ -218,12 +220,13 @@
         })();
       } catch (eOv) {}
       try { loadScript(CDN + FORCE_LIGHT_BG_SHA + '/js/force-light-bg.js'); } catch (eFl) {}
-      /* TOPBAR_EARLY: paint brand/actions ASAP (Admin + Employee portals) */
+      /* TOPBAR_EARLY */
       try {
         loadScript(CDN + TOPBAR_SHA + '/js/topbar-brand-role.js');
         loadScript(CDN + TOPBAR_ACTIONS_SHA + '/js/topbar-actions.js');
         loadScript(CDN + THEME_SHA + '/js/theme.js');
         loadScript(CDN + SIDEBAR_ROLE_SHA + '/js/sidebar-role-label.js');
+        loadScript(CDN + TOAST_POS_SHA + '/js/toast-position.js');
       } catch (eTopEarly) {}
       window.__DR_ECG_OK = false;
       try { document.documentElement.removeAttribute('data-ecg'); } catch (e0) {}
@@ -241,6 +244,7 @@
         loadScript(CDN + TOPBAR_SHA + '/js/topbar-brand-role.js');
         loadScript(CDN + TOPBAR_ACTIONS_SHA + '/js/topbar-actions.js');
         loadScript(CDN + THEME_SHA + '/js/theme.js');
+        loadScript(CDN + TOAST_POS_SHA + '/js/toast-position.js');
         loadScript(CDN + DASH_NO_TICKETS_SHA + '/js/dashboard-no-tickets.js');
         loadScript(CDN + DASH_UI_V2_SHA + '/js/dashboard-ui-v2.js');
         loadScript(CDN + PENDING_FIX_SHA + '/js/pending-approved-fix.js');
@@ -263,6 +267,7 @@
           loadScript(CDN + THEME_SHA + '/js/theme.js'),
           loadScript(CDN + TOPBAR_SHA + '/js/topbar-brand-role.js'),
           loadScript(CDN + TOPBAR_ACTIONS_SHA + '/js/topbar-actions.js'),
+          loadScript(CDN + TOAST_POS_SHA + '/js/toast-position.js'),
           loadScript(CDN + DASH_NO_TICKETS_SHA + '/js/dashboard-no-tickets.js'),
           loadScript(CDN + DASH_UI_V2_SHA + '/js/dashboard-ui-v2.js'),
           loadScript(CDN + TEAM_BOARD_SHA + '/js/team-board.js'),
