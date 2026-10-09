@@ -1,11 +1,12 @@
 /**
- * Divine Rays — Admin V17 — reclaim over shell admin; pager+Actions+Roles locked
+ * Divine Rays — Admin V18 — Developer gold badges; Roles match sidebar
  * End-Users: customers only | Admin: staff Status/Approve/Deny (deny deletes)
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_ADMIN_V17) return;
+  if (window.__DR_ADMIN_V18) return;
+  window.__DR_ADMIN_V18 = 1;
   window.__DR_ADMIN_V17 = 1;
   window.__DR_ADMIN_V16 = 1;
   window.__DR_ADMIN_V15 = 1;
@@ -158,8 +159,8 @@
     sel.value = want.some(function (x) { return x.v === cur; }) ? cur : '';
   }
   function injectCss() {
-    var el = document.getElementById('dr-admin-v17-css');
-    if (!el) { el = document.createElement('style'); el.id = 'dr-admin-v17-css'; (document.head || document.documentElement).appendChild(el); }
+    var el = document.getElementById('dr-admin-v18-css');
+    if (!el) { el = document.createElement('style'); el.id = 'dr-admin-v18-css'; (document.head || document.documentElement).appendChild(el); }
     el.textContent =
       '#view-admin .admin-hint,#view-admin .page-sub,#view-admin .section-desc,#view-admin p.muted{display:none!important}' +
       'body.dr-view-admin-staff h1 + p,body.dr-view-endusers h1 + p,body.dr-view-admin-staff h2 + p,body.dr-view-endusers h2 + p{display:none!important}' +
@@ -177,8 +178,8 @@
       'body.dr-view-admin-staff .admin-role-select,body.dr-view-admin-staff .admin-btn-edit,body.dr-view-admin-staff .admin-btn-del,body.dr-view-endusers .admin-role-select{display:none!important}' +
       '.badge-role-customer{background:rgba(244,114,182,0.22)!important;color:#f472b6!important}' +
       '.badge-role-admin{background:rgba(45,212,191,0.22)!important;color:#2dd4bf!important}' +
-      '.badge-role-developer{background:rgba(167,139,250,0.25)!important;color:#c4b5fd!important}' +
-      '.badge-role-owner{background:rgba(251,191,36,0.22)!important;color:#fbbf24!important}' +
+      '.badge-role-developer{background:rgba(234,179,8,0.22)!important;color:#fbbf24!important}' +
+      '.badge-role-owner{background:rgba(168,85,247,0.18)!important;color:#c084fc!important}' +
       '.badge-role-agent{background:rgba(96,165,250,0.22)!important;color:#60a5fa!important}' +
       '.admin-modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center}' +
       '.admin-modal-backdrop.is-hidden{display:none}' +
@@ -366,11 +367,11 @@
     injectCss();
     wireRoleFilter();
     var ar = document.getElementById('admin-refresh');
-    if (ar && !ar.__v17) { ar.__v17 = 1; ar.addEventListener('click', function () { renderAdminUsers(); }); }
+    if (ar && !ar.__v18) { ar.__v18 = 1; ar.addEventListener('click', function () { renderAdminUsers(); }); }
     var as = document.getElementById('admin-search');
-    if (as && !as.__v17) { as.__v17 = 1; as.addEventListener('input', function () { window.__drUsersPage = 0; renderAdminUsers(); }); }
+    if (as && !as.__v18) { as.__v18 = 1; as.addEventListener('input', function () { window.__drUsersPage = 0; renderAdminUsers(); }); }
     var afr = document.getElementById('admin-filter-role');
-    if (afr && !afr.__v17) { afr.__v17 = 1; afr.addEventListener('change', function () { window.__drUsersPage = 0; renderAdminUsers(); }); }
+    if (afr && !afr.__v18) { afr.__v18 = 1; afr.addEventListener('change', function () { window.__drUsersPage = 0; renderAdminUsers(); }); }
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
