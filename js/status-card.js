@@ -1,5 +1,6 @@
 /**
- * Divine Rays — compact sidebar + status card (no scroll)
+ * Divine Rays — compact sidebar + presence (no metrics pills)
+ * Status lives with Name · Role at the top; Unassigned/Critical removed
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
@@ -28,32 +29,110 @@
       '#portal-agent .agent-badge{margin-bottom:.35rem!important;padding:.32rem .5rem!important;font-size:.75rem!important}',
       '#portal-agent .nav{flex:0 0 auto;gap:.08rem!important}',
       '#portal-agent .nav-btn{padding:.38rem .6rem!important;font-size:.8rem!important}',
-      '#portal-agent .nav-admin:not(.is-hidden){margin-top:.3rem!important;margin-bottom:0!important;padding-top:.4rem!important}',
-      '#portal-agent .sidebar-footer{flex-shrink:0;margin-top:.2rem;padding:.35rem .2rem .15rem!important;border-top:1px solid var(--border,#2a2a3a)}',
-      '#portal-agent .sidebar-footer .btn{font-size:.68rem!important;padding:.2rem .45rem!important}',
-      '#portal-agent .sidebar-footer .kbd-hint{font-size:.55rem;color:#7a7a90;margin:.15rem 0 .04rem;line-height:1.25}',
-      '#portal-agent .sidebar-footer .version{font-size:.62rem;color:#9a9ab0;margin:.04rem 0;font-weight:600}',
-      '#portal-agent .sidebar-footer{text-align:center!important}',
-      '#portal-agent .sidebar-footer .credit-side{font-size:.52rem;color:#8b8ba3;text-transform:uppercase;letter-spacing:.04em;opacity:.9;margin:.06rem 0 .04rem;text-align:center!important}',
-      '.credit-footer,.credit-side{text-align:center!important}',
-      '#portal-agent .sidebar-avatar-chip{display:flex;justify-content:center;align-items:center;margin:.3rem 0 .25rem!important}',
+      '#portal-agent .nav-admin:not(.is-hidden){margin-top:.15rem!important}',
+      '#portal-agent .sidebar-footer{margin-top:auto;padding-top:.35rem!important;flex-shrink:0}',
+      '#portal-agent .sidebar-footer .kbd-hint,#portal-agent .sidebar-footer .version,#portal-agent .sidebar-footer .credit-side{font-size:.58rem!important;opacity:.55;margin:.1rem 0!important;line-height:1.25}',
+      '#portal-agent .sidebar-avatar-chip{display:flex!important;justify-content:center!important;margin:.45rem 0 .2rem!important}',
       '#portal-agent .sidebar-avatar-chip .avatar-img,#portal-agent .sidebar-avatar-chip .avatar-fallback,#portal-agent .sidebar-avatar-chip img{width:64px!important;height:64px!important;border-radius:50%!important;object-fit:cover!important;display:block;border:2.5px solid rgba(124,106,240,.6);box-shadow:0 0 0 3px rgba(124,106,240,.16),0 4px 14px rgba(0,0,0,.35)}',
       '#portal-agent .sidebar-avatar-chip .avatar-fallback{font-size:1.4rem!important;font-weight:700}',
-      '.dr-status-card{margin:.35rem .05rem .25rem!important;padding:.45rem .5rem;background:linear-gradient(180deg,rgba(124,106,240,.1),rgba(124,106,240,.04));border:1px solid rgba(124,106,240,.22);border-radius:10px;flex-shrink:0;position:relative;z-index:1}',
-      '.dr-status-row{display:flex;align-items:center;gap:.35rem;margin-bottom:.3rem;font-size:.72rem;color:var(--text-muted,#8b8ba3)}',
-      '.dr-status-you-label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
-      '.dr-status-name{color:var(--text,#f0f0f8);font-weight:600}',
-      '.dr-status-dot{width:8px;height:8px;border-radius:50%;background:#34d399;box-shadow:0 0 0 3px rgba(52,211,153,.2);flex-shrink:0}',
-      '.dr-status-metrics{display:grid;grid-template-columns:1fr 1fr;gap:.35rem}',
-      '.dr-status-metric{background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.06);border-radius:7px;padding:.28rem .32rem;cursor:pointer;text-align:center}',
-      '.dr-status-metric:hover{border-color:rgba(124,106,240,.4);background:rgba(124,106,240,.1)}',
-      '.dr-status-metric-value{display:block;font-size:.95rem;font-weight:700;color:var(--text,#f0f0f8);line-height:1.1}',
-      '.dr-status-metric-label{display:block;font-size:.52rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted,#8b8ba3);margin-top:.02rem}',
-      '.dr-status-critical.is-hot{border-color:rgba(248,113,113,.45);background:rgba(248,113,113,.1)}',
-      '.dr-status-critical.is-hot .dr-status-metric-value{color:#fca5a5}',
-      'html[data-theme="light"] .dr-status-card{background:linear-gradient(180deg,rgba(109,94,245,.08),rgba(109,94,245,.03));border-color:rgba(109,94,245,.2)}',
-      'html[data-theme="light"] .dr-status-metric{background:rgba(15,15,30,.04);border-color:rgba(15,15,30,.08)}',
-      'html[data-theme="light"] .dr-status-name,html[data-theme="light"] .dr-status-metric-value{color:var(--text,#1a1a2e)}',
+
+      /* ── Presence only (no Unassigned / Critical metrics) ── */
+      '.dr-status-card{',
+      'margin:.2rem .05rem .45rem!important;',
+      'padding:.55rem .65rem;',
+      'background:linear-gradient(145deg,rgba(124,106,240,.12),rgba(124,106,240,.04));',
+      'border:1px solid rgba(124,106,240,.22);',
+      'border-radius:12px;',
+      'flex-shrink:0;',
+      'position:relative;',
+      'z-index:1;',
+      'box-shadow:0 2px 10px rgba(0,0,0,.18)',
+      '}',
+      '.dr-status-row{',
+      'display:flex;',
+      'align-items:center;',
+      'gap:.45rem;',
+      'margin:0;',
+      'font-size:.78rem;',
+      'line-height:1.35;',
+      'color:var(--text-muted,#8b8ba3)',
+      '}',
+      '.dr-status-you-label{',
+      'min-width:0;',
+      'overflow:hidden;',
+      'text-overflow:ellipsis;',
+      'white-space:nowrap;',
+      'display:flex;',
+      'align-items:center;',
+      'gap:.3rem;',
+      'flex-wrap:nowrap',
+      '}',
+      '.dr-status-name{',
+      'color:var(--text,#f0f0f8);',
+      'font-weight:650;',
+      'letter-spacing:-0.01em',
+      '}',
+      '.dr-status-role{',
+      'font-size:.68rem;',
+      'font-weight:600;',
+      'padding:.12rem .4rem;',
+      'border-radius:999px;',
+      'letter-spacing:.02em;',
+      'white-space:nowrap',
+      '}',
+      '.dr-status-role.developer{',
+      'color:#fbbf24;',
+      'background:rgba(234,179,8,.18);',
+      'border:1px solid rgba(234,179,8,.4)',
+      '}',
+      '.dr-status-role.admin{',
+      'color:#2dd4bf;',
+      'background:rgba(45,212,191,.14);',
+      'border:1px solid rgba(45,212,191,.35)',
+      '}',
+      '.dr-status-role.owner{',
+      'color:#c084fc;',
+      'background:rgba(192,132,252,.14);',
+      'border:1px solid rgba(192,132,252,.35)',
+      '}',
+      '.dr-status-role.agent{',
+      'color:#60a5fa;',
+      'background:rgba(96,165,250,.14);',
+      'border:1px solid rgba(96,165,250,.35)',
+      '}',
+      '.dr-status-online{',
+      'color:#34d399;',
+      'font-weight:550;',
+      'font-size:.72rem;',
+      'opacity:.95',
+      '}',
+      '.dr-status-dot{',
+      'width:8px;',
+      'height:8px;',
+      'border-radius:50%;',
+      'background:#34d399;',
+      'box-shadow:0 0 0 3px rgba(52,211,153,.22);',
+      'flex-shrink:0;',
+      'animation:dr-pulse-online 2.4s ease-in-out infinite',
+      '}',
+      '@keyframes dr-pulse-online{',
+      '0%,100%{box-shadow:0 0 0 3px rgba(52,211,153,.22)}',
+      '50%{box-shadow:0 0 0 5px rgba(52,211,153,.12)}',
+      '}',
+
+      /* Hide any leftover metric pills if injected elsewhere */
+      '.dr-status-metrics,',
+      '#portal-agent .sidebar .stat-pills,',
+      '#portal-agent .sidebar .stat-pill{display:none!important}',
+
+      'html[data-theme="light"] .dr-status-card{',
+      'background:linear-gradient(145deg,rgba(109,94,245,.1),rgba(109,94,245,.03));',
+      'border-color:rgba(109,94,245,.2);',
+      'box-shadow:0 2px 8px rgba(109,94,245,.08)',
+      '}',
+      'html[data-theme="light"] .dr-status-name{color:var(--text,#1a1a2e)}',
+      'html[data-theme="light"] .dr-status-online{color:#059669}',
+      'html[data-theme="light"] .dr-status-dot{background:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,.2)}',
       '#btn-theme.btn-theme{min-width:3.2rem}',
       '.mode-bar .user-info{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap}'
     ].join('');
@@ -62,17 +141,57 @@
 
   var CARD_ID = 'dr-status-card';
 
-  function textOf(id) {
-    var el = document.getElementById(id);
-    if (!el) return '0';
-    return ((el.textContent || '0').trim()) || '0';
+  var DEVS = { kirzhian: 1, kirzhianquijano: 1, kirzhianthegreat: 1, jamesjerlow123: 1, liya: 1, iiya: 1 };
+
+  function isDev(s) {
+    s = String(s || '').toLowerCase().trim();
+    return !!DEVS[s] || s.indexOf('kirzhian') === 0;
   }
 
-  function agentLabel() {
-    var n = document.getElementById('agent-name-display');
-    if (n && n.textContent) return n.textContent.trim().split('\u00b7')[0].trim() || 'You';
+  function profile() {
+    try {
+      if (window.__drProfile) return window.__drProfile;
+      if (window.DR && typeof window.DR.getProfile === 'function') {
+        var gp = window.DR.getProfile();
+        if (gp) return gp;
+      }
+      if (window.DR && window.DR.profile) return window.DR.profile;
+      if (window.DR && window.DR.user) return window.DR.user;
+      if (window.currentProfile) return window.currentProfile;
+    } catch (e) {}
+    return null;
+  }
+
+  function roleOf(p, nameHint) {
+    var un = '';
+    if (p) un = String(p.username || p.name || p.display_name || '').toLowerCase().trim();
+    if (!un && nameHint) un = String(nameHint).toLowerCase().trim();
+    var r = p ? String(p.role || p.staff_role || '').toLowerCase().trim() : '';
+    if (isDev(un) || r === 'developer' || r === 'dev') return { label: 'Developer', cls: 'developer' };
+    if (r === 'owner') return { label: 'Owner', cls: 'owner' };
+    if (r === 'it tech support' || r.indexOf('tech support') !== -1 || r === 'agent' || r === 'it_tech_support') {
+      return { label: 'IT Tech Support', cls: 'agent' };
+    }
+    if (r === 'admin') return { label: 'Admin', cls: 'admin' };
+    if (isDev(un)) return { label: 'Developer', cls: 'developer' };
+    return { label: 'Admin', cls: 'admin' };
+  }
+
+  function agentName() {
+    var p = profile();
+    if (p) {
+      var n = String(p.username || p.name || p.display_name || p.full_name || '').trim();
+      if (n) return n.split(/\s+/)[0];
+    }
+    var el = document.getElementById('agent-name-display');
+    if (el) {
+      var span = el.querySelector('.dr-side-name');
+      if (span && span.textContent) return span.textContent.trim();
+      var t = (el.textContent || '').replace(/[·\u00b7\-].*$/, '').trim();
+      if (t && t !== 'Agent' && t !== 'Admin') return t.split(/\s+/)[0];
+    }
     var lb = document.getElementById('logged-user-label');
-    if (lb && lb.textContent) return lb.textContent.replace(/\s*\(.*\)\s*$/, '').trim() || 'You';
+    if (lb && lb.textContent) return lb.textContent.replace(/\s*\(.*\)\s*$/, '').trim().split(/\s+/)[0] || 'You';
     return 'You';
   }
 
@@ -82,7 +201,7 @@
     if (!footer.querySelector('.kbd-hint')) {
       var k = document.createElement('p');
       k.className = 'kbd-hint';
-      k.textContent = '/ search \u00b7 Esc back \u00b7 C claim';
+      k.textContent = '/ search · Esc back · C claim';
       footer.appendChild(k);
     }
     if (!footer.querySelector('.version')) {
@@ -106,8 +225,18 @@
     var sidebar = document.querySelector('#portal-agent .sidebar') || document.querySelector('.sidebar');
     if (!sidebar) return null;
     ensureFooterCredits();
+
+    /* Remove any leftover metric nodes from older builds */
+    sidebar.querySelectorAll('.dr-status-metrics, .stat-pills').forEach(function (n) {
+      try { n.remove(); } catch (e) {}
+    });
+
     var existing = document.getElementById(CARD_ID);
-    if (existing) return existing;
+    if (existing) {
+      var metrics = existing.querySelector('.dr-status-metrics');
+      if (metrics) metrics.remove();
+      return existing;
+    }
 
     var footer = sidebar.querySelector('.sidebar-footer');
     var card = document.createElement('div');
@@ -116,39 +245,16 @@
     card.innerHTML =
       '<div class="dr-status-row">' +
         '<span class="dr-status-dot" aria-hidden="true"></span>' +
-        '<span class="dr-status-you-label"><strong class="dr-status-name">You</strong> \u00b7 Online</span>' +
-      '</div>' +
-      '<div class="dr-status-metrics">' +
-        '<div class="dr-status-metric" data-jump="unassigned" title="View unassigned">' +
-          '<span class="dr-status-metric-value" id="dr-stat-unassigned">0</span>' +
-          '<span class="dr-status-metric-label">Unassigned</span>' +
-        '</div>' +
-        '<div class="dr-status-metric dr-status-critical" data-jump="critical" title="Filter critical">' +
-          '<span class="dr-status-metric-value" id="dr-stat-critical">0</span>' +
-          '<span class="dr-status-metric-label">Critical</span>' +
-        '</div>' +
+        '<span class="dr-status-you-label">' +
+          '<strong class="dr-status-name">You</strong>' +
+          '<span class="dr-status-role admin">Admin</span>' +
+          '<span class="dr-status-online">· Online</span>' +
+        '</span>' +
       '</div>';
 
     if (footer) sidebar.insertBefore(card, footer);
     else sidebar.appendChild(card);
 
-    card.querySelectorAll('[data-jump]').forEach(function (el) {
-      el.addEventListener('click', function () {
-        var jump = el.getAttribute('data-jump');
-        if (jump === 'unassigned') {
-          var btn = document.querySelector('#portal-agent .nav-btn[data-view="unassigned"]');
-          if (btn) btn.click();
-        } else if (jump === 'critical') {
-          var dash = document.querySelector('#portal-agent .nav-btn[data-view="dashboard"]');
-          if (dash) dash.click();
-          var fp = document.getElementById('filter-priority');
-          if (fp) {
-            fp.value = 'Critical';
-            fp.dispatchEvent(new Event('change', { bubbles: true }));
-          }
-        }
-      });
-    });
     return card;
   }
 
@@ -156,16 +262,23 @@
     var card = ensureCard();
     ensureFooterCredits();
     if (!card) return;
+
+    var name = agentName();
+    var p = profile();
+    var role = roleOf(p, name);
+    if (isDev(name)) role = { label: 'Developer', cls: 'developer' };
+
     var nameEl = card.querySelector('.dr-status-name');
-    if (nameEl) nameEl.textContent = agentLabel();
-    var u = textOf('stat-unassigned');
-    var c = textOf('stat-critical');
-    var uEl = document.getElementById('dr-stat-unassigned');
-    var cEl = document.getElementById('dr-stat-critical');
-    if (uEl) uEl.textContent = u;
-    if (cEl) cEl.textContent = c;
-    var crit = card.querySelector('.dr-status-critical');
-    if (crit) crit.classList.toggle('is-hot', parseInt(c, 10) > 0);
+    if (nameEl) nameEl.textContent = name;
+
+    var roleEl = card.querySelector('.dr-status-role');
+    if (roleEl) {
+      roleEl.textContent = role.label;
+      roleEl.className = 'dr-status-role ' + role.cls;
+    }
+
+    var onlineEl = card.querySelector('.dr-status-online');
+    if (onlineEl) onlineEl.textContent = '· Online';
   }
 
   function boot() {
