@@ -1,17 +1,16 @@
 /**
- * Divine Rays — Admin Portal lock v8 — filters sync pin (no flicker, portal-aware brand)
- * Plain role text (no pill), profile divider, avatar glow
+ * Divine Rays — Admin Portal lock v9 — filters-sync v3 pin
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_ADMIN_PORTAL_LOCK >= 8) return;
-  window.__DR_ADMIN_PORTAL_LOCK = 8;
+  if (window.__DR_ADMIN_PORTAL_LOCK >= 9) return;
+  window.__DR_ADMIN_PORTAL_LOCK = 9;
 
   var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
   var PINS = {
     'pending-approved-fix.js': '94a5aeaaa38fafaaa1ac94872341ce3bf992dfd1',
-    'filters-sync-fix.js': '15be9a6c6cbeb5bf73002e61b64645b24156a77f',
+    'filters-sync-fix.js': '1a8a9dfec9738e91471637c44e8e8c14033db188',
     'filters-toolbar-fix.js': '45f63dc9924d354f246b3cc18d6f0cb0459a9997'
   };
 
@@ -21,7 +20,7 @@
     scriptsLoaded = true;
     Object.keys(PINS).forEach(function (name) {
       var s = document.createElement('script');
-      s.src = CDN + PINS[name] + '/js/' + name + '?lock=8&b=' + Date.now();
+      s.src = CDN + PINS[name] + '/js/' + name + '?lock=9&b=' + Date.now();
       s.async = false;
       (document.head || document.documentElement).appendChild(s);
     });
@@ -67,19 +66,16 @@
         if (p.style.display !== 'none') p.style.display = 'none';
       }
     });
-
     var pa = document.getElementById('portal-agent');
     var pc = document.getElementById('portal-customer');
     var onAdmin = pa && pa.classList.contains('active');
     var onEnd = pc && pc.classList.contains('active');
     if (onAdmin && !onEnd) {
-      var brand = 'Divine Rays Tech Hub \u2022 Admin Portal';
       var strong = document.querySelector('.mode-brand strong');
-      if (strong) setText(strong, brand);
+      if (strong) setText(strong, 'Divine Rays Tech Hub \u2022 Admin Portal');
     } else if (onEnd) {
-      var brandEu = 'Divine Rays Tech Hub \u2022 Employees';
       var strongEu = document.querySelector('.mode-brand strong');
-      if (strongEu) setText(strongEu, brandEu);
+      if (strongEu) setText(strongEu, 'Divine Rays Tech Hub \u2022 Employees');
     }
   }
 
