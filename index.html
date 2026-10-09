@@ -34,8 +34,7 @@
     @keyframes bootDot{0%,80%,100%{transform:translateY(0);opacity:.35}40%{transform:translateY(-6px);opacity:1}}
     @keyframes bootBar{0%{transform:translateX(-100%);background-position:0% 0}100%{transform:translateX(280%);background-position:100% 0}}
     #login-screen,.login-screen{background:transparent!important;background-image:none!important}
-    html:not([data-ecg="on"]) #dr-lifeline,html:not([data-ecg="on"]) #dr-lifeline *{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;width:0!important;height:0!important}
-    html[data-ecg="on"] #dr-lifeline{display:block!important;visibility:visible!important;opacity:1!important;width:auto!important;height:auto!important}
+    /* lifeline: heartbeat-draw.js */
     #agent-name-display:not(.dr-presence-ready){opacity:0!important;min-height:1.6rem}
     .mode-bar,.topbar,#mode-bar{transition:none!important}
     body.dr-session-restoring #login-screen,body.dr-session-restoring .login-screen,body.dr-session-restoring .login-card,body.dr-boot-holding #login-screen,body.dr-boot-holding .login-screen,body.dr-boot-holding .login-card{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;height:0!important;overflow:hidden!important}
@@ -66,9 +65,9 @@
     var TEAM_SEP_SHA = '85337adc33ac049cdbf1317bbc20388b4f774739';
     var SIDEBAR_SHA = 'cf94fa12898891abef9c93bf7b1ebd3a06883293';
     var ADMIN_LOCK_SHA = '61caa12d784ef14dbce219a4ad0825e33a108552';
-    var SIDEBAR_ROLE_SHA = 'e1b64444ddb0dbeea9ec05d05cf843032414c738';
+    var SIDEBAR_ROLE_SHA = 'cf85fe34e66bb092edf09e521e0ef0879071354a';
     var USERS_NAV_SHA = 'b6f328bf2f2e29c4ab6d88de2fc416c79e4bb070';
-    var THEME_SHA = 'e1b64444ddb0dbeea9ec05d05cf843032414c738';
+    var THEME_SHA = 'bef23962c979e19d937950b628f10649f3f10b2f';
     var TOPBAR_SHA = 'c49dd3bd4b8cd07fa3608633c3d096ce1ac5db04';
     var TOPBAR_ACTIONS_SHA = '78a2cd6baf434009144d7b702caaf46ad7581536';
     var DASH_NO_TICKETS_SHA = 'e1b64444ddb0dbeea9ec05d05cf843032414c738';
@@ -140,7 +139,7 @@
       'login-chrome-hide.js': LOGIN_CHROME_HIDE_SHA,
       'pager-fix.js': PAGER_FIX_SHA,
       'dashboard-ui-v2.js': DASH_UI_V2_SHA,
-      'heartbeat-draw.js': HB_SHA,
+      'heartbeat-draw.js': 'eb5307ac567bac02ee36296941bd767459b2f0d2',
       'toast-position.js': TOAST_POS_SHA,
       'dash-topbar-fix.js': '30cabdc60127fa17c0ef13f19b307dda573354f9',
       'filters-toolbar-fix.js': '45f63dc9924d354f246b3cc18d6f0cb0459a9997'
@@ -180,12 +179,8 @@
       if (!html) throw new Error('Could not load app shell');
       html = html.replace(/var LIVE_SHA = '[^']*';/, "var LIVE_SHA = '" + COMMENTS_LIVE_SHA + "';");
       html = html.replace(/var KB_JS_SHA = '[^']*';/, "var KB_JS_SHA = '" + KB_JS_SHA + "';");
-      html = html.replace(/var THEME_SHA = '[^']*';/, "var THEME_SHA = 'e1b64444ddb0dbeea9ec05d05cf843032414c738';");
+      html = html.replace(/var THEME_SHA = '[^']*';/, "var THEME_SHA = 'bef23962c979e19d937950b628f10649f3f10b2f';");
       html = html.replace(/var HB_SHA = '[^']*';/, "var HB_SHA = 'eb5307ac567bac02ee36296941bd767459b2f0d2';");
-      html = html.replace(/await loadScript\([^)]*heartbeat-draw[^)]*\);?/gi, '/* heartbeat blocked */');
-      html = html.replace(/loadScript\([^)]*heartbeat-draw[^)]*\);?/gi, '/* heartbeat blocked */');
-      html = html.replace(/await loadScript\([^)]*ecg-inline[^)]*\);?/gi, '/* ecg-inline blocked */');
-      html = html.replace(/loadScript\([^)]*ecg-inline[^)]*\);?/gi, '/* ecg-inline blocked */');
       html = html.replace(/await loadScript\([^)]*\/js\/admin\.js[^)]*\);?/gi, '/* admin.js shell blocked */');
       html = html.replace(/loadScript\([^)]*\/js\/admin\.js[^)]*\);?/gi, '/* admin.js shell blocked */');
       html = html.replace(/var EXTRA_FILES = \[[^\]]*\];/, "var EXTRA_FILES = ['email-notify.js','ticket-plus.js','ticket-plus-fix.js','status-lock.js','kb.js','polish-fixes.js'];");
@@ -199,7 +194,7 @@
         html = html.replace(re, '/* skipped ' + name + ' */');
       });
       html = html.replace('<head>', '<head><script>window.__DR_COMMENTS_LIVE=8;window.__DR_COMMENTS_LIVE_V2=1;window.__DR_BOOT_CLEAN=1;window.__DR_ECG_OK=false;<\/script>');
-      html = html.replace('</head>', '<style id="dr-boot-login-bg">html,body{background:radial-gradient(ellipse 80% 60% at 50% 40%,#1a1530 0%,#0c0c14 55%,#08080f 100%)!important;}html[data-theme="light"],html[data-theme="light"] body{background:radial-gradient(ellipse 80% 60% at 50% 35%,#e8e4ff 0%,#f4f2ff 45%,#eceaf8 100%)!important;}#login-screen,.login-screen{background:transparent!important;}html:not([data-ecg="on"]) #dr-lifeline,html:not([data-ecg="on"]) #dr-lifeline *{display:none!important}#agent-name-display:not(.dr-presence-ready){opacity:0!important;min-height:1.6rem}.mode-bar,.topbar,#mode-bar{transition:none!important}body.dr-session-restoring #login-screen,body.dr-boot-holding #login-screen{display:none!important;visibility:hidden!important}body:has(#portal-agent.active) #login-screen,body.is-portal #login-screen{display:none!important}</style><script src="' + withBust(CDN + FORCE_LIGHT_BG_SHA + '/js/force-light-bg.js') + '"><\/script></head>');
+      html = html.replace('</head>', '<style id="dr-boot-login-bg">html,body{background:radial-gradient(ellipse 80% 60% at 50% 40%,#1a1530 0%,#0c0c14 55%,#08080f 100%)!important;}html[data-theme="light"],html[data-theme="light"] body{background:radial-gradient(ellipse 80% 60% at 50% 35%,#e8e4ff 0%,#f4f2ff 45%,#eceaf8 100%)!important;}#login-screen,.login-screen{background:transparent!important;}/* lifeline ok */#agent-name-display:not(.dr-presence-ready){opacity:0!important;min-height:1.6rem}.mode-bar,.topbar,#mode-bar{transition:none!important}body.dr-session-restoring #login-screen,body.dr-boot-holding #login-screen{display:none!important;visibility:hidden!important}body:has(#portal-agent.active) #login-screen,body.is-portal #login-screen{display:none!important}</style><script src="' + withBust(CDN + FORCE_LIGHT_BG_SHA + '/js/force-light-bg.js') + '"><\/script></head>');
       document.open(); document.write(html); document.close(); clearTimeout(bootTimer);
       try {
         (function injectBootOverlay() {
@@ -244,11 +239,17 @@
         loadScript(CDN + 'bef23962c979e19d937950b628f10649f3f10b2f' + '/js/status-card.js');
         loadScript(CDN + '30cabdc60127fa17c0ef13f19b307dda573354f9' + '/js/dash-topbar-fix.js');
         loadScript(CDN + '45f63dc9924d354f246b3cc18d6f0cb0459a9997' + '/js/filters-toolbar-fix.js');
+        loadScript(CDN + 'eb5307ac567bac02ee36296941bd767459b2f0d2' + '/js/heartbeat-draw.js');
         loadScript(CDN + SIDEBAR_SHA + '/js/sidebar-design.js');
         loadScript(CDN + TOAST_POS_SHA + '/js/toast-position.js');
       } catch (eTopEarly) {}
-      window.__DR_ECG_OK = false;
-      try { document.documentElement.removeAttribute('data-ecg'); } catch (e0) {}
+      setTimeout(function () {
+        try {
+          window.__DR_ECG_OK = true;
+          document.documentElement.setAttribute('data-ecg', 'on');
+          loadScript(CDN + 'eb5307ac567bac02ee36296941bd767459b2f0d2' + '/js/heartbeat-draw.js');
+        } catch (eHb) {}
+      }, 600);
       setTimeout(function () {
         loadScript(CDN + ADMIN_LOCK_SHA + '/js/admin-portal-lock.js');
         loadScript(CDN + USERS_NAV_SHA + '/js/users-nav.js');
@@ -268,6 +269,7 @@
         loadScript(CDN + LOGIN_TAB_SHA + '/js/login-tab-labels.js');
         loadScript(CDN + LOGIN_CHROME_HIDE_SHA + '/js/login-chrome-hide.js');
         loadScript(CDN + PAGER_FIX_SHA + '/js/pager-fix.js');
+        loadScript(CDN + 'eb5307ac567bac02ee36296941bd767459b2f0d2' + '/js/heartbeat-draw.js');
       }, 30);
       setTimeout(function () {
         Promise.all([
@@ -304,17 +306,15 @@
           loadScript(CDN + CHAT_UI_SHA + '/js/chat-ui.js'),
           loadScript(CDN + LIGHT_MODE_POLISH_SHA + '/js/light-mode-polish.js'),
           loadScript(CDN + TICKET_DESIGN_SHA + '/js/ticket-list-design.js'),
-          loadScript(CDN + STAFF_NOTIF_SHA + '/js/staff-ticket-notifs.js')
+          loadScript(CDN + STAFF_NOTIF_SHA + '/js/staff-ticket-notifs.js'),
+          loadScript(CDN + 'eb5307ac567bac02ee36296941bd767459b2f0d2' + '/js/heartbeat-draw.js')
         ]).then(function () {
           try {
             (function waitPortal() {
               function hideLoginHard() {
                 try {
                   var ls = document.getElementById('login-screen');
-                  if (ls) {
-                    ls.hidden = true;
-                    ls.style.cssText = 'display:none!important;visibility:hidden!important';
-                  }
+                  if (ls) { ls.hidden = true; ls.style.cssText = 'display:none!important;visibility:hidden!important'; }
                 } catch (eH) {}
               }
               var n = 0;
@@ -328,10 +328,16 @@
                   hideLoginHard();
                   try { document.body.classList.add('is-portal'); } catch (eP) {}
                   try { document.body.classList.remove('dr-session-restoring'); document.documentElement.classList.remove('dr-session-restoring'); } catch (eR) {}
+                  try {
+                    window.__DR_ECG_OK = true;
+                    document.documentElement.setAttribute('data-ecg', 'on');
+                    loadScript(CDN + 'eb5307ac567bac02ee36296941bd767459b2f0d2' + '/js/heartbeat-draw.js');
+                  } catch (eEcg) {}
                   setTimeout(function () { try { if (window.__DR_DISMISS_BOOT) window.__DR_DISMISS_BOOT(); } catch (eD) {} }, 120);
                 } else if (n >= 100) {
                   clearInterval(iv);
                   try { document.body.classList.remove('dr-session-restoring', 'dr-boot-holding'); } catch (eR2) {}
+                  try { window.__DR_ECG_OK = true; document.documentElement.setAttribute('data-ecg', 'on'); loadScript(CDN + 'eb5307ac567bac02ee36296941bd767459b2f0d2' + '/js/heartbeat-draw.js'); } catch (eEcg2) {}
                   try { if (window.__DR_DISMISS_BOOT) window.__DR_DISMISS_BOOT(); } catch (eD2) {}
                 }
               }, 50);
