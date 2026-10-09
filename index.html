@@ -91,9 +91,9 @@
     var TEAM_SEP_SHA = '85337adc33ac049cdbf1317bbc20388b4f774739';
     var SIDEBAR_SHA = 'cf94fa12898891abef9c93bf7b1ebd3a06883293';
     var ADMIN_LOCK_SHA = '61caa12d784ef14dbce219a4ad0825e33a108552';
-    var SIDEBAR_ROLE_SHA = 'e1b64444ddb0dbeea9ec05d05cf843032414c738';
+    var SIDEBAR_ROLE_SHA = 'cf85fe34e66bb092edf09e521e0ef0879071354a';
     var USERS_NAV_SHA = 'b6f328bf2f2e29c4ab6d88de2fc416c79e4bb070';
-    var THEME_SHA = 'e1b64444ddb0dbeea9ec05d05cf843032414c738';
+    var THEME_SHA = 'fd7e72358ad600baed3dc9229b8a3da4143a0c63';
     var TOPBAR_SHA = 'c49dd3bd4b8cd07fa3608633c3d096ce1ac5db04';
     var TOPBAR_ACTIONS_SHA = '78a2cd6baf434009144d7b702caaf46ad7581536';
     var DASH_NO_TICKETS_SHA = 'e1b64444ddb0dbeea9ec05d05cf843032414c738';
@@ -126,6 +126,7 @@
     var DASH_UI_V2_SHA = '92f4070a0c125f2e3ce5d423fff1f68c4d3ba968';
     var HB_SHA = 'eb5307ac567bac02ee36296941bd767459b2f0d2';
     var TOAST_POS_SHA = '76fcf130dd18ab3ee64435a264724deb9666fc05';
+    var DASH_TOPBAR_FIX_SHA = '40799e4c3058f9b9d66c3717aadbe7a85bcf2f1a';
     var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
     var BUST = String(Date.now());
     var TIP = 'dd3d27c0c8190f4f85781c8f2477678d538768b0';
@@ -164,7 +165,8 @@
       'pager-fix.js': PAGER_FIX_SHA,
       'dashboard-ui-v2.js': DASH_UI_V2_SHA,
       'heartbeat-draw.js': HB_SHA,
-      'toast-position.js': TOAST_POS_SHA
+      'toast-position.js': TOAST_POS_SHA,
+      'dash-topbar-fix.js': '40799e4c3058f9b9d66c3717aadbe7a85bcf2f1a'
     };
     var SKIP = {
       'ui-flicker-fix.js': 1, 'content-restore.js': 1, 'card-opacity.js': 1, 'smooth-refresh.js': 1,
@@ -201,7 +203,7 @@
       if (!html) throw new Error('Could not load app shell');
       html = html.replace(/var LIVE_SHA = '[^']*';/, "var LIVE_SHA = '" + COMMENTS_LIVE_SHA + "';");
       html = html.replace(/var KB_JS_SHA = '[^']*';/, "var KB_JS_SHA = '" + KB_JS_SHA + "';");
-      html = html.replace(/var THEME_SHA = '[^']*';/, "var THEME_SHA = 'e1b64444ddb0dbeea9ec05d05cf843032414c738';");
+      html = html.replace(/var THEME_SHA = '[^']*';/, "var THEME_SHA = 'fd7e72358ad600baed3dc9229b8a3da4143a0c63';");
       html = html.replace(/var HB_SHA = '[^']*';/, "var HB_SHA = 'eb5307ac567bac02ee36296941bd767459b2f0d2';");
       html = html.replace(/await loadScript\([^)]*heartbeat-draw[^)]*\);?/gi, '/* heartbeat blocked */');
       html = html.replace(/loadScript\([^)]*heartbeat-draw[^)]*\);?/gi, '/* heartbeat blocked */');
@@ -266,6 +268,7 @@
         loadScript(CDN + 'fd7e72358ad600baed3dc9229b8a3da4143a0c63' + '/js/theme.js');
         loadScript(CDN + 'cf85fe34e66bb092edf09e521e0ef0879071354a' + '/js/sidebar-role-label.js');
         loadScript(CDN + 'fd7e72358ad600baed3dc9229b8a3da4143a0c63' + '/js/status-card.js');
+        loadScript(CDN + '40799e4c3058f9b9d66c3717aadbe7a85bcf2f1a' + '/js/dash-topbar-fix.js');
         loadScript(CDN + SIDEBAR_SHA + '/js/sidebar-design.js');
         loadScript(CDN + TOAST_POS_SHA + '/js/toast-position.js');
       } catch (eTopEarly) {}
@@ -285,6 +288,7 @@
         loadScript(CDN + TOPBAR_SHA + '/js/topbar-brand-role.js');
         loadScript(CDN + TOPBAR_ACTIONS_SHA + '/js/topbar-actions.js');
         loadScript(CDN + 'fd7e72358ad600baed3dc9229b8a3da4143a0c63' + '/js/theme.js');
+        loadScript(CDN + '40799e4c3058f9b9d66c3717aadbe7a85bcf2f1a' + '/js/dash-topbar-fix.js');
         loadScript(CDN + TOAST_POS_SHA + '/js/toast-position.js');
         loadScript(CDN + DASH_NO_TICKETS_SHA + '/js/dashboard-no-tickets.js');
         loadScript(CDN + DASH_UI_V2_SHA + '/js/dashboard-ui-v2.js');
@@ -306,6 +310,7 @@
           loadScript(CDN + ADMIN_LOCK_SHA + '/js/admin-portal-lock.js'),
           loadScript(CDN + 'cf85fe34e66bb092edf09e521e0ef0879071354a' + '/js/sidebar-role-label.js'),
           loadScript(CDN + 'fd7e72358ad600baed3dc9229b8a3da4143a0c63' + '/js/theme.js'),
+          loadScript(CDN + '40799e4c3058f9b9d66c3717aadbe7a85bcf2f1a' + '/js/dash-topbar-fix.js'),
           loadScript(CDN + TOPBAR_SHA + '/js/topbar-brand-role.js'),
           loadScript(CDN + TOPBAR_ACTIONS_SHA + '/js/topbar-actions.js'),
           loadScript(CDN + TOAST_POS_SHA + '/js/toast-position.js'),
