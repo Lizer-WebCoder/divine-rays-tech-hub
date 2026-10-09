@@ -1,15 +1,30 @@
 /**
- * Divine Rays — ticket search/filter SYNC fix
- * Ensures My / Unassigned / All tabs filter against the real ticket set
- * (title, ticket code, status, priority) and stay applied.
+ * Divine Rays — filters sync v3
+ * Mutates the APP's listFilter (DR.getListFilter) in place so search/status/priority work.
  * Credit: Boyz at the Back LRK · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_FILTERS_SYNC_FIX >= 2) return;
-  window.__DR_FILTERS_SYNC_FIX = 2;
+  if (window.__DR_FILTERS_SYNC_FIX >= 3) return;
+  window.__DR_FILTERS_SYNC_FIX = 3;
 
   function getLF() {
+    try {
+      if (window.DR && typeof DR.getListFilter === 'function') {
+        var dr = DR.getListFilter();
+        if (dr && typeof dr === 'object') {
+          window.__drListFilter = dr;
+          if (dr.limit == null) dr.limit = 20;
+          if (dr.sort == null) dr.sort = 'newest';
+          if (dr.page == null) dr.page = 0;
+          if (dr.q == null) dr.q = '';
+          if (dr.status == null) dr.status = '';
+          if (dr.priority == null) dr.priority = '';
+          if (dr.mode == null) dr.mode = 'all';
+          return dr;
+        }
+      }
+    } catch (e) {}
     if (!window.__drListFilter) {
       window.__drListFilter = {
         mode: 'all', q: '', status: '', priority: '', sort: 'newest', limit: 20, page: 0
@@ -31,108 +46,15 @@
     return getLF().mode || 'all';
   }
 
-  function scrapeDomTickets() {
-    var cards = document.querySelectorAll('#ticket-list .ticket-card');
-    var out = [];
-    cards.forEach(function (card) {
-      var id = card.getAttribute('data-id') || card.getAttribute('data-ticket-id') || '';
-      var titleEl = card.querySelector('h4, .ticket-title, .title');
-      var idEl = card.querySelector('.ticket-id, .ticket-number, [data-ticket-number]');
-      var meta = card.querySelector('.ticket-meta');
-      var badges = card.querySelectorAll('.badge, .badges span');
-      var priority = '';
-      var status = '';
-      badges.forEach(function (b) {
-        var t = (b.textContent || '').trim();
-        var cls = (b.className || '').toLowerCase();
-        if (/critical|high|medium|low/i.test(t) || /priority|critical|high|medium|low/.test(cls)) {
-          if (/critical|high|medium|low/i.test(t)) priority = t;
-        }
-        if (/open|progress|waiting|resolved|closed|pending/i.test(t) || /status|open|progress|waiting|resolved|closed/.test(cls)) {
-          if (/open|progress|waiting|resolved|closed|pending/i.test(t)) status = t;
-        }
-      });
-      var requester = '';
-      if (meta) {
-        var spans = meta.querySelectorAll('span');
-        spans.forEach(function (sp) {
-          var tx = (sp.textContent || '').trim();
-          if (tx && !/^DR-/i.test(tx) && tx !== '\u00b7' && !/ago|AM|PM|\d{1,2}:\d{2}/.test(tx)) {
-            if (!requester && !/^(Open|Closed|Resolved|Waiting|In Progress|Critical|High|Medium|Low)$/i.test(tx)) {
-              if (!sp.classList.contains('ticket-id')) requester = tx;
-            }
-          }
-        });
-      }
-      var number = idEl
-        ? (idEl.getAttribute('data-ticket-number') || idEl.textContent || '').trim()
-        : '';
-      out.push({
-        id: id,
-        title: titleEl ? (titleEl.textContent || '').trim() : '',
-        ticket_number: number,
-        code: number,
-        description: (card.getAttribute('data-description') || ''),
-        category: card.getAttribute('data-category') || '',
-        status: status || card.getAttribute('data-status') || '',
-        priority: priority || card.getAttribute('data-priority') || '',
-        assigned_to: card.getAttribute('data-assigned-to') || '',
-        requester_id: card.getAttribute('data-requester-id') || '',
-        requester_email: requester,
-        created_at: card.getAttribute('data-created') || '',
-        updated_at: card.getAttribute('data-updated') || '',
-        __fromDom: true
-      });
-    });
-    return out;
-  }
-
-  function collectTickets() {
-    var list = [];
+  function getTickets() {
     try {
       if (window.DR && typeof DR.getAllTickets === 'function') {
         var t = DR.getAllTickets();
-        if (Array.isArray(t) && t.length) list = t.slice();
+        if (Array.isArray(t) && t.length) return t;
       }
-    } catch (e0) {}
-    if (!list.length && window.DR && Array.isArray(window.DR.tickets) && window.DR.tickets.length) {
-      list = window.DR.tickets.slice();
-    }
-    if (!list.length && Array.isArray(window.allTicketsCache) && window.allTicketsCache.length) {
-      list = window.allTicketsCache.slice();
-    }
-    if (!list.length && Array.isArray(window.__drTickets) && window.__drTickets.length) {
-      list = window.__drTickets.slice();
-    }
-    var dom = scrapeDomTickets();
-    if (dom.length) {
-      var byId = Object.create(null);
-      list.forEach(function (t) {
-        if (t && t.id != null) byId[String(t.id)] = t;
-      });
-      dom.forEach(function (d) {
-        var id = String(d.id || '');
-        if (id && byId[id]) {
-          var o = byId[id];
-          if (!o.title && d.title) o.title = d.title;
-          if (!o.ticket_number && d.ticket_number) o.ticket_number = d.ticket_number;
-          if (!o.status && d.status) o.status = d.status;
-          if (!o.priority && d.priority) o.priority = d.priority;
-        } else if (id && !byId[id]) {
-          list.push(d);
-          byId[id] = d;
-        } else if (!id) {
-          list.push(d);
-        }
-      });
-    }
-    if (list.length) {
-      window.allTicketsCache = list;
-      try {
-        if (window.DR && typeof DR.setAllTickets === 'function') DR.setAllTickets(list);
-      } catch (e1) {}
-    }
-    return list;
+    } catch (e) {}
+    if (Array.isArray(window.allTicketsCache) && window.allTicketsCache.length) return window.allTicketsCache;
+    return [];
   }
 
   function norm(s) {
@@ -142,11 +64,14 @@
   function matchesQuery(t, q) {
     q = String(q || '').trim().toLowerCase();
     if (!q) return true;
+    var names = {};
+    try {
+      if (window.DR && typeof DR.getNameCache === 'function') names = DR.getNameCache() || {};
+    } catch (e) {}
     var blob = [
-      t.id, t.title, t.subject, t.description,
-      t.ticket_number, t.code, t.ticket_code, t.number,
-      t.category, t.status, t.priority,
-      t.requester_email, t.assigned_email, t.requester_name, t.assigned_name
+      t.id, t.title, t.subject, t.description, t.ticket_number, t.code, t.ticket_code,
+      t.category, t.status, t.priority, t.requester_email, t.assigned_email,
+      names[t.requester_id], names[t.assigned_to]
     ].join(' ').toLowerCase();
     var compact = blob.replace(/[^a-z0-9]+/g, '');
     var tokens = q.split(/\s+/).filter(Boolean);
@@ -175,7 +100,7 @@
 
   function matchesMode(t, mode) {
     mode = String(mode || 'all').toLowerCase();
-    if (mode === 'all' || mode === 'dashboard') return true;
+    if (mode === 'all') return true;
     if (mode === 'my') {
       var pid = null;
       try {
@@ -195,133 +120,61 @@
 
   function sortTickets(list, sort) {
     var arr = list.slice();
+    var rank = { critical: 0, high: 1, medium: 2, low: 3 };
     arr.sort(function (a, b) {
-      if (sort === 'oldest') {
-        return new Date(a.created_at || 0) - new Date(b.created_at || 0);
-      }
+      if (sort === 'oldest') return new Date(a.created_at || 0) - new Date(b.created_at || 0);
       if (sort === 'priority') {
-        var rank = { critical: 0, high: 1, medium: 2, low: 3 };
-        var pa = rank[norm(a.priority)] != null ? rank[norm(a.priority)] : 9;
-        var pb = rank[norm(b.priority)] != null ? rank[norm(b.priority)] : 9;
+        var pa = rank[norm(a.priority)]; var pb = rank[norm(b.priority)];
+        if (pa == null) pa = 9; if (pb == null) pb = 9;
         if (pa !== pb) return pa - pb;
       }
-      return new Date(b.created_at || b.updated_at || 0) - new Date(a.created_at || a.updated_at || 0);
+      return new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0);
     });
     return arr;
   }
 
   function esc(s) {
     if (window.DR && DR.esc) return DR.esc(s);
-    return String(s == null ? '' : s)
-      .replace(/&/g, '&')
-      .replace(/</g, '<')
-      .replace(/>/g, '>')
-      .replace(/"/g, '"');
+    return String(s == null ? '' : s).replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>').replace(/"/g, '"');
+  }
+  function sc(s) {
+    if (window.DR && DR.sc) return DR.sc(s);
+    return 'badge-' + String(s || '').toLowerCase().replace(/\s+/g, '-');
+  }
+  function fmt(iso) {
+    if (window.DR && DR.fmt) return DR.fmt(iso);
+    try {
+      return new Date(iso).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    } catch (e) { return ''; }
   }
 
-  function cardHtml(t) {
-    var title = t.title || t.subject || 'Untitled';
-    var num = t.ticket_number || t.code || t.ticket_code || '';
-    var st = t.status || '';
-    var pr = t.priority || '';
+  function cardHtml(t, names) {
+    names = names || {};
+    var req = names[t.requester_id] || t.requester_email || 'End-User';
+    var initials = (function (n) {
+      n = String(n || '').trim();
+      var p = n.split(/\s+/).filter(Boolean);
+      if (p.length >= 2) return (p[0][0] + p[1][0]).toUpperCase();
+      return (n.slice(0, 2) || '?').toUpperCase();
+    })(req);
     return (
-      '<div class="ticket-card" data-id="' +
-      esc(t.id) +
-      '" data-status="' +
-      esc(st) +
-      '" data-priority="' +
-      esc(pr) +
-      '">' +
-      '<div class="ticket-body"><h4>' +
-      esc(title) +
-      '</h4>' +
-      '<div class="ticket-meta"><span class="ticket-id">' +
-      esc(num) +
-      '</span></div></div>' +
+      '<div class="ticket-card" data-id="' + esc(t.id) + '">' +
+      '<div class="ticket-av">' + esc(initials) + '</div>' +
+      '<div class="ticket-body"><h4>' + esc(t.title || '') + '</h4>' +
+      '<div class="ticket-meta" data-dr-spaced="1">' +
+      '<span class="ticket-id">' + esc(t.ticket_number || '') + '</span>' +
+      '<span class="meta-sep"> · </span><span>' + esc(req) + '</span>' +
+      '<span class="meta-sep"> · </span><span>' + esc(t.category || '—') + '</span>' +
+      '<span class="meta-sep"> · </span><span>' + esc(fmt(t.updated_at || t.created_at)) + '</span>' +
+      '</div></div>' +
       '<div class="badges">' +
-      (pr ? '<span class="badge">' + esc(pr) + '</span>' : '') +
-      (st ? '<span class="badge">' + esc(st) + '</span>' : '') +
+      '<span class="badge ' + sc(t.priority) + '">' + esc(t.priority || '') + '</span>' +
+      '<span class="badge ' + sc(t.status) + '">' + esc(t.status || '') + '</span>' +
       '</div></div>'
     );
   }
 
-  function apply() {
-    var lf = getLF();
-    lf.mode = modeFromNav();
-    if (lf.mode === 'dashboard' || lf.mode === 'kb' || lf.mode === 'users') return;
-
-    var container = document.getElementById('ticket-list');
-    if (!container) return;
-
-    var all = collectTickets();
-    if (!all.length) {
-      if (typeof window.applyTicketFilters === 'function') {
-        try { window.applyTicketFilters(true); } catch (e) {}
-      }
-      return;
-    }
-
-    var filtered = all.filter(function (t) {
-      return (
-        matchesMode(t, lf.mode) &&
-        matchesStatus(t.status, lf.status) &&
-        matchesPriority(t.priority, lf.priority) &&
-        matchesQuery(t, lf.q)
-      );
-    });
-    filtered = sortTickets(filtered, lf.sort || 'newest');
-
-    var limit = parseInt(lf.limit, 10) || 20;
-    if ([10, 20, 50].indexOf(limit) === -1) limit = 20;
-    if (lf.page == null || isNaN(lf.page)) lf.page = 0;
-    var pages = filtered.length > limit ? Math.ceil(filtered.length / limit) : 1;
-    if (lf.page > pages - 1) lf.page = Math.max(0, pages - 1);
-    var start = lf.page * limit;
-    var pageItems = filtered.slice(start, start + limit);
-
-    if (!pageItems.length) {
-      container.innerHTML =
-        '<div class="empty-state"><p>' +
-        (all.length ? 'No tickets match these filters.' : 'No tickets.') +
-        '</p></div>';
-    } else {
-      if (typeof window.applyTicketFilters === 'function' && !pageItems[0].__fromDom) {
-        try {
-          window.__drListFilter = lf;
-          window.allTicketsCache = all;
-          window.applyTicketFilters(false);
-          return;
-        } catch (e2) {}
-      }
-      container.innerHTML = pageItems.map(function (t) { return cardHtml(t); }).join('');
-      container.querySelectorAll('.ticket-card').forEach(function (card) {
-        card.addEventListener('click', function () {
-          var id = card.getAttribute('data-id');
-          if (window.DR && typeof DR.openTicket === 'function') DR.openTicket(id);
-          else if (typeof window.openTicket === 'function') window.openTicket(id);
-        });
-      });
-    }
-
-    try {
-      container.style.setProperty('display', 'flex', 'important');
-      container.style.setProperty('visibility', 'visible', 'important');
-    } catch (e3) {}
-
-    var hint = document.getElementById('filter-hint');
-    if (hint) {
-      var from = filtered.length ? start + 1 : 0;
-      var to = start + pageItems.length;
-      hint.textContent = filtered.length
-        ? 'Showing ' + from + '\u2013' + to + ' of ' + filtered.length +
-          (filtered.length !== all.length ? ' (' + all.length + ' total)' : '')
-        : all.length
-          ? 'No matches'
-          : 'No tickets';
-    }
-  }
-
-  function readControlsIntoLF() {
+  function readControls() {
     var lf = getLF();
     var si = document.getElementById('search-input');
     var st = document.getElementById('filter-status');
@@ -340,65 +193,110 @@
     return lf;
   }
 
+  function applyFiltersNow() {
+    var lf = readControls();
+    if (lf.mode === 'dashboard' || lf.mode === 'kb' || lf.mode === 'users') return;
+    var container = document.getElementById('ticket-list');
+    if (!container) return;
+    var all = getTickets();
+    if (!all.length) return;
+
+    var names = {};
+    try {
+      if (window.DR && typeof DR.getNameCache === 'function') names = DR.getNameCache() || {};
+    } catch (e2) {}
+
+    var filtered = all.filter(function (t) {
+      return matchesMode(t, lf.mode) && matchesStatus(t.status, lf.status) &&
+        matchesPriority(t.priority, lf.priority) && matchesQuery(t, lf.q);
+    });
+    filtered = sortTickets(filtered, lf.sort || 'newest');
+
+    var limit = parseInt(lf.limit, 10) || 20;
+    if ([10, 20, 50].indexOf(limit) === -1) limit = 20;
+    if (lf.page == null || isNaN(lf.page)) lf.page = 0;
+    var pages = filtered.length > limit ? Math.ceil(filtered.length / limit) : 1;
+    if (lf.page > pages - 1) lf.page = Math.max(0, pages - 1);
+    var start = lf.page * limit;
+    var pageItems = filtered.slice(start, start + limit);
+
+    if (!pageItems.length) {
+      container.innerHTML = '<div class="empty-state"><p>' +
+        (all.length ? 'No tickets match these filters.' : 'No tickets.') + '</p></div>';
+    } else {
+      container.innerHTML = pageItems.map(function (t) { return cardHtml(t, names); }).join('');
+      container.querySelectorAll('.ticket-card').forEach(function (card) {
+        card.addEventListener('click', function () {
+          var id = card.getAttribute('data-id');
+          if (window.DR && typeof DR.openTicket === 'function') DR.openTicket(id);
+          else if (typeof window.openTicket === 'function') window.openTicket(id);
+        });
+      });
+    }
+    try {
+      container.style.setProperty('display', 'flex', 'important');
+      container.style.setProperty('visibility', 'visible', 'important');
+    } catch (e3) {}
+    var hint = document.getElementById('filter-hint');
+    if (hint) {
+      var from = filtered.length ? start + 1 : 0;
+      var to = start + pageItems.length;
+      hint.textContent = filtered.length
+        ? 'Showing ' + from + '\u2013' + to + ' of ' + filtered.length +
+          (filtered.length !== all.length ? ' (' + all.length + ' total)' : '')
+        : all.length ? 'No matches' : 'No tickets';
+    }
+  }
+
   var timer = null;
-  function scheduleApply(resetPage) {
+  function schedule(resetPage) {
     if (resetPage) getLF().page = 0;
-    readControlsIntoLF();
     clearTimeout(timer);
-    timer = setTimeout(function () { apply(); }, 120);
+    timer = setTimeout(applyFiltersNow, 80);
   }
 
   function bind() {
     var si = document.getElementById('search-input');
-    if (si && !si.__drSyncBound) {
-      si.__drSyncBound = true;
-      si.addEventListener('input', function () { scheduleApply(true); }, true);
-      si.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') { e.preventDefault(); scheduleApply(true); }
-      }, true);
+    if (si && !si.__drSyncV3) {
+      si.__drSyncV3 = true;
+      si.addEventListener('input', function () { getLF().q = si.value || ''; schedule(true); }, true);
+      si.addEventListener('keyup', function () { getLF().q = si.value || ''; schedule(true); }, true);
     }
-    ['filter-status', 'filter-priority', 'filter-sort', 'filter-limit'].forEach(function (id) {
-      var el = document.getElementById(id);
-      if (el && !el.__drSyncBound) {
-        el.__drSyncBound = true;
-        el.addEventListener('change', function () { scheduleApply(true); }, true);
+    [['filter-status', 'status'], ['filter-priority', 'priority'], ['filter-sort', 'sort'], ['filter-limit', 'limit']].forEach(function (pair) {
+      var el = document.getElementById(pair[0]);
+      if (el && !el.__drSyncV3) {
+        el.__drSyncV3 = true;
+        el.addEventListener('change', function () {
+          var lf = getLF();
+          if (pair[1] === 'limit') {
+            var v = parseInt(el.value, 10);
+            lf.limit = [10, 20, 50].indexOf(v) !== -1 ? v : 20;
+          } else {
+            lf[pair[1]] = el.value || (pair[1] === 'sort' ? 'newest' : '');
+          }
+          schedule(true);
+        }, true);
       }
     });
   }
 
-  function tick() {
-    bind();
-    var mode = modeFromNav();
-    if (mode === 'my' || mode === 'unassigned' || mode === 'all') {
-      collectTickets();
-      var lf = getLF();
-      if (lf.q || lf.status || lf.priority) apply();
-    }
-  }
+  window.applyTicketFilters = function (refetch) {
+    readControls();
+    applyFiltersNow();
+  };
 
   bind();
-  setTimeout(bind, 300);
-  setTimeout(bind, 1000);
-  setTimeout(tick, 1500);
-  setInterval(bind, 4000);
+  setTimeout(bind, 200);
+  setTimeout(bind, 800);
+  setTimeout(bind, 2000);
+  setInterval(bind, 5000);
 
   document.addEventListener('click', function (e) {
     if (e.target && e.target.closest && e.target.closest('#portal-agent .nav-btn')) {
-      setTimeout(function () { bind(); readControlsIntoLF(); scheduleApply(true); }, 80);
-      setTimeout(function () { collectTickets(); scheduleApply(false); }, 400);
+      setTimeout(function () { bind(); getLF().mode = modeFromNav(); schedule(true); }, 100);
+      setTimeout(applyFiltersNow, 500);
     }
   }, true);
 
-  var _orig = window.applyTicketFilters;
-  window.applyTicketFilters = function (refetch) {
-    readControlsIntoLF();
-    collectTickets();
-    if (typeof _orig === 'function') {
-      try { return _orig(refetch); } catch (e) { apply(); }
-    } else {
-      apply();
-    }
-  };
-
-  window.DRFiltersSyncFix = { refresh: apply, collect: collectTickets, v: 2 };
+  window.DRFiltersSyncFix = { refresh: applyFiltersNow, v: 3 };
 })();
