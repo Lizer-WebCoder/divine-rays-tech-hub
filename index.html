@@ -36,6 +36,7 @@
     #login-screen,.login-screen{background:transparent!important;background-image:none!important}
     html:not([data-ecg="on"]) #dr-lifeline,html:not([data-ecg="on"]) #dr-lifeline *{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;width:0!important;height:0!important}
     html[data-ecg="on"] #dr-lifeline{display:block!important;visibility:visible!important;opacity:1!important;width:auto!important;height:auto!important}
+    #agent-name-display:not(.dr-presence-ready){opacity:0!important;min-height:1.6rem}
   </style>
   <script>
   (function () {
@@ -68,7 +69,7 @@
     var TEAM_SEP_SHA = '85337adc33ac049cdbf1317bbc20388b4f774739';
     var SIDEBAR_SHA = 'cf94fa12898891abef9c93bf7b1ebd3a06883293';
     var ADMIN_LOCK_SHA = '61caa12d784ef14dbce219a4ad0825e33a108552';
-    var SIDEBAR_ROLE_SHA = 'e1b64444ddb0dbeea9ec05d05cf843032414c738';
+    var SIDEBAR_ROLE_SHA = 'cf85fe34e66bb092edf09e521e0ef0879071354a';
     var USERS_NAV_SHA = 'b6f328bf2f2e29c4ab6d88de2fc416c79e4bb070';
     var THEME_SHA = 'e1b64444ddb0dbeea9ec05d05cf843032414c738';
     var TOPBAR_SHA = 'c49dd3bd4b8cd07fa3608633c3d096ce1ac5db04';
@@ -127,7 +128,7 @@
       'customer-reply-fix.js': REPLY_FIX_SHA,
       'sidebar-design.js': SIDEBAR_SHA,
       'status-card.js': '11a0993d13d01a83b4d9bf1b9185481b5e00fb6e',
-      'sidebar-role-label.js': SIDEBAR_ROLE_SHA,
+      'sidebar-role-label.js': 'cf85fe34e66bb092edf09e521e0ef0879071354a',
       'design-system-v10.js': DESIGN_SHA,
       'ticket-list-design.js': TICKET_DESIGN_SHA,
       'customer-my-tickets-filter.js': CUSTOMER_FILTER_SHA,
@@ -197,7 +198,7 @@
         html = html.replace(re, '/* skipped ' + name + ' */');
       });
       html = html.replace('<head>', '<head><script>window.__DR_COMMENTS_LIVE=8;window.__DR_COMMENTS_LIVE_V2=1;window.__DR_BOOT_CLEAN=1;window.__DR_ECG_OK=false;<\/script>');
-      html = html.replace('</head>', '<style id="dr-boot-login-bg">html,body{background:radial-gradient(ellipse 80% 60% at 50% 40%,#1a1530 0%,#0c0c14 55%,#08080f 100%)!important;}html[data-theme="light"],html[data-theme="light"] body{background:radial-gradient(ellipse 80% 60% at 50% 35%,#e8e4ff 0%,#f4f2ff 45%,#eceaf8 100%)!important;}#login-screen,.login-screen{background:transparent!important;background-image:none!important;}html:not([data-ecg="on"]) #dr-lifeline,html:not([data-ecg="on"]) #dr-lifeline *{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}html[data-ecg="on"] #dr-lifeline{display:block!important;visibility:visible!important;opacity:1!important}</style><script src="' + withBust(CDN + FORCE_LIGHT_BG_SHA + '/js/force-light-bg.js') + '"><\/script></head>');
+      html = html.replace('</head>', '<style id="dr-boot-login-bg">html,body{background:radial-gradient(ellipse 80% 60% at 50% 40%,#1a1530 0%,#0c0c14 55%,#08080f 100%)!important;}html[data-theme="light"],html[data-theme="light"] body{background:radial-gradient(ellipse 80% 60% at 50% 35%,#e8e4ff 0%,#f4f2ff 45%,#eceaf8 100%)!important;}#login-screen,.login-screen{background:transparent!important;background-image:none!important;}html:not([data-ecg="on"]) #dr-lifeline,html:not([data-ecg="on"]) #dr-lifeline *{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}html[data-ecg="on"] #dr-lifeline{display:block!important;visibility:visible!important;opacity:1!important}#agent-name-display:not(.dr-presence-ready){opacity:0!important;min-height:1.6rem}</style><script src="' + withBust(CDN + FORCE_LIGHT_BG_SHA + '/js/force-light-bg.js') + '"><\/script></head>');
       document.open(); document.write(html); document.close(); clearTimeout(bootTimer);
       try {
         (function injectBootOverlay() {
@@ -225,7 +226,7 @@
         loadScript(CDN + TOPBAR_SHA + '/js/topbar-brand-role.js');
         loadScript(CDN + TOPBAR_ACTIONS_SHA + '/js/topbar-actions.js');
         loadScript(CDN + THEME_SHA + '/js/theme.js');
-        loadScript(CDN + SIDEBAR_ROLE_SHA + '/js/sidebar-role-label.js');
+        loadScript(CDN + 'cf85fe34e66bb092edf09e521e0ef0879071354a' + '/js/sidebar-role-label.js');
         loadScript(CDN + '11a0993d13d01a83b4d9bf1b9185481b5e00fb6e' + '/js/status-card.js');
         loadScript(CDN + SIDEBAR_SHA + '/js/sidebar-design.js');
         loadScript(CDN + TOAST_POS_SHA + '/js/toast-position.js');
@@ -242,7 +243,7 @@
         loadScript(CDN + ADMIN_LOCK_SHA + '/js/admin-portal-lock.js');
         loadScript(CDN + USERS_NAV_SHA + '/js/users-nav.js');
         loadScript(CDN + FILTERS_SHA + '/js/filters.js');
-        loadScript(CDN + SIDEBAR_ROLE_SHA + '/js/sidebar-role-label.js');
+        loadScript(CDN + 'cf85fe34e66bb092edf09e521e0ef0879071354a' + '/js/sidebar-role-label.js');
         loadScript(CDN + TOPBAR_SHA + '/js/topbar-brand-role.js');
         loadScript(CDN + TOPBAR_ACTIONS_SHA + '/js/topbar-actions.js');
         loadScript(CDN + THEME_SHA + '/js/theme.js');
@@ -265,7 +266,7 @@
           loadScript(CDN + TOOLBAR_SHA + '/js/ui-toolbar-fix.js'),
           loadScript(CDN + SIDEBAR_SHA + '/js/sidebar-design.js'),
           loadScript(CDN + ADMIN_LOCK_SHA + '/js/admin-portal-lock.js'),
-          loadScript(CDN + SIDEBAR_ROLE_SHA + '/js/sidebar-role-label.js'),
+          loadScript(CDN + 'cf85fe34e66bb092edf09e521e0ef0879071354a' + '/js/sidebar-role-label.js'),
           loadScript(CDN + THEME_SHA + '/js/theme.js'),
           loadScript(CDN + TOPBAR_SHA + '/js/topbar-brand-role.js'),
           loadScript(CDN + TOPBAR_ACTIONS_SHA + '/js/topbar-actions.js'),
