@@ -68,7 +68,7 @@
     var TEAM_SEP_SHA = '85337adc33ac049cdbf1317bbc20388b4f774739';
     var SIDEBAR_SHA = 'cf94fa12898891abef9c93bf7b1ebd3a06883293';
     var ADMIN_LOCK_SHA = '61caa12d784ef14dbce219a4ad0825e33a108552';
-    var SIDEBAR_ROLE_SHA = 'e1b64444ddb0dbeea9ec05d05cf843032414c738';
+    var SIDEBAR_ROLE_SHA = 'd611d4d504d2a3b97882cbc5331aaf5d33228d0c';
     var USERS_NAV_SHA = 'b6f328bf2f2e29c4ab6d88de2fc416c79e4bb070';
     var THEME_SHA = 'e1b64444ddb0dbeea9ec05d05cf843032414c738';
     var TOPBAR_SHA = 'c49dd3bd4b8cd07fa3608633c3d096ce1ac5db04';
@@ -126,7 +126,7 @@
       'staff-ticket-notifs.js': STAFF_NOTIF_SHA,
       'customer-reply-fix.js': REPLY_FIX_SHA,
       'sidebar-design.js': SIDEBAR_SHA,
-      'status-card.js': 'd611d4d504d2a3b97882cbc5331aaf5d33228d0c',
+      'status-card.js': '11a0993d13d01a83b4d9bf1b9185481b5e00fb6e',
       'sidebar-role-label.js': SIDEBAR_ROLE_SHA,
       'design-system-v10.js': DESIGN_SHA,
       'ticket-list-design.js': TICKET_DESIGN_SHA,
@@ -226,6 +226,8 @@
         loadScript(CDN + TOPBAR_ACTIONS_SHA + '/js/topbar-actions.js');
         loadScript(CDN + THEME_SHA + '/js/theme.js');
         loadScript(CDN + SIDEBAR_ROLE_SHA + '/js/sidebar-role-label.js');
+        loadScript(CDN + '11a0993d13d01a83b4d9bf1b9185481b5e00fb6e' + '/js/status-card.js');
+        loadScript(CDN + SIDEBAR_SHA + '/js/sidebar-design.js');
         loadScript(CDN + TOAST_POS_SHA + '/js/toast-position.js');
       } catch (eTopEarly) {}
       window.__DR_ECG_OK = false;
