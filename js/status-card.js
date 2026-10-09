@@ -31,13 +31,14 @@
       '#portal-agent .nav-btn{padding:.38rem .6rem!important;font-size:.8rem!important}',
       '#portal-agent .nav-admin:not(.is-hidden){margin-top:.15rem!important}',
       '#portal-agent .sidebar-footer{margin-top:auto;padding-top:.35rem!important;flex-shrink:0}',
-      '#portal-agent .sidebar-footer .kbd-hint,#portal-agent .sidebar-footer .version,#portal-agent .sidebar-footer .credit-side{font-size:.58rem!important;opacity:.55;margin:.1rem 0!important;line-height:1.25}',
+      '#portal-agent .sidebar-footer .kbd-hint,#portal-agent .sidebar-footer .version,#portal-agent .sidebar-footer .credit-side{font-size:.62rem!important;opacity:.88!important;color:#b8b4d0!important;margin:.15rem 0!important;line-height:1.35;font-weight:500}',
       '#portal-agent .sidebar-avatar-chip{display:flex!important;justify-content:center!important;margin:.45rem 0 .2rem!important}',
       '#portal-agent .sidebar-avatar-chip .avatar-img,#portal-agent .sidebar-avatar-chip .avatar-fallback,#portal-agent .sidebar-avatar-chip img{width:64px!important;height:64px!important;border-radius:50%!important;object-fit:cover!important;display:block;border:2.5px solid rgba(124,106,240,.6);box-shadow:0 0 0 3px rgba(124,106,240,.16),0 4px 14px rgba(0,0,0,.35)}',
       '#portal-agent .sidebar-avatar-chip .avatar-fallback{font-size:1.4rem!important;font-weight:700}',
-      /* Presence is under avatar — never show bottom status card / metrics */
       '#dr-status-card,.dr-status-card,.dr-status-metrics,',
       '#portal-agent .sidebar .stat-pills,#portal-agent .sidebar .stat-pill{display:none!important}',
+      '#portal-agent .sidebar-footer p,#portal-agent .sidebar-footer .kbd-hint,#portal-agent .sidebar-footer .version,#portal-agent .sidebar-footer .credit-side{opacity:.9!important;color:#c4c0dc!important;visibility:visible!important}',
+      'html[data-theme="light"] #portal-agent .sidebar-footer p,html[data-theme="light"] #portal-agent .sidebar-footer .kbd-hint,html[data-theme="light"] #portal-agent .sidebar-footer .version,html[data-theme="light"] #portal-agent .sidebar-footer .credit-side{color:#4a4668!important;opacity:.95!important}',
       '#btn-theme.btn-theme{min-width:3.2rem}',
       '.mode-bar .user-info{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap}'
     ].join('');
