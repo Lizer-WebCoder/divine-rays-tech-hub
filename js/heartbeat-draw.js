@@ -1,5 +1,5 @@
 /**
- * Divine Rays — ORIGINAL ECG stroke-draw (kirzhianquijano) v24
+ * Divine Rays — ORIGINAL ECG + gears PINNED v25 — lighter glow
  * One start only. Running cycle is never interrupted (fixes 1st/2nd reset glitch).
  * Next pattern only via timer forceNew. Theme = recolor only.
  * Requires __DR_ECG_OK + data-ecg=on — never during boot
@@ -8,9 +8,9 @@
 (function () {
   'use strict';
   try { delete window.__DR_HEARTBEAT_DRAW; } catch (e0) {}
-  window.__DR_HEARTBEAT_DRAW = 24;
+  window.__DR_HEARTBEAT_DRAW = 25;
 
-  var CSS_ID = 'dr-gears-bg-v24';
+  var CSS_ID = 'dr-gears-bg-v25';
   var BOX_ID = 'dr-lifeline';
   var lastTheme = null;
   var lastMode = null;
@@ -93,10 +93,11 @@
   }
 
   function ecgStroke() {
-    return isLight() ? '#6d28d9' : '#e9d5ff';
+    return isLight() ? '#7c3aed' : '#f3e8ff';
   }
   function ecgGlowStroke() {
-    return isLight() ? '#a78bfa' : '#c4b5fd';
+    /* lighter, softer halo */
+    return isLight() ? 'rgba(167,139,250,0.45)' : 'rgba(233,213,255,0.42)';
   }
 
   function gearPath(teeth, outerR, innerR, holeR) {
@@ -180,12 +181,12 @@
     '100%{stroke-dashoffset:0}',
     '}',
     '@keyframes drEcgGlowPulse{',
-    '0%,100%{opacity:0.5}',
-    '50%{opacity:0.7}',
+    '0%,100%{opacity:0.28}',
+    '50%{opacity:0.42}',
     '}',
     '@keyframes drEcgCorePulse{',
-    '0%,100%{opacity:0.9}',
-    '50%{opacity:0.98}',
+    '0%,100%{opacity:0.85}',
+    '50%{opacity:0.95}',
     '}',
     '@media (prefers-reduced-motion:reduce){',
     '#dr-lifeline .dr-spin-cw,#dr-lifeline .dr-spin-ccw,#dr-lifeline .dr-spin-cw-fast,#dr-lifeline .dr-spin-ccw-slow{animation:none!important}',
@@ -217,14 +218,14 @@
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 100" preserveAspectRatio="none" ' +
       'width="100%" height="100%" style="display:block;overflow:visible">' +
       '<defs>' +
-      '<filter id="drEcgBlur" x="-20%" y="-50%" width="140%" height="200%" color-interpolation-filters="sRGB">' +
-      '<feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur"/>' +
-      '<feMerge><feMergeNode in="blur"/><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>' +
+      '<filter id="drEcgBlur" x="-25%" y="-60%" width="150%" height="220%" color-interpolation-filters="sRGB">' +
+      '<feGaussianBlur in="SourceGraphic" stdDeviation="1.6" result="blur"/>' +
+      '<feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>' +
       '</filter>' +
       '</defs>' +
-      '<path class="dr-ecg-glow" fill="none" stroke="' + glow + '" stroke-width="4.5" ' +
-      'stroke-linecap="round" stroke-linejoin="round" filter="url(#drEcgBlur)" d="' + d + '"/>' +
-      '<path class="dr-ecg-core" fill="none" stroke="' + core + '" stroke-width="2.8" ' +
+      '<path class="dr-ecg-glow" fill="none" stroke="' + glow + '" stroke-width="3.2" ' +
+      'stroke-linecap="round" stroke-linejoin="round" filter="url(#drEcgBlur)" opacity="0.55" d="' + d + '"/>' +
+      '<path class="dr-ecg-core" fill="none" stroke="' + core + '" stroke-width="2.4" ' +
       'stroke-linecap="round" stroke-linejoin="round" d="' + d + '"/>' +
       '</svg>'
     );
