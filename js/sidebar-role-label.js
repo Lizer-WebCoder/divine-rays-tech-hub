@@ -1,12 +1,12 @@
 /**
- * Divine Rays — Sidebar role label v5 (fast role + presence)
- * Developer gold for kirzhian*; aggressive early ticks so role is not stuck on Admin
+ * Divine Rays — Sidebar role label v6 (name + role + Online under avatar)
+ * Presence status lives under profile — not a separate bottom card
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_SIDEBAR_ROLE_LABEL >= 5) return;
-  window.__DR_SIDEBAR_ROLE_LABEL = 5;
+  if (window.__DR_SIDEBAR_ROLE_LABEL >= 6) return;
+  window.__DR_SIDEBAR_ROLE_LABEL = 6;
 
   var DEVS = { kirzhian: 1, kirzhianquijano: 1, kirzhianthegreat: 1, jamesjerlow123: 1, liya: 1, iiya: 1 };
 
@@ -64,7 +64,7 @@
       var t = (el.textContent || '').replace(/[·\u00b7\-].*$/, '').trim();
       if (t && t !== 'Agent' && t !== 'Admin') return t.split(/\s+/)[0];
     }
-    return 'User';
+    return 'You';
   }
 
   function css() {
@@ -73,14 +73,61 @@
     el.id = 'dr-sidebar-role-css';
     el.textContent = [
       '#portal-agent .sidebar .brand-text p, #portal-agent .brand-text p { display:none!important; }',
-      '#agent-name-display .dr-side-name { margin-right:0.25rem; }',
-      '#agent-name-display .dr-role-pill, #agent-name-display .dr-side-role {',
-      'display:inline-block;margin-left:.35rem;padding:.12rem .55rem;border-radius:999px;',
-      'font-size:.68rem;font-weight:700;letter-spacing:.02em;vertical-align:middle}',
-      '#agent-name-display .dr-side-role.developer, #agent-name-display .dr-role-pill[data-role="developer"]{background:rgba(234,179,8,.2);color:#fbbf24;border:1px solid rgba(234,179,8,.45)}',
-      '#agent-name-display .dr-side-role.admin, #agent-name-display .dr-role-pill[data-role="admin"]{background:rgba(45,212,191,.15);color:#2dd4bf;border:1px solid rgba(45,212,191,.4)}',
-      '#agent-name-display .dr-side-role.owner, #agent-name-display .dr-role-pill[data-role="owner"]{background:rgba(168,85,247,.18);color:#c084fc;border:1px solid rgba(168,85,247,.4)}',
-      '#agent-name-display .dr-side-role.agent, #agent-name-display .dr-role-pill[data-role="agent"]{background:rgba(96,165,250,.15);color:#60a5fa;border:1px solid rgba(96,165,250,.4)}',
+
+      /* Name + Role + Online chip under avatar */
+      '#agent-name-display{',
+      'display:inline-flex!important;align-items:center!important;justify-content:center!important;',
+      'flex-wrap:wrap!important;gap:0.3rem 0.4rem!important;',
+      'max-width:100%!important;margin:0.15rem auto 0!important;',
+      'padding:0.4rem 0.65rem!important;',
+      'background:linear-gradient(145deg,rgba(124,106,240,.12),rgba(124,106,240,.04))!important;',
+      'border:1px solid rgba(124,106,240,.22)!important;',
+      'border-radius:12px!important;',
+      'box-shadow:0 2px 10px rgba(0,0,0,.18)!important;',
+      'line-height:1.35!important;font-size:0.78rem!important;',
+      'white-space:normal!important;overflow:visible!important',
+      '}',
+      '#agent-name-display .dr-status-dot{',
+      'width:8px;height:8px;border-radius:50%;flex-shrink:0;',
+      'background:#34d399;box-shadow:0 0 0 3px rgba(52,211,153,.22);',
+      'animation:dr-pulse-online 2.4s ease-in-out infinite',
+      '}',
+      '@keyframes dr-pulse-online{',
+      '0%,100%{box-shadow:0 0 0 3px rgba(52,211,153,.22)}',
+      '50%{box-shadow:0 0 0 5px rgba(52,211,153,.12)}',
+      '}',
+      '#agent-name-display .dr-side-name{',
+      'color:var(--text,#f0f0f8);font-weight:650;letter-spacing:-0.01em;margin:0',
+      '}',
+      '#agent-name-display .dr-role-pill, #agent-name-display .dr-side-role{',
+      'display:inline-block;padding:.12rem .45rem;border-radius:999px;',
+      'font-size:.68rem;font-weight:700;letter-spacing:.02em;vertical-align:middle;margin:0',
+      '}',
+      '#agent-name-display .dr-side-role.developer, #agent-name-display .dr-role-pill[data-role="developer"]{',
+      'background:rgba(234,179,8,.2);color:#fbbf24;border:1px solid rgba(234,179,8,.45)}',
+      '#agent-name-display .dr-side-role.admin, #agent-name-display .dr-role-pill[data-role="admin"]{',
+      'background:rgba(45,212,191,.15);color:#2dd4bf;border:1px solid rgba(45,212,191,.4)}',
+      '#agent-name-display .dr-side-role.owner, #agent-name-display .dr-role-pill[data-role="owner"]{',
+      'background:rgba(168,85,247,.18);color:#c084fc;border:1px solid rgba(168,85,247,.4)}',
+      '#agent-name-display .dr-side-role.agent, #agent-name-display .dr-role-pill[data-role="agent"]{',
+      'background:rgba(96,165,250,.15);color:#60a5fa;border:1px solid rgba(96,165,250,.4)}',
+      '#agent-name-display .dr-online{',
+      'color:#34d399;font-weight:550;font-size:.72rem;opacity:.95;white-space:nowrap',
+      '}',
+
+      /* Hide separate bottom status card — presence is under avatar now */
+      '#dr-status-card,.dr-status-card{display:none!important}',
+      '#portal-agent .sidebar .stat-pills,#portal-agent .sidebar .stat-pill{display:none!important}',
+
+      'html[data-theme="light"] #agent-name-display{',
+      'background:linear-gradient(145deg,rgba(109,94,245,.1),rgba(109,94,245,.03))!important;',
+      'border-color:rgba(109,94,245,.2)!important;',
+      'box-shadow:0 2px 8px rgba(109,94,245,.08)!important',
+      '}',
+      'html[data-theme="light"] #agent-name-display .dr-side-name{color:var(--text,#1a1a2e)}',
+      'html[data-theme="light"] #agent-name-display .dr-online{color:#059669}',
+      'html[data-theme="light"] #agent-name-display .dr-status-dot{background:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,.2)}',
+
       '.presence-row .dr-side-role, .sidebar-footer .dr-side-role, #agent-presence .dr-side-role {',
       'display:inline-block;margin-left:.3rem;padding:.08rem .45rem;border-radius:999px;',
       'font-size:.65rem;font-weight:700;vertical-align:middle}',
@@ -96,9 +143,6 @@
     if (h1 && h1.textContent.trim() !== 'Divine Rays Tech Hub') {
       h1.textContent = 'Divine Rays Tech Hub';
     }
-    document.querySelectorAll('#portal-agent .sidebar .brand-text p, #portal-agent .brand-text p').forEach(function (p) {
-      p.style.setProperty('display', 'none', 'important');
-    });
   }
 
   function applyRole() {
@@ -108,13 +152,14 @@
     var name = nameOf(p);
     var role = roleOf(p, name);
     if (isDev(name)) role = { label: 'Developer', cls: 'developer' };
-    var key = name + '|' + role.label;
-    var pill = el.querySelector('.dr-side-role, .dr-role-pill');
-    if (el.getAttribute('data-dr-role-key') === key && pill && (pill.textContent || '').trim() === role.label) return;
+    var key = name + '|' + role.label + '|online';
+    if (el.getAttribute('data-dr-role-key') === key && el.querySelector('.dr-online')) return;
     el.setAttribute('data-dr-role-key', key);
     el.innerHTML =
-      '<span class="dr-side-name">' + esc(name) + '</span> ' +
-      '<span class="dr-role-pill dr-side-role ' + esc(role.cls) + '" data-role="' + esc(role.cls) + '">' + esc(role.label) + '</span>';
+      '<span class="dr-status-dot" aria-hidden="true"></span>' +
+      '<span class="dr-side-name">' + esc(name) + '</span>' +
+      '<span class="dr-role-pill dr-side-role ' + esc(role.cls) + '" data-role="' + esc(role.cls) + '">' + esc(role.label) + '</span>' +
+      '<span class="dr-online">\u00b7 Online</span>';
   }
 
   function applyPresence() {
@@ -145,6 +190,16 @@
     } catch (e) {}
   }
 
+  function hideBottomCard() {
+    try {
+      var card = document.getElementById('dr-status-card');
+      if (card) card.style.setProperty('display', 'none', 'important');
+      document.querySelectorAll('.dr-status-card, .dr-status-metrics, .stat-pills').forEach(function (n) {
+        try { n.style.setProperty('display', 'none', 'important'); } catch (e) {}
+      });
+    } catch (e) {}
+  }
+
   function capture() {
     try {
       if (window.DR && typeof window.DR.getProfile === 'function') {
@@ -162,6 +217,7 @@
     applyBrand();
     applyRole();
     applyPresence();
+    hideBottomCard();
   }
 
   tick();
@@ -177,5 +233,5 @@
       setTimeout(tick, 50);
     }
   }, true);
-  window.DRSidebarRole = { refresh: tick, v: 5 };
+  window.DRSidebarRole = { refresh: tick, v: 6 };
 })();
