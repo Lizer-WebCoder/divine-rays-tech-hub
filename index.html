@@ -66,7 +66,7 @@
     var SHELL_SHA = '6d66f6b647cf6f4c7340536dab472409bd1de5d6';
     var TEAM_BOARD_SHA = '6f7d941cf16542de5868a7ed0abaacae83f4d133';
     var TEAM_SEP_SHA = '85337adc33ac049cdbf1317bbc20388b4f774739';
-    var SIDEBAR_SHA = '2c09ded7569ad99b37af1e8ce43a8f69f387c770';
+    var SIDEBAR_SHA = 'cf94fa12898891abef9c93bf7b1ebd3a06883293';
     var ADMIN_LOCK_SHA = '61caa12d784ef14dbce219a4ad0825e33a108552';
     var SIDEBAR_ROLE_SHA = 'e1b64444ddb0dbeea9ec05d05cf843032414c738';
     var USERS_NAV_SHA = 'b6f328bf2f2e29c4ab6d88de2fc416c79e4bb070';
@@ -126,6 +126,7 @@
       'staff-ticket-notifs.js': STAFF_NOTIF_SHA,
       'customer-reply-fix.js': REPLY_FIX_SHA,
       'sidebar-design.js': SIDEBAR_SHA,
+      'status-card.js': '77e3d7d6023af7c16099399df2c23e98e367d7e0',
       'sidebar-role-label.js': SIDEBAR_ROLE_SHA,
       'design-system-v10.js': DESIGN_SHA,
       'ticket-list-design.js': TICKET_DESIGN_SHA,
@@ -220,7 +221,6 @@
         })();
       } catch (eOv) {}
       try { loadScript(CDN + FORCE_LIGHT_BG_SHA + '/js/force-light-bg.js'); } catch (eFl) {}
-      /* TOPBAR_EARLY */
       try {
         loadScript(CDN + TOPBAR_SHA + '/js/topbar-brand-role.js');
         loadScript(CDN + TOPBAR_ACTIONS_SHA + '/js/topbar-actions.js');
@@ -279,74 +279,24 @@
           loadScript(CDN + KB_JS_SHA + '/js/kb.js'),
           loadScript(CDN + ADMIN_SHA + '/js/admin.js'),
           loadScript(CDN + ADMIN_STATS_SHA + '/js/admin-stats-fix.js'),
-          loadScript(CDN + USERS_NAV_SHA + '/js/users-nav.js'),
-          loadScript(CDN + FILTER_SHA + '/js/users-filter-enforce.js'),
-          loadScript(CDN + FORCE_PENDING_SHA + '/js/force-pending-block.js'),
-          loadScript(CDN + APPROVAL_GATE_SHA + '/js/agent-approval-gate.js'),
-          loadScript(CDN + PENDING_FIX_SHA + '/js/pending-approved-fix.js'),
-          loadScript(CDN + LOGIN_TAB_SHA + '/js/login-tab-labels.js'),
-          loadScript(CDN + STAFF_NOTIF_SHA + '/js/staff-ticket-notifs.js'),
-          loadScript(CDN + TICKET_DESIGN_SHA + '/js/ticket-list-design.js'),
+          loadScript(CDN + FILTER_SHA + '/js/filter.js'),
           loadScript(CDN + CUSTOMER_FILTER_SHA + '/js/customer-my-tickets-filter.js'),
           loadScript(CDN + PRIORITY_P1_SHA + '/js/priority-p1-display.js'),
-          loadScript('https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@main/js/customer-priority-matrix.js'),
           loadScript(CDN + ENDUSER_PRO_SHA + '/js/enduser-pro.js'),
           loadScript(CDN + ENDUSER_UI_SHA + '/js/enduser-ui.js'),
           loadScript(CDN + CHAT_UI_SHA + '/js/chat-ui.js'),
           loadScript(CDN + LIGHT_MODE_POLISH_SHA + '/js/light-mode-polish.js'),
-          loadScript(CDN + FORCE_LIGHT_BG_SHA + '/js/force-light-bg.js'),
-          loadScript(CDN + LOGIN_CHROME_HIDE_SHA + '/js/login-chrome-hide.js'),
-          loadScript(CDN + PAGER_FIX_SHA + '/js/pager-fix.js')
+          loadScript(CDN + TICKET_DESIGN_SHA + '/js/ticket-list-design.js'),
+          loadScript(CDN + STAFF_NOTIF_SHA + '/js/staff-ticket-notifs.js')
         ]).then(function () {
-          try {
-            function startEcgWhenHoneycomb() {
-              var amb = document.getElementById('dr-login-ambient');
-              var honey = amb && (amb.querySelector('.dr-honeycomb') || amb.querySelector('svg'));
-              if (!honey) { setTimeout(startEcgWhenHoneycomb, 200); return; }
-              requestAnimationFrame(function () {
-                requestAnimationFrame(function () {
-                  window.__DR_ECG_OK = true;
-                  document.documentElement.setAttribute('data-ecg', 'on');
-                  loadScript(CDN + HB_SHA + '/js/heartbeat-draw.js');
-                  try { if (window.__DR_DISMISS_BOOT) window.__DR_DISMISS_BOOT(); } catch (eD) {}
-                });
-              });
-            }
-            setTimeout(startEcgWhenHoneycomb, 300);
-            setTimeout(function () { try { if (window.__DR_DISMISS_BOOT) window.__DR_DISMISS_BOOT(); } catch (eS) {} }, 12000);
-          } catch (eEcg) {}
-          try { loaded['admin.js'] = 0; loadScript(CDN + ADMIN_SHA + '/js/admin.js'); } catch (eA) {}
-          try { if (window.DRUsersNav && window.DRUsersNav.refresh) window.DRUsersNav.refresh(); } catch (e) {}
-          try {
-            if (!window.__DR_ADMIN_RECLAIM) {
-              window.__DR_ADMIN_RECLAIM = 1;
-              setInterval(function () {
-                try {
-                  if (!document.body.classList.contains('dr-view-endusers') && !document.body.classList.contains('dr-view-admin-staff')) return;
-                  var box = document.getElementById('admin-users-list');
-                  if (!box) return;
-                  var oldUi = box.querySelector('.admin-role-select');
-                  var hasTable = box.querySelector('table');
-                  var hasPager = document.getElementById('dr-users-pager');
-                  if ((oldUi || (hasTable && !hasPager)) && typeof window.renderAdminUsers === 'function') {
-                    window.renderAdminUsers(window.__DR_USERS_LIST_MODE || 'endusers');
-                  }
-                } catch (eRec) {}
-              }, 1200);
-            }
-          } catch (eRec2) {}
-          try { if (window.DRSidebarDesign && window.DRSidebarDesign.refresh) window.DRSidebarDesign.refresh(); } catch (e2) {}
-          try { if (window.DRTopbarBrand && window.DRTopbarBrand.refresh) window.DRTopbarBrand.refresh(); } catch (e11) {}
-          try { if (window.DRTopbarActions && window.DRTopbarActions.refresh) window.DRTopbarActions.refresh(); } catch (e12) {}
-          try { if (window.DRTheme && window.DRTheme.ensure) window.DRTheme.ensure(); } catch (e13) {}
-          try { if (window.DRDashUIV2 && window.DRDashUIV2.refresh) window.DRDashUIV2.refresh(); } catch (e16) {}
-          try { if (window.DRSidebarRole && window.DRSidebarRole.refresh) window.DRSidebarRole.refresh(); } catch (e17) {}
+          try { if (window.__DR_DISMISS_BOOT) window.__DR_DISMISS_BOOT(); } catch (eD) {}
         });
-      }, 200);
+      }, 80);
     } catch (err) {
       clearTimeout(bootTimer);
-      var boot = document.getElementById('boot');
-      if (boot) boot.innerHTML = '<div>Load error: ' + (err.message || err) + '</div><div class="hint">Hard refresh (Ctrl+Shift+R) and try again.</div>';
+      console.error(err);
+      var hint = document.getElementById('boot-hint');
+      if (hint) hint.innerHTML = 'Could not load app. <button type="button" onclick="location.reload()">Retry</button> Hard refresh (Ctrl+Shift+R) and try again.';
     }
   })();
   </script>
