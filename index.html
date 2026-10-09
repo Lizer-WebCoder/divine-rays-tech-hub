@@ -7,7 +7,7 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.9.14-admin-v17" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.9.15-topbar-fast" />
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@main/js/admin-portal-lock.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@main/js/theme.js"></script>
   <style>
@@ -84,7 +84,7 @@
     var UI_LAYOUT_SHA = 'ce5a1fde308a9d38438b60df40497902b607690c';
     var KB_TABLE_SHA = '057efa589371be7a05114c786f31a89bb28fe009';
     var KB_JS_SHA = 'd4e9498db74b26a08bf7c8acec52ac3496c6ff86';
-    var ADMIN_SHA = '120afc517b48078cc9a4a7f60150eb98cbb96cc3';
+    var ADMIN_SHA = 'c5cf856335777abac0b8cc91cdd4a9c92349a87a';
     var ADMIN_STATS_SHA = 'a84ce631450b3b57b11f852de982bf83206ea26b';
     var TOOLBAR_SHA = '2ea9190cbbb3dbfbf3a159ca47d585a61b2f6e2b';
     var FILTER_SHA = '1bfe6c0e93dedc361cf1f3e15eb520c3aea13930';
@@ -181,8 +181,8 @@
       html = html.replace(/loadScript\([^)]*heartbeat-draw[^)]*\);?/gi, '/* heartbeat blocked */');
       html = html.replace(/await loadScript\([^)]*ecg-inline[^)]*\);?/gi, '/* ecg-inline blocked */');
       html = html.replace(/loadScript\([^)]*ecg-inline[^)]*\);?/gi, '/* ecg-inline blocked */');
-      html = html.replace(/await loadScript\([^)]*\/js\/admin\.js[^)]*\);?/gi, '/* admin.js shell blocked — pin loads V17 */');
-      html = html.replace(/loadScript\([^)]*\/js\/admin\.js[^)]*\);?/gi, '/* admin.js shell blocked — pin loads V17 */');
+      html = html.replace(/await loadScript\([^)]*\/js\/admin\.js[^)]*\);?/gi, '/* admin.js shell blocked — pin loads V18 */');
+      html = html.replace(/loadScript\([^)]*\/js\/admin\.js[^)]*\);?/gi, '/* admin.js shell blocked — pin loads V18 */');
       html = html.replace(/var EXTRA_FILES = \[[^\]]*\];/, "var EXTRA_FILES = ['email-notify.js','ticket-plus.js','ticket-plus-fix.js','status-lock.js','kb.js','polish-fixes.js'];");
       html = html.replace(/https:\/\/cdn\.jsdelivr\.net\/gh\/Lizer-WebCoder\/divine-rays-tech-hub@[a-f0-9]+\/js\/([a-z0-9._-]+\.js)/gi, function (full, name) {
         if (SKIP[name]) return full;
@@ -218,6 +218,13 @@
         })();
       } catch (eOv) {}
       try { loadScript(CDN + FORCE_LIGHT_BG_SHA + '/js/force-light-bg.js'); } catch (eFl) {}
+      /* TOPBAR_EARLY: paint brand/actions ASAP (Admin + Employee portals) */
+      try {
+        loadScript(CDN + TOPBAR_SHA + '/js/topbar-brand-role.js');
+        loadScript(CDN + TOPBAR_ACTIONS_SHA + '/js/topbar-actions.js');
+        loadScript(CDN + THEME_SHA + '/js/theme.js');
+        loadScript(CDN + SIDEBAR_ROLE_SHA + '/js/sidebar-role-label.js');
+      } catch (eTopEarly) {}
       window.__DR_ECG_OK = false;
       try { document.documentElement.removeAttribute('data-ecg'); } catch (e0) {}
       var killEarly = setInterval(function () {
