@@ -1,12 +1,12 @@
 /**
- * Divine Rays — Top bar actions v4
+ * Divine Rays — Top bar actions v5 — fast paint
  * One Profile, theme icon via theme.js, red Logout — Admin + Employees
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_TOPBAR_ACTIONS >= 4) return;
-  window.__DR_TOPBAR_ACTIONS = 4;
+  if (window.__DR_TOPBAR_ACTIONS >= 5) return;
+  window.__DR_TOPBAR_ACTIONS = 5;
 
   function injectCss() {
     if (document.getElementById('dr-topbar-actions-css')) return;
@@ -46,7 +46,8 @@
       'html[data-theme="light"] .mode-bar #btn-logout{',
       'background:rgba(220,38,38,0.08)!important;color:#dc2626!important;border-color:rgba(220,38,38,0.35)!important}',
 
-      'body.is-portal .mode-bar #btn-theme{display:inline-flex!important;visibility:visible!important;pointer-events:auto!important}'
+      'body.is-portal .mode-bar #btn-theme{display:inline-flex!important;visibility:visible!important;pointer-events:auto!important}',
+      '.mode-bar{visibility:visible!important;opacity:1!important}'
     ].join('');
     (document.head || document.documentElement).appendChild(el);
   }
@@ -101,50 +102,38 @@
     if (!btn) {
       btn = document.createElement('button');
       btn.type = 'button';
-      btn.id = 'btn-my-profile';
+      btn.id = 'btn-profile';
       btn.className = 'btn btn-ghost btn-sm dr-topbar-btn';
       btn.textContent = 'Profile';
-      var logout = document.getElementById('btn-logout');
-      var theme = document.getElementById('btn-theme');
-      if (theme && theme.parentNode === info) {
-        if (theme.nextSibling) info.insertBefore(btn, theme.nextSibling);
-        else info.appendChild(btn);
-      } else if (logout && logout.parentNode === info) {
-        info.insertBefore(btn, logout);
-      } else {
-        info.appendChild(btn);
-      }
-      if (!btn.__drProfileBound) {
-        btn.__drProfileBound = 1;
-        btn.addEventListener('click', function (e) {
-          e.preventDefault();
-          e.stopPropagation();
-          openProfile();
-        });
-      }
+      info.appendChild(btn);
     }
-
     btn.textContent = 'Profile';
-    btn.classList.add('dr-topbar-btn');
-
-    info.querySelectorAll('button, a').forEach(function (el) {
-      if (el === btn) return;
-      if (el.id === 'btn-theme' || el.id === 'btn-logout') return;
-      var tx = (el.textContent || '').trim().toLowerCase();
-      if (tx === 'profile' && el.id !== 'btn-my-profile') {
-        if (el.parentNode) el.parentNode.removeChild(el);
-      }
-    });
+    btn.onclick = function (e) {
+      if (e) { e.preventDefault(); e.stopPropagation(); }
+      openProfile();
+    };
   }
 
   function styleLogout() {
-    var logout = document.getElementById('btn-logout');
-    if (!logout) return;
-    logout.classList.add('dr-topbar-btn');
-    if (!(logout.textContent || '').trim()) logout.textContent = 'Logout';
+    var btn = document.getElementById('btn-logout');
+    if (!btn) return;
+    btn.classList.add('dr-topbar-btn');
+    btn.style.setProperty('visibility', 'visible', 'important');
+    btn.style.setProperty('opacity', '1', 'important');
   }
 
-  function hideRoleLabel() {
+  function orderButtons() {
+    var info = userInfo();
+    if (!info) return;
+    var theme = document.getElementById('btn-theme');
+    var profile = document.getElementById('btn-my-profile') || document.getElementById('btn-profile');
+    var logout = document.getElementById('btn-logout');
+    if (theme) info.appendChild(theme);
+    if (profile) info.appendChild(profile);
+    if (logout) info.appendChild(logout);
+  }
+
+  function hideLoggedLabel() {
     var lb = document.getElementById('logged-user-label');
     if (lb) {
       lb.style.setProperty('display', 'none', 'important');
@@ -152,24 +141,9 @@
     }
   }
 
-  function orderButtons() {
-    var info = userInfo();
-    if (!info) return;
-    var chip = document.getElementById('header-avatar-chip');
-    var theme = document.getElementById('btn-theme');
-    var profile = document.getElementById('btn-my-profile') || document.getElementById('btn-profile');
-    var logout = document.getElementById('btn-logout');
-    var nodes = [];
-    if (chip && chip.parentNode === info) nodes.push(chip);
-    if (theme) nodes.push(theme);
-    if (profile) nodes.push(profile);
-    if (logout) nodes.push(logout);
-    nodes.forEach(function (n) { info.appendChild(n); });
-  }
-
   function tick() {
     injectCss();
-    hideRoleLabel();
+    hideLoggedLabel();
     ensureThemeBtn();
     ensureOneProfileBtn();
     styleLogout();
@@ -177,10 +151,13 @@
   }
 
   tick();
-  setTimeout(tick, 400);
-  setTimeout(tick, 1200);
-  setTimeout(tick, 3000);
-  setInterval(tick, 20000);
+  var n = 0;
+  var fast = setInterval(function () {
+    tick();
+    n += 1;
+    if (n > 50) clearInterval(fast);
+  }, 150);
+  setInterval(tick, 4000);
 
   document.addEventListener('click', function (e) {
     if (e.target && e.target.closest && e.target.closest('.mode-bar') && !e.target.closest('#btn-theme')) {
@@ -188,5 +165,5 @@
     }
   }, true);
 
-  window.DRTopbarActions = { refresh: tick, v: 4 };
+  window.DRTopbarActions = { refresh: tick, v: 5 };
 })();
