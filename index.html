@@ -9,7 +9,7 @@
   <title>Divine Rays Tech Hub — Support</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.9.18-fast-chrome" />
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@main/js/admin-portal-lock.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@main/js/theme.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@fd7e72358ad600baed3dc9229b8a3da4143a0c63/js/theme.js"></script>
   <style>
     html,body{margin:0;min-height:100vh;font-family:Inter,system-ui,-apple-system,sans-serif;background:radial-gradient(ellipse 80% 60% at 50% 40%,#1a1530 0%,#0c0c14 55%,#08080f 100%);color:#eeeef6}
     html[data-theme="light"],html[data-theme="light"] body{background:radial-gradient(ellipse 80% 60% at 50% 35%,#e8e4ff 0%,#f4f2ff 45%,#eceaf8 100%);color:#1a1625}
@@ -37,6 +37,7 @@
     html:not([data-ecg="on"]) #dr-lifeline,html:not([data-ecg="on"]) #dr-lifeline *{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;width:0!important;height:0!important}
     html[data-ecg="on"] #dr-lifeline{display:block!important;visibility:visible!important;opacity:1!important;width:auto!important;height:auto!important}
     #agent-name-display:not(.dr-presence-ready){opacity:0!important;min-height:1.6rem}
+    .mode-bar,.topbar,#mode-bar{transition:none!important}
   </style>
   <script>
   (function () {
@@ -69,9 +70,9 @@
     var TEAM_SEP_SHA = '85337adc33ac049cdbf1317bbc20388b4f774739';
     var SIDEBAR_SHA = 'cf94fa12898891abef9c93bf7b1ebd3a06883293';
     var ADMIN_LOCK_SHA = '61caa12d784ef14dbce219a4ad0825e33a108552';
-    var SIDEBAR_ROLE_SHA = 'e1b64444ddb0dbeea9ec05d05cf843032414c738';
+    var SIDEBAR_ROLE_SHA = 'cf85fe34e66bb092edf09e521e0ef0879071354a';
     var USERS_NAV_SHA = 'b6f328bf2f2e29c4ab6d88de2fc416c79e4bb070';
-    var THEME_SHA = 'e1b64444ddb0dbeea9ec05d05cf843032414c738';
+    var THEME_SHA = 'fd7e72358ad600baed3dc9229b8a3da4143a0c63';
     var TOPBAR_SHA = 'c49dd3bd4b8cd07fa3608633c3d096ce1ac5db04';
     var TOPBAR_ACTIONS_SHA = '78a2cd6baf434009144d7b702caaf46ad7581536';
     var DASH_NO_TICKETS_SHA = 'e1b64444ddb0dbeea9ec05d05cf843032414c738';
@@ -118,7 +119,7 @@
       'agent-approval-gate.js': APPROVAL_GATE_SHA,
       'force-pending-block.js': FORCE_PENDING_SHA,
       'pending-approved-fix.js': PENDING_FIX_SHA,
-      'theme.js': THEME_SHA,
+      'theme.js': 'fd7e72358ad600baed3dc9229b8a3da4143a0c63',
       'topbar-brand-role.js': TOPBAR_SHA,
       'topbar-actions.js': TOPBAR_ACTIONS_SHA,
       'dashboard-no-tickets.js': DASH_NO_TICKETS_SHA,
@@ -127,7 +128,7 @@
       'staff-ticket-notifs.js': STAFF_NOTIF_SHA,
       'customer-reply-fix.js': REPLY_FIX_SHA,
       'sidebar-design.js': SIDEBAR_SHA,
-      'status-card.js': '11a0993d13d01a83b4d9bf1b9185481b5e00fb6e',
+      'status-card.js': 'fd7e72358ad600baed3dc9229b8a3da4143a0c63',
       'sidebar-role-label.js': 'cf85fe34e66bb092edf09e521e0ef0879071354a',
       'design-system-v10.js': DESIGN_SHA,
       'ticket-list-design.js': TICKET_DESIGN_SHA,
@@ -179,7 +180,7 @@
       if (!html) throw new Error('Could not load app shell');
       html = html.replace(/var LIVE_SHA = '[^']*';/, "var LIVE_SHA = '" + COMMENTS_LIVE_SHA + "';");
       html = html.replace(/var KB_JS_SHA = '[^']*';/, "var KB_JS_SHA = '" + KB_JS_SHA + "';");
-      html = html.replace(/var THEME_SHA = '[^']*';/, "var THEME_SHA = 'e1b64444ddb0dbeea9ec05d05cf843032414c738';");
+      html = html.replace(/var THEME_SHA = '[^']*';/, "var THEME_SHA = 'fd7e72358ad600baed3dc9229b8a3da4143a0c63';");
       html = html.replace(/var HB_SHA = '[^']*';/, "var HB_SHA = 'eb5307ac567bac02ee36296941bd767459b2f0d2';");
       html = html.replace(/await loadScript\([^)]*heartbeat-draw[^)]*\);?/gi, '/* heartbeat blocked */');
       html = html.replace(/loadScript\([^)]*heartbeat-draw[^)]*\);?/gi, '/* heartbeat blocked */');
@@ -198,14 +199,14 @@
         html = html.replace(re, '/* skipped ' + name + ' */');
       });
       html = html.replace('<head>', '<head><script>window.__DR_COMMENTS_LIVE=8;window.__DR_COMMENTS_LIVE_V2=1;window.__DR_BOOT_CLEAN=1;window.__DR_ECG_OK=false;<\/script>');
-      html = html.replace('</head>', '<style id="dr-boot-login-bg">html,body{background:radial-gradient(ellipse 80% 60% at 50% 40%,#1a1530 0%,#0c0c14 55%,#08080f 100%)!important;}html[data-theme="light"],html[data-theme="light"] body{background:radial-gradient(ellipse 80% 60% at 50% 35%,#e8e4ff 0%,#f4f2ff 45%,#eceaf8 100%)!important;}#login-screen,.login-screen{background:transparent!important;background-image:none!important;}html:not([data-ecg="on"]) #dr-lifeline,html:not([data-ecg="on"]) #dr-lifeline *{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}html[data-ecg="on"] #dr-lifeline{display:block!important;visibility:visible!important;opacity:1!important}#agent-name-display:not(.dr-presence-ready){opacity:0!important;min-height:1.6rem}</style><script src="' + withBust(CDN + FORCE_LIGHT_BG_SHA + '/js/force-light-bg.js') + '"><\/script></head>');
+      html = html.replace('</head>', '<style id="dr-boot-login-bg">html,body{background:radial-gradient(ellipse 80% 60% at 50% 40%,#1a1530 0%,#0c0c14 55%,#08080f 100%)!important;}html[data-theme="light"],html[data-theme="light"] body{background:radial-gradient(ellipse 80% 60% at 50% 35%,#e8e4ff 0%,#f4f2ff 45%,#eceaf8 100%)!important;}#login-screen,.login-screen{background:transparent!important;background-image:none!important;}html:not([data-ecg="on"]) #dr-lifeline,html:not([data-ecg="on"]) #dr-lifeline *{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}html[data-ecg="on"] #dr-lifeline{display:block!important;visibility:visible!important;opacity:1!important}#agent-name-display:not(.dr-presence-ready){opacity:0!important;min-height:1.6rem}.mode-bar,.topbar,#mode-bar{transition:none!important}</style><script src="' + withBust(CDN + FORCE_LIGHT_BG_SHA + '/js/force-light-bg.js') + '"><\/script></head>');
       document.open(); document.write(html); document.close(); clearTimeout(bootTimer);
       try {
         (function injectBootOverlay() {
           if (document.getElementById('dr-boot-overlay')) return;
           var st = document.createElement('style');
           st.id = 'dr-boot-overlay-css';
-          st.textContent = '#dr-boot-overlay{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1.25rem;padding:1.5rem;text-align:center;background:radial-gradient(ellipse 80% 60% at 50% 40%,#1a1530 0%,#0c0c14 55%,#08080f 100%);color:#eeeef6;font-family:Inter,system-ui,sans-serif;transition:opacity .55s ease;opacity:1}html[data-theme="light"] #dr-boot-overlay{background:radial-gradient(ellipse 80% 60% at 50% 35%,#e8e4ff 0%,#f4f2ff 45%,#eceaf8 100%);color:#1a1625}#dr-boot-overlay.is-done{opacity:0;pointer-events:none}#dr-boot-overlay .boot-logo{width:72px;height:72px;border-radius:16px;box-shadow:0 8px 32px rgba(109,90,154,.35)}#dr-boot-overlay .boot-title{font-size:1.35rem;font-weight:650;margin:0}#dr-boot-overlay .boot-sub{font-size:.85rem;color:#9494ae;margin:0}#dr-boot-overlay .boot-loader{display:flex;gap:8px;height:28px;align-items:center}#dr-boot-overlay .boot-dot{width:8px;height:8px;border-radius:50%;background:#a78bfa;animation:drBootDot 1.2s ease-in-out infinite}#dr-boot-overlay .boot-dot:nth-child(2){animation-delay:.15s}#dr-boot-overlay .boot-dot:nth-child(3){animation-delay:.3s}@keyframes drBootDot{0%,80%,100%{transform:translateY(0);opacity:.35}40%{transform:translateY(-6px);opacity:1}}body.dr-boot-holding #login-screen,body.dr-boot-holding .login-screen{opacity:0!important;pointer-events:none!important}';
+          st.textContent = '#dr-boot-overlay{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1.25rem;padding:1.5rem;text-align:center;background:radial-gradient(ellipse 80% 60% at 50% 40%,#1a1530 0%,#0c0c14 55%,#08080f 100%);color:#eeeef6;font-family:Inter,system-ui,sans-serif;transition:opacity .55s ease;opacity:1}html[data-theme="light"] #dr-boot-overlay{background:radial-gradient(ellipse 80% 60% at 50% 35%,#e8e4ff 0%,#f4f2ff 45%,#eceaf8 100%);color:#1a1625}#dr-boot-overlay.is-done{opacity:0;pointer-events:none}#dr-boot-overlay .boot-logo{width:72px;height:72px;border-radius:16px;box-shadow:0 8px 32px rgba(109,90,154,.35)}#dr-boot-overlay .boot-title{font-size:1.35rem;font-weight:650;margin:0}#dr-boot-overlay .boot-sub{font-size:.85rem;color:#9494ae;margin:0}#dr-boot-overlay .boot-loader{display:flex;gap:8px;height:28px;align-items:center}#dr-boot-overlay .boot-dot{width:8px;height:8px;border-radius:50%;background:#a78bfa;animation:drBootDot 1.2s ease-in-out infinite}#dr-boot-overlay .boot-dot:nth-child(2){animation-delay:.15s}#dr-boot-overlay .boot-dot:nth-child(3){animation-delay:.3s}@keyframes drBootDot{0%,80%,100%{transform:translateY(0);opacity:.35}40%{transform:translateY(-6px);opacity:1}}body.dr-boot-holding #login-screen,body.dr-boot-holding .login-screen{opacity:0!important;pointer-events:none!important;visibility:hidden!important}body.dr-boot-holding #portal-agent:not(.active),body.dr-boot-holding #portal-customer:not(.active){opacity:0!important;pointer-events:none!important}';
           (document.head || document.documentElement).appendChild(st);
           var ov = document.createElement('div');
           ov.id = 'dr-boot-overlay';
@@ -225,9 +226,9 @@
       try {
         loadScript(CDN + TOPBAR_SHA + '/js/topbar-brand-role.js');
         loadScript(CDN + TOPBAR_ACTIONS_SHA + '/js/topbar-actions.js');
-        loadScript(CDN + THEME_SHA + '/js/theme.js');
+        loadScript(CDN + 'fd7e72358ad600baed3dc9229b8a3da4143a0c63' + '/js/theme.js');
         loadScript(CDN + 'cf85fe34e66bb092edf09e521e0ef0879071354a' + '/js/sidebar-role-label.js');
-        loadScript(CDN + '11a0993d13d01a83b4d9bf1b9185481b5e00fb6e' + '/js/status-card.js');
+        loadScript(CDN + 'fd7e72358ad600baed3dc9229b8a3da4143a0c63' + '/js/status-card.js');
         loadScript(CDN + SIDEBAR_SHA + '/js/sidebar-design.js');
         loadScript(CDN + TOAST_POS_SHA + '/js/toast-position.js');
       } catch (eTopEarly) {}
@@ -246,7 +247,7 @@
         loadScript(CDN + 'cf85fe34e66bb092edf09e521e0ef0879071354a' + '/js/sidebar-role-label.js');
         loadScript(CDN + TOPBAR_SHA + '/js/topbar-brand-role.js');
         loadScript(CDN + TOPBAR_ACTIONS_SHA + '/js/topbar-actions.js');
-        loadScript(CDN + THEME_SHA + '/js/theme.js');
+        loadScript(CDN + 'fd7e72358ad600baed3dc9229b8a3da4143a0c63' + '/js/theme.js');
         loadScript(CDN + TOAST_POS_SHA + '/js/toast-position.js');
         loadScript(CDN + DASH_NO_TICKETS_SHA + '/js/dashboard-no-tickets.js');
         loadScript(CDN + DASH_UI_V2_SHA + '/js/dashboard-ui-v2.js');
@@ -267,7 +268,7 @@
           loadScript(CDN + SIDEBAR_SHA + '/js/sidebar-design.js'),
           loadScript(CDN + ADMIN_LOCK_SHA + '/js/admin-portal-lock.js'),
           loadScript(CDN + 'cf85fe34e66bb092edf09e521e0ef0879071354a' + '/js/sidebar-role-label.js'),
-          loadScript(CDN + THEME_SHA + '/js/theme.js'),
+          loadScript(CDN + 'fd7e72358ad600baed3dc9229b8a3da4143a0c63' + '/js/theme.js'),
           loadScript(CDN + TOPBAR_SHA + '/js/topbar-brand-role.js'),
           loadScript(CDN + TOPBAR_ACTIONS_SHA + '/js/topbar-actions.js'),
           loadScript(CDN + TOAST_POS_SHA + '/js/toast-position.js'),
@@ -292,7 +293,21 @@
           loadScript(CDN + TICKET_DESIGN_SHA + '/js/ticket-list-design.js'),
           loadScript(CDN + STAFF_NOTIF_SHA + '/js/staff-ticket-notifs.js')
         ]).then(function () {
-          try { if (window.__DR_DISMISS_BOOT) window.__DR_DISMISS_BOOT(); } catch (eD) {}
+          try {
+            (function waitPortal() {
+              var n = 0;
+              var iv = setInterval(function () {
+                n += 1;
+                var pa = document.getElementById('portal-agent');
+                var pc = document.getElementById('portal-customer');
+                var ready = (pa && pa.classList.contains('active')) || (pc && pc.classList.contains('active'));
+                if (ready || n >= 50) {
+                  clearInterval(iv);
+                  try { if (window.__DR_DISMISS_BOOT) window.__DR_DISMISS_BOOT(); } catch (eD) {}
+                }
+              }, 80);
+            })();
+          } catch (eD) {}
         });
       }, 80);
     } catch (err) {
