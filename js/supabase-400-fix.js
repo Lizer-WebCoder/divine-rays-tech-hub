@@ -1,47 +1,47 @@
 /**
- * Divine Rays — Supabase 400 fix
- * Prevents console 400 spam from selects on missing columns
- * (csat_score, branch, position, assignee_id, claimed_by, display_name).
+ * Divine Rays — Supabase 400 fix v2
+ * Strips selects for columns that are not on this project's schema
+ * so the browser console is not flooded with 400 Bad Request.
  * Credit: Boyz at the Back LRK · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_SUPABASE_400_FIX) return;
-  window.__DR_SUPABASE_400_FIX = 1;
+  if (window.__DR_SUPABASE_400_FIX >= 2) return;
+  window.__DR_SUPABASE_400_FIX = 2;
 
-  function safeProfileSelect(cols) {
-    var s = String(cols || '');
-    /* strip optional/missing columns that cause 400 on this project */
-    s = s
-      .split(',')
-      .map(function (c) { return c.trim(); })
-      .filter(function (c) {
-        if (!c) return false;
-        if (/^(branch|position|display_name|name)$/i.test(c)) return false;
-        return true;
-      })
-      .join(',');
-    if (!s) s = 'id,full_name,username,role';
-    if (s.indexOf('id') === -1) s = 'id,' + s;
-    return s;
-  }
+  /* Columns confirmed missing / optional on this project */
+  var DROP_PROFILE = {
+    branch: 1,
+    position: 1,
+    display_name: 1,
+    name: 1
+  };
+  var DROP_TICKET = {
+    assignee_id: 1,
+    claimed_by: 1,
+    agent_id: 1,
+    display_name: 1,
+    csat_score: 1,
+    csat_comment: 1,
+    csat_at: 1
+  };
 
-  function safeTicketSelect(cols) {
-    var s = String(cols || '');
-    s = s
-      .split(',')
-      .map(function (c) { return c.trim(); })
-      .filter(function (c) {
-        if (!c) return false;
-        if (/^(assignee_id|claimed_by|agent_id|display_name)$/i.test(c)) return false;
-        return true;
-      })
-      .join(',');
-    return s || '*';
+  function filterCols(cols, dropMap) {
+    var s = String(cols == null ? '*' : cols).trim();
+    if (!s || s === '*') return s;
+    var parts = s.split(',').map(function (c) { return c.trim(); }).filter(Boolean);
+    var out = [];
+    for (var i = 0; i < parts.length; i++) {
+      var col = parts[i].split(':')[0].split('(')[0].trim();
+      if (dropMap[col]) continue;
+      out.push(parts[i]);
+    }
+    if (!out.length) return dropMap === DROP_PROFILE ? 'id,full_name,username' : 'id,title,status,priority,assigned_to';
+    return out.join(',');
   }
 
   function patchClient(client) {
-    if (!client || client.__dr400Patched) return client;
+    if (!client || typeof client.from !== 'function' || client.__dr400Patched >= 2) return client;
     var origFrom = client.from.bind(client);
     client.from = function (table) {
       var builder = origFrom(table);
@@ -50,37 +50,36 @@
       builder.select = function (cols, opts) {
         var c = cols;
         try {
-          if (table === 'profiles') c = safeProfileSelect(cols);
-          else if (table === 'tickets') c = safeTicketSelect(cols);
+          if (table === 'profiles') c = filterCols(cols, DROP_PROFILE);
+          else if (table === 'tickets') c = filterCols(cols, DROP_TICKET);
         } catch (e) {}
         return origSelect(c, opts);
       };
       return builder;
     };
-    client.__dr400Patched = 1;
+    client.__dr400Patched = 2;
     return client;
   }
 
   function tryPatch() {
+    try { if (window.__drSb) patchClient(window.__drSb); } catch (e) {}
+    try { if (window.DR && DR.sb) patchClient(DR.sb); } catch (e2) {}
     try {
-      if (window.__drSb) patchClient(window.__drSb);
-    } catch (e) {}
-    try {
-      if (window.DR && DR.sb) patchClient(DR.sb);
-    } catch (e2) {}
-    try {
-      if (window.supabase && window.DR_CONFIG && !window.__drSbPatchedOnce) {
-        /* wrap createClient if present later */
+      if (window.supabase && typeof window.supabase.createClient === 'function' && !window.supabase.createClient.__dr400) {
+        var prev = window.supabase.createClient.bind(window.supabase);
+        window.supabase.createClient = function () {
+          var c = prev.apply(this, arguments);
+          return patchClient(c);
+        };
+        window.supabase.createClient.__dr400 = 1;
       }
     } catch (e3) {}
   }
 
   tryPatch();
-  setTimeout(tryPatch, 500);
-  setTimeout(tryPatch, 1500);
-  setTimeout(tryPatch, 4000);
-  setInterval(tryPatch, 8000);
-
-  /* Also silence repeated CSAT fetches when column missing */
-  window.__drCsatSchemaMissing = false;
+  setTimeout(tryPatch, 200);
+  setTimeout(tryPatch, 800);
+  setTimeout(tryPatch, 2000);
+  setTimeout(tryPatch, 5000);
+  setInterval(tryPatch, 10000);
 })();
