@@ -7,64 +7,38 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.9.25-fix" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.9.27-live" />
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@9a17dcda7cbe5a9ad3f9af120b4135532b149a13/js/admin-portal-lock.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@545afd29cbaede602653f78631d8c97ce7558683/js/sidebar-profile-layout.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@bef23962c979e19d937950b628f10649f3f10b2f/js/theme.js"></script>
   <style>
-    html,body{margin:0;min-height:100vh;font-family:Inter,system-ui,-apple-system,sans-serif;background:radial-gradient(ellipse 80% 60% at 50% 40%,#1a1530 0%,#0c0c14 55%,#08080f 100%);color:#eeeef6}
-    #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:1.25rem;padding:1.5rem;text-align:center;box-sizing:border-box}
-    #boot .boot-logo{width:72px;height:72px;border-radius:16px;box-shadow:0 8px 32px rgba(109,90,154,.35)}
-    #boot .boot-title{font-size:1.35rem;font-weight:650;margin:0}
+    html,body{margin:0;min-height:100vh;font-family:Inter,system-ui,sans-serif;background:#0c0c14;color:#eeeef6}
+    #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:1rem;text-align:center;padding:1.5rem}
+    #boot .boot-title{font-size:1.25rem;font-weight:650;margin:0}
     #boot .boot-sub{font-size:.85rem;color:#9494ae;margin:0}
-    #boot .boot-loader{display:flex;gap:8px;height:28px;align-items:center;justify-content:center}
-    #boot .boot-dot{width:8px;height:8px;border-radius:50%;background:#a78bfa;animation:bootDot 1.2s ease-in-out infinite}
+    #boot .boot-dot{width:8px;height:8px;border-radius:50%;background:#a78bfa;display:inline-block;margin:0 3px;animation:bootDot 1.2s ease-in-out infinite}
     #boot .boot-dot:nth-child(2){animation-delay:.15s}
     #boot .boot-dot:nth-child(3){animation-delay:.3s}
-    @keyframes bootDot{0%,80%,100%{transform:translateY(0);opacity:.35}40%{transform:translateY(-6px);opacity:1}}
-    body.dr-session-restoring #login-screen,body.dr-boot-holding #login-screen{display:none!important;visibility:hidden!important}
-    body:has(#portal-agent.active) #login-screen,body.is-portal #login-screen{display:none!important}
+    @keyframes bootDot{0%,80%,100%{opacity:.35}40%{opacity:1}}
   </style>
-  <script>
-  (function () {
-    try { var t = localStorage.getItem('dr_theme') || 'dark'; document.documentElement.setAttribute('data-theme', t); } catch (e) {}
-    try { document.documentElement.classList.add('dr-session-restoring'); } catch (e0) {}
-    window.__DR_BOOT_CLEAN = 1;
-  })();
-  </script>
 </head>
 <body>
   <div id="boot">
-    <img class="boot-logo" src="favicon.svg?v=9.9.9-boot" alt="Divine Rays" width="72" height="72" />
     <h1 class="boot-title">Divine Rays Tech Hub</h1>
     <p class="boot-sub">Loading…</p>
-    <div class="boot-loader"><span class="boot-dot"></span><span class="boot-dot"></span><span class="boot-dot"></span></div>
-    <div id="boot-hint" style="font-size:.8rem;color:#6b6b80;min-height:1.2em"></div>
+    <div><span class="boot-dot"></span><span class="boot-dot"></span><span class="boot-dot"></span></div>
+    <p id="boot-hint" style="font-size:.8rem;color:#6b6b80"></p>
   </div>
   <script>
   (async function () {
-    var SHELL_SHA = '6d66f6b647cf6f4c7340536dab472409bd1de5d6';
-    var ADMIN_LOCK_SHA = '61caa12d784ef14dbce219a4ad0825e33a108552';
+    /* Self-contained app shell with login + portal markup */
+    var SHELL_SHA = 'abdc47355c0342744e79b8545458cd7d729f93d1';
+    var ADMIN_LOCK_SHA = '9a17dcda7cbe5a9ad3f9af120b4135532b149a13';
     var SIDEBAR_PROFILE_SHA = '545afd29cbaede602653f78631d8c97ce7558683';
-    var FILTERS_SHA = 'e65c070009674e02288c96a305daab5e0245e28e';
-    var PRIORITY_P1_SHA = '5fa3d4a86e002268a75ed1068d1f96259ecb9344';
     var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
     var BUST = String(Date.now());
     function withBust(u) { return u + (u.indexOf('?') === -1 ? '?' : '&') + 'b=' + BUST; }
-    function loadScript(src) {
-      return new Promise(function (resolve) {
-        var s = document.createElement('script');
-        s.src = withBust(src);
-        s.async = false;
-        s.onload = function () { resolve(); };
-        s.onerror = function () { resolve(); };
-        (document.body || document.documentElement).appendChild(s);
-      });
-    }
     var hint = document.getElementById('boot-hint');
-    var timer = setTimeout(function () {
-      if (hint) hint.textContent = 'Taking longer than usual…';
-    }, 8000);
     try {
       var html = null;
       var urls = [
@@ -74,47 +48,27 @@
       for (var i = 0; i < urls.length; i++) {
         try {
           var r = await fetch(withBust(urls[i]), { cache: 'no-store', credentials: 'omit' });
-          if (r.ok) { html = await r.text(); break; }
+          if (r.ok) {
+            var text = await r.text();
+            if (text && text.indexOf('login-screen') !== -1) { html = text; break; }
+          }
         } catch (e) {}
       }
-      if (!html) throw new Error('Could not load app shell');
+      if (!html) throw new Error('Could not load app');
       html = html.replace(/@main\/js\/admin-portal-lock\.js/g, '@' + ADMIN_LOCK_SHA + '/js/admin-portal-lock.js');
-      html = html.replace(/https:\/\/cdn\.jsdelivr\.net\/gh\/Lizer-WebCoder\/divine-rays-tech-hub@[a-f0-9]+\/js\/admin-portal-lock\.js/gi,
-        CDN + ADMIN_LOCK_SHA + '/js/admin-portal-lock.js');
       if (html.indexOf('sidebar-profile-layout.js') === -1) {
         html = html.replace('</head>',
+          '<script src="' + withBust(CDN + ADMIN_LOCK_SHA + '/js/admin-portal-lock.js') + '"><\/script>' +
           '<script src="' + withBust(CDN + SIDEBAR_PROFILE_SHA + '/js/sidebar-profile-layout.js') + '"><\/script></head>');
       }
-      clearTimeout(timer);
       document.open();
       document.write(html);
       document.close();
-      setTimeout(function () {
-        loadScript(CDN + ADMIN_LOCK_SHA + '/js/admin-portal-lock.js');
-        loadScript(CDN + SIDEBAR_PROFILE_SHA + '/js/sidebar-profile-layout.js');
-        loadScript(CDN + FILTERS_SHA + '/js/filters.js');
-        loadScript(CDN + PRIORITY_P1_SHA + '/js/priority-p1-display.js');
-        loadScript(CDN + 'a9046e485443b24e800a4f4d10747c10146ca663/js/heartbeat-draw.js');
-        loadScript(CDN + '90094058c1f476b163296855e186984add6a625d/js/bg-anim-pin.js');
-        loadScript(CDN + 'cf85fe34e66bb092edf09e521e0ef0879071354a/js/sidebar-role-label.js');
-      }, 40);
-      function dismiss() {
-        try {
-          document.body.classList.remove('dr-session-restoring', 'dr-boot-holding');
-          document.body.classList.add('is-portal');
-          var b = document.getElementById('boot');
-          if (b) b.remove();
-          var o = document.getElementById('dr-boot-overlay');
-          if (o) o.remove();
-        } catch (e) {}
-      }
-      setTimeout(dismiss, 1200);
-      setTimeout(dismiss, 3000);
-      setTimeout(dismiss, 6000);
     } catch (err) {
-      clearTimeout(timer);
-      var boot = document.getElementById('boot');
-      if (boot) boot.innerHTML = '<p style="color:#fca5a5">Could not load app. <button onclick="location.reload()">Retry</button></p><p style="color:#9494ae;font-size:.8rem">' + String(err && err.message || err) + '</p>';
+      if (hint) hint.textContent = String(err && err.message || err);
+      document.getElementById('boot').innerHTML =
+        '<p style="color:#fca5a5">Could not load app.</p>' +
+        '<button onclick="location.reload()" style="margin-top:12px;padding:8px 16px;cursor:pointer">Retry</button>';
     }
   })();
   </script>
