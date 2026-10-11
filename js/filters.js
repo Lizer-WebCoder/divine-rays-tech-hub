@@ -1,9 +1,10 @@
 /**
- * Divine Rays — filters v16 — shared listFilter, search/status/priority work — prev/next always restores page list
+ * Divine Rays — filters v17 — P1–P4 priority match + shared listFilter
  * Credit: Boyz at the Back LRK · All Rights Reserved
  */
 (function () {
   'use strict';
+  window.__DR_FILTERS_V17 = 1;
   window.__DR_FILTERS_V16 = 1;
   window.__DR_FILTERS_V13 = 1;
   window.__DR_FILTERS_V12 = 1;
@@ -14,10 +15,6 @@
   window.__DR_FILTERS_V7 = 1;
   window.__DR_FILTERS_V6 = 1;
   window.__DR_FILTERS_V5 = 1;
-
-  function toast(msg, type) {
-    if (window.DR && DR.toast) return DR.toast(msg, type);
-  }
 
   function esc(s) {
     if (window.DR && DR.esc) return DR.esc(s);
@@ -31,9 +28,7 @@
       return new Date(iso).toLocaleString(undefined, {
         month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
       });
-    } catch (e) {
-      return '';
-    }
+    } catch (e) { return ''; }
   }
 
   function sc(s) {
@@ -42,7 +37,6 @@
   }
 
   function getLF() {
-    /* Single source of truth: app listFilter via DR.getListFilter — never wipe user q/status */
     try {
       if (window.DR && typeof DR.getListFilter === 'function') {
         var drLf = DR.getListFilter();
@@ -78,15 +72,9 @@
         if (Array.isArray(t) && t.length) return t;
       } catch (e) {}
     }
-    if (window.DR && Array.isArray(window.DR.tickets) && window.DR.tickets.length) {
-      return window.DR.tickets;
-    }
-    if (Array.isArray(window.allTicketsCache) && window.allTicketsCache.length) {
-      return window.allTicketsCache;
-    }
-    if (Array.isArray(window.__drTickets) && window.__drTickets.length) {
-      return window.__drTickets;
-    }
+    if (window.DR && Array.isArray(window.DR.tickets) && window.DR.tickets.length) return window.DR.tickets;
+    if (Array.isArray(window.allTicketsCache) && window.allTicketsCache.length) return window.allTicketsCache;
+    if (Array.isArray(window.__drTickets) && window.__drTickets.length) return window.__drTickets;
     return window.allTicketsCache || [];
   }
 
@@ -129,7 +117,18 @@
 
   function matchesPriority(ticketPriority, filterPriority) {
     if (!filterPriority) return true;
-    return normalizeStatus(ticketPriority) === normalizeStatus(filterPriority);
+    if (typeof window.__drPriorityEquals === 'function') {
+      try { return window.__drPriorityEquals(ticketPriority, filterPriority); } catch (e) {}
+    }
+    var map = {
+      critical: 'p1', p1: 'p1',
+      high: 'p2', p2: 'p2',
+      medium: 'p3', p3: 'p3',
+      low: 'p4', p4: 'p4'
+    };
+    var a = map[normalizeStatus(ticketPriority)] || normalizeStatus(ticketPriority);
+    var b = map[normalizeStatus(filterPriority)] || normalizeStatus(filterPriority);
+    return a === b;
   }
 
   function matchesQuery(t, q) {
@@ -179,11 +178,9 @@
   function sortTickets(list, sort) {
     sort = sort || 'newest';
     var arr = list.slice();
-    var rank = { critical: 0, high: 1, medium: 2, low: 3 };
+    var rank = { critical: 0, p1: 0, high: 1, p2: 1, medium: 2, p3: 2, low: 3, p4: 3 };
     arr.sort(function (a, b) {
-      if (sort === 'oldest') {
-        return new Date(a.created_at || 0) - new Date(b.created_at || 0);
-      }
+      if (sort === 'oldest') return new Date(a.created_at || 0) - new Date(b.created_at || 0);
       if (sort === 'priority') {
         var pa = rank[normalizeStatus(a.priority)];
         var pb = rank[normalizeStatus(b.priority)];
@@ -242,6 +239,15 @@
     }
   }
 
+  function priLabel(p) {
+    if (typeof window.__drPriorityLabel === 'function') {
+      try { return window.__drPriorityLabel(p) || p || ''; } catch (e) {}
+    }
+    var map = { critical: 'P1', high: 'P2', medium: 'P3', low: 'P4' };
+    var n = String(p || '').trim().toLowerCase();
+    return map[n] || p || '';
+  }
+
   function cardHtml(t, names) {
     names = names || {};
     var req = names[t.requester_id] || 'End-User';
@@ -251,6 +257,7 @@
       if (p.length >= 2) return (p[0][0] + p[1][0]).toUpperCase();
       return (n.slice(0, 2) || '?').toUpperCase();
     })(req);
+    var pl = priLabel(t.priority);
     return (
       '<div class="ticket-card" data-id="' + esc(t.id) + '">' +
       '<div class="ticket-av">' + esc(initials) + '</div>' +
@@ -265,7 +272,7 @@
       '<span>' + esc(fmt(t.updated_at || t.created_at)) + '</span>' +
       '</div></div>' +
       '<div class="badges">' +
-      '<span class="badge ' + sc(t.priority) + '">' + esc(t.priority || '') + '</span>' +
+      '<span class="badge ' + sc(pl || t.priority) + '">' + esc(pl) + '</span>' +
       '<span class="badge ' + sc(t.status) + '">' + esc(t.status) + '</span>' +
       '</div></div>'
     );
@@ -274,10 +281,7 @@
   function updateHint(from, to, matched, total, page, pages) {
     var hint = document.getElementById('filter-hint');
     if (!hint) return;
-    if (!matched) {
-      hint.textContent = total ? 'No matches' : 'No tickets';
-      return;
-    }
+    if (!matched) { hint.textContent = total ? 'No matches' : 'No tickets'; return; }
     hint.textContent = 'Showing ' + from + '–' + to + ' of ' + matched +
       (pages > 1 ? ' · Page ' + (page + 1) + '/' + pages : '') +
       (matched !== total ? ' (' + total + ' total)' : '');
@@ -314,7 +318,6 @@
 
   function applyTicketFilters(refetch) {
     var lf = getLF();
-    /* Prefer live control values so search/dropdown always win */
     try {
       var si = document.getElementById('search-input');
       var st = document.getElementById('filter-status');
@@ -393,7 +396,6 @@
       pageItems.map(function (t) { return t.id; }).join(',');
     window.__drLastPageRender = page;
     if (sig === _lastSig && container.querySelector('.ticket-card') && pageItems.length) {
-      /* still update if empty search cleared? force when filters active */
       if (!lf.q && !lf.status && !lf.priority) return;
     }
     _lastSig = sig;
@@ -459,15 +461,13 @@
     if (prev && !prev.__drBound) {
       prev.__drBound = true;
       prev.addEventListener('click', function (e) {
-        e.preventDefault();
-        goPage(-1);
+        e.preventDefault(); goPage(-1);
       });
     }
     if (next && !next.__drBound) {
       next.__drBound = true;
       next.addEventListener('click', function (e) {
-        e.preventDefault();
-        goPage(1);
+        e.preventDefault(); goPage(1);
       });
     }
   }
@@ -481,8 +481,7 @@
     if (si && !si.__drFilterBound) {
       si.__drFilterBound = true;
       function onSearch() {
-        var lf = getLF();
-        lf.q = si.value || '';
+        getLF().q = si.value || '';
         resetPage();
         clearTimeout(timer);
         timer = setTimeout(function () { refreshList(); }, 120);
