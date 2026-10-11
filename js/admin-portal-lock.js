@@ -1,15 +1,15 @@
 /**
- * Divine Rays — Admin Portal lock v11 — filters v17 + priority P1–P4 v2
+ * Divine Rays — Admin Portal lock v12 — filters v18 + priority P1–P4 v3
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_ADMIN_PORTAL_LOCK >= 11) return;
-  window.__DR_ADMIN_PORTAL_LOCK = 11;
+  if (window.__DR_ADMIN_PORTAL_LOCK >= 12) return;
+  window.__DR_ADMIN_PORTAL_LOCK = 12;
 
   var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
-  var FILTERS_SHA = 'e65c070009674e02288c96a305daab5e0245e28e';
-  var PRIORITY_SHA = '5fa3d4a86e002268a75ed1068d1f96259ecb9344';
+  var FILTERS_SHA = 'd76969f7e13ff322fb8b37fb061a1bfed8fc8c20';
+  var PRIORITY_SHA = '7f3c726173a05a238a628ee3a6a7f22c7008cc3c';
   var PINS = {
     'pending-approved-fix.js': '94a5aeaaa38fafaaa1ac94872341ce3bf992dfd1',
     'filters.js': FILTERS_SHA,
@@ -23,7 +23,7 @@
     scriptsLoaded = true;
     Object.keys(PINS).forEach(function (name) {
       var s = document.createElement('script');
-      s.src = CDN + PINS[name] + '/js/' + name + '?lock=11&b=' + Date.now();
+      s.src = CDN + PINS[name] + '/js/' + name + '?lock=12&b=' + Date.now();
       s.async = false;
       (document.head || document.documentElement).appendChild(s);
     });
@@ -31,15 +31,15 @@
 
   function ensureFiltersBound() {
     try {
-      if (!window.__DR_FILTERS_V17) {
+      if (!window.__DR_FILTERS_V18) {
         var s = document.createElement('script');
-        s.src = CDN + FILTERS_SHA + '/js/filters.js?lock=11r&b=' + Date.now();
+        s.src = CDN + FILTERS_SHA + '/js/filters.js?lock=12r&b=' + Date.now();
         s.async = false;
         (document.head || document.documentElement).appendChild(s);
       }
-      if (!window.__DR_PRIORITY_P1_DISPLAY_V2) {
+      if (!window.__DR_PRIORITY_P1_DISPLAY_V3) {
         var s2 = document.createElement('script');
-        s2.src = CDN + PRIORITY_SHA + '/js/priority-p1-display.js?lock=11r&b=' + Date.now();
+        s2.src = CDN + PRIORITY_SHA + '/js/priority-p1-display.js?lock=12r&b=' + Date.now();
         s2.async = false;
         (document.head || document.documentElement).appendChild(s2);
       }
@@ -138,8 +138,8 @@
   }
 
   forceLoadAll();
-  setTimeout(ensureFiltersBound, 1500);
-  setTimeout(ensureFiltersBound, 4000);
+  setTimeout(ensureFiltersBound, 1200);
+  setTimeout(ensureFiltersBound, 3500);
   tick();
   setTimeout(tick, 2000);
   setInterval(tick, 30000);
