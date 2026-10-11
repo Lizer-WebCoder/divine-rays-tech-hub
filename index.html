@@ -65,9 +65,9 @@
     var TEAM_SEP_SHA = '85337adc33ac049cdbf1317bbc20388b4f774739';
     var SIDEBAR_SHA = 'cf94fa12898891abef9c93bf7b1ebd3a06883293';
     var ADMIN_LOCK_SHA = '61caa12d784ef14dbce219a4ad0825e33a108552';
-    var SIDEBAR_ROLE_SHA = 'e1b64444ddb0dbeea9ec05d05cf843032414c738';
+    var SIDEBAR_ROLE_SHA = 'cf85fe34e66bb092edf09e521e0ef0879071354a';
     var USERS_NAV_SHA = 'b6f328bf2f2e29c4ab6d88de2fc416c79e4bb070';
-    var THEME_SHA = 'e1b64444ddb0dbeea9ec05d05cf843032414c738';
+    var THEME_SHA = 'bef23962c979e19d937950b628f10649f3f10b2f';
     var TOPBAR_SHA = 'c49dd3bd4b8cd07fa3608633c3d096ce1ac5db04';
     var TOPBAR_ACTIONS_SHA = '78a2cd6baf434009144d7b702caaf46ad7581536';
     var DASH_NO_TICKETS_SHA = 'e1b64444ddb0dbeea9ec05d05cf843032414c738';
@@ -85,7 +85,7 @@
     var ADMIN_STATS_SHA = 'a84ce631450b3b57b11f852de982bf83206ea26b';
     var TOOLBAR_SHA = '2ea9190cbbb3dbfbf3a159ca47d585a61b2f6e2b';
     var FILTER_SHA = '1bfe6c0e93dedc361cf1f3e15eb520c3aea13930';
-    var FILTERS_SHA = '8f52e79109370a95c51cb13f03120d7fcdad3d0f';
+    var FILTERS_SHA = 'fd500bd08c356ea7708c4ae9d43f32959bf5ca67';
     var DESIGN_SHA = '7d6d66cbe63fda91cf71d64bbddd1af80f3adfc3';
     var TICKET_DESIGN_SHA = '01d6078d7a6a6ff64a1c9f53621d1bc2446156cf';
     var CUSTOMER_FILTER_SHA = '517014018e6fae9383c57a5c02e51bbacfc73991';
@@ -98,7 +98,7 @@
     var LOGIN_CHROME_HIDE_SHA = '60c3368efd15da0e8d15cac0674b28eaed22d973';
     var PAGER_FIX_SHA = '10037b1e4fdd1f855a0b1cbd558ec3af7bf71d2f';
     var DASH_UI_V2_SHA = '92f4070a0c125f2e3ce5d423fff1f68c4d3ba968';
-    var HB_SHA = 'eb5307ac567bac02ee36296941bd767459b2f0d2';
+    var HB_SHA = 'a9046e485443b24e800a4f4d10747c10146ca663';
     var TOAST_POS_SHA = '76fcf130dd18ab3ee64435a264724deb9666fc05';
     var DASH_TOPBAR_FIX_SHA = '30cabdc60127fa17c0ef13f19b307dda573354f9';
     var FILTERS_TOOLBAR_FIX_SHA = '45f63dc9924d354f246b3cc18d6f0cb0459a9997';
@@ -181,8 +181,8 @@
       if (!html) throw new Error('Could not load app shell');
       html = html.replace(/var LIVE_SHA = '[^']*';/, "var LIVE_SHA = '" + COMMENTS_LIVE_SHA + "';");
       html = html.replace(/var KB_JS_SHA = '[^']*';/, "var KB_JS_SHA = '" + KB_JS_SHA + "';");
-      html = html.replace(/var THEME_SHA = '[^']*';/, "var THEME_SHA = 'e1b64444ddb0dbeea9ec05d05cf843032414c738';");
-      html = html.replace(/var HB_SHA = '[^']*';/, "var HB_SHA = 'eb5307ac567bac02ee36296941bd767459b2f0d2';");
+      html = html.replace(/var THEME_SHA = '[^']*';/, "var THEME_SHA = 'bef23962c979e19d937950b628f10649f3f10b2f';");
+      html = html.replace(/var HB_SHA = '[^']*';/, "var HB_SHA = 'a9046e485443b24e800a4f4d10747c10146ca663';");
       html = html.replace(/await loadScript\([^)]*\/js\/admin\.js[^)]*\);?/gi, '/* admin.js shell blocked */');
       html = html.replace(/loadScript\([^)]*\/js\/admin\.js[^)]*\);?/gi, '/* admin.js shell blocked */');
       html = html.replace(/var EXTRA_FILES = \[[^\]]*\];/, "var EXTRA_FILES = ['email-notify.js','ticket-plus.js','ticket-plus-fix.js','status-lock.js','kb.js','polish-fixes.js'];");
@@ -304,6 +304,7 @@
           loadScript(CDN + ADMIN_SHA + '/js/admin.js'),
           loadScript(CDN + ADMIN_STATS_SHA + '/js/admin-stats-fix.js'),
           loadScript(CDN + FILTER_SHA + '/js/filter.js'),
+          loadScript(CDN + FILTERS_SHA + '/js/filters.js'),
           loadScript(CDN + CUSTOMER_FILTER_SHA + '/js/customer-my-tickets-filter.js'),
           loadScript(CDN + PRIORITY_P1_SHA + '/js/priority-p1-display.js'),
           loadScript(CDN + ENDUSER_PRO_SHA + '/js/enduser-pro.js'),
