@@ -4,43 +4,44 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.9.20-restore" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.9.21-restore" />
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@2aa22823e014414ef2bad79bceae69b792cb56c0/js/admin-portal-lock.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@4326d1ddf5e9a5628834aa36f87999d7e0a4b87a/js/ticket-card-css.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@c7cf1603252db483e7e5badebb1271f0da23c21a/js/ticket-card-render.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@bef23962c979e19d937950b628f10649f3f10b2f/js/theme.js"></script>
   <style>
     html,body{margin:0;min-height:100vh;font-family:Inter,system-ui,sans-serif;background:#0c0c14;color:#eeeef6}
-    #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:1rem}
+    #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:1rem;text-align:center;padding:1.5rem}
+    #boot .err{color:#fca5a5;font-size:.9rem;max-width:28rem}
   </style>
 </head>
 <body>
   <div id="boot">Loading Divine Rays Tech Hub…</div>
   <script>
   (async function () {
+    var B = Date.now();
     var urls = [
-      'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@dff5607325751e9826e9492bcc3e8a549dd62b53/index.html?b=' + Date.now(),
-      'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/dff5607325751e9826e9492bcc3e8a549dd62b53/index.html?b=' + Date.now()
+      'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/2aa22823e014414ef2bad79bceae69b792cb56c0/index.html?b=' + B,
+      'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@2aa22823e014414ef2bad79bceae69b792cb56c0/index.html?b=' + B
     ];
-    var html = null;
+    var html = null, lastErr = '';
     for (var i = 0; i < urls.length; i++) {
       try {
-        var r = await fetch(urls[i], { cache: 'no-store' });
-        if (r.ok) { html = await r.text(); break; }
-      } catch (e) {}
+        var r = await fetch(urls[i], { cache: 'no-store', credentials: 'omit' });
+        if (r.ok) { html = await r.text(); if (html && html.indexOf('SHELL_SHA') !== -1) break; html = null; }
+        else lastErr = 'HTTP ' + r.status;
+      } catch (e) { lastErr = String(e && e.message || e); }
     }
     if (!html) {
-      document.getElementById('boot').innerHTML = 'Could not load app. Hard refresh or try again.';
+      document.getElementById('boot').innerHTML = '<p class="err">Could not load app shell (' + lastErr + '). Try again in a few seconds.</p>';
       return;
     }
-    html = html.replace(
-      /@main\/js\/admin-portal-lock\.js/g,
-      '@2aa22823e014414ef2bad79bceae69b792cb56c0/js/admin-portal-lock.js'
-    );
+    html = html.replace(/@main\/js\/admin-portal-lock\.js/g, '@2aa22823e014414ef2bad79bceae69b792cb56c0/js/admin-portal-lock.js');
     if (html.indexOf('ticket-card-render.js') === -1) {
-      html = html.replace(
-        '</head>',
+      html = html.replace('</head>',
         '<script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@4326d1ddf5e9a5628834aa36f87999d7e0a4b87a/js/ticket-card-css.js"><\/script>' +
         '<script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@c7cf1603252db483e7e5badebb1271f0da23c21a/js/ticket-card-render.js"><\/script></head>'
       );
