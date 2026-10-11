@@ -1,11 +1,13 @@
 /**
- * Divine Rays — avatars strictly bound to current auth user
- * Cache-first paint so the picture shows immediately.
+ * Divine Rays — avatars v3
+ * Paint into existing sidebar profile avatar (no layout drag).
+ * Cache-first; header chip optional.
  * Credit: Lizzz · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_AVATAR_FIX_V2) return;
+  if (window.__DR_AVATAR_FIX_V3) return;
+  window.__DR_AVATAR_FIX_V3 = 1;
   window.__DR_AVATAR_FIX_V2 = 1;
   window.__DR_AVATAR_FIX = 1;
 
@@ -50,38 +52,65 @@
     } catch (e) {}
   }
 
-  function avatarHtml(url, name, sizeClass) {
-    sizeClass = sizeClass || 'md';
-    var letter = (name || 'U').charAt(0).toUpperCase();
-    if (url) {
-      return (
-        '<img class="avatar-img ' +
-        sizeClass +
-        '" src="' +
-        esc(url) +
-        '" alt="" decoding="async" loading="eager" ' +
-        'onerror="this.style.display=\'none\';var n=this.nextElementSibling;if(n)n.style.display=\'grid\'" />' +
-        '<div class="avatar-fallback ' +
-        sizeClass +
-        '" style="display:none">' +
-        esc(letter) +
-        '</div>'
-      );
+  function injectCss() {
+    var id = 'dr-avatar-fix-css';
+    var el = document.getElementById(id);
+    if (!el) {
+      el = document.createElement('style');
+      el.id = id;
+      (document.head || document.documentElement).appendChild(el);
     }
-    return '<div class="avatar-fallback ' + sizeClass + '">' + esc(letter) + '</div>';
+    el.textContent = [
+      '#portal-agent .sidebar .avatar,',
+      '#portal-agent .sidebar .profile-avatar,',
+      '#portal-agent .sidebar .avatar-ring,',
+      '#portal-agent .sidebar .sidebar-profile,',
+      '#portal-agent .sidebar .profile-chip{',
+      '  position:relative!important;overflow:hidden!important;flex-shrink:0!important',
+      '}',
+      '#portal-agent .sidebar .avatar img,',
+      '#portal-agent .sidebar .profile-avatar img,',
+      '#portal-agent .sidebar .avatar-ring img,',
+      '#portal-agent .sidebar .sidebar-profile img,',
+      '#portal-agent .sidebar .profile-chip img,',
+      '#portal-agent .sidebar img.dr-side-av{',
+      '  width:100%!important;height:100%!important;object-fit:cover!important;',
+      '  display:block!important;border-radius:inherit!important',
+      '}',
+      '#sidebar-avatar-chip.sidebar-avatar-chip{',
+      '  display:none!important;width:0!important;height:0!important;overflow:hidden!important;',
+      '  margin:0!important;padding:0!important;border:none!important',
+      '}',
+      '#header-avatar-chip, .header-avatar-chip{',
+      '  display:inline-flex!important;align-items:center!important;justify-content:center!important;',
+      '  width:28px!important;height:28px!important;min-width:28px!important;',
+      '  border-radius:8px!important;overflow:hidden!important;flex-shrink:0!important',
+      '}',
+      '#header-avatar-chip img, .header-avatar-chip img{',
+      '  width:100%!important;height:100%!important;object-fit:cover!important;display:block!important',
+      '}',
+      '#header-avatar-chip .avatar-fallback, .header-avatar-chip .avatar-fallback{',
+      '  width:100%!important;height:100%!important;display:grid!important;place-items:center!important;',
+      '  font-weight:700!important;font-size:0.72rem!important',
+      '}'
+    ].join('');
   }
 
-  function ensureSidebarChip() {
-    var badge = document.querySelector('#portal-agent .agent-badge');
-    if (!badge) return null;
-    var side = document.getElementById('sidebar-avatar-chip');
-    if (!side) {
-      side = document.createElement('div');
-      side.id = 'sidebar-avatar-chip';
-      side.className = 'sidebar-avatar-chip';
-      badge.parentNode.insertBefore(side, badge);
+  function findSidebarAvatarHost() {
+    var sels = [
+      '#portal-agent .sidebar .avatar-ring',
+      '#portal-agent .sidebar .profile-avatar',
+      '#portal-agent .sidebar .sidebar-profile',
+      '#portal-agent .sidebar .profile-chip',
+      '#portal-agent .sidebar .avatar',
+      '#portal-agent .sidebar .profile .avatar',
+      '#portal-agent .agent-badge .avatar'
+    ];
+    for (var i = 0; i < sels.length; i++) {
+      var el = document.querySelector(sels[i]);
+      if (el) return el;
     }
-    return side;
+    return null;
   }
 
   function ensureHeaderChip() {
@@ -103,24 +132,62 @@
     return chip;
   }
 
+  function paintHost(host, url, name) {
+    if (!host) return;
+    var letter = (name || 'U').charAt(0).toUpperCase();
+    var existing = host.querySelector('img.dr-side-av, img.avatar-img, img');
+    if (url) {
+      if (existing) {
+        if (existing.getAttribute('src') !== url) existing.setAttribute('src', url);
+        existing.style.display = 'block';
+        existing.classList.add('dr-side-av');
+        existing.setAttribute('alt', '');
+        existing.onerror = function () { this.style.display = 'none'; };
+      } else {
+        host.innerHTML =
+          '<img class="dr-side-av avatar-img" src="' +
+          esc(url) +
+          '" alt="" decoding="async" loading="eager" onerror="this.style.display=\'none\'" />';
+      }
+    } else if (!existing) {
+      if (!(host.textContent || '').trim()) host.textContent = letter;
+    }
+  }
+
   function applyAvatar(url, name) {
-    var side = ensureSidebarChip();
+    injectCss();
+    try {
+      var legacy = document.getElementById('sidebar-avatar-chip');
+      if (legacy) legacy.classList.add('sidebar-avatar-chip');
+    } catch (e) {}
+    paintHost(findSidebarAvatarHost(), url, name);
     var head = ensureHeaderChip();
-    if (side) side.innerHTML = avatarHtml(url, name, 'md');
-    if (head) head.innerHTML = avatarHtml(url, name, 'sm');
+    if (head) {
+      var letter = (name || 'U').charAt(0).toUpperCase();
+      if (url) {
+        head.innerHTML =
+          '<img class="avatar-img" src="' +
+          esc(url) +
+          '" alt="" decoding="async" loading="eager" onerror="this.style.display=\'none\';var n=this.nextElementSibling;if(n)n.style.display=\'grid\'" />' +
+          '<div class="avatar-fallback" style="display:none">' +
+          esc(letter) +
+          '</div>';
+      } else {
+        head.innerHTML = '<div class="avatar-fallback">' + esc(letter) + '</div>';
+      }
+    }
   }
 
   function clearAvatarDom() {
-    ['sidebar-avatar-chip', 'header-avatar-chip'].forEach(function (id) {
-      var el = document.getElementById(id);
-      if (el) el.innerHTML = '';
-    });
-    document.querySelectorAll('.header-avatar-chip img, .sidebar-avatar-chip img, #header-avatar-chip img, #sidebar-avatar-chip img').forEach(function (img) {
-      try {
-        img.removeAttribute('src');
-        if (img.parentNode) img.parentNode.removeChild(img);
-      } catch (e) {}
-    });
+    try {
+      var host = findSidebarAvatarHost();
+      if (host) {
+        var img = host.querySelector('img.dr-side-av, img.avatar-img');
+        if (img) img.removeAttribute('src');
+      }
+    } catch (e) {}
+    var head = document.getElementById('header-avatar-chip');
+    if (head) head.innerHTML = '';
   }
 
   function getClient() {
@@ -167,43 +234,31 @@
       clearAvatarDom();
       return;
     }
-
     if (lastUid && lastUid !== uid) {
       clearAllCaches();
       clearAvatarDom();
     }
     lastUid = uid;
-
     var cached = readCache();
     if (cached.user_id && cached.user_id !== uid) {
       clearAllCaches();
       cached = {};
     }
-
-    /* Paint cached avatar FIRST — no network wait */
     if (cached.user_id === uid && cached.avatar_url) {
       applyAvatar(cached.avatar_url, cached.full_name || 'User');
     }
-
     var prof = await fetchMyProfile(uid);
-
     var url = (prof && prof.avatar_url) || null;
     var name = (prof && (prof.full_name || prof.username)) || (cached.full_name || 'User');
-
     if (url && url.indexOf(uid) === -1 && /\/avatars\//.test(url) && /[0-9a-f]{8}-[0-9a-f]{4}/i.test(url)) {
       url = null;
     }
-
     if (url) {
       writeCache({ user_id: uid, avatar_url: url, full_name: name });
       applyAvatar(url, name);
       return;
     }
-
-    if (cached.user_id === uid && cached.avatar_url) {
-      return;
-    }
-
+    if (cached.user_id === uid && cached.avatar_url) return;
     applyAvatar(null, name);
   }
 
@@ -214,11 +269,12 @@
   }
 
   function tick() {
+    injectCss();
     forceVersion();
     syncAvatar();
   }
 
-  /* Instant paint on load from cache */
+  injectCss();
   try {
     var _c = readCache();
     if (_c && _c.avatar_url) applyAvatar(_c.avatar_url, _c.full_name || 'User');
@@ -226,10 +282,10 @@
 
   tick();
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', tick);
-  setTimeout(tick, 500);
-  setTimeout(tick, 1500);
-  setTimeout(tick, 3500);
-  setInterval(tick, 8000);
+  setTimeout(tick, 400);
+  setTimeout(tick, 1200);
+  setTimeout(tick, 3000);
+  setInterval(tick, 10000);
 
   document.addEventListener(
     'click',
@@ -240,7 +296,6 @@
         clearAllCaches();
         clearAvatarDom();
         setTimeout(clearAvatarDom, 100);
-        setTimeout(clearAvatarDom, 400);
       }
     },
     true
@@ -254,6 +309,7 @@
       lastUid = null;
       clearAllCaches();
       clearAvatarDom();
-    }
+    },
+    v: 3
   };
 })();
