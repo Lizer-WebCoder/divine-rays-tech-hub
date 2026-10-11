@@ -7,10 +7,11 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.9.21-restore" />
-  <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@2aa22823e014414ef2bad79bceae69b792cb56c0/js/admin-portal-lock.js"></script>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.9.22-av-cards" />
+  <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@38ee37552bd3fa8d80bfcea3677987b3bdb044fb/js/admin-portal-lock.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@4326d1ddf5e9a5628834aa36f87999d7e0a4b87a/js/ticket-card-css.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@c7cf1603252db483e7e5badebb1271f0da23c21a/js/ticket-card-render.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@895cb8b253e0fab3ad79e2d06fa06f30feded687/js/ticket-card-render.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@51facff11f44ff41c897107bad8583c6f9d5f3bf/js/avatar-fix.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@bef23962c979e19d937950b628f10649f3f10b2f/js/theme.js"></script>
   <style>
     html,body{margin:0;min-height:100vh;font-family:Inter,system-ui,sans-serif;background:#0c0c14;color:#eeeef6}
@@ -39,11 +40,13 @@
       document.getElementById('boot').innerHTML = '<p class="err">Could not load app shell (' + lastErr + '). Try again in a few seconds.</p>';
       return;
     }
-    html = html.replace(/@main\/js\/admin-portal-lock\.js/g, '@2aa22823e014414ef2bad79bceae69b792cb56c0/js/admin-portal-lock.js');
+    html = html.replace(/@main\/js\/admin-portal-lock\.js/g, '@38ee37552bd3fa8d80bfcea3677987b3bdb044fb/js/admin-portal-lock.js');
+    html = html.replace(/c7cf1603252db483e7e5badebb1271f0da23c21a\/js\/ticket-card-render\.js/g, '895cb8b253e0fab3ad79e2d06fa06f30feded687/js/ticket-card-render.js');
     if (html.indexOf('ticket-card-render.js') === -1) {
       html = html.replace('</head>',
         '<script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@4326d1ddf5e9a5628834aa36f87999d7e0a4b87a/js/ticket-card-css.js"><\/script>' +
-        '<script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@c7cf1603252db483e7e5badebb1271f0da23c21a/js/ticket-card-render.js"><\/script></head>'
+        '<script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@895cb8b253e0fab3ad79e2d06fa06f30feded687/js/ticket-card-render.js"><\/script>' +
+        '<script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@51facff11f44ff41c897107bad8583c6f9d5f3bf/js/avatar-fix.js"><\/script></head>'
       );
     }
     document.open();
