@@ -34,7 +34,6 @@
     @keyframes bootDot{0%,80%,100%{transform:translateY(0);opacity:.35}40%{transform:translateY(-6px);opacity:1}}
     @keyframes bootBar{0%{transform:translateX(-100%);background-position:0% 0}100%{transform:translateX(280%);background-position:100% 0}}
     #login-screen,.login-screen{background:transparent!important;background-image:none!important}
-    /* PINNED: ECG+gears — do not block heartbeat-draw.js or clear data-ecg */
     #agent-name-display:not(.dr-presence-ready){opacity:0!important;min-height:1.6rem}
     .mode-bar,.topbar,#mode-bar{transition:none!important}
     body.dr-session-restoring #login-screen,body.dr-session-restoring .login-screen,body.dr-session-restoring .login-card,body.dr-boot-holding #login-screen,body.dr-boot-holding .login-screen,body.dr-boot-holding .login-card{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;height:0!important;overflow:hidden!important}
@@ -65,9 +64,9 @@
     var TEAM_SEP_SHA = '85337adc33ac049cdbf1317bbc20388b4f774739';
     var SIDEBAR_SHA = 'cf94fa12898891abef9c93bf7b1ebd3a06883293';
     var ADMIN_LOCK_SHA = '61caa12d784ef14dbce219a4ad0825e33a108552';
-    var SIDEBAR_ROLE_SHA = 'e1b64444ddb0dbeea9ec05d05cf843032414c738';
+    var SIDEBAR_ROLE_SHA = 'cf85fe34e66bb092edf09e521e0ef0879071354a';
     var USERS_NAV_SHA = 'b6f328bf2f2e29c4ab6d88de2fc416c79e4bb070';
-    var THEME_SHA = 'e1b64444ddb0dbeea9ec05d05cf843032414c738';
+    var THEME_SHA = 'bef23962c979e19d937950b628f10649f3f10b2f';
     var TOPBAR_SHA = 'c49dd3bd4b8cd07fa3608633c3d096ce1ac5db04';
     var TOPBAR_ACTIONS_SHA = '78a2cd6baf434009144d7b702caaf46ad7581536';
     var DASH_NO_TICKETS_SHA = 'e1b64444ddb0dbeea9ec05d05cf843032414c738';
@@ -85,11 +84,11 @@
     var ADMIN_STATS_SHA = 'a84ce631450b3b57b11f852de982bf83206ea26b';
     var TOOLBAR_SHA = '2ea9190cbbb3dbfbf3a159ca47d585a61b2f6e2b';
     var FILTER_SHA = '1bfe6c0e93dedc361cf1f3e15eb520c3aea13930';
-    var FILTERS_SHA = 'fd500bd08c356ea7708c4ae9d43f32959bf5ca67';
+    var FILTERS_SHA = 'e65c070009674e02288c96a305daab5e0245e28e';
     var DESIGN_SHA = '7d6d66cbe63fda91cf71d64bbddd1af80f3adfc3';
     var TICKET_DESIGN_SHA = '01d6078d7a6a6ff64a1c9f53621d1bc2446156cf';
     var CUSTOMER_FILTER_SHA = '517014018e6fae9383c57a5c02e51bbacfc73991';
-    var PRIORITY_P1_SHA = '37d90f9d9de1e6636dc0a3b478c6cb67bd786f28';
+    var PRIORITY_P1_SHA = '5fa3d4a86e002268a75ed1068d1f96259ecb9344';
     var ENDUSER_PRO_SHA = '9fe374cd480c99d3530cbfc4c7d685292b24a29e';
     var ENDUSER_UI_SHA = '21cb83c9fcfb8a00b170f6efc25051b63d9fbff2';
     var CHAT_UI_SHA = 'c03c31b5baab763cee98ae37ae023991ade8164b';
@@ -98,7 +97,7 @@
     var LOGIN_CHROME_HIDE_SHA = '60c3368efd15da0e8d15cac0674b28eaed22d973';
     var PAGER_FIX_SHA = '10037b1e4fdd1f855a0b1cbd558ec3af7bf71d2f';
     var DASH_UI_V2_SHA = '92f4070a0c125f2e3ce5d423fff1f68c4d3ba968';
-    var HB_SHA = 'eb5307ac567bac02ee36296941bd767459b2f0d2';
+    var HB_SHA = 'a9046e485443b24e800a4f4d10747c10146ca663';
     var TOAST_POS_SHA = '76fcf130dd18ab3ee64435a264724deb9666fc05';
     var DASH_TOPBAR_FIX_SHA = '30cabdc60127fa17c0ef13f19b307dda573354f9';
     var FILTERS_TOOLBAR_FIX_SHA = '45f63dc9924d354f246b3cc18d6f0cb0459a9997';
@@ -181,11 +180,6 @@
       if (!html) throw new Error('Could not load app shell');
       html = html.replace(/var LIVE_SHA = '[^']*';/, "var LIVE_SHA = '" + COMMENTS_LIVE_SHA + "';");
       html = html.replace(/var KB_JS_SHA = '[^']*';/, "var KB_JS_SHA = '" + KB_JS_SHA + "';");
-      html = html.replace(/var THEME_SHA = '[^']*';/, "var THEME_SHA = 'e1b64444ddb0dbeea9ec05d05cf843032414c738';");
-      html = html.replace(/var HB_SHA = '[^']*';/, "var HB_SHA = 'eb5307ac567bac02ee36296941bd767459b2f0d2';");
-      html = html.replace(/await loadScript\([^)]*\/js\/admin\.js[^)]*\);?/gi, '/* admin.js shell blocked */');
-      html = html.replace(/loadScript\([^)]*\/js\/admin\.js[^)]*\);?/gi, '/* admin.js shell blocked */');
-      html = html.replace(/var EXTRA_FILES = \[[^\]]*\];/, "var EXTRA_FILES = ['email-notify.js','ticket-plus.js','ticket-plus-fix.js','status-lock.js','kb.js','polish-fixes.js'];");
       html = html.replace(/https:\/\/cdn\.jsdelivr\.net\/gh\/Lizer-WebCoder\/divine-rays-tech-hub@[a-f0-9]+\/js\/([a-z0-9._-]+\.js)/gi, function (full, name) {
         if (SKIP[name]) return full;
         if (REWRITE[name]) return CDN + REWRITE[name] + '/js/' + name;
@@ -196,7 +190,7 @@
         html = html.replace(re, '/* skipped ' + name + ' */');
       });
       html = html.replace('<head>', '<head><script>window.__DR_COMMENTS_LIVE=8;window.__DR_COMMENTS_LIVE_V2=1;window.__DR_BOOT_CLEAN=1;window.__DR_ECG_OK=false;<\/script>');
-      html = html.replace('</head>', '<style id="dr-boot-login-bg">html,body{background:radial-gradient(ellipse 80% 60% at 50% 40%,#1a1530 0%,#0c0c14 55%,#08080f 100%)!important;}html[data-theme="light"],html[data-theme="light"] body{background:radial-gradient(ellipse 80% 60% at 50% 35%,#e8e4ff 0%,#f4f2ff 45%,#eceaf8 100%)!important;}#login-screen,.login-screen{background:transparent!important;}/* PINNED lifeline/gears */#agent-name-display:not(.dr-presence-ready){opacity:0!important;min-height:1.6rem}.mode-bar,.topbar,#mode-bar{transition:none!important}body.dr-session-restoring #login-screen,body.dr-boot-holding #login-screen{display:none!important;visibility:hidden!important}body:has(#portal-agent.active) #login-screen,body.is-portal #login-screen{display:none!important}</style><script src="' + withBust(CDN + FORCE_LIGHT_BG_SHA + '/js/force-light-bg.js') + '"><\/script></head>');
+      html = html.replace('</head>', '<style id="dr-boot-login-bg">html,body{background:radial-gradient(ellipse 80% 60% at 50% 40%,#1a1530 0%,#0c0c14 55%,#08080f 100%)!important;}html[data-theme="light"],html[data-theme="light"] body{background:radial-gradient(ellipse 80% 60% at 50% 35%,#e8e4ff 0%,#f4f2ff 45%,#eceaf8 100%)!important;}#login-screen,.login-screen{background:transparent!important;}#agent-name-display:not(.dr-presence-ready){opacity:0!important;min-height:1.6rem}.mode-bar,.topbar,#mode-bar{transition:none!important}body.dr-session-restoring #login-screen,body.dr-boot-holding #login-screen{display:none!important;visibility:hidden!important}body:has(#portal-agent.active) #login-screen,body.is-portal #login-screen{display:none!important}</style><script src="' + withBust(CDN + FORCE_LIGHT_BG_SHA + '/js/force-light-bg.js') + '"><\/script></head>');
       document.open(); document.write(html); document.close(); clearTimeout(bootTimer);
       try {
         (function injectBootOverlay() {
@@ -233,97 +227,38 @@
         }, 100);
         setTimeout(function () { try { clearInterval(__drLoginWatch); } catch (eW) {} }, 12000);
       } catch (eWatch) {}
-      try {
-        loadScript(CDN + TOPBAR_SHA + '/js/topbar-brand-role.js');
-        loadScript(CDN + TOPBAR_ACTIONS_SHA + '/js/topbar-actions.js');
-        loadScript(CDN + 'bef23962c979e19d937950b628f10649f3f10b2f' + '/js/theme.js');
-        loadScript(CDN + 'cf85fe34e66bb092edf09e521e0ef0879071354a' + '/js/sidebar-role-label.js');
-        loadScript(CDN + 'bef23962c979e19d937950b628f10649f3f10b2f' + '/js/status-card.js');
-        loadScript(CDN + '30cabdc60127fa17c0ef13f19b307dda573354f9' + '/js/dash-topbar-fix.js');
-        loadScript(CDN + '45f63dc9924d354f246b3cc18d6f0cb0459a9997' + '/js/filters-toolbar-fix.js');
-        loadScript(CDN + 'a9046e485443b24e800a4f4d10747c10146ca663' + '/js/heartbeat-draw.js');
-        loadScript(CDN + '90094058c1f476b163296855e186984add6a625d' + '/js/bg-anim-pin.js');
-        loadScript(CDN + SIDEBAR_SHA + '/js/sidebar-design.js');
-        loadScript(CDN + TOAST_POS_SHA + '/js/toast-position.js');
-      } catch (eTopEarly) {}
       setTimeout(function () {
-        try {
-          window.__DR_ECG_OK = true;
-          document.documentElement.setAttribute('data-ecg', 'on');
-          loadScript(CDN + 'a9046e485443b24e800a4f4d10747c10146ca663' + '/js/heartbeat-draw.js');
-          loadScript(CDN + '90094058c1f476b163296855e186984add6a625d' + '/js/bg-anim-pin.js');
-        } catch (eHb) {}
-      }, 600);
-      setTimeout(function () {
-        loadScript(CDN + ADMIN_LOCK_SHA + '/js/admin-portal-lock.js');
-        loadScript(CDN + USERS_NAV_SHA + '/js/users-nav.js');
         loadScript(CDN + FILTERS_SHA + '/js/filters.js');
+        loadScript(CDN + PRIORITY_P1_SHA + '/js/priority-p1-display.js');
         loadScript(CDN + '45f63dc9924d354f246b3cc18d6f0cb0459a9997' + '/js/filters-toolbar-fix.js');
-        loadScript(CDN + 'cf85fe34e66bb092edf09e521e0ef0879071354a' + '/js/sidebar-role-label.js');
-        loadScript(CDN + TOPBAR_SHA + '/js/topbar-brand-role.js');
-        loadScript(CDN + TOPBAR_ACTIONS_SHA + '/js/topbar-actions.js');
-        loadScript(CDN + 'bef23962c979e19d937950b628f10649f3f10b2f' + '/js/theme.js');
         loadScript(CDN + '30cabdc60127fa17c0ef13f19b307dda573354f9' + '/js/dash-topbar-fix.js');
-        loadScript(CDN + TOAST_POS_SHA + '/js/toast-position.js');
-        loadScript(CDN + DASH_NO_TICKETS_SHA + '/js/dashboard-no-tickets.js');
-        loadScript(CDN + DASH_UI_V2_SHA + '/js/dashboard-ui-v2.js');
-        loadScript(CDN + PENDING_FIX_SHA + '/js/pending-approved-fix.js');
-        loadScript(CDN + FORCE_PENDING_SHA + '/js/force-pending-block.js');
-        loadScript(CDN + APPROVAL_GATE_SHA + '/js/agent-approval-gate.js');
-        loadScript(CDN + LOGIN_TAB_SHA + '/js/login-tab-labels.js');
-        loadScript(CDN + LOGIN_CHROME_HIDE_SHA + '/js/login-chrome-hide.js');
-        loadScript(CDN + PAGER_FIX_SHA + '/js/pager-fix.js');
         loadScript(CDN + 'a9046e485443b24e800a4f4d10747c10146ca663' + '/js/heartbeat-draw.js');
         loadScript(CDN + '90094058c1f476b163296855e186984add6a625d' + '/js/bg-anim-pin.js');
+        loadScript(CDN + 'cf85fe34e66bb092edf09e521e0ef0879071354a' + '/js/sidebar-role-label.js');
+        loadScript(CDN + 'bef23962c979e19d937950b628f10649f3f10b2f' + '/js/theme.js');
       }, 30);
       setTimeout(function () {
         Promise.all([
+          loadScript(CDN + FILTERS_SHA + '/js/filters.js'),
+          loadScript(CDN + PRIORITY_P1_SHA + '/js/priority-p1-display.js'),
           loadScript(CDN + DESIGN_SHA + '/js/design-system-v10.js'),
-          loadScript(CDN + TIP + '/js/polish-fixes.js'),
-          loadScript(CDN + TIP + '/js/ui-polish.js'),
-          loadScript(CDN + TIP + '/js/ui-fixes-v11.js'),
-          loadScript(CDN + TOOLBAR_SHA + '/js/ui-toolbar-fix.js'),
-          loadScript(CDN + SIDEBAR_SHA + '/js/sidebar-design.js'),
-          loadScript(CDN + ADMIN_LOCK_SHA + '/js/admin-portal-lock.js'),
-          loadScript(CDN + 'cf85fe34e66bb092edf09e521e0ef0879071354a' + '/js/sidebar-role-label.js'),
-          loadScript(CDN + 'bef23962c979e19d937950b628f10649f3f10b2f' + '/js/theme.js'),
+          loadScript(CDN + 'a9046e485443b24e800a4f4d10747c10146ca663' + '/js/heartbeat-draw.js'),
+          loadScript(CDN + '90094058c1f476b163296855e186984add6a625d' + '/js/bg-anim-pin.js'),
           loadScript(CDN + '30cabdc60127fa17c0ef13f19b307dda573354f9' + '/js/dash-topbar-fix.js'),
           loadScript(CDN + '45f63dc9924d354f246b3cc18d6f0cb0459a9997' + '/js/filters-toolbar-fix.js'),
-          loadScript(CDN + TOPBAR_SHA + '/js/topbar-brand-role.js'),
-          loadScript(CDN + TOPBAR_ACTIONS_SHA + '/js/topbar-actions.js'),
+          loadScript(CDN + 'cf85fe34e66bb092edf09e521e0ef0879071354a' + '/js/sidebar-role-label.js'),
+          loadScript(CDN + 'bef23962c979e19d937950b628f10649f3f10b2f' + '/js/theme.js'),
+          loadScript(CDN + SIDEBAR_SHA + '/js/sidebar-design.js'),
           loadScript(CDN + TOAST_POS_SHA + '/js/toast-position.js'),
-          loadScript(CDN + DASH_NO_TICKETS_SHA + '/js/dashboard-no-tickets.js'),
           loadScript(CDN + DASH_UI_V2_SHA + '/js/dashboard-ui-v2.js'),
           loadScript(CDN + TEAM_BOARD_SHA + '/js/team-board.js'),
           loadScript(CDN + TEAM_SEP_SHA + '/js/team-sep.js'),
           loadScript(CDN + COMMENTS_LIVE_SHA + '/js/comments-live.js'),
-          loadScript(CDN + REPLY_FIX_SHA + '/js/customer-reply-fix.js'),
-          loadScript(CDN + UI_LAYOUT_SHA + '/js/ui-layout-notifs.js'),
-          loadScript(CDN + KB_TABLE_SHA + '/js/kb-table-fix.js'),
-          loadScript(CDN + KB_JS_SHA + '/js/kb.js'),
           loadScript(CDN + ADMIN_SHA + '/js/admin.js'),
-          loadScript(CDN + ADMIN_STATS_SHA + '/js/admin-stats-fix.js'),
-          loadScript(CDN + FILTER_SHA + '/js/filter.js'),
-          loadScript(CDN + FILTERS_SHA + '/js/filters.js'),
-          loadScript(CDN + CUSTOMER_FILTER_SHA + '/js/customer-my-tickets-filter.js'),
-          loadScript(CDN + PRIORITY_P1_SHA + '/js/priority-p1-display.js'),
-          loadScript(CDN + ENDUSER_PRO_SHA + '/js/enduser-pro.js'),
-          loadScript(CDN + ENDUSER_UI_SHA + '/js/enduser-ui.js'),
-          loadScript(CDN + CHAT_UI_SHA + '/js/chat-ui.js'),
-          loadScript(CDN + LIGHT_MODE_POLISH_SHA + '/js/light-mode-polish.js'),
-          loadScript(CDN + TICKET_DESIGN_SHA + '/js/ticket-list-design.js'),
-          loadScript(CDN + STAFF_NOTIF_SHA + '/js/staff-ticket-notifs.js'),
-          loadScript(CDN + 'a9046e485443b24e800a4f4d10747c10146ca663' + '/js/heartbeat-draw.js'),
-          loadScript(CDN + '90094058c1f476b163296855e186984add6a625d' + '/js/bg-anim-pin.js')
+          loadScript(CDN + KB_JS_SHA + '/js/kb.js')
         ]).then(function () {
           try {
             (function waitPortal() {
-              function hideLoginHard() {
-                try {
-                  var ls = document.getElementById('login-screen');
-                  if (ls) { ls.hidden = true; ls.style.cssText = 'display:none!important;visibility:hidden!important'; }
-                } catch (eH) {}
-              }
               var n = 0;
               var iv = setInterval(function () {
                 n += 1;
@@ -332,20 +267,12 @@
                 var ready = (pa && pa.classList.contains('active')) || (pc && pc.classList.contains('active'));
                 if (ready) {
                   clearInterval(iv);
-                  hideLoginHard();
-                  try { document.body.classList.add('is-portal'); } catch (eP) {}
-                  try { document.body.classList.remove('dr-session-restoring'); document.documentElement.classList.remove('dr-session-restoring'); } catch (eR) {}
-                  try {
-                    window.__DR_ECG_OK = true;
-                    document.documentElement.setAttribute('data-ecg', 'on');
-                    loadScript(CDN + 'a9046e485443b24e800a4f4d10747c10146ca663' + '/js/heartbeat-draw.js');
-                    loadScript(CDN + '90094058c1f476b163296855e186984add6a625d' + '/js/bg-anim-pin.js');
-                  } catch (eEcg) {}
+                  try { document.body.classList.add('is-portal'); document.body.classList.remove('dr-session-restoring'); } catch (eP) {}
+                  try { window.__DR_ECG_OK = true; document.documentElement.setAttribute('data-ecg', 'on'); } catch (eEcg) {}
                   setTimeout(function () { try { if (window.__DR_DISMISS_BOOT) window.__DR_DISMISS_BOOT(); } catch (eD) {} }, 120);
                 } else if (n >= 100) {
                   clearInterval(iv);
                   try { document.body.classList.remove('dr-session-restoring', 'dr-boot-holding'); } catch (eR2) {}
-                  try { window.__DR_ECG_OK = true; document.documentElement.setAttribute('data-ecg', 'on'); loadScript(CDN + 'a9046e485443b24e800a4f4d10747c10146ca663' + '/js/heartbeat-draw.js'); loadScript(CDN + '90094058c1f476b163296855e186984add6a625d' + '/js/bg-anim-pin.js'); } catch (eEcg2) {}
                   try { if (window.__DR_DISMISS_BOOT) window.__DR_DISMISS_BOOT(); } catch (eD2) {}
                 }
               }, 50);
