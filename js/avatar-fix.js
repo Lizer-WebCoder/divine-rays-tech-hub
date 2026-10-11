@@ -1,12 +1,12 @@
 /**
  * Divine Rays — avatars strictly bound to current auth user
+ * Cache-first paint so the picture shows immediately.
  * Credit: Lizzz · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_AVATAR_FIX) {
-    try { delete window.__DR_AVATAR_FIX; } catch (e) {}
-  }
+  if (window.__DR_AVATAR_FIX_V2) return;
+  window.__DR_AVATAR_FIX_V2 = 1;
   window.__DR_AVATAR_FIX = 1;
 
   var CACHE_KEY = 'dr_avatar_cache_v3';
@@ -15,10 +15,10 @@
 
   function esc(s) {
     return String(s || '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
+      .replace(/&/g, '&')
+      .replace(/</g, '<')
+      .replace(/>/g, '>')
+      .replace(/"/g, '"');
   }
 
   function clearAllCaches() {
@@ -59,7 +59,7 @@
         sizeClass +
         '" src="' +
         esc(url) +
-        '" alt="" ' +
+        '" alt="" decoding="async" loading="eager" ' +
         'onerror="this.style.display=\'none\';var n=this.nextElementSibling;if(n)n.style.display=\'grid\'" />' +
         '<div class="avatar-fallback ' +
         sizeClass +
@@ -180,10 +180,15 @@
       cached = {};
     }
 
+    /* Paint cached avatar FIRST — no network wait */
+    if (cached.user_id === uid && cached.avatar_url) {
+      applyAvatar(cached.avatar_url, cached.full_name || 'User');
+    }
+
     var prof = await fetchMyProfile(uid);
 
     var url = (prof && prof.avatar_url) || null;
-    var name = (prof && (prof.full_name || prof.username)) || 'User';
+    var name = (prof && (prof.full_name || prof.username)) || (cached.full_name || 'User');
 
     if (url && url.indexOf(uid) === -1 && /\/avatars\//.test(url) && /[0-9a-f]{8}-[0-9a-f]{4}/i.test(url)) {
       url = null;
@@ -196,7 +201,6 @@
     }
 
     if (cached.user_id === uid && cached.avatar_url) {
-      applyAvatar(cached.avatar_url, cached.full_name || name);
       return;
     }
 
@@ -214,12 +218,18 @@
     syncAvatar();
   }
 
+  /* Instant paint on load from cache */
+  try {
+    var _c = readCache();
+    if (_c && _c.avatar_url) applyAvatar(_c.avatar_url, _c.full_name || 'User');
+  } catch (eBoot) {}
+
   tick();
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', tick);
   setTimeout(tick, 500);
   setTimeout(tick, 1500);
   setTimeout(tick, 3500);
-  setInterval(tick, 5000);
+  setInterval(tick, 8000);
 
   document.addEventListener(
     'click',
