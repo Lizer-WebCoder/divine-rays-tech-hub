@@ -5,80 +5,63 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=936" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=937" />
+  <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@9a17dcda7cbe5a9ad3f9af120b4135532b149a13/js/admin-portal-lock.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@545afd29cbaede602653f78631d8c97ce7558683/js/sidebar-profile-layout.js"></script>
   <style>
     html,body{margin:0;min-height:100vh;background:#0c0c14;color:#eeeef6;font-family:Inter,system-ui,sans-serif}
-    #boot{display:flex;align-items:center;justify-content:center;min-height:100vh}
+    #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:.95rem;color:#9494ae}
   </style>
 </head>
 <body>
-  <div id="boot">Loading…</div>
+  <div id="boot">Loading Divine Rays Tech Hub…</div>
   <script>
   (async function () {
-    var PIN = '830dac02096eb08be1b2dc22bdc191a14df91a04';
-    var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
     var B = Date.now();
+    var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
+    var LOADER = '6d66f6b647cf6f4c7340536dab472409bd1de5d6';
     try {
-      var urls = [
-        CDN + PIN + '/index.html?b=' + B,
-        'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + PIN + '/index.html?b=' + B
-      ];
-      var html = null;
-      for (var i = 0; i < urls.length; i++) {
-        try {
-          var r = await fetch(urls[i], { cache: 'no-store', credentials: 'omit' });
-          if (r.ok) {
-            var t = await r.text();
-            if (t && t.indexOf('login-screen') !== -1) { html = t; break; }
-          }
-        } catch (e) {}
+      var r = await fetch(CDN + LOADER + '/index.html?b=' + B, { cache: 'no-store', credentials: 'omit' });
+      if (!r.ok) {
+        r = await fetch('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + LOADER + '/index.html?b=' + B, { cache: 'no-store' });
       }
-      if (!html) throw new Error('Could not load app shell');
-
-      /* modern labels */
-      html = html
-        .replace(/>Customer</g, '>Employee<')
-        .replace(/>Tech Support</g, '>Admin<')
-        .replace(/Create Customer Account/g, 'Create End-User Account')
-        .replace(/Sign In as Agent/g, 'Sign In')
-        .replace(/Create agent account/g, 'Create Admin account')
-        .replace(/Lizzz?\s*[·•\-]\s*All Rights Reserved/gi, 'Boys at the Back LRK · All Rights Reserved')
-        .replace(/LIZZZ\s*[·•\-]\s*ALL RIGHTS RESERVED/gi, 'Boys at the Back LRK · All Rights Reserved');
-
-      /* rewrite relative assets to CDN pin */
-      html = html.replace(/(src|href)=(["'])(?!https?:|\/\/|data:|#)([^"']+)\2/g, function (_, attr, q, path) {
-        var clean = path.split('?')[0].replace(/^\.\//, '');
-        return attr + '=' + q + CDN + PIN + '/' + clean + '?v=936' + q;
-      });
-
-      /* inject feature scripts before </body> */
-      var extras = [
-        '8c56504dc4ae1c397eb336de3d117dd3bd022ed7/js/login-theme.js',
-        '233f36150987e8576aab9114d1ca329bf09fa6a0/js/login-nav-fix.js',
-        '8afd47c0aa694ef7483f413d2ad7c15ea2be7b30/js/login-shell-sep.js',
-        '9beff1f92931/js/login-tab-labels.js',
-        '9a17dcda7cbe5a9ad3f9af120b4135532b149a13/js/admin-portal-lock.js',
-        '545afd29cbaede602653f78631d8c97ce7558683/js/sidebar-profile-layout.js',
-        'bef23962c979e19d937950b628f10649f3f10b2f/js/theme.js',
-        'a9046e485443b24e800a4f4d10747c10146ca663/js/heartbeat-draw.js',
-        '90094058c1f476b163296855e186984add6a625d/js/bg-anim-pin.js',
-        'e65c070009674e02288c96a305daab5e0245e28e/js/filters.js',
-        'cf85fe34e66bb092edf09e521e0ef0879071354a/js/sidebar-role-label.js',
-        '5fa3d4a86e002268a75ed1068d1f96259ecb9344/js/priority-p1-display.js',
-        '7a09542332b8227930871a5a055162c570a3fdb7/js/csat-dashboard.js'
-      ].map(function (p) {
-        return '<script src="' + CDN + p + '?v=936"><\/script>';
-      }).join('\n');
-      html = html.replace('</body>', extras + '\n</body>');
+      if (!r.ok) throw new Error('Could not load production shell');
+      var html = await r.text();
 
       document.open();
       document.write(html);
       document.close();
+
+      setTimeout(function () {
+        function load(src) {
+          var s = document.createElement('script');
+          s.src = src + (src.indexOf('?') >= 0 ? '&' : '?') + 'v=937';
+          s.async = false;
+          document.body.appendChild(s);
+        }
+        document.querySelectorAll('.ltab').forEach(function (btn) {
+          var tab = (btn.getAttribute('data-ltab') || '').toLowerCase();
+          if (tab === 'customer') btn.textContent = 'Employee';
+          else if (tab === 'agent') btn.textContent = 'Admin';
+        });
+        var pins = [
+          '9beff1f92931/js/login-tab-labels.js',
+          '9a17dcda7cbe5a9ad3f9af120b4135532b149a13/js/admin-portal-lock.js',
+          '545afd29cbaede602653f78631d8c97ce7558683/js/sidebar-profile-layout.js',
+          'cf85fe34e66bb092edf09e521e0ef0879071354a/js/sidebar-role-label.js',
+          'a9046e485443b24e800a4f4d10747c10146ca663/js/heartbeat-draw.js',
+          '90094058c1f476b163296855e186984add6a625d/js/bg-anim-pin.js',
+          'e65c070009674e02288c96a305daab5e0245e28e/js/filters.js',
+          '5fa3d4a86e002268a75ed1068d1f96259ecb9344/js/priority-p1-display.js',
+          '895cb8b253e0fab3ad79e2d06fa06f30feded687/js/ticket-card-render.js',
+          '4326d1ddf5e9a5628834aa36f87999d7e0a4b87a/js/ticket-card-css.js',
+          'bef23962c979e19d937950b628f10649f3f10b2f/js/theme.js'
+        ];
+        pins.forEach(function (p) { load(CDN + p); });
+      }, 2500);
     } catch (err) {
-      document.getElementById('boot').innerHTML =
-        '<p style="color:#fca5a5">Could not load app.</p>' +
-        '<button onclick="location.reload()" style="margin-top:12px;padding:8px 14px;cursor:pointer">Retry</button>' +
-        '<p style="color:#6b6b80;font-size:.8rem">' + String(err && err.message || err) + '</p>';
+      var boot = document.getElementById('boot');
+      if (boot) boot.innerHTML = '<p style="color:#fca5a5">Could not load system.</p><button onclick="location.reload()">Retry</button><p style="font-size:.8rem;color:#6b6b80">' + String(err && err.message || err) + '</p>';
     }
   })();
   </script>
