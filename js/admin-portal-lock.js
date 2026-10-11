@@ -1,17 +1,19 @@
 /**
- * Divine Rays — Admin Portal lock v10 — filters v16 pin
+ * Divine Rays — Admin Portal lock v11 — filters v17 + priority P1–P4 v2
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_ADMIN_PORTAL_LOCK >= 10) return;
-  window.__DR_ADMIN_PORTAL_LOCK = 10;
+  if (window.__DR_ADMIN_PORTAL_LOCK >= 11) return;
+  window.__DR_ADMIN_PORTAL_LOCK = 11;
 
   var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
-  var FILTERS_V16 = 'fd500bd08c356ea7708c4ae9d43f32959bf5ca67';
+  var FILTERS_SHA = 'e65c070009674e02288c96a305daab5e0245e28e';
+  var PRIORITY_SHA = '5fa3d4a86e002268a75ed1068d1f96259ecb9344';
   var PINS = {
     'pending-approved-fix.js': '94a5aeaaa38fafaaa1ac94872341ce3bf992dfd1',
-    'filters.js': FILTERS_V16,
+    'filters.js': FILTERS_SHA,
+    'priority-p1-display.js': PRIORITY_SHA,
     'filters-toolbar-fix.js': '45f63dc9924d354f246b3cc18d6f0cb0459a9997'
   };
 
@@ -21,7 +23,7 @@
     scriptsLoaded = true;
     Object.keys(PINS).forEach(function (name) {
       var s = document.createElement('script');
-      s.src = CDN + PINS[name] + '/js/' + name + '?lock=10&b=' + Date.now();
+      s.src = CDN + PINS[name] + '/js/' + name + '?lock=11&b=' + Date.now();
       s.async = false;
       (document.head || document.documentElement).appendChild(s);
     });
@@ -29,11 +31,18 @@
 
   function ensureFiltersBound() {
     try {
-      if (window.__DR_FILTERS_V16) return;
-      var s = document.createElement('script');
-      s.src = CDN + FILTERS_V16 + '/js/filters.js?lock=10r&b=' + Date.now();
-      s.async = false;
-      (document.head || document.documentElement).appendChild(s);
+      if (!window.__DR_FILTERS_V17) {
+        var s = document.createElement('script');
+        s.src = CDN + FILTERS_SHA + '/js/filters.js?lock=11r&b=' + Date.now();
+        s.async = false;
+        (document.head || document.documentElement).appendChild(s);
+      }
+      if (!window.__DR_PRIORITY_P1_DISPLAY_V2) {
+        var s2 = document.createElement('script');
+        s2.src = CDN + PRIORITY_SHA + '/js/priority-p1-display.js?lock=11r&b=' + Date.now();
+        s2.async = false;
+        (document.head || document.documentElement).appendChild(s2);
+      }
     } catch (e) {}
   }
 
