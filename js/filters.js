@@ -1,9 +1,10 @@
 /**
- * Divine Rays — filters v17 — P1–P4 priority match + shared listFilter
+ * Divine Rays — filters v18 — priority filter hard-fix + no flash + shared listFilter
  * Credit: Boyz at the Back LRK · All Rights Reserved
  */
 (function () {
   'use strict';
+  window.__DR_FILTERS_V18 = 1;
   window.__DR_FILTERS_V17 = 1;
   window.__DR_FILTERS_V16 = 1;
   window.__DR_FILTERS_V13 = 1;
@@ -115,20 +116,24 @@
     return false;
   }
 
+  function priorityKey(raw) {
+    var s = String(raw || '').trim().toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ');
+    if (!s) return '';
+    if (/^p\s*1\b/.test(s) || s === '1' || s.indexOf('critical') !== -1) return 'p1';
+    if (/^p\s*2\b/.test(s) || s === '2' || /(^|\s)high(\s|$)/.test(s)) return 'p2';
+    if (/^p\s*3\b/.test(s) || s === '3' || s.indexOf('medium') !== -1) return 'p3';
+    if (/^p\s*4\b/.test(s) || s === '4' || /(^|\s)low(\s|$)/.test(s)) return 'p4';
+    return s;
+  }
+
   function matchesPriority(ticketPriority, filterPriority) {
     if (!filterPriority) return true;
-    if (typeof window.__drPriorityEquals === 'function') {
-      try { return window.__drPriorityEquals(ticketPriority, filterPriority); } catch (e) {}
-    }
-    var map = {
-      critical: 'p1', p1: 'p1',
-      high: 'p2', p2: 'p2',
-      medium: 'p3', p3: 'p3',
-      low: 'p4', p4: 'p4'
-    };
-    var a = map[normalizeStatus(ticketPriority)] || normalizeStatus(ticketPriority);
-    var b = map[normalizeStatus(filterPriority)] || normalizeStatus(filterPriority);
-    return a === b;
+    var a = priorityKey(ticketPriority);
+    var b = priorityKey(filterPriority);
+    if (!b) return true;
+    if (a === b) return true;
+    if (a && b && (a.indexOf(b) !== -1 || b.indexOf(a) !== -1)) return true;
+    return false;
   }
 
   function matchesQuery(t, q) {
@@ -240,12 +245,12 @@
   }
 
   function priLabel(p) {
-    if (typeof window.__drPriorityLabel === 'function') {
-      try { return window.__drPriorityLabel(p) || p || ''; } catch (e) {}
-    }
-    var map = { critical: 'P1', high: 'P2', medium: 'P3', low: 'P4' };
-    var n = String(p || '').trim().toLowerCase();
-    return map[n] || p || '';
+    var k = priorityKey(p);
+    if (k === 'p1') return 'P1';
+    if (k === 'p2') return 'P2';
+    if (k === 'p3') return 'P3';
+    if (k === 'p4') return 'P4';
+    return p || '';
   }
 
   function cardHtml(t, names) {
@@ -316,8 +321,40 @@
 
   var _lastSig = '';
 
+  function ensurePrioritySelect() {
+    var sel = document.getElementById('filter-priority');
+    if (!sel) return;
+    var cur = priorityKey(sel.value) || priorityKey(sel.options[sel.selectedIndex] && sel.options[sel.selectedIndex].text);
+    var needRebuild = false;
+    if (sel.options.length < 5) needRebuild = true;
+    else {
+      for (var i = 1; i < sel.options.length; i++) {
+        var ov = String(sel.options[i].value || sel.options[i].textContent || '');
+        if (!/^P[1-4]$/i.test(ov.trim()) && !/^p[1-4]$/i.test(ov.trim())) {
+          needRebuild = true;
+          break;
+        }
+      }
+    }
+    if (needRebuild || !sel.__drPrioOpts) {
+      sel.innerHTML =
+        '<option value="">All Priorities</option>' +
+        '<option value="P1">P1</option>' +
+        '<option value="P2">P2</option>' +
+        '<option value="P3">P3</option>' +
+        '<option value="P4">P4</option>';
+      sel.__drPrioOpts = 1;
+    }
+    if (cur === 'p1') sel.value = 'P1';
+    else if (cur === 'p2') sel.value = 'P2';
+    else if (cur === 'p3') sel.value = 'P3';
+    else if (cur === 'p4') sel.value = 'P4';
+    else sel.value = '';
+  }
+
   function applyTicketFilters(refetch) {
     var lf = getLF();
+    try { ensurePrioritySelect(); } catch (eEns) {}
     try {
       var si = document.getElementById('search-input');
       var st = document.getElementById('filter-status');
@@ -473,6 +510,7 @@
   }
 
   function bindSearchFilters() {
+    ensurePrioritySelect();
     ensureLimitControl();
     bindPager();
     var si = document.getElementById('search-input');
@@ -508,10 +546,14 @@
         el.addEventListener('change', function () {
           var lf = getLF();
           if (id === 'filter-status') lf.status = el.value || '';
-          if (id === 'filter-priority') lf.priority = el.value || '';
+          if (id === 'filter-priority') {
+            ensurePrioritySelect();
+            lf.priority = el.value || '';
+          }
           if (id === 'filter-sort') lf.sort = el.value || 'newest';
           resetPage();
-          refreshList();
+          _lastSig = '';
+          applyTicketFilters(false);
         }, true);
       }
     });
@@ -526,6 +568,7 @@
   }
 
   function boot() {
+    ensurePrioritySelect();
     bindSearchFilters();
     syncToolbarVisibility();
   }
