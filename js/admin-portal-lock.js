@@ -1,19 +1,21 @@
 /**
- * Divine Rays — Admin Portal lock v12 — filters v18 + priority P1–P4 v3
+ * Divine Rays — Admin Portal lock v13 — priority-force + filters v18
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_ADMIN_PORTAL_LOCK >= 12) return;
-  window.__DR_ADMIN_PORTAL_LOCK = 12;
+  if (window.__DR_ADMIN_PORTAL_LOCK >= 13) return;
+  window.__DR_ADMIN_PORTAL_LOCK = 13;
 
   var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
   var FILTERS_SHA = 'd76969f7e13ff322fb8b37fb061a1bfed8fc8c20';
+  var PRIORITY_FORCE_SHA = '1a8c72424c7698af6fc25ecf8e2c5476e864d906';
   var PRIORITY_SHA = '7f3c726173a05a238a628ee3a6a7f22c7008cc3c';
   var PINS = {
-    'pending-approved-fix.js': '94a5aeaaa38fafaaa1ac94872341ce3bf992dfd1',
+    'priority-force.js': PRIORITY_FORCE_SHA,
     'filters.js': FILTERS_SHA,
     'priority-p1-display.js': PRIORITY_SHA,
+    'pending-approved-fix.js': '94a5aeaaa38fafaaa1ac94872341ce3bf992dfd1',
     'filters-toolbar-fix.js': '45f63dc9924d354f246b3cc18d6f0cb0459a9997'
   };
 
@@ -23,25 +25,25 @@
     scriptsLoaded = true;
     Object.keys(PINS).forEach(function (name) {
       var s = document.createElement('script');
-      s.src = CDN + PINS[name] + '/js/' + name + '?lock=12&b=' + Date.now();
+      s.src = CDN + PINS[name] + '/js/' + name + '?lock=13&b=' + Date.now();
       s.async = false;
       (document.head || document.documentElement).appendChild(s);
     });
   }
 
-  function ensureFiltersBound() {
+  function ensureBound() {
     try {
+      if (!window.__DR_PRIORITY_FORCE) {
+        var s0 = document.createElement('script');
+        s0.src = CDN + PRIORITY_FORCE_SHA + '/js/priority-force.js?lock=13r&b=' + Date.now();
+        s0.async = false;
+        (document.head || document.documentElement).appendChild(s0);
+      }
       if (!window.__DR_FILTERS_V18) {
         var s = document.createElement('script');
-        s.src = CDN + FILTERS_SHA + '/js/filters.js?lock=12r&b=' + Date.now();
+        s.src = CDN + FILTERS_SHA + '/js/filters.js?lock=13r&b=' + Date.now();
         s.async = false;
         (document.head || document.documentElement).appendChild(s);
-      }
-      if (!window.__DR_PRIORITY_P1_DISPLAY_V3) {
-        var s2 = document.createElement('script');
-        s2.src = CDN + PRIORITY_SHA + '/js/priority-p1-display.js?lock=12r&b=' + Date.now();
-        s2.async = false;
-        (document.head || document.documentElement).appendChild(s2);
       }
     } catch (e) {}
   }
@@ -138,8 +140,8 @@
   }
 
   forceLoadAll();
-  setTimeout(ensureFiltersBound, 1200);
-  setTimeout(ensureFiltersBound, 3500);
+  setTimeout(ensureBound, 1000);
+  setTimeout(ensureBound, 3000);
   tick();
   setTimeout(tick, 2000);
   setInterval(tick, 30000);
