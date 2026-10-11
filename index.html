@@ -2,12 +2,98 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="refresh" content="0; url=app.html?v=934" />
-  <title>Divine Rays Tech Hub</title>
-  <script>location.replace('app.html?v=934&t=' + Date.now());</script>
+  <title>Divine Rays Tech Hub — Support</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=934" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@830dac02096eb08be1b2dc22bdc191a14df91a04/css/styles.css?v=934" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@830dac02096eb08be1b2dc22bdc191a14df91a04/js/config.js?v=934"></script>
+  <style>
+    html,body{margin:0;min-height:100vh;background:#0c0c14;color:#eeeef6}
+    .portal{display:none}
+    .portal.active{display:block}
+    #login-screen.hidden{display:none!important}
+  </style>
 </head>
-<body style="background:#0c0c14;color:#eeeef6;font-family:system-ui;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0">
-  <p>Loading… <a href="app.html" style="color:#a78bfa">Continue</a></p>
+<body>
+  <div id="toast-container"></div>
+  <div id="login-screen" class="login-screen">
+    <div class="login-card">
+      <div class="login-brand"><div class="logo">✦</div><h1>Divine Rays Tech Hub</h1><p>Support Portal</p></div>
+      <div class="login-tabs">
+        <button type="button" class="ltab active" data-ltab="customer">Employee</button>
+        <button type="button" class="ltab" data-ltab="agent">Admin</button>
+      </div>
+      <form id="login-customer" class="login-form active" onsubmit="return false;">
+        <label>Username<input name="username" id="customer-username" autocomplete="username" required /></label>
+        <label>Password<input name="password" id="customer-password" type="password" autocomplete="current-password" required /></label>
+        <button type="submit" class="btn primary">Sign in</button>
+        <p class="login-switch">New here? <a href="#" id="goto-register-customer">Create an account</a></p>
+      </form>
+      <form id="login-agent" class="login-form" onsubmit="return false;">
+        <label>Email<input name="username" id="agent-username" autocomplete="username" required /></label>
+        <label>Password<input name="password" id="agent-password" type="password" autocomplete="current-password" required /></label>
+        <button type="submit" class="btn primary">Sign in</button>
+        <p class="login-switch"><a href="#" id="goto-register-agent">Create Admin account</a></p>
+      </form>
+      <p class="login-footer" style="text-align:center;opacity:.6;font-size:.75rem;margin-top:1rem">Boys at the Back LRK · All Rights Reserved</p>
+    </div>
+  </div>
+  <div id="portal-agent" class="portal">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-text"><h1>Divine Rays</h1><p>Tech Support</p></div></div>
+      <div class="agent-badge"><span id="agent-name-display">Agent</span></div>
+      <nav class="nav">
+        <button type="button" class="nav-btn active" data-view="dashboard">Dashboard</button>
+        <button type="button" class="nav-btn" data-view="my">My Tickets</button>
+        <button type="button" class="nav-btn" data-view="unassigned">Unassigned</button>
+        <button type="button" class="nav-btn" data-view="all">All Tickets</button>
+        <button type="button" class="nav-btn" data-view="users">Users</button>
+      </nav>
+    </aside>
+    <main class="main">
+      <div class="topbar mode-bar"><span id="page-title">Dashboard</span><div class="user-info"></div></div>
+      <div id="dashboard-root"></div>
+      <div id="ticket-list"></div>
+    </main>
+  </div>
+  <div id="portal-customer" class="portal">
+    <aside class="sidebar"><div class="brand"><h1>Divine Rays</h1></div>
+      <nav class="nav"><button type="button" class="nav-btn active" data-view="my">My Tickets</button></nav>
+    </aside>
+    <main class="main"><div id="cust-ticket-list"></div></main>
+  </div>
+  <script>
+  (function(){
+    function switchTab(tab){
+      document.querySelectorAll('.ltab').forEach(function(b){ b.classList.toggle('active', b.getAttribute('data-ltab')===tab); });
+      document.querySelectorAll('.login-form').forEach(function(f){ f.classList.remove('active'); });
+      var f=document.getElementById(tab==='agent'?'login-agent':'login-customer');
+      if(f) f.classList.add('active');
+    }
+    document.querySelectorAll('.ltab').forEach(function(btn){
+      btn.addEventListener('click', function(){ switchTab(btn.getAttribute('data-ltab')); });
+    });
+  })();
+  </script>
+  <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@830dac02096eb08be1b2dc22bdc191a14df91a04/js/app.js?v=934"></script>
+  <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@830dac02096eb08be1b2dc22bdc191a14df91a04/js/admin.js?v=934"></script>
+  <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@830dac02096eb08be1b2dc22bdc191a14df91a04/js/filters.js?v=934"></script>
+  <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@830dac02096eb08be1b2dc22bdc191a14df91a04/js/extras.js?v=934"></script>
+  <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@830dac02096eb08be1b2dc22bdc191a14df91a04/js/polish.js?v=934"></script>
+  <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@8c56504dc4ae1c397eb336de3d117dd3bd022ed7/js/login-theme.js?v=934"></script>
+  <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@233f36150987e8576aab9114d1ca329bf09fa6a0/js/login-nav-fix.js?v=934"></script>
+  <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@8afd47c0aa694ef7483f413d2ad7c15ea2be7b30/js/login-shell-sep.js?v=934"></script>
+  <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@9beff1f92931/js/login-tab-labels.js?v=934"></script>
+  <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@9a17dcda7cbe5a9ad3f9af120b4135532b149a13/js/admin-portal-lock.js?v=934"></script>
+  <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@545afd29cbaede602653f78631d8c97ce7558683/js/sidebar-profile-layout.js?v=934"></script>
+  <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@bef23962c979e19d937950b628f10649f3f10b2f/js/theme.js?v=934"></script>
+  <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@a9046e485443b24e800a4f4d10747c10146ca663/js/heartbeat-draw.js?v=934"></script>
+  <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@90094058c1f476b163296855e186984add6a625d/js/bg-anim-pin.js?v=934"></script>
+  <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@e65c070009674e02288c96a305daab5e0245e28e/js/filters.js?v=934"></script>
+  <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@cf85fe34e66bb092edf09e521e0ef0879071354a/js/sidebar-role-label.js?v=934"></script>
+  <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@5fa3d4a86e002268a75ed1068d1f96259ecb9344/js/priority-p1-display.js?v=934"></script>
+  <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@7a09542332b8227930871a5a055162c570a3fdb7/js/csat-dashboard.js?v=934"></script>
 </body>
 </html>
