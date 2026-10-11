@@ -1,106 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@9a17dcda7cbe5a9ad3f9af120b4135532b149a13/js/admin-portal-lock.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@545afd29cbaede602653f78631d8c97ce7558683/js/sidebar-profile-layout.js"></script>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-  <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.9.33-full" />
-  <style>
-    html,body{margin:0;background:#0c0c14;color:#eeeef6;font-family:Inter,system-ui,sans-serif;min-height:100vh}
-    #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:0.95rem;color:#9494ae}
-  </style>
-  <script>(function(){try{var t=localStorage.getItem('dr_theme')||'dark';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+  <meta http-equiv="refresh" content="0; url=app.html?v=934" />
+  <title>Divine Rays Tech Hub</title>
+  <script>location.replace('app.html?v=934&t=' + Date.now());</script>
 </head>
-<body>
-  <div id="boot">Loading Divine Rays Tech Hub…</div>
-  <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@6d66f6b647cf6f4c7340536dab472409bd1de5d6/index.html"></script>
-  <script>
-  /* Fallback: if loading .html as script fails, fetch + eval body loader via DOM */
-  (async function () {
-    if (window.__DR_SHELL_LOADED) return;
-    var B = Date.now();
-    var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
-    var SHELL = '6d66f6b647cf6f4c7340536dab472409bd1de5d6';
-    try {
-      var r = await fetch(CDN + SHELL + '/index.html?b=' + B, { cache: 'no-store' });
-      if (!r.ok) r = await fetch('https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + SHELL + '/index.html?b=' + B, { cache: 'no-store' });
-      if (!r.ok) throw new Error('shell fetch failed');
-      var html = await r.text();
-      var doc = new DOMParser().parseFromString(html, 'text/html');
-      var scripts = Array.prototype.slice.call(doc.querySelectorAll('script'));
-      /* run the main inline boot script from the shell */
-      for (var i = 0; i < scripts.length; i++) {
-        var sc = scripts[i];
-        if (sc.src) continue;
-        var code = sc.textContent || '';
-        if (code.indexOf('loadScript') !== -1 || code.indexOf('PIN') !== -1) {
-          try { (0, eval)(code); window.__DR_SHELL_LOADED = 1; break; } catch (e) { console.error(e); }
-        }
-      }
-      if (!window.__DR_SHELL_LOADED) {
-        /* last resort: inject body from 830dac + core scripts */
-        var r2 = await fetch(CDN + '830dac02096eb08be1b2dc22bdc191a14df91a04/index.html?b=' + B, { cache: 'no-store' });
-        var h2 = await r2.text();
-        h2 = h2.replace(/>Customer</g,'>Employee<').replace(/>Tech Support</g,'>Admin<')
-          .replace(/Lizzz?\s*[·•\-]\s*All Rights Reserved/gi,'Boys at the Back LRK · All Rights Reserved');
-        var d2 = new DOMParser().parseFromString(h2, 'text/html');
-        d2.querySelectorAll('link[rel=stylesheet],style').forEach(function(n){
-          if (n.tagName==='LINK') {
-            var href=n.getAttribute('href')||'';
-            if (href && href.indexOf('http')!==0) href=CDN+'830dac02096eb08be1b2dc22bdc191a14df91a04/'+href.replace(/^\.\//,'').split('?')[0]+'?v=933';
-            n.setAttribute('href', href);
-          }
-          document.head.appendChild(document.importNode(n,true));
-        });
-        var bodyHtml='';
-        Array.prototype.forEach.call(d2.body.childNodes,function(node){
-          if(node.nodeName==='SCRIPT')return;
-          if(node.nodeType===1)bodyHtml+=node.outerHTML;
-          else if(node.nodeType===3)bodyHtml+=node.textContent;
-        });
-        document.body.innerHTML=bodyHtml;
-        function load(src){return new Promise(function(res){var s=document.createElement('script');s.src=src;s.async=false;s.onload=function(){res()};s.onerror=function(){res()};document.body.appendChild(s);});}
-        var core=[];
-        d2.querySelectorAll('script[src]').forEach(function(sc){
-          var src=sc.getAttribute('src')||'';
-          if(!src)return;
-          if(src.indexOf('http')!==0)src=CDN+'830dac02096eb08be1b2dc22bdc191a14df91a04/'+src.replace(/^\.\//,'').split('?')[0]+'?v=933';
-          core.push(src);
-        });
-        for(var c=0;c<core.length;c++)await load(core[c]);
-        var extras=[
-          CDN+'8c56504dc4ae1c397eb336de3d117dd3bd022ed7/js/login-theme.js?v=933',
-          CDN+'233f36150987e8576aab9114d1ca329bf09fa6a0/js/login-nav-fix.js?v=933',
-          CDN+'8afd47c0aa694ef7483f413d2ad7c15ea2be7b30/js/login-shell-sep.js?v=933',
-          CDN+'9beff1f92931/js/login-tab-labels.js?v=933',
-          CDN+'9a17dcda7cbe5a9ad3f9af120b4135532b149a13/js/admin-portal-lock.js?v=933',
-          CDN+'545afd29cbaede602653f78631d8c97ce7558683/js/sidebar-profile-layout.js?v=933',
-          CDN+'bef23962c979e19d937950b628f10649f3f10b2f/js/theme.js?v=933',
-          CDN+'a9046e485443b24e800a4f4d10747c10146ca663/js/heartbeat-draw.js?v=933',
-          CDN+'90094058c1f476b163296855e186984add6a625d/js/bg-anim-pin.js?v=933',
-          CDN+'e65c070009674e02288c96a305daab5e0245e28e/js/filters.js?v=933',
-          CDN+'cf85fe34e66bb092edf09e521e0ef0879071354a/js/sidebar-role-label.js?v=933',
-          CDN+'895cb8b253e0fab3ad79e2d06fa06f30feded687/js/ticket-card-render.js?v=933',
-          CDN+'4326d1ddf5e9a5628834aa36f87999d7e0a4b87a/js/ticket-card-css.js?v=933',
-          CDN+'5fa3d4a86e002268a75ed1068d1f96259ecb9344/js/priority-p1-display.js?v=933',
-          CDN+'7a09542332b8227930871a5a055162c570a3fdb7/js/csat-dashboard.js?v=933',
-          CDN+'875b2f5b1c8293bb219943429c01020f28114d5b/js/ticket-list-fix.js?v=933',
-          CDN+'1e6520dca83cccafdc0f0d7d031f3bf6cde80c82/js/status-card.js?v=933',
-          CDN+'53aba5366d53c7fc6c8208ecb594eeeb10d46e2f/js/admin.js?v=933'
-        ];
-        for(var j=0;j<extras.length;j++)await load(extras[j]);
-        window.__DR_SHELL_LOADED=1;
-      }
-    } catch (err) {
-      var boot=document.getElementById('boot');
-      if(boot) boot.innerHTML='<p style="color:#fca5a5">Could not load app.</p><button onclick="location.reload()">Retry</button><p style="font-size:.8rem;color:#6b6b80">'+String(err&&err.message||err)+'</p>';
-    }
-  })();
-  </script>
+<body style="background:#0c0c14;color:#eeeef6;font-family:system-ui;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0">
+  <p>Loading… <a href="app.html" style="color:#a78bfa">Continue</a></p>
 </body>
 </html>
