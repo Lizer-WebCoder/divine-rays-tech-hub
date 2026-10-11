@@ -1,11 +1,11 @@
 /**
- * Divine Rays — Admin Portal lock v17 — ticket-card-render v2 forced
+ * Divine Rays — Admin Portal lock v18 — avatar v3 + ticket-card-render v3
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_ADMIN_PORTAL_LOCK >= 17) return;
-  window.__DR_ADMIN_PORTAL_LOCK = 17;
+  if (window.__DR_ADMIN_PORTAL_LOCK >= 18) return;
+  window.__DR_ADMIN_PORTAL_LOCK = 18;
 
   var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
   var FILTERS_SHA = 'd76969f7e13ff322fb8b37fb061a1bfed8fc8c20';
@@ -14,9 +14,9 @@
   var SUPA_400_SHA = '39e8c69ab7c04cb4900cc40992419ecffb482735';
   var CSAT_DASH_SHA = '0c8e40f8342306007a98e1751531db063af37e48';
   var TICKET_STABLE_SHA = 'd987fd7a6e51a612230c882e1da3138486010593';
-  var AVATAR_SHA = 'f4ca78f29a9f10ca5938233ef8f6ef9f2e698724';
+  var AVATAR_SHA = '51facff11f44ff41c897107bad8583c6f9d5f3bf';
   var TICKET_CSS_SHA = '4326d1ddf5e9a5628834aa36f87999d7e0a4b87a';
-  var TICKET_RENDER_SHA = 'c7cf1603252db483e7e5badebb1271f0da23c21a';
+  var TICKET_RENDER_SHA = '895cb8b253e0fab3ad79e2d06fa06f30feded687';
   var PINS = {
     'supabase-400-fix.js': SUPA_400_SHA,
     'ticket-stable.js': TICKET_STABLE_SHA,
@@ -37,7 +37,7 @@
     scriptsLoaded = true;
     Object.keys(PINS).forEach(function (name) {
       var s = document.createElement('script');
-      s.src = CDN + PINS[name] + '/js/' + name + '?lock=17&b=' + Date.now();
+      s.src = CDN + PINS[name] + '/js/' + name + '?lock=18&b=' + Date.now();
       s.async = false;
       (document.head || document.documentElement).appendChild(s);
     });
@@ -45,21 +45,27 @@
 
   function ensureBound() {
     try {
-      if (!window.__DR_TICKET_CARD_RENDER || window.__DR_TICKET_CARD_RENDER < 2) {
+      if (!window.__DR_AVATAR_FIX_V3) {
+        var sA = document.createElement('script');
+        sA.src = CDN + AVATAR_SHA + '/js/avatar-fix.js?lock=18r&b=' + Date.now();
+        sA.async = false;
+        (document.head || document.documentElement).appendChild(sA);
+      }
+      if (!window.__DR_TICKET_CARD_RENDER || window.__DR_TICKET_CARD_RENDER < 3) {
         var sR = document.createElement('script');
-        sR.src = CDN + TICKET_RENDER_SHA + '/js/ticket-card-render.js?lock=17r&b=' + Date.now();
+        sR.src = CDN + TICKET_RENDER_SHA + '/js/ticket-card-render.js?lock=18r&b=' + Date.now();
         sR.async = false;
         (document.head || document.documentElement).appendChild(sR);
       }
       if (!window.__DR_TICKET_CARD_CSS) {
         var sC = document.createElement('script');
-        sC.src = CDN + TICKET_CSS_SHA + '/js/ticket-card-css.js?lock=17r&b=' + Date.now();
+        sC.src = CDN + TICKET_CSS_SHA + '/js/ticket-card-css.js?lock=18r&b=' + Date.now();
         sC.async = false;
         (document.head || document.documentElement).appendChild(sC);
       }
       if (!window.__DR_FILTERS_V18) {
         var s = document.createElement('script');
-        s.src = CDN + FILTERS_SHA + '/js/filters.js?lock=17r&b=' + Date.now();
+        s.src = CDN + FILTERS_SHA + '/js/filters.js?lock=18r&b=' + Date.now();
         s.async = false;
         (document.head || document.documentElement).appendChild(s);
       }
@@ -89,7 +95,8 @@
       'content:"";position:absolute;left:0.75rem;right:0.75rem;bottom:0;height:1px;',
       'background:linear-gradient(90deg,transparent,rgba(167,139,250,.45),transparent)}',
       '#portal-agent .sidebar .avatar, #portal-agent .sidebar .profile-avatar{',
-      'box-shadow:0 0 0 2px rgba(167,139,250,.35),0 0 16px rgba(139,124,247,.25)!important}'
+      'box-shadow:0 0 0 2px rgba(167,139,250,.35),0 0 16px rgba(139,124,247,.25)!important}',
+      '#sidebar-avatar-chip{display:none!important}'
     ].join('');
     (document.head || document.documentElement).appendChild(el);
   }
@@ -158,9 +165,9 @@
   }
 
   forceLoadAll();
-  setTimeout(ensureBound, 800);
-  setTimeout(ensureBound, 2500);
-  setTimeout(ensureBound, 5000);
+  setTimeout(ensureBound, 600);
+  setTimeout(ensureBound, 2000);
+  setTimeout(ensureBound, 4500);
   tick();
   setTimeout(tick, 2000);
   setInterval(tick, 30000);
