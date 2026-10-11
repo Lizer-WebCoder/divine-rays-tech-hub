@@ -1,11 +1,11 @@
 /**
- * Divine Rays — Admin Portal lock v16 — ticket card design + render
+ * Divine Rays — Admin Portal lock v17 — ticket-card-render v2 forced
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_ADMIN_PORTAL_LOCK >= 16) return;
-  window.__DR_ADMIN_PORTAL_LOCK = 16;
+  if (window.__DR_ADMIN_PORTAL_LOCK >= 17) return;
+  window.__DR_ADMIN_PORTAL_LOCK = 17;
 
   var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
   var FILTERS_SHA = 'd76969f7e13ff322fb8b37fb061a1bfed8fc8c20';
@@ -16,7 +16,7 @@
   var TICKET_STABLE_SHA = 'd987fd7a6e51a612230c882e1da3138486010593';
   var AVATAR_SHA = 'f4ca78f29a9f10ca5938233ef8f6ef9f2e698724';
   var TICKET_CSS_SHA = '4326d1ddf5e9a5628834aa36f87999d7e0a4b87a';
-  var TICKET_RENDER_SHA = '2fb66b7e1c4ecbd70f5d864fd06c634d0952d4ae';
+  var TICKET_RENDER_SHA = 'c7cf1603252db483e7e5badebb1271f0da23c21a';
   var PINS = {
     'supabase-400-fix.js': SUPA_400_SHA,
     'ticket-stable.js': TICKET_STABLE_SHA,
@@ -37,7 +37,7 @@
     scriptsLoaded = true;
     Object.keys(PINS).forEach(function (name) {
       var s = document.createElement('script');
-      s.src = CDN + PINS[name] + '/js/' + name + '?lock=16&b=' + Date.now();
+      s.src = CDN + PINS[name] + '/js/' + name + '?lock=17&b=' + Date.now();
       s.async = false;
       (document.head || document.documentElement).appendChild(s);
     });
@@ -45,21 +45,21 @@
 
   function ensureBound() {
     try {
-      if (!window.__DR_TICKET_CARD_RENDER) {
+      if (!window.__DR_TICKET_CARD_RENDER || window.__DR_TICKET_CARD_RENDER < 2) {
         var sR = document.createElement('script');
-        sR.src = CDN + TICKET_RENDER_SHA + '/js/ticket-card-render.js?lock=16r&b=' + Date.now();
+        sR.src = CDN + TICKET_RENDER_SHA + '/js/ticket-card-render.js?lock=17r&b=' + Date.now();
         sR.async = false;
         (document.head || document.documentElement).appendChild(sR);
       }
       if (!window.__DR_TICKET_CARD_CSS) {
         var sC = document.createElement('script');
-        sC.src = CDN + TICKET_CSS_SHA + '/js/ticket-card-css.js?lock=16r&b=' + Date.now();
+        sC.src = CDN + TICKET_CSS_SHA + '/js/ticket-card-css.js?lock=17r&b=' + Date.now();
         sC.async = false;
         (document.head || document.documentElement).appendChild(sC);
       }
       if (!window.__DR_FILTERS_V18) {
         var s = document.createElement('script');
-        s.src = CDN + FILTERS_SHA + '/js/filters.js?lock=16r&b=' + Date.now();
+        s.src = CDN + FILTERS_SHA + '/js/filters.js?lock=17r&b=' + Date.now();
         s.async = false;
         (document.head || document.documentElement).appendChild(s);
       }
@@ -158,8 +158,9 @@
   }
 
   forceLoadAll();
-  setTimeout(ensureBound, 1000);
-  setTimeout(ensureBound, 3000);
+  setTimeout(ensureBound, 800);
+  setTimeout(ensureBound, 2500);
+  setTimeout(ensureBound, 5000);
   tick();
   setTimeout(tick, 2000);
   setInterval(tick, 30000);
