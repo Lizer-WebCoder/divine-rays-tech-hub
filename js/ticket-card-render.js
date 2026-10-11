@@ -1,13 +1,36 @@
 /**
- * Divine Rays — Ticket card render v2
- * Force enhanced card layout; survives filters re-renders.
+ * Divine Rays — Ticket card render v3
+ * Force enhanced cards; hide old format + pager until ready.
  * Credit: Boyz at the Back LRK · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_TICKET_CARD_RENDER >= 2) return;
-  window.__DR_TICKET_CARD_RENDER = 2;
+  if (window.__DR_TICKET_CARD_RENDER >= 3) return;
+  window.__DR_TICKET_CARD_RENDER = 3;
+  window.__DR_TICKET_CARD_RENDER_V2 = 1;
   window.__DR_TICKET_CARD_RENDER_V1 = 1;
+
+  function injectFoucCss() {
+    var id = 'dr-ticket-fouc-css';
+    var el = document.getElementById(id);
+    if (!el) {
+      el = document.createElement('style');
+      el.id = id;
+      (document.head || document.documentElement).appendChild(el);
+    }
+    el.textContent = [
+      '#portal-agent #ticket-list:not(.dr-cards-ready) .ticket-card:not(.dr-card-v2){',
+      '  opacity:0!important;pointer-events:none!important;min-height:5.5rem!important',
+      '}',
+      '#portal-agent #ticket-list.dr-cards-ready .ticket-card.dr-card-v2{opacity:1!important}',
+      '#portal-agent #dr-ticket-pager:not(.dr-pager-ready){',
+      '  opacity:0!important;visibility:hidden!important;pointer-events:none!important',
+      '}',
+      '#portal-agent #dr-ticket-pager.dr-pager-ready{opacity:1!important;visibility:visible!important}',
+      '#portal-agent #ticket-list:not(.dr-cards-ready) .empty-state{opacity:1!important}'
+    ].join('');
+  }
+  injectFoucCss();
 
   function esc(s) {
     if (window.DR && DR.esc) return DR.esc(s);
@@ -144,6 +167,7 @@
   }
 
   function forceRewrite() {
+    injectFoucCss();
     var list = document.getElementById('ticket-list');
     if (!list) return;
     if (list.offsetParent === null && list.style.display === 'none') return;
@@ -152,6 +176,9 @@
     if (!cards.length) return;
 
     if (list.querySelector('.ticket-specs') && list.querySelectorAll('.dr-card-v2').length === cards.length) {
+      list.classList.add('dr-cards-ready');
+      var pagerOk = document.getElementById('dr-ticket-pager');
+      if (pagerOk) pagerOk.classList.add('dr-pager-ready');
       bindClicks(list);
       return;
     }
@@ -181,40 +208,52 @@
 
     _rewriting = true;
     list.innerHTML = html.join('');
+    list.classList.add('dr-cards-ready');
     _rewriting = false;
     bindClicks(list);
+    var pager = document.getElementById('dr-ticket-pager');
+    if (pager) pager.classList.add('dr-pager-ready');
   }
 
   function patchApply() {
     if (typeof window.applyTicketFilters !== 'function') return;
-    if (window.applyTicketFilters.__drCardV2) return;
+    if (window.applyTicketFilters.__drCardV3) return;
     var prev = window.applyTicketFilters;
     window.applyTicketFilters = function () {
+      try {
+        var list = document.getElementById('ticket-list');
+        if (list) list.classList.remove('dr-cards-ready');
+        var pager = document.getElementById('dr-ticket-pager');
+        if (pager) pager.classList.remove('dr-pager-ready');
+      } catch (e0) {}
       var r = prev.apply(this, arguments);
       requestAnimationFrame(function () {
         forceRewrite();
-        setTimeout(forceRewrite, 30);
-        setTimeout(forceRewrite, 120);
+        setTimeout(forceRewrite, 20);
+        setTimeout(forceRewrite, 80);
+        setTimeout(forceRewrite, 200);
       });
       return r;
     };
+    window.applyTicketFilters.__drCardV3 = 1;
     window.applyTicketFilters.__drCardV2 = 1;
     window.applyTicketFilters.__drCardV1 = 1;
   }
 
   function boot() {
+    injectFoucCss();
     patchApply();
     forceRewrite();
   }
 
   boot();
-  [200, 600, 1200, 2000, 3500, 5000].forEach(function (ms) {
+  [150, 400, 900, 1600, 2800, 4500].forEach(function (ms) {
     setTimeout(boot, ms);
   });
   setInterval(function () {
     patchApply();
     forceRewrite();
-  }, 2500);
+  }, 3000);
 
   try {
     new MutationObserver(function () {
@@ -231,13 +270,13 @@
     'click',
     function (e) {
       if (e.target && e.target.closest && e.target.closest('#portal-agent .nav-btn')) {
-        setTimeout(boot, 100);
-        setTimeout(boot, 400);
-        setTimeout(boot, 900);
+        setTimeout(boot, 80);
+        setTimeout(boot, 300);
+        setTimeout(boot, 700);
       }
     },
     true
   );
 
-  window.DRTicketCardRender = { refresh: boot, force: forceRewrite, cardHtml: cardHtml, v: 2 };
+  window.DRTicketCardRender = { refresh: boot, force: forceRewrite, cardHtml: cardHtml, v: 3 };
 })();
