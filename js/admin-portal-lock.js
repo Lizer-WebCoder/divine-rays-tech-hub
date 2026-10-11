@@ -1,11 +1,11 @@
 /**
- * Divine Rays — Admin Portal lock v18 — avatar v3 + ticket-card-render v3
+ * Divine Rays — Admin Portal lock v19 — sidebar profile layout
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_ADMIN_PORTAL_LOCK >= 18) return;
-  window.__DR_ADMIN_PORTAL_LOCK = 18;
+  if (window.__DR_ADMIN_PORTAL_LOCK >= 19) return;
+  window.__DR_ADMIN_PORTAL_LOCK = 19;
 
   var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
   var FILTERS_SHA = 'd76969f7e13ff322fb8b37fb061a1bfed8fc8c20';
@@ -17,12 +17,14 @@
   var AVATAR_SHA = '51facff11f44ff41c897107bad8583c6f9d5f3bf';
   var TICKET_CSS_SHA = '4326d1ddf5e9a5628834aa36f87999d7e0a4b87a';
   var TICKET_RENDER_SHA = '895cb8b253e0fab3ad79e2d06fa06f30feded687';
+  var SIDEBAR_PROFILE_SHA = '545afd29cbaede602653f78631d8c97ce7558683';
   var PINS = {
     'supabase-400-fix.js': SUPA_400_SHA,
     'ticket-stable.js': TICKET_STABLE_SHA,
     'ticket-card-css.js': TICKET_CSS_SHA,
     'ticket-card-render.js': TICKET_RENDER_SHA,
     'avatar-fix.js': AVATAR_SHA,
+    'sidebar-profile-layout.js': SIDEBAR_PROFILE_SHA,
     'priority-force.js': PRIORITY_FORCE_SHA,
     'filters.js': FILTERS_SHA,
     'priority-p1-display.js': PRIORITY_SHA,
@@ -37,7 +39,7 @@
     scriptsLoaded = true;
     Object.keys(PINS).forEach(function (name) {
       var s = document.createElement('script');
-      s.src = CDN + PINS[name] + '/js/' + name + '?lock=18&b=' + Date.now();
+      s.src = CDN + PINS[name] + '/js/' + name + '?lock=19&b=' + Date.now();
       s.async = false;
       (document.head || document.documentElement).appendChild(s);
     });
@@ -45,27 +47,27 @@
 
   function ensureBound() {
     try {
+      if (!window.__DR_SIDEBAR_PROFILE_LAYOUT) {
+        var sP = document.createElement('script');
+        sP.src = CDN + SIDEBAR_PROFILE_SHA + '/js/sidebar-profile-layout.js?lock=19r&b=' + Date.now();
+        sP.async = false;
+        (document.head || document.documentElement).appendChild(sP);
+      }
       if (!window.__DR_AVATAR_FIX_V3) {
         var sA = document.createElement('script');
-        sA.src = CDN + AVATAR_SHA + '/js/avatar-fix.js?lock=18r&b=' + Date.now();
+        sA.src = CDN + AVATAR_SHA + '/js/avatar-fix.js?lock=19r&b=' + Date.now();
         sA.async = false;
         (document.head || document.documentElement).appendChild(sA);
       }
       if (!window.__DR_TICKET_CARD_RENDER || window.__DR_TICKET_CARD_RENDER < 3) {
         var sR = document.createElement('script');
-        sR.src = CDN + TICKET_RENDER_SHA + '/js/ticket-card-render.js?lock=18r&b=' + Date.now();
+        sR.src = CDN + TICKET_RENDER_SHA + '/js/ticket-card-render.js?lock=19r&b=' + Date.now();
         sR.async = false;
         (document.head || document.documentElement).appendChild(sR);
       }
-      if (!window.__DR_TICKET_CARD_CSS) {
-        var sC = document.createElement('script');
-        sC.src = CDN + TICKET_CSS_SHA + '/js/ticket-card-css.js?lock=18r&b=' + Date.now();
-        sC.async = false;
-        (document.head || document.documentElement).appendChild(sC);
-      }
       if (!window.__DR_FILTERS_V18) {
         var s = document.createElement('script');
-        s.src = CDN + FILTERS_SHA + '/js/filters.js?lock=18r&b=' + Date.now();
+        s.src = CDN + FILTERS_SHA + '/js/filters.js?lock=19r&b=' + Date.now();
         s.async = false;
         (document.head || document.documentElement).appendChild(s);
       }
@@ -81,22 +83,8 @@
       '#portal-agent .sidebar .brand-text p,',
       '#portal-agent .sidebar .brand p.brand-sub,',
       '#portal-agent .sidebar .brand-text .brand-sub{display:none!important}',
-      '#agent-name-display{background:transparent!important;border:none!important;box-shadow:none!important}',
-      '#agent-name-display .dr-role-pill, #agent-name-display .dr-side-role{',
-      'display:inline!important;margin:0!important;padding:0!important;border:none!important;border-radius:0!important;',
-      'background:transparent!important;font-size:.78rem;font-weight:600}',
-      '#agent-name-display .dr-role-pill[data-role="developer"], #agent-name-display .dr-side-role.developer{color:#fbbf24!important;background:transparent!important}',
-      '#agent-name-display .dr-role-pill[data-role="admin"], #agent-name-display .dr-side-role.admin{color:#2dd4bf!important;background:transparent!important}',
-      '#agent-name-display .dr-role-pill[data-role="owner"], #agent-name-display .dr-side-role.owner{color:#c084fc!important;background:transparent!important}',
-      '#agent-name-display .dr-role-pill[data-role="it tech support"], #agent-name-display .dr-side-role.agent,',
-      '#agent-name-display .dr-role-pill[data-role="agent"]{color:#60a5fa!important;background:transparent!important}',
-      '#portal-agent .sidebar .profile{position:relative!important;padding-bottom:0.85rem!important;margin-bottom:0.35rem!important}',
-      '#portal-agent .sidebar .profile::after{',
-      'content:"";position:absolute;left:0.75rem;right:0.75rem;bottom:0;height:1px;',
-      'background:linear-gradient(90deg,transparent,rgba(167,139,250,.45),transparent)}',
-      '#portal-agent .sidebar .avatar, #portal-agent .sidebar .profile-avatar{',
-      'box-shadow:0 0 0 2px rgba(167,139,250,.35),0 0 16px rgba(139,124,247,.25)!important}',
-      '#sidebar-avatar-chip{display:none!important}'
+      '#sidebar-avatar-chip{display:none!important}',
+      '#portal-agent .sidebar .profile{position:relative!important;padding-bottom:0.35rem!important;margin-bottom:0.15rem!important}'
     ].join('');
     (document.head || document.documentElement).appendChild(el);
   }
@@ -165,9 +153,9 @@
   }
 
   forceLoadAll();
-  setTimeout(ensureBound, 600);
-  setTimeout(ensureBound, 2000);
-  setTimeout(ensureBound, 4500);
+  setTimeout(ensureBound, 500);
+  setTimeout(ensureBound, 1800);
+  setTimeout(ensureBound, 4000);
   tick();
   setTimeout(tick, 2000);
   setInterval(tick, 30000);
