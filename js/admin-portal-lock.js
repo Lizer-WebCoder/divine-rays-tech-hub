@@ -1,11 +1,11 @@
 /**
- * Divine Rays — Admin Portal lock v14 — supabase-400-fix + priority-force + filters
+ * Divine Rays — Admin Portal lock v15 — ticket-stable + avatar + supabase-400 + filters
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_ADMIN_PORTAL_LOCK >= 14) return;
-  window.__DR_ADMIN_PORTAL_LOCK = 14;
+  if (window.__DR_ADMIN_PORTAL_LOCK >= 15) return;
+  window.__DR_ADMIN_PORTAL_LOCK = 15;
 
   var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
   var FILTERS_SHA = 'd76969f7e13ff322fb8b37fb061a1bfed8fc8c20';
@@ -13,8 +13,12 @@
   var PRIORITY_SHA = '7f3c726173a05a238a628ee3a6a7f22c7008cc3c';
   var SUPA_400_SHA = '39e8c69ab7c04cb4900cc40992419ecffb482735';
   var CSAT_DASH_SHA = '0c8e40f8342306007a98e1751531db063af37e48';
+  var TICKET_STABLE_SHA = 'd987fd7a6e51a612230c882e1da3138486010593';
+  var AVATAR_SHA = 'f4ca78f29a9f10ca5938233ef8f6ef9f2e698724';
   var PINS = {
     'supabase-400-fix.js': SUPA_400_SHA,
+    'ticket-stable.js': TICKET_STABLE_SHA,
+    'avatar-fix.js': AVATAR_SHA,
     'priority-force.js': PRIORITY_FORCE_SHA,
     'filters.js': FILTERS_SHA,
     'priority-p1-display.js': PRIORITY_SHA,
@@ -29,7 +33,7 @@
     scriptsLoaded = true;
     Object.keys(PINS).forEach(function (name) {
       var s = document.createElement('script');
-      s.src = CDN + PINS[name] + '/js/' + name + '?lock=14&b=' + Date.now();
+      s.src = CDN + PINS[name] + '/js/' + name + '?lock=15&b=' + Date.now();
       s.async = false;
       (document.head || document.documentElement).appendChild(s);
     });
@@ -37,15 +41,21 @@
 
   function ensureBound() {
     try {
+      if (!window.__DR_TICKET_STABLE) {
+        var sT = document.createElement('script');
+        sT.src = CDN + TICKET_STABLE_SHA + '/js/ticket-stable.js?lock=15r&b=' + Date.now();
+        sT.async = false;
+        (document.head || document.documentElement).appendChild(sT);
+      }
       if (!window.__DR_SUPABASE_400_FIX) {
         var s0 = document.createElement('script');
-        s0.src = CDN + SUPA_400_SHA + '/js/supabase-400-fix.js?lock=14r&b=' + Date.now();
+        s0.src = CDN + SUPA_400_SHA + '/js/supabase-400-fix.js?lock=15r&b=' + Date.now();
         s0.async = false;
         (document.head || document.documentElement).appendChild(s0);
       }
       if (!window.__DR_FILTERS_V18) {
         var s = document.createElement('script');
-        s.src = CDN + FILTERS_SHA + '/js/filters.js?lock=14r&b=' + Date.now();
+        s.src = CDN + FILTERS_SHA + '/js/filters.js?lock=15r&b=' + Date.now();
         s.async = false;
         (document.head || document.documentElement).appendChild(s);
       }
