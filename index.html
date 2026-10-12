@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=943" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=944" />
   <script>
     window.__DR_ECG_OK = true;
     try {
@@ -18,8 +18,22 @@
     html,body{margin:0;min-height:100vh;background:#0c0c14;color:#eeeef6;font-family:Inter,system-ui,sans-serif}
     #boot{display:flex;align-items:center;justify-content:center;min-height:100vh}
     #btn-theme,button#btn-theme,[data-theme-toggle],#theme-toggle{display:none!important}
-    #dr-lifeline .dr-ecg-glow{stroke-width:4px!important;opacity:.7!important}
-    #dr-lifeline .dr-ecg-core{stroke-width:2.5px!important}
+    /* PINNED: lifeline always visible when present */
+    #dr-lifeline{
+      display:block!important;visibility:visible!important;opacity:1!important;
+      pointer-events:none!important;z-index:0!important
+    }
+    /* Stronger, smoother ECG glow (CSS filter — GPU friendly) */
+    #dr-lifeline .dr-ecg-glow{
+      stroke-width:3.8px!important;
+      opacity:.75!important;
+      filter:drop-shadow(0 0 6px rgba(233,213,255,.85)) drop-shadow(0 0 14px rgba(167,139,250,.55))!important
+    }
+    #dr-lifeline .dr-ecg-core{
+      stroke-width:2.5px!important;
+      opacity:1!important;
+      filter:drop-shadow(0 0 3px rgba(243,232,255,.6))!important
+    }
   </style>
 </head>
 <body>
@@ -30,15 +44,6 @@
     var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
     var B = Date.now();
 
-    function inject(src, defer) {
-      var s = document.createElement('script');
-      s.src = src;
-      if (defer) s.defer = true;
-      else s.async = true;
-      document.body.appendChild(s);
-      return s;
-    }
-
     function loadSync(src) {
       return new Promise(function (res) {
         var s = document.createElement('script');
@@ -48,6 +53,13 @@
         s.onerror = function () { res(); };
         document.body.appendChild(s);
       });
+    }
+
+    function injectDefer(src) {
+      var s = document.createElement('script');
+      s.src = src;
+      s.defer = true;
+      document.body.appendChild(s);
     }
 
     try {
@@ -70,7 +82,7 @@
         if (n.tagName === 'LINK') {
           var href = n.getAttribute('href') || '';
           if (href && href.indexOf('http') !== 0)
-            href = CDN + PIN + '/' + href.replace(/^\.\//, '').split('?')[0] + '?v=943';
+            href = CDN + PIN + '/' + href.replace(/^\.\//, '').split('?')[0] + '?v=944';
           n.setAttribute('href', href);
           document.head.appendChild(document.importNode(n, true));
         } else {
@@ -86,35 +98,48 @@
       });
       document.body.innerHTML = bodyHtml;
 
+      /* PIN flags before any animation script */
       window.__DR_ECG_OK = true;
       try {
         document.documentElement.setAttribute('data-ecg', 'on');
         document.documentElement.setAttribute('data-theme', 'dark');
         localStorage.setItem('dr_theme', 'dark');
+        document.body.classList.add('is-login');
       } catch (e1) {}
 
-      /* Core app scripts only — sequential but few */
       var core = [];
       doc.querySelectorAll('script[src]').forEach(function (sc) {
         var src = sc.getAttribute('src') || '';
         if (!src) return;
         if (src.indexOf('http') !== 0)
-          src = CDN + PIN + '/' + src.replace(/^\.\//, '').split('?')[0] + '?v=943';
+          src = CDN + PIN + '/' + src.replace(/^\.\//, '').split('?')[0] + '?v=944';
         core.push(src);
       });
       for (var c = 0; c < core.length; c++) await loadSync(core[c]);
 
-      /* Login essentials — non-blocking async */
-      [
-        '90094058c1f476b163296855e186984add6a625d/js/bg-anim-pin.js',
-        'a9046e485443b24e800a4f4d10747c10146ca663/js/heartbeat-draw.js',
-        '8c56504dc4ae1c397eb336de3d117dd3bd022ed7/js/login-theme.js',
-        '9beff1f92931/js/login-tab-labels.js',
-        '233f36150987e8576aab9114d1ca329bf09fa6a0/js/login-nav-fix.js',
-        '8afd47c0aa694ef7483f413d2ad7c15ea2be7b30/js/login-shell-sep.js'
-      ].forEach(function (p) { inject(CDN + p + '?v=943', false); });
+      /* PINNED backgrounds — must load sync so they never miss init */
+      await loadSync(CDN + '90094058c1f476b163296855e186984add6a625d/js/bg-anim-pin.js?v=944');
+      await loadSync(CDN + 'a9046e485443b24e800a4f4d10747c10146ca663/js/heartbeat-draw.js?v=944');
 
-      /* Portal features — deferred, load after idle so login never freezes */
+      window.__DR_ECG_OK = true;
+      try {
+        document.documentElement.setAttribute('data-ecg', 'on');
+        if (window.DRBgAnimPin && window.DRBgAnimPin.refresh) window.DRBgAnimPin.refresh();
+      } catch (e2) {}
+
+      /* Login polish — async, non-blocking */
+      ['8c56504dc4ae1c397eb336de3d117dd3bd022ed7/js/login-theme.js',
+       '9beff1f92931/js/login-tab-labels.js',
+       '233f36150987e8576aab9114d1ca329bf09fa6a0/js/login-nav-fix.js',
+       '8afd47c0aa694ef7483f413d2ad7c15ea2be7b30/js/login-shell-sep.js'
+      ].forEach(function (p) {
+        var s = document.createElement('script');
+        s.src = CDN + p + '?v=944';
+        s.async = true;
+        document.body.appendChild(s);
+      });
+
+      /* Portal modules after login UI is stable */
       function loadPortal() {
         [
           '9a17dcda7cbe5a9ad3f9af120b4135532b149a13/js/admin-portal-lock.js',
@@ -130,28 +155,21 @@
           '875b2f5b1c8293bb219943429c01020f28114d5b/js/ticket-list-fix.js',
           '7a09542332b8227930871a5a055162c570a3fdb7/js/csat-dashboard.js',
           '53aba5366d53c7fc6c8208ecb594eeeb10d46e2f/js/admin.js'
-        ].forEach(function (p) { inject(CDN + p + '?v=943', true); });
+        ].forEach(function (p) { injectDefer(CDN + p + '?v=944'); });
       }
+      setTimeout(loadPortal, 2000);
 
-      if (window.requestIdleCallback) {
-        requestIdleCallback(loadPortal, { timeout: 3000 });
-      } else {
-        setTimeout(loadPortal, 1500);
-      }
-
-      /* Hide Light button once if present */
       setTimeout(function () {
         try {
+          window.__DR_ECG_OK = true;
+          document.documentElement.setAttribute('data-ecg', 'on');
           document.documentElement.setAttribute('data-theme', 'dark');
           localStorage.setItem('dr_theme', 'dark');
           var tb = document.getElementById('btn-theme') || document.querySelector('[data-theme-toggle]');
           if (tb) { tb.style.display = 'none'; tb.hidden = true; }
-          document.querySelectorAll('button').forEach(function (b) {
-            if ((b.textContent || '').trim() === 'Light') { b.style.display = 'none'; }
-          });
           if (window.DRBgAnimPin && window.DRBgAnimPin.refresh) window.DRBgAnimPin.refresh();
-        } catch (e) {}
-      }, 600);
+        } catch (e3) {}
+      }, 700);
     } catch (err) {
       var boot = document.getElementById('boot');
       if (boot) boot.innerHTML = '<p style="color:#fca5a5">Could not load.</p><button onclick="location.reload()">Retry</button>';
