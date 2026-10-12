@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=947" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=948" />
   <script>
     window.__DR_ECG_OK = true;
     try {
@@ -15,20 +15,31 @@
     } catch (e) {}
   </script>
   <style>
-    /* REAL login background — purple radial field (from production pin) */
     html,body{
       margin:0;min-height:100vh;color:#eeeef6;
       font-family:Inter,system-ui,-apple-system,sans-serif;
       background:radial-gradient(ellipse 80% 60% at 50% 40%,#1a1530 0%,#0c0c14 55%,#08080f 100%)!important;
       background-attachment:fixed!important
     }
-    /* Login layer must stay transparent so gradient + ECG show */
     #login-screen,.login-screen{
       background:transparent!important;
       background-image:none!important;
       background-color:transparent!important
     }
-    /* Branded boot */
+    /* Kill Light button BEFORE it can paint (login-theme creates #dr-login-theme) */
+    #dr-login-theme,
+    #btn-theme,
+    [data-theme-toggle],
+    #theme-toggle,
+    .theme-fab{
+      display:none!important;
+      visibility:hidden!important;
+      opacity:0!important;
+      pointer-events:none!important;
+      width:0!important;height:0!important;
+      overflow:hidden!important;
+      position:absolute!important;left:-9999px!important
+    }
     #boot{
       display:flex;align-items:center;justify-content:center;min-height:100vh;
       flex-direction:column;gap:.85rem;position:relative;z-index:9999;
@@ -43,31 +54,23 @@
     }
     #boot .boot-gear svg{width:28px;height:28px;fill:#fff}
     #boot p{margin:0;color:#9494ae;font-size:.95rem}
-    #boot .boot-bar{
-      width:120px;height:3px;border-radius:2px;overflow:hidden;
-      background:rgba(167,139,250,.15);margin-top:.15rem
-    }
+    #boot .boot-bar{width:120px;height:3px;border-radius:2px;overflow:hidden;background:rgba(167,139,250,.15)}
     #boot .boot-bar-fill{
       height:100%;width:40%;border-radius:2px;
-      background:linear-gradient(90deg,#8b7cf0,#c4b5fd,#8b7cf0);
-      background-size:200% 100%;
+      background:linear-gradient(90deg,#8b7cf0,#c4b5fd,#8b7cf0);background-size:200% 100%;
       animation:bootBar 1.4s ease-in-out infinite
     }
     @keyframes bootSpin{to{transform:rotate(360deg)}}
     @keyframes bootBar{
-      0%{transform:translateX(-100%);background-position:0% 0}
-      100%{transform:translateX(280%);background-position:100% 0}
+      0%{transform:translateX(-100%)}100%{transform:translateX(280%)}
     }
-    /* Dark only — hide theme toggle */
-    #btn-theme,button#btn-theme,[data-theme-toggle],#theme-toggle,.theme-fab{
-      display:none!important;visibility:hidden!important;pointer-events:none!important
-    }
-    /* PINNED ECG layer */
     #dr-lifeline{
-      display:block!important;visibility:visible!important;
-      pointer-events:none!important;z-index:0!important
+      display:block!important;visibility:visible!important;opacity:1!important;
+      pointer-events:none!important;
+      position:fixed!important;inset:0!important;
+      width:100%!important;height:100%!important;
+      z-index:0!important
     }
-    /* Glow strength — do not lock opacity (keeps pulse) */
     #dr-lifeline .dr-ecg-glow{
       stroke-width:3.6px!important;
       filter:drop-shadow(0 0 5px rgba(233,213,255,.9)) drop-shadow(0 0 12px rgba(167,139,250,.55))!important
@@ -110,23 +113,29 @@
       document.body.appendChild(s);
     }
 
-    function forceDarkHideLight() {
+    function killLightBtn() {
       try {
         document.documentElement.setAttribute('data-theme', 'dark');
         localStorage.setItem('dr_theme', 'dark');
-        document.querySelectorAll('#btn-theme,[data-theme-toggle],#theme-toggle,.theme-fab').forEach(function (b) {
-          b.style.display = 'none';
-          b.hidden = true;
+        var ids = ['dr-login-theme', 'btn-theme', 'theme-toggle'];
+        ids.forEach(function (id) {
+          var el = document.getElementById(id);
+          if (el) el.remove();
         });
-        document.querySelectorAll('button').forEach(function (b) {
-          var t = (b.textContent || '').trim();
-          if (t === 'Light' || t === 'Dark') {
-            b.style.display = 'none';
-            b.hidden = true;
-          }
+        document.querySelectorAll('[data-theme-toggle],.theme-fab').forEach(function (el) {
+          el.remove();
         });
+        /* stub login-theme toggle so it cannot recreate */
+        if (window.ensureLoginToggle) window.ensureLoginToggle = function () {};
       } catch (e) {}
     }
+
+    /* Catch Light button the instant login-theme injects it */
+    try {
+      var mo = new MutationObserver(function () { killLightBtn(); });
+      mo.observe(document.documentElement, { childList: true, subtree: true });
+      setTimeout(function () { try { mo.disconnect(); } catch (e) {} }, 8000);
+    } catch (e0) {}
 
     try {
       var r = await fetch(CDN + PIN + '/index.html?b=' + B, { cache: 'no-store', credentials: 'omit' });
@@ -148,7 +157,7 @@
         if (n.tagName === 'LINK') {
           var href = n.getAttribute('href') || '';
           if (href && href.indexOf('http') !== 0)
-            href = CDN + PIN + '/' + href.replace(/^\.\//, '').split('?')[0] + '?v=947';
+            href = CDN + PIN + '/' + href.replace(/^\.\//, '').split('?')[0] + '?v=948';
           n.setAttribute('href', href);
           document.head.appendChild(document.importNode(n, true));
         } else {
@@ -164,50 +173,56 @@
       });
       document.body.innerHTML = bodyHtml;
 
-      /* Keep real gradient on body after shell inject */
       try {
         document.body.style.background =
           'radial-gradient(ellipse 80% 60% at 50% 40%,#1a1530 0%,#0c0c14 55%,#08080f 100%)';
         document.body.style.backgroundAttachment = 'fixed';
-      } catch (e0) {}
+        document.body.classList.add('is-login');
+      } catch (e1) {}
 
       window.__DR_ECG_OK = true;
       try {
         document.documentElement.setAttribute('data-ecg', 'on');
         document.documentElement.setAttribute('data-theme', 'dark');
         localStorage.setItem('dr_theme', 'dark');
-        document.body.classList.add('is-login');
-      } catch (e1) {}
-      forceDarkHideLight();
+      } catch (e2) {}
+      killLightBtn();
 
       var core = [];
       doc.querySelectorAll('script[src]').forEach(function (sc) {
         var src = sc.getAttribute('src') || '';
         if (!src) return;
         if (src.indexOf('http') !== 0)
-          src = CDN + PIN + '/' + src.replace(/^\.\//, '').split('?')[0] + '?v=947';
+          src = CDN + PIN + '/' + src.replace(/^\.\//, '').split('?')[0] + '?v=948';
         core.push(src);
       });
       for (var c = 0; c < core.length; c++) await loadSync(core[c]);
 
-      /* PINNED ECG + gears */
-      await loadSync(CDN + '90094058c1f476b163296855e186984add6a625d/js/bg-anim-pin.js?v=947');
-      await loadSync(CDN + 'a9046e485443b24e800a4f4d10747c10146ca663/js/heartbeat-draw.js?v=947');
+      await loadSync(CDN + '90094058c1f476b163296855e186984add6a625d/js/bg-anim-pin.js?v=948');
+      await loadSync(CDN + 'a9046e485443b24e800a4f4d10747c10146ca663/js/heartbeat-draw.js?v=948');
 
       window.__DR_ECG_OK = true;
       try {
         document.documentElement.setAttribute('data-ecg', 'on');
         if (window.DRBgAnimPin && window.DRBgAnimPin.refresh) window.DRBgAnimPin.refresh();
-      } catch (e2) {}
-      forceDarkHideLight();
+        if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.refresh) window.DRHeartbeatDraw.refresh();
+        if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.start) window.DRHeartbeatDraw.start();
+      } catch (e3) {}
+      killLightBtn();
 
-      ['8c56504dc4ae1c397eb336de3d117dd3bd022ed7/js/login-theme.js',
-       '9beff1f92931/js/login-tab-labels.js',
+      /* login-theme for glass card only — Light btn killed by CSS + killLightBtn */
+      await loadSync(CDN + '8c56504dc4ae1c397eb336de3d117dd3bd022ed7/js/login-theme.js?v=948');
+      killLightBtn();
+      try {
+        if (window.ensureLoginToggle) window.ensureLoginToggle = function () {};
+      } catch (e4) {}
+
+      ['9beff1f92931/js/login-tab-labels.js',
        '233f36150987e8576aab9114d1ca329bf09fa6a0/js/login-nav-fix.js',
        '8afd47c0aa694ef7483f413d2ad7c15ea2be7b30/js/login-shell-sep.js'
       ].forEach(function (p) {
         var s = document.createElement('script');
-        s.src = CDN + p + '?v=947';
+        s.src = CDN + p + '?v=948';
         s.async = true;
         document.body.appendChild(s);
       });
@@ -227,21 +242,22 @@
           '875b2f5b1c8293bb219943429c01020f28114d5b/js/ticket-list-fix.js',
           '7a09542332b8227930871a5a055162c570a3fdb7/js/csat-dashboard.js',
           '53aba5366d53c7fc6c8208ecb594eeeb10d46e2f/js/admin.js'
-        ].forEach(function (p) { injectDefer(CDN + p + '?v=947'); });
+        ].forEach(function (p) { injectDefer(CDN + p + '?v=948'); });
       }, 2000);
 
-      setTimeout(forceDarkHideLight, 500);
-      setTimeout(forceDarkHideLight, 1500);
+      setTimeout(killLightBtn, 300);
+      setTimeout(killLightBtn, 1000);
       setTimeout(function () {
-        forceDarkHideLight();
+        killLightBtn();
         window.__DR_ECG_OK = true;
         try {
           document.documentElement.setAttribute('data-ecg', 'on');
           document.body.style.background =
             'radial-gradient(ellipse 80% 60% at 50% 40%,#1a1530 0%,#0c0c14 55%,#08080f 100%)';
           if (window.DRBgAnimPin && window.DRBgAnimPin.refresh) window.DRBgAnimPin.refresh();
-        } catch (e3) {}
-      }, 900);
+          if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.refresh) window.DRHeartbeatDraw.refresh();
+        } catch (e5) {}
+      }, 800);
     } catch (err) {
       var boot = document.getElementById('boot');
       if (boot) boot.innerHTML = '<p style="color:#fca5a5">Could not load.</p><button onclick="location.reload()">Retry</button>';
