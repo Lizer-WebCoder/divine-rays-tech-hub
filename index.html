@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=946" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=947" />
   <script>
     window.__DR_ECG_OK = true;
     try {
@@ -15,15 +15,24 @@
     } catch (e) {}
   </script>
   <style>
+    /* REAL login background — purple radial field (from production pin) */
     html,body{
-      margin:0;min-height:100vh;background:#0c0c14;color:#eeeef6;
-      font-family:Inter,system-ui,sans-serif
+      margin:0;min-height:100vh;color:#eeeef6;
+      font-family:Inter,system-ui,-apple-system,sans-serif;
+      background:radial-gradient(ellipse 80% 60% at 50% 40%,#1a1530 0%,#0c0c14 55%,#08080f 100%)!important;
+      background-attachment:fixed!important
     }
-    /* Branded boot / loading UI */
+    /* Login layer must stay transparent so gradient + ECG show */
+    #login-screen,.login-screen{
+      background:transparent!important;
+      background-image:none!important;
+      background-color:transparent!important
+    }
+    /* Branded boot */
     #boot{
       display:flex;align-items:center;justify-content:center;min-height:100vh;
-      flex-direction:column;gap:1rem;z-index:9999;position:relative;
-      background:#0c0c14
+      flex-direction:column;gap:.85rem;position:relative;z-index:9999;
+      background:radial-gradient(ellipse 80% 60% at 50% 40%,#1a1530 0%,#0c0c14 55%,#08080f 100%)
     }
     #boot .boot-gear{
       width:52px;height:52px;border-radius:14px;
@@ -33,44 +42,32 @@
       box-shadow:0 0 24px rgba(124,106,240,.45)
     }
     #boot .boot-gear svg{width:28px;height:28px;fill:#fff}
-    #boot p{margin:0;color:#9494ae;font-size:.95rem;letter-spacing:.02em}
+    #boot p{margin:0;color:#9494ae;font-size:.95rem}
+    #boot .boot-bar{
+      width:120px;height:3px;border-radius:2px;overflow:hidden;
+      background:rgba(167,139,250,.15);margin-top:.15rem
+    }
+    #boot .boot-bar-fill{
+      height:100%;width:40%;border-radius:2px;
+      background:linear-gradient(90deg,#8b7cf0,#c4b5fd,#8b7cf0);
+      background-size:200% 100%;
+      animation:bootBar 1.4s ease-in-out infinite
+    }
     @keyframes bootSpin{to{transform:rotate(360deg)}}
-
-    /* Dark only */
-    #btn-theme,button#btn-theme,[data-theme-toggle],#theme-toggle,
-    body > button[style*="position"],
-    .theme-fab,button.theme-toggle{
+    @keyframes bootBar{
+      0%{transform:translateX(-100%);background-position:0% 0}
+      100%{transform:translateX(280%);background-position:100% 0}
+    }
+    /* Dark only — hide theme toggle */
+    #btn-theme,button#btn-theme,[data-theme-toggle],#theme-toggle,.theme-fab{
       display:none!important;visibility:hidden!important;pointer-events:none!important
     }
-
-    /* PINNED honeycomb — always under content */
-    body::before{
-      content:"";
-      position:fixed;inset:0;z-index:0;pointer-events:none;
-      background-color:#0c0c14;
-      background-image:
-        radial-gradient(ellipse at 50% 20%, rgba(88,70,180,.32) 0%, transparent 55%),
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100' viewBox='0 0 56 100'%3E%3Cpath d='M28 0 L56 16 L56 48 L28 64 L0 48 L0 16 Z' fill='none' stroke='%237c6af0' stroke-opacity='0.18' stroke-width='1'/%3E%3Cpath d='M28 64 L56 80 L56 112 L28 128 L0 112 L0 80 Z' fill='none' stroke='%237c6af0' stroke-opacity='0.18' stroke-width='1'/%3E%3Ccircle cx='28' cy='0' r='1.7' fill='%23a78bfa' fill-opacity='0.4'/%3E%3Ccircle cx='56' cy='16' r='1.5' fill='%23a78bfa' fill-opacity='0.32'/%3E%3Ccircle cx='0' cy='16' r='1.5' fill='%23a78bfa' fill-opacity='0.32'/%3E%3Ccircle cx='28' cy='64' r='1.5' fill='%23a78bfa' fill-opacity='0.32'/%3E%3C/svg%3E");
-      background-size:auto, 56px 100px
-    }
-
-    /* CRITICAL: login-screen must NOT paint opaque bg over honeycomb */
-    #login-screen,.login-screen{
-      background:transparent!important;
-      background-image:none!important;
-      background-color:transparent!important
-    }
-    html[data-theme="dark"] #login-screen,
-    html[data-theme="dark"] .login-screen{
-      background:transparent!important;
-      background-image:none!important
-    }
-
+    /* PINNED ECG layer */
     #dr-lifeline{
       display:block!important;visibility:visible!important;
       pointer-events:none!important;z-index:0!important
     }
-    /* Glow strength — do not lock opacity (pulse animation) */
+    /* Glow strength — do not lock opacity (keeps pulse) */
     #dr-lifeline .dr-ecg-glow{
       stroke-width:3.6px!important;
       filter:drop-shadow(0 0 5px rgba(233,213,255,.9)) drop-shadow(0 0 12px rgba(167,139,250,.55))!important
@@ -87,6 +84,7 @@
       <svg viewBox="0 0 64 64"><g transform="translate(32,32)"><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(45)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(90)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(135)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(180)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(225)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(270)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(315)"/><circle r="17"/><circle r="9" fill="#1a1625"/><circle r="5"/></g></svg>
     </div>
     <p>Loading Divine Rays Tech Hub…</p>
+    <div class="boot-bar"><div class="boot-bar-fill"></div></div>
   </div>
   <script>
   (async function () {
@@ -150,7 +148,7 @@
         if (n.tagName === 'LINK') {
           var href = n.getAttribute('href') || '';
           if (href && href.indexOf('http') !== 0)
-            href = CDN + PIN + '/' + href.replace(/^\.\//, '').split('?')[0] + '?v=946';
+            href = CDN + PIN + '/' + href.replace(/^\.\//, '').split('?')[0] + '?v=947';
           n.setAttribute('href', href);
           document.head.appendChild(document.importNode(n, true));
         } else {
@@ -166,6 +164,13 @@
       });
       document.body.innerHTML = bodyHtml;
 
+      /* Keep real gradient on body after shell inject */
+      try {
+        document.body.style.background =
+          'radial-gradient(ellipse 80% 60% at 50% 40%,#1a1530 0%,#0c0c14 55%,#08080f 100%)';
+        document.body.style.backgroundAttachment = 'fixed';
+      } catch (e0) {}
+
       window.__DR_ECG_OK = true;
       try {
         document.documentElement.setAttribute('data-ecg', 'on');
@@ -180,13 +185,14 @@
         var src = sc.getAttribute('src') || '';
         if (!src) return;
         if (src.indexOf('http') !== 0)
-          src = CDN + PIN + '/' + src.replace(/^\.\//, '').split('?')[0] + '?v=946';
+          src = CDN + PIN + '/' + src.replace(/^\.\//, '').split('?')[0] + '?v=947';
         core.push(src);
       });
       for (var c = 0; c < core.length; c++) await loadSync(core[c]);
 
-      await loadSync(CDN + '90094058c1f476b163296855e186984add6a625d/js/bg-anim-pin.js?v=946');
-      await loadSync(CDN + 'a9046e485443b24e800a4f4d10747c10146ca663/js/heartbeat-draw.js?v=946');
+      /* PINNED ECG + gears */
+      await loadSync(CDN + '90094058c1f476b163296855e186984add6a625d/js/bg-anim-pin.js?v=947');
+      await loadSync(CDN + 'a9046e485443b24e800a4f4d10747c10146ca663/js/heartbeat-draw.js?v=947');
 
       window.__DR_ECG_OK = true;
       try {
@@ -201,7 +207,7 @@
        '8afd47c0aa694ef7483f413d2ad7c15ea2be7b30/js/login-shell-sep.js'
       ].forEach(function (p) {
         var s = document.createElement('script');
-        s.src = CDN + p + '?v=946';
+        s.src = CDN + p + '?v=947';
         s.async = true;
         document.body.appendChild(s);
       });
@@ -221,7 +227,7 @@
           '875b2f5b1c8293bb219943429c01020f28114d5b/js/ticket-list-fix.js',
           '7a09542332b8227930871a5a055162c570a3fdb7/js/csat-dashboard.js',
           '53aba5366d53c7fc6c8208ecb594eeeb10d46e2f/js/admin.js'
-        ].forEach(function (p) { injectDefer(CDN + p + '?v=946'); });
+        ].forEach(function (p) { injectDefer(CDN + p + '?v=947'); });
       }, 2000);
 
       setTimeout(forceDarkHideLight, 500);
@@ -231,6 +237,8 @@
         window.__DR_ECG_OK = true;
         try {
           document.documentElement.setAttribute('data-ecg', 'on');
+          document.body.style.background =
+            'radial-gradient(ellipse 80% 60% at 50% 40%,#1a1530 0%,#0c0c14 55%,#08080f 100%)';
           if (window.DRBgAnimPin && window.DRBgAnimPin.refresh) window.DRBgAnimPin.refresh();
         } catch (e3) {}
       }, 900);
