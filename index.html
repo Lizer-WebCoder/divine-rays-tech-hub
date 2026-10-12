@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=948" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=949" />
   <script>
     window.__DR_ECG_OK = true;
     try {
@@ -26,19 +26,10 @@
       background-image:none!important;
       background-color:transparent!important
     }
-    /* Kill Light button BEFORE it can paint (login-theme creates #dr-login-theme) */
-    #dr-login-theme,
-    #btn-theme,
-    [data-theme-toggle],
-    #theme-toggle,
-    .theme-fab{
-      display:none!important;
-      visibility:hidden!important;
-      opacity:0!important;
-      pointer-events:none!important;
-      width:0!important;height:0!important;
-      overflow:hidden!important;
-      position:absolute!important;left:-9999px!important
+    #dr-login-theme,#btn-theme,[data-theme-toggle],#theme-toggle,.theme-fab{
+      display:none!important;visibility:hidden!important;opacity:0!important;
+      pointer-events:none!important;width:0!important;height:0!important;
+      overflow:hidden!important;position:absolute!important;left:-9999px!important
     }
     #boot{
       display:flex;align-items:center;justify-content:center;min-height:100vh;
@@ -61,15 +52,45 @@
       animation:bootBar 1.4s ease-in-out infinite
     }
     @keyframes bootSpin{to{transform:rotate(360deg)}}
-    @keyframes bootBar{
-      0%{transform:translateX(-100%)}100%{transform:translateX(280%)}
+    @keyframes bootBar{0%{transform:translateX(-100%)}100%{transform:translateX(280%)}}
+
+    /* PINNED honeycomb layer */
+    #dr-honeycomb{
+      position:fixed!important;inset:0!important;z-index:0!important;
+      pointer-events:none!important;overflow:hidden!important;
+      opacity:1!important;visibility:visible!important;display:block!important
     }
+    #dr-honeycomb svg{
+      width:120%!important;height:120%!important;
+      position:absolute;top:-10%;left:-10%;
+      animation:drHoneyDrift 48s linear infinite
+    }
+    #dr-honeycomb .hx-line{
+      fill:none;stroke:#7c6af0;stroke-opacity:.22;stroke-width:1.1
+    }
+    #dr-honeycomb .hx-node{
+      fill:#a78bfa;
+      animation:drHoneyPulse 3.6s ease-in-out infinite
+    }
+    #dr-honeycomb .hx-node:nth-child(3n){animation-delay:.6s}
+    #dr-honeycomb .hx-node:nth-child(3n+1){animation-delay:1.2s}
+    #dr-honeycomb .hx-node:nth-child(3n+2){animation-delay:1.8s}
+    @keyframes drHoneyDrift{
+      0%{transform:translate(0,0)}
+      50%{transform:translate(-2.5%,1.5%)}
+      100%{transform:translate(0,0)}
+    }
+    @keyframes drHoneyPulse{
+      0%,100%{opacity:.35;r:1.6}
+      50%{opacity:.75;r:2.2}
+    }
+
     #dr-lifeline{
       display:block!important;visibility:visible!important;opacity:1!important;
       pointer-events:none!important;
       position:fixed!important;inset:0!important;
       width:100%!important;height:100%!important;
-      z-index:0!important
+      z-index:1!important
     }
     #dr-lifeline .dr-ecg-glow{
       stroke-width:3.6px!important;
@@ -79,6 +100,7 @@
       stroke-width:2.4px!important;
       filter:drop-shadow(0 0 2px rgba(243,232,255,.55))!important
     }
+    #login-screen,.login-screen,.login-card{position:relative;z-index:5}
   </style>
 </head>
 <body>
@@ -117,20 +139,72 @@
       try {
         document.documentElement.setAttribute('data-theme', 'dark');
         localStorage.setItem('dr_theme', 'dark');
-        var ids = ['dr-login-theme', 'btn-theme', 'theme-toggle'];
-        ids.forEach(function (id) {
+        ['dr-login-theme', 'btn-theme', 'theme-toggle'].forEach(function (id) {
           var el = document.getElementById(id);
           if (el) el.remove();
         });
-        document.querySelectorAll('[data-theme-toggle],.theme-fab').forEach(function (el) {
-          el.remove();
-        });
-        /* stub login-theme toggle so it cannot recreate */
+        document.querySelectorAll('[data-theme-toggle],.theme-fab').forEach(function (el) { el.remove(); });
         if (window.ensureLoginToggle) window.ensureLoginToggle = function () {};
       } catch (e) {}
     }
 
-    /* Catch Light button the instant login-theme injects it */
+    /* Build honeycomb mesh SVG — hex cells + nodes */
+    function ensureHoneycomb() {
+      try {
+        var existing = document.getElementById('dr-honeycomb');
+        if (existing) {
+          if (!existing.parentNode) document.body.insertBefore(existing, document.body.firstChild);
+          return existing;
+        }
+        var wrap = document.createElement('div');
+        wrap.id = 'dr-honeycomb';
+        wrap.setAttribute('aria-hidden', 'true');
+
+        var W = 1400, H = 900;
+        var size = 42;
+        var h = size * Math.sqrt(3);
+        var lines = [];
+        var nodes = [];
+        var seen = {};
+
+        function hex(cx, cy) {
+          var pts = [];
+          for (var i = 0; i < 6; i++) {
+            var a = (Math.PI / 180) * (60 * i - 30);
+            pts.push([cx + size * Math.cos(a), cy + size * Math.sin(a)]);
+          }
+          var d = 'M' + pts.map(function (p) { return p[0].toFixed(1) + ' ' + p[1].toFixed(1); }).join('L') + 'Z';
+          lines.push('<path class="hx-line" d="' + d + '"/>');
+          pts.forEach(function (p) {
+            var k = p[0].toFixed(0) + ',' + p[1].toFixed(0);
+            if (!seen[k]) {
+              seen[k] = 1;
+              nodes.push('<circle class="hx-node" cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="1.7"/>');
+            }
+          });
+        }
+
+        var row = 0;
+        for (var y = -h; y < H + h; y += h * 0.75) {
+          var xOff = (row % 2) * (size * 1.5);
+          for (var x = -size * 2 + xOff; x < W + size * 2; x += size * 3) {
+            hex(x, y);
+          }
+          row++;
+        }
+
+        wrap.innerHTML =
+          '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid slice">' +
+          lines.join('') + nodes.join('') +
+          '</svg>';
+
+        document.body.insertBefore(wrap, document.body.firstChild);
+        return wrap;
+      } catch (e) {
+        return null;
+      }
+    }
+
     try {
       var mo = new MutationObserver(function () { killLightBtn(); });
       mo.observe(document.documentElement, { childList: true, subtree: true });
@@ -157,7 +231,7 @@
         if (n.tagName === 'LINK') {
           var href = n.getAttribute('href') || '';
           if (href && href.indexOf('http') !== 0)
-            href = CDN + PIN + '/' + href.replace(/^\.\//, '').split('?')[0] + '?v=948';
+            href = CDN + PIN + '/' + href.replace(/^\.\//, '').split('?')[0] + '?v=949';
           n.setAttribute('href', href);
           document.head.appendChild(document.importNode(n, true));
         } else {
@@ -180,6 +254,8 @@
         document.body.classList.add('is-login');
       } catch (e1) {}
 
+      ensureHoneycomb();
+
       window.__DR_ECG_OK = true;
       try {
         document.documentElement.setAttribute('data-ecg', 'on');
@@ -193,15 +269,16 @@
         var src = sc.getAttribute('src') || '';
         if (!src) return;
         if (src.indexOf('http') !== 0)
-          src = CDN + PIN + '/' + src.replace(/^\.\//, '').split('?')[0] + '?v=948';
+          src = CDN + PIN + '/' + src.replace(/^\.\//, '').split('?')[0] + '?v=949';
         core.push(src);
       });
       for (var c = 0; c < core.length; c++) await loadSync(core[c]);
 
-      await loadSync(CDN + '90094058c1f476b163296855e186984add6a625d/js/bg-anim-pin.js?v=948');
-      await loadSync(CDN + 'a9046e485443b24e800a4f4d10747c10146ca663/js/heartbeat-draw.js?v=948');
+      await loadSync(CDN + '90094058c1f476b163296855e186984add6a625d/js/bg-anim-pin.js?v=949');
+      await loadSync(CDN + 'a9046e485443b24e800a4f4d10747c10146ca663/js/heartbeat-draw.js?v=949');
 
       window.__DR_ECG_OK = true;
+      ensureHoneycomb();
       try {
         document.documentElement.setAttribute('data-ecg', 'on');
         if (window.DRBgAnimPin && window.DRBgAnimPin.refresh) window.DRBgAnimPin.refresh();
@@ -210,19 +287,16 @@
       } catch (e3) {}
       killLightBtn();
 
-      /* login-theme for glass card only — Light btn killed by CSS + killLightBtn */
-      await loadSync(CDN + '8c56504dc4ae1c397eb336de3d117dd3bd022ed7/js/login-theme.js?v=948');
+      await loadSync(CDN + '8c56504dc4ae1c397eb336de3d117dd3bd022ed7/js/login-theme.js?v=949');
       killLightBtn();
-      try {
-        if (window.ensureLoginToggle) window.ensureLoginToggle = function () {};
-      } catch (e4) {}
+      try { if (window.ensureLoginToggle) window.ensureLoginToggle = function () {}; } catch (e4) {}
 
       ['9beff1f92931/js/login-tab-labels.js',
        '233f36150987e8576aab9114d1ca329bf09fa6a0/js/login-nav-fix.js',
        '8afd47c0aa694ef7483f413d2ad7c15ea2be7b30/js/login-shell-sep.js'
       ].forEach(function (p) {
         var s = document.createElement('script');
-        s.src = CDN + p + '?v=948';
+        s.src = CDN + p + '?v=949';
         s.async = true;
         document.body.appendChild(s);
       });
@@ -242,22 +316,20 @@
           '875b2f5b1c8293bb219943429c01020f28114d5b/js/ticket-list-fix.js',
           '7a09542332b8227930871a5a055162c570a3fdb7/js/csat-dashboard.js',
           '53aba5366d53c7fc6c8208ecb594eeeb10d46e2f/js/admin.js'
-        ].forEach(function (p) { injectDefer(CDN + p + '?v=948'); });
+        ].forEach(function (p) { injectDefer(CDN + p + '?v=949'); });
       }, 2000);
 
-      setTimeout(killLightBtn, 300);
-      setTimeout(killLightBtn, 1000);
+      setTimeout(function () { killLightBtn(); ensureHoneycomb(); }, 400);
       setTimeout(function () {
         killLightBtn();
+        ensureHoneycomb();
         window.__DR_ECG_OK = true;
         try {
           document.documentElement.setAttribute('data-ecg', 'on');
-          document.body.style.background =
-            'radial-gradient(ellipse 80% 60% at 50% 40%,#1a1530 0%,#0c0c14 55%,#08080f 100%)';
           if (window.DRBgAnimPin && window.DRBgAnimPin.refresh) window.DRBgAnimPin.refresh();
           if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.refresh) window.DRHeartbeatDraw.refresh();
         } catch (e5) {}
-      }, 800);
+      }, 900);
     } catch (err) {
       var boot = document.getElementById('boot');
       if (boot) boot.innerHTML = '<p style="color:#fca5a5">Could not load.</p><button onclick="location.reload()">Retry</button>';
