@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-ecg="on">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=938" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=939" />
+  <script>window.__DR_ECG_OK=true;try{document.documentElement.setAttribute('data-ecg','on');}catch(e){}</script>
   <style>
     html,body{margin:0;min-height:100vh;background:#0c0c14;color:#eeeef6;font-family:Inter,system-ui,sans-serif}
     #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:.75rem}
@@ -18,6 +19,9 @@
     var PIN = '830dac02096eb08be1b2dc22bdc191a14df91a04';
     var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
     var B = Date.now();
+    window.__DR_ECG_OK = true;
+    try { document.documentElement.setAttribute('data-ecg', 'on'); } catch (e0) {}
+
     function loadScript(src) {
       return new Promise(function (res) {
         var s = document.createElement('script');
@@ -28,9 +32,13 @@
         document.body.appendChild(s);
       });
     }
+
     try {
       var html = null;
-      var urls = [CDN + PIN + '/index.html?b=' + B, 'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + PIN + '/index.html?b=' + B];
+      var urls = [
+        CDN + PIN + '/index.html?b=' + B,
+        'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/' + PIN + '/index.html?b=' + B
+      ];
       for (var i = 0; i < urls.length; i++) {
         try {
           var r = await fetch(urls[i], { cache: 'no-store', credentials: 'omit' });
@@ -57,7 +65,7 @@
         if (n.tagName === 'LINK') {
           var href = n.getAttribute('href') || '';
           if (href && href.indexOf('http') !== 0) {
-            href = CDN + PIN + '/' + href.replace(/^\.\//, '').split('?')[0] + '?v=938';
+            href = CDN + PIN + '/' + href.replace(/^\.\//, '').split('?')[0] + '?v=939';
             n.setAttribute('href', href);
           }
           document.head.appendChild(document.importNode(n, true));
@@ -74,35 +82,61 @@
       });
       document.body.innerHTML = bodyHtml;
 
+      /* Re-assert ECG flags after body replace */
+      window.__DR_ECG_OK = true;
+      try { document.documentElement.setAttribute('data-ecg', 'on'); } catch (e1) {}
+
       var core = [];
       doc.querySelectorAll('script[src]').forEach(function (sc) {
         var src = sc.getAttribute('src') || '';
         if (!src) return;
-        if (src.indexOf('http') !== 0) src = CDN + PIN + '/' + src.replace(/^\.\//, '').split('?')[0] + '?v=938';
+        if (src.indexOf('http') !== 0) src = CDN + PIN + '/' + src.replace(/^\.\//, '').split('?')[0] + '?v=939';
         core.push(src);
       });
       for (var c = 0; c < core.length; c++) await loadScript(core[c]);
 
+      /* Order matters: pin flags first, then heartbeat, then portal features */
       var extras = [
+        '90094058c1f476b163296855e186984add6a625d/js/bg-anim-pin.js',
+        'a9046e485443b24e800a4f4d10747c10146ca663/js/heartbeat-draw.js',
         '8c56504dc4ae1c397eb336de3d117dd3bd022ed7/js/login-theme.js',
         '233f36150987e8576aab9114d1ca329bf09fa6a0/js/login-nav-fix.js',
         '8afd47c0aa694ef7483f413d2ad7c15ea2be7b30/js/login-shell-sep.js',
         '9beff1f92931/js/login-tab-labels.js',
         '9a17dcda7cbe5a9ad3f9af120b4135532b149a13/js/admin-portal-lock.js',
         '545afd29cbaede602653f78631d8c97ce7558683/js/sidebar-profile-layout.js',
-        'bef23962c979e19d937950b628f10649f3f10b2f/js/theme.js',
-        'a9046e485443b24e800a4f4d10747c10146ca663/js/heartbeat-draw.js',
-        '90094058c1f476b163296855e186984add6a625d/js/bg-anim-pin.js',
-        'e65c070009674e02288c96a305daab5e0245e28e/js/filters.js',
         'cf85fe34e66bb092edf09e521e0ef0879071354a/js/sidebar-role-label.js',
+        'bef23962c979e19d937950b628f10649f3f10b2f/js/theme.js',
+        'e65c070009674e02288c96a305daab5e0245e28e/js/filters.js',
         '5fa3d4a86e002268a75ed1068d1f96259ecb9344/js/priority-p1-display.js',
         '7a09542332b8227930871a5a055162c570a3fdb7/js/csat-dashboard.js',
         '875b2f5b1c8293bb219943429c01020f28114d5b/js/ticket-list-fix.js',
         '53aba5366d53c7fc6c8208ecb594eeeb10d46e2f/js/admin.js',
         '1e6520dca83cccafdc0f0d7d031f3bf6cde80c82/js/status-card.js',
-        'bd4e6cf77fb157a42f39f763f178634835b41e66/js/portal-guard.js'
+        'bd4e6cf77fb157a42f39f763f178634835b41e66/js/portal-guard.js',
+        '0962f5535b86b390f60be2a3435a2e0500a18cb7/js/force-light-bg.js',
+        '4bda0d3949f3994738d2f9efa4843c3ca2ac25a5/js/tech-bg.js',
+        '7d6d66cbe63fda91cf71d64bbddd1af80f3adfc3/js/design-system-v10.js',
+        '655a1f16fb5792f66ec0eb61f789bc5687b5b945/js/agent-views.js',
+        '910b2ffba037e5926610ca013f778e0b7937bf21/js/ticket-claim-lock.js',
+        '2a3c434aeef8cbb03bcb25cefc1a886a4b2f5feb/js/users-nav.js'
       ];
-      for (var j = 0; j < extras.length; j++) await loadScript(CDN + extras[j] + '?v=938');
+      for (var j = 0; j < extras.length; j++) await loadScript(CDN + extras[j] + '?v=939');
+
+      /* Force ECG/gears after everything is ready */
+      window.__DR_ECG_OK = true;
+      try { document.documentElement.setAttribute('data-ecg', 'on'); } catch (e2) {}
+      try { if (window.DRBgAnimPin && window.DRBgAnimPin.refresh) window.DRBgAnimPin.refresh(); } catch (e3) {}
+      setTimeout(function () {
+        window.__DR_ECG_OK = true;
+        try { document.documentElement.setAttribute('data-ecg', 'on'); } catch (e4) {}
+        try { if (window.DRBgAnimPin && window.DRBgAnimPin.refresh) window.DRBgAnimPin.refresh(); } catch (e5) {}
+      }, 500);
+      setTimeout(function () {
+        window.__DR_ECG_OK = true;
+        try { document.documentElement.setAttribute('data-ecg', 'on'); } catch (e6) {}
+        try { if (window.DRBgAnimPin && window.DRBgAnimPin.refresh) window.DRBgAnimPin.refresh(); } catch (e7) {}
+      }, 2000);
     } catch (err) {
       var boot = document.getElementById('boot');
       if (boot) boot.innerHTML = '<p style="color:#fca5a5">Could not load app.</p><button onclick="location.reload()" style="margin-top:12px;padding:8px 14px;cursor:pointer">Retry</button><p style="color:#6b6b80;font-size:.8rem">' + String(err && err.message || err) + '</p>';
