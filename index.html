@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=939" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=940" />
   <script>window.__DR_ECG_OK=true;try{document.documentElement.setAttribute('data-ecg','on');}catch(e){}</script>
   <style>
     html,body{margin:0;min-height:100vh;background:#0c0c14;color:#eeeef6;font-family:Inter,system-ui,sans-serif}
@@ -65,7 +65,7 @@
         if (n.tagName === 'LINK') {
           var href = n.getAttribute('href') || '';
           if (href && href.indexOf('http') !== 0) {
-            href = CDN + PIN + '/' + href.replace(/^\.\//, '').split('?')[0] + '?v=939';
+            href = CDN + PIN + '/' + href.replace(/^\.\//, '').split('?')[0] + '?v=940';
             n.setAttribute('href', href);
           }
           document.head.appendChild(document.importNode(n, true));
@@ -82,7 +82,6 @@
       });
       document.body.innerHTML = bodyHtml;
 
-      /* Re-assert ECG flags after body replace */
       window.__DR_ECG_OK = true;
       try { document.documentElement.setAttribute('data-ecg', 'on'); } catch (e1) {}
 
@@ -90,12 +89,11 @@
       doc.querySelectorAll('script[src]').forEach(function (sc) {
         var src = sc.getAttribute('src') || '';
         if (!src) return;
-        if (src.indexOf('http') !== 0) src = CDN + PIN + '/' + src.replace(/^\.\//, '').split('?')[0] + '?v=939';
+        if (src.indexOf('http') !== 0) src = CDN + PIN + '/' + src.replace(/^\.\//, '').split('?')[0] + '?v=940';
         core.push(src);
       });
       for (var c = 0; c < core.length; c++) await loadScript(core[c]);
 
-      /* Order matters: pin flags first, then heartbeat, then portal features */
       var extras = [
         '90094058c1f476b163296855e186984add6a625d/js/bg-anim-pin.js',
         'a9046e485443b24e800a4f4d10747c10146ca663/js/heartbeat-draw.js',
@@ -106,11 +104,20 @@
         '9a17dcda7cbe5a9ad3f9af120b4135532b149a13/js/admin-portal-lock.js',
         '545afd29cbaede602653f78631d8c97ce7558683/js/sidebar-profile-layout.js',
         'cf85fe34e66bb092edf09e521e0ef0879071354a/js/sidebar-role-label.js',
+        'cf94fa12898891abef9c93bf7b1ebd3a06883293/js/sidebar-design.js',
         'bef23962c979e19d937950b628f10649f3f10b2f/js/theme.js',
+        '39e8c69ab7c04cb4900cc40992419ecffb482735/js/supabase-400-fix.js',
+        '51facff11f44ff41c897107bad8583c6f9d5f3bf/js/avatar-fix.js',
         'e65c070009674e02288c96a305daab5e0245e28e/js/filters.js',
+        '45f63dc9924d354f246b3cc18d6f0cb0459a9997/js/filters-toolbar-fix.js',
+        '1a8c72424c7698af6fc25ecf8e2c5476e864d906/js/priority-force.js',
         '5fa3d4a86e002268a75ed1068d1f96259ecb9344/js/priority-p1-display.js',
-        '7a09542332b8227930871a5a055162c570a3fdb7/js/csat-dashboard.js',
+        'd987fd7a6e51a612230c882e1da3138486010593/js/ticket-stable.js',
+        '895cb8b253e0fab3ad79e2d06fa06f30feded687/js/ticket-card-render.js',
+        '4326d1ddf5e9a5628834aa36f87999d7e0a4b87a/js/ticket-card-css.js',
+        '01d6078d7a6a6ff64a1c9f53621d1bc2446156cf/js/ticket-list-design.js',
         '875b2f5b1c8293bb219943429c01020f28114d5b/js/ticket-list-fix.js',
+        '7a09542332b8227930871a5a055162c570a3fdb7/js/csat-dashboard.js',
         '53aba5366d53c7fc6c8208ecb594eeeb10d46e2f/js/admin.js',
         '1e6520dca83cccafdc0f0d7d031f3bf6cde80c82/js/status-card.js',
         'bd4e6cf77fb157a42f39f763f178634835b41e66/js/portal-guard.js',
@@ -121,9 +128,8 @@
         '910b2ffba037e5926610ca013f778e0b7937bf21/js/ticket-claim-lock.js',
         '2a3c434aeef8cbb03bcb25cefc1a886a4b2f5feb/js/users-nav.js'
       ];
-      for (var j = 0; j < extras.length; j++) await loadScript(CDN + extras[j] + '?v=939');
+      for (var j = 0; j < extras.length; j++) await loadScript(CDN + extras[j] + '?v=940');
 
-      /* Force ECG/gears after everything is ready */
       window.__DR_ECG_OK = true;
       try { document.documentElement.setAttribute('data-ecg', 'on'); } catch (e2) {}
       try { if (window.DRBgAnimPin && window.DRBgAnimPin.refresh) window.DRBgAnimPin.refresh(); } catch (e3) {}
