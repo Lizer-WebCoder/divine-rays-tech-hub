@@ -1,15 +1,18 @@
 /**
- * Divine Rays — PINNED background animations guard
- * ECG lifeline (login) + Steam gears (portals) MUST stay enabled.
- * Re-asserts flags and reloads heartbeat-draw if stripped.
- * Credit: Boyz at the Back LRK · All Rights Reserved
+ * Divine Rays — PINNED background animations guard v2
+ * Never re-injects old a9046e48. Pins heartbeat-draw v28.
  */
 (function () {
   'use strict';
-  if (window.__DR_BG_ANIM_PIN >= 1) return;
-  window.__DR_BG_ANIM_PIN = 1;
+  if (window.__DR_BG_ANIM_PIN >= 2) return;
+  window.__DR_BG_ANIM_PIN = 2;
 
-  var HB = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@a9046e485443b24e800a4f4d10747c10146ca663/js/heartbeat-draw.js';
+  var HB_SHA = '0f5ae49d8c798d58d91acf840190dab5cf059408';
+  var HB =
+    'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' +
+    HB_SHA +
+    '/js/heartbeat-draw.js';
+  var NEED = 28;
 
   function assertFlags() {
     try {
@@ -18,16 +21,38 @@
     } catch (e) {}
   }
 
+  function stripOldScripts() {
+    try {
+      document.querySelectorAll('script[src*="heartbeat-draw.js"]').forEach(function (s) {
+        var src = s.getAttribute('src') || '';
+        if (src.indexOf('a9046e48') !== -1 || src.indexOf(HB_SHA) === -1) {
+          try { s.parentNode && s.parentNode.removeChild(s); } catch (e) {}
+        }
+      });
+    } catch (e2) {}
+  }
+
   function ensureScript() {
     assertFlags();
-    if (window.__DR_HEARTBEAT_DRAW >= 25) return;
+    stripOldScripts();
+    if (window.__DR_HEARTBEAT_DRAW >= NEED) return;
     try {
-      var existing = document.querySelector('script[src*="heartbeat-draw.js"]');
-      if (existing && window.__DR_HEARTBEAT_DRAW) return;
       var s = document.createElement('script');
-      s.src = HB + (HB.indexOf('?') === -1 ? '?' : '&') + 'b=' + Date.now();
+      s.src = HB + '?b=' + Date.now();
       s.async = false;
-      (document.body || document.documentElement).appendChild(s);
+      (document.head || document.documentElement).appendChild(s);
+    } catch (e) {}
+  }
+
+  function purgeGhosts() {
+    try {
+      var main = document.getElementById('dr-lifeline');
+      document.querySelectorAll('#dr-lifeline').forEach(function (el) {
+        if (main && el !== main && el.parentNode) el.parentNode.removeChild(el);
+      });
+      document.querySelectorAll('.dr-ecg-core, .dr-ecg-glow').forEach(function (el) {
+        if (!el.closest('#dr-lifeline') && el.parentNode) el.parentNode.removeChild(el);
+      });
     } catch (e) {}
   }
 
@@ -47,13 +72,14 @@
     assertFlags();
     protectCss();
     ensureScript();
+    purgeGhosts();
   }
 
   tick();
   setTimeout(tick, 400);
   setTimeout(tick, 1200);
   setTimeout(tick, 3000);
-  setInterval(tick, 8000);
+  setInterval(tick, 5000);
 
-  window.DRBgAnimPin = { refresh: tick, v: 1 };
+  window.DRBgAnimPin = { refresh: tick, v: 2 };
 })();
