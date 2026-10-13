@@ -8,12 +8,13 @@
   <meta http-equiv="Expires" content="0" />
   <!--
     PINNED:
-      heartbeat-draw  3bc50d042182f34d7c05eb077927231267170e5a  (v29 after boot)
-      bg-anim-pin     e7eb85d8670580a5579f8fa2f6d3638ca4aa5265  (v3)
-    Shell: 2aa22823e014414ef2bad79bceae69b792cb56c0
+      boot-fade-sync  449a55bb47f7e66cb45d4f616119a91bec3dd33d
+      heartbeat-draw  80f8a73413ed5698b24c61856ddc5a1569714ac0
+      bg-anim-pin     e7eb85d8670580a5579f8fa2f6d3638ca4aa5265
   -->
   <title>Divine Rays Tech Hub — Support</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.9.22-av-cards" />
+  <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@449a55bb47f7e66cb45d4f616119a91bec3dd33d/js/boot-fade-sync.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@12b7798ad583123e884a9d954595025d8dd6ba20/js/tab-session.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@38ee37552bd3fa8d80bfcea3677987b3bdb044fb/js/admin-portal-lock.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@4326d1ddf5e9a5628834aa36f87999d7e0a4b87a/js/ticket-card-css.js"></script>
@@ -31,8 +32,9 @@
   <script>
   (async function () {
     var B = Date.now();
-    var HB = '3bc50d042182f34d7c05eb077927231267170e5a';
+    var HB = '80f8a73413ed5698b24c61856ddc5a1569714ac0';
     var BG_PIN = 'e7eb85d8670580a5579f8fa2f6d3638ca4aa5265';
+    var FADE = '449a55bb47f7e66cb45d4f616119a91bec3dd33d';
     var OLD_HB = 'a9046e485443b24e800a4f4d10747c10146ca663';
     var urls = [
       'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/2aa22823e014414ef2bad79bceae69b792cb56c0/index.html?b=' + B,
@@ -62,32 +64,26 @@
     while (html.indexOf(OLD_HB) !== -1) html = html.split(OLD_HB).join(HB);
     html = html.replace(/'heartbeat-draw\.js'\s*:\s*'[a-f0-9]+'/g, "'heartbeat-draw.js': '" + HB + "'");
     html = html.replace(/[a-f0-9]{40}\/js\/heartbeat-draw\.js/g, HB + '/js/heartbeat-draw.js');
-    html = html.replace(/HB_SHA\s*=\s*'[^']+'/g, "HB_SHA = '" + HB + "'");
 
     html = html.replace(/'bg-anim-pin\.js'\s*:\s*'[a-f0-9]+'/g, "'bg-anim-pin.js': '" + BG_PIN + "'");
     html = html.replace(/[a-f0-9]{40}\/js\/bg-anim-pin\.js/g, BG_PIN + '/js/bg-anim-pin.js');
     while (html.indexOf('90094058c1f476b163296855e186984add6a625d') !== -1) {
       html = html.split('90094058c1f476b163296855e186984add6a625d').join(BG_PIN);
     }
-    while (html.indexOf('29ecd577333c6bd3b558c66a02c2fb32da4e01ca') !== -1) {
-      html = html.split('29ecd577333c6bd3b558c66a02c2fb32da4e01ca').join(BG_PIN);
-    }
 
-    /* Slow boot fade (~1s) then enable ECG */
-    html = html.replace(/transition:opacity \.2s ease/g, 'transition:opacity 1s ease');
-    html = html.replace(/transition:opacity \.75s ease/g, 'transition:opacity 1s ease');
+    /* Kill instant hide — allow real opacity fade */
     html = html.replace(
-      /setTimeout\(function \(\) \{ try \{ o\.remove\(\); \} catch \(e3\) \{\} \}, 250\)/g,
-      "setTimeout(function () { try { window.__DR_BOOT_DONE = true; window.__DR_ECG_OK = true; document.documentElement.setAttribute('data-ecg','on'); o.remove(); } catch (e3) {} }, 1100)"
+      /#dr-boot-overlay\.is-done\{opacity:0;pointer-events:none;visibility:hidden\}/g,
+      '#dr-boot-overlay.is-done{opacity:0;pointer-events:none}'
     );
+    html = html.replace(/transition:opacity \.2s ease/g, 'transition:opacity 1.2s ease');
+    html = html.replace(/transition:opacity \.75s ease/g, 'transition:opacity 1.2s ease');
+    html = html.replace(/transition:opacity 1s ease/g, 'transition:opacity 1.2s ease');
+
+    /* Inject boot-fade-sync early in shell head */
     html = html.replace(
-      /setTimeout\(function \(\) \{ try \{ o\.remove\(\); \} catch \(e3\) \{\} \}, 800\)/g,
-      "setTimeout(function () { try { window.__DR_BOOT_DONE = true; window.__DR_ECG_OK = true; document.documentElement.setAttribute('data-ecg','on'); o.remove(); } catch (e3) {} }, 1100)"
-    );
-    /* Mark boot done when fade starts so timers can wait for opacity */
-    html = html.replace(
-      "o.classList.add('is-done');",
-      "o.classList.add('is-done'); try { document.body.classList.remove('dr-boot-holding'); } catch (eBh) {}"
+      '<head>',
+      '<head><script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + FADE + '/js/boot-fade-sync.js"><\/script>'
     );
 
     html = html.replace('<head>',
