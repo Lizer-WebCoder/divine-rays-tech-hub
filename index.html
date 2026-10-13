@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=951" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=952" />
   <script>
     window.__DR_ECG_OK = true;
     try {
@@ -50,6 +50,21 @@
     #dr-login-theme,#btn-theme,[data-theme-toggle],#theme-toggle,.theme-fab{
       display:none!important;visibility:hidden!important;pointer-events:none!important;
       width:0!important;height:0!important;overflow:hidden!important;opacity:0!important
+    }
+    /* ECG visible + glow — do NOT lock opacity (heartbeat pulse needs it) */
+    #dr-lifeline{
+      display:block!important;visibility:visible!important;
+      pointer-events:none!important;
+      position:fixed!important;inset:0!important;
+      width:100%!important;height:100%!important;z-index:0!important
+    }
+    #dr-lifeline .dr-ecg-glow{
+      stroke-width:3.8px!important;
+      filter:drop-shadow(0 0 6px rgba(233,213,255,.95)) drop-shadow(0 0 14px rgba(167,139,250,.65))!important
+    }
+    #dr-lifeline .dr-ecg-core{
+      stroke-width:2.5px!important;
+      filter:drop-shadow(0 0 3px rgba(243,232,255,.7))!important
     }
   </style>
 </head>
@@ -129,7 +144,7 @@
         if (n.tagName === 'LINK') {
           var href = n.getAttribute('href') || '';
           if (href && href.indexOf('http') !== 0) {
-            href = CDN + PIN + '/' + href.replace(/^\.\//, '').split('?')[0] + '?v=951';
+            href = CDN + PIN + '/' + href.replace(/^\.\//, '').split('?')[0] + '?v=952';
             n.setAttribute('href', href);
           }
           document.head.appendChild(document.importNode(n, true));
@@ -158,7 +173,7 @@
       doc.querySelectorAll('script[src]').forEach(function (sc) {
         var src = sc.getAttribute('src') || '';
         if (!src) return;
-        if (src.indexOf('http') !== 0) src = CDN + PIN + '/' + src.replace(/^\.\//, '').split('?')[0] + '?v=951';
+        if (src.indexOf('http') !== 0) src = CDN + PIN + '/' + src.replace(/^\.\//, '').split('?')[0] + '?v=952';
         core.push(src);
       });
       for (var c = 0; c < core.length; c++) await loadScript(core[c]);
@@ -195,19 +210,23 @@
         '910b2ffba037e5926610ca013f778e0b7937bf21/js/ticket-claim-lock.js',
         '2a3c434aeef8cbb03bcb25cefc1a886a4b2f5feb/js/users-nav.js'
       ];
-      for (var j = 0; j < extras.length; j++) await loadScript(CDN + extras[j] + '?v=951');
+      for (var j = 0; j < extras.length; j++) await loadScript(CDN + extras[j] + '?v=952');
 
       killLightBtn();
       window.__DR_ECG_OK = true;
       try { document.documentElement.setAttribute('data-ecg', 'on'); } catch (e2) {}
       try { if (window.DRBgAnimPin && window.DRBgAnimPin.refresh) window.DRBgAnimPin.refresh(); } catch (e3) {}
-      try { if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.refresh) window.DRHeartbeatDraw.refresh(); } catch (e3b) {}
+      try {
+        if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.refresh) window.DRHeartbeatDraw.refresh();
+        if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.start) window.DRHeartbeatDraw.start();
+      } catch (e3b) {}
 
       setTimeout(function () {
         killLightBtn();
         window.__DR_ECG_OK = true;
         try { document.documentElement.setAttribute('data-ecg', 'on'); } catch (e4) {}
         try { if (window.DRBgAnimPin && window.DRBgAnimPin.refresh) window.DRBgAnimPin.refresh(); } catch (e5) {}
+        try { if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.refresh) window.DRHeartbeatDraw.refresh(); } catch (e5b) {}
       }, 500);
       setTimeout(function () {
         killLightBtn();
