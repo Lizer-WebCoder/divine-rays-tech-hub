@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=952" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=953" />
   <script>
     window.__DR_ECG_OK = true;
     try {
@@ -144,7 +144,7 @@
         if (n.tagName === 'LINK') {
           var href = n.getAttribute('href') || '';
           if (href && href.indexOf('http') !== 0) {
-            href = CDN + PIN + '/' + href.replace(/^\.\//, '').split('?')[0] + '?v=952';
+            href = CDN + PIN + '/' + href.replace(/^\.\//, '').split('?')[0] + '?v=953';
             n.setAttribute('href', href);
           }
           document.head.appendChild(document.importNode(n, true));
@@ -173,7 +173,7 @@
       doc.querySelectorAll('script[src]').forEach(function (sc) {
         var src = sc.getAttribute('src') || '';
         if (!src) return;
-        if (src.indexOf('http') !== 0) src = CDN + PIN + '/' + src.replace(/^\.\//, '').split('?')[0] + '?v=952';
+        if (src.indexOf('http') !== 0) src = CDN + PIN + '/' + src.replace(/^\.\//, '').split('?')[0] + '?v=953';
         core.push(src);
       });
       for (var c = 0; c < core.length; c++) await loadScript(core[c]);
@@ -205,12 +205,13 @@
         '1e6520dca83cccafdc0f0d7d031f3bf6cde80c82/js/status-card.js',
         'bd4e6cf77fb157a42f39f763f178634835b41e66/js/portal-guard.js',
         '0962f5535b86b390f60be2a3435a2e0500a18cb7/js/force-light-bg.js',
+        '771607f8ff1bc501b305c8aa75be23628f58c058/js/ambient-no-reset.js',
         '7d6d66cbe63fda91cf71d64bbddd1af80f3adfc3/js/design-system-v10.js',
         '655a1f16fb5792f66ec0eb61f789bc5687b5b945/js/agent-views.js',
         '910b2ffba037e5926610ca013f778e0b7937bf21/js/ticket-claim-lock.js',
         '2a3c434aeef8cbb03bcb25cefc1a886a4b2f5feb/js/users-nav.js'
       ];
-      for (var j = 0; j < extras.length; j++) await loadScript(CDN + extras[j] + '?v=952');
+      for (var j = 0; j < extras.length; j++) await loadScript(CDN + extras[j] + '?v=953');
 
       killLightBtn();
       window.__DR_ECG_OK = true;
