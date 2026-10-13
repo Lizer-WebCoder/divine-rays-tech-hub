@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=962" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=963" />
   <script>
     window.__DR_ECG_OK = true;
     try {
@@ -65,23 +65,28 @@
       background-image:none!important;
       background-color:transparent!important
     }
+    /* Ambient isolated so typing reflow does not rescan huge SVG */
+    #dr-login-ambient{
+      display:block!important;visibility:visible!important;
+      pointer-events:none!important;z-index:0!important;
+      contain:strict!important;
+      transform:translateZ(0)
+    }
+    /* ECG: single light glow only — dual drop-shadow was freezing GPU while typing */
     #dr-lifeline{
       display:block!important;visibility:visible!important;
       pointer-events:none!important;
       position:fixed!important;inset:0!important;
-      width:100%!important;height:100%!important;z-index:1!important
+      width:100%!important;height:100%!important;z-index:1!important;
+      contain:layout style!important
     }
     #dr-lifeline .dr-ecg-glow{
-      stroke-width:3.8px!important;
-      filter:drop-shadow(0 0 6px rgba(233,213,255,.95)) drop-shadow(0 0 14px rgba(167,139,250,.65))!important
+      stroke-width:3.2px!important;
+      filter:drop-shadow(0 0 5px rgba(196,181,253,.7))!important
     }
     #dr-lifeline .dr-ecg-core{
-      stroke-width:2.5px!important;
-      filter:drop-shadow(0 0 3px rgba(243,232,255,.7))!important
-    }
-    #dr-login-ambient{
-      display:block!important;visibility:visible!important;
-      pointer-events:none!important;z-index:0!important
+      stroke-width:2.2px!important;
+      filter:none!important
     }
   </style>
 </head>
@@ -143,6 +148,27 @@
       } catch (e) {}
     }
 
+    /* Freeze ambient DOM after first paint — ORIGINAL art stays, no rebuild on type */
+    function freezeAmbient() {
+      try {
+        var el = document.getElementById('dr-login-ambient');
+        if (!el || !el.childNodes || el.childNodes.length < 1) return false;
+        var html = el.innerHTML;
+        window.__DR_AMBIENT_LOCKED = true;
+        if (window.DRForceLightBg) window.DRForceLightBg.refresh = function () {};
+        try {
+          Object.defineProperty(el, 'innerHTML', {
+            configurable: true,
+            get: function () { return html; },
+            set: function () { /* ignore rebuild attempts */ }
+          });
+        } catch (eDef) {}
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
     function killLightBtn() {
       try {
         document.documentElement.setAttribute('data-theme', 'dark');
@@ -188,7 +214,7 @@
         if (n.tagName === 'LINK') {
           var href = n.getAttribute('href') || '';
           if (href && href.indexOf('http') !== 0) {
-            href = CDN + PIN + '/' + href.replace(/^\.\//, '').split('?')[0] + '?v=962';
+            href = CDN + PIN + '/' + href.replace(/^\.\//, '').split('?')[0] + '?v=963';
             n.setAttribute('href', href);
           }
           document.head.appendChild(document.importNode(n, true));
@@ -218,39 +244,40 @@
       doc.querySelectorAll('script[src]').forEach(function (sc) {
         var src = sc.getAttribute('src') || '';
         if (!src) return;
-        if (src.indexOf('http') !== 0) src = CDN + PIN + '/' + src.replace(/^\.\//, '').split('?')[0] + '?v=962';
+        if (src.indexOf('http') !== 0) src = CDN + PIN + '/' + src.replace(/^\.\//, '').split('?')[0] + '?v=963';
         core.push(src);
       });
       for (var c = 0; c < core.length; c++) await loadScript(core[c]);
 
-      /* Ambient + ECG only first — login form stays responsive.
-         login-theme deferred (its 2s interval was competing with typing). */
+      /* EXACT original ambient (0962) + ECG. Then freeze ambient so typing cannot rebuild it. */
       var loginScripts = [
-        '0091e77d27bbb73e655a498ddd1ebf944583e000/js/force-light-bg.js',
+        '0962f5535b86b390f60be2a3435a2e0500a18cb7/js/force-light-bg.js',
         '90094058c1f476b163296855e186984add6a625d/js/bg-anim-pin.js',
         'a9046e485443b24e800a4f4d10747c10146ca663/js/heartbeat-draw.js',
         '233f36150987e8576aab9114d1ca329bf09fa6a0/js/login-nav-fix.js',
         '8afd47c0aa694ef7483f413d2ad7c15ea2be7b30/js/login-shell-sep.js',
         '9beff1f92931/js/login-tab-labels.js'
       ];
-      for (var L = 0; L < loginScripts.length; L++) await loadScript(CDN + loginScripts[L] + '?v=962');
+      for (var L = 0; L < loginScripts.length; L++) await loadScript(CDN + loginScripts[L] + '?v=963');
 
       lockLoginBg();
       killLightBtn();
       window.__DR_ECG_OK = true;
       try {
         document.documentElement.setAttribute('data-ecg', 'on');
-        if (window.DRBgAnimPin && window.DRBgAnimPin.refresh) window.DRBgAnimPin.refresh();
-        if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.refresh) window.DRHeartbeatDraw.refresh();
         if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.start) window.DRHeartbeatDraw.start();
-        if (window.DRForceLightBg) window.DRForceLightBg.refresh = function () {};
-        window.__DR_AMBIENT_LOCKED = true;
       } catch (e3) {}
 
-      /* login-theme after form is usable */
+      /* Wait for ambient paint, then freeze permanently */
+      var tries = 0;
+      var freezeT = setInterval(function () {
+        if (freezeAmbient() || ++tries > 40) clearInterval(freezeT);
+      }, 150);
+
+      /* login-theme + portal packs AFTER user can type freely */
       setTimeout(function () {
-        injectDefer(CDN + '8c56504dc4ae1c397eb336de3d117dd3bd022ed7/js/login-theme.js?v=962');
-      }, 4000);
+        injectDefer(CDN + '8c56504dc4ae1c397eb336de3d117dd3bd022ed7/js/login-theme.js?v=963');
+      }, 6000);
 
       setTimeout(function () {
         [
@@ -277,19 +304,16 @@
           '655a1f16fb5792f66ec0eb61f789bc5687b5b945/js/agent-views.js',
           '910b2ffba037e5926610ca013f778e0b7937bf21/js/ticket-claim-lock.js',
           '2a3c434aeef8cbb03bcb25cefc1a886a4b2f5feb/js/users-nav.js'
-        ].forEach(function (p) { injectDefer(CDN + p + '?v=962'); });
-      }, 5000);
+        ].forEach(function (p) { injectDefer(CDN + p + '?v=963'); });
+      }, 8000);
 
-      setTimeout(function () { lockLoginBg(); killLightBtn(); }, 400);
+      setTimeout(function () { killLightBtn(); freezeAmbient(); }, 800);
       setTimeout(function () {
-        lockLoginBg();
         killLightBtn();
+        freezeAmbient();
         window.__DR_ECG_OK = true;
-        try {
-          document.documentElement.setAttribute('data-ecg', 'on');
-          if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.refresh) window.DRHeartbeatDraw.refresh();
-        } catch (e5) {}
-      }, 1200);
+        try { document.documentElement.setAttribute('data-ecg', 'on'); } catch (e5) {}
+      }, 2000);
     } catch (err) {
       var boot = document.getElementById('boot');
       if (boot) boot.innerHTML = '<p style="color:#fca5a5">Could not load app.</p><button onclick="location.reload()" style="margin-top:12px;padding:8px 14px;cursor:pointer">Retry</button><p style="color:#6b6b80;font-size:.8rem">' + String(err && err.message || err) + '</p>';
