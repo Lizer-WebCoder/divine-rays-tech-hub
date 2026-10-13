@@ -6,6 +6,22 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
+  <!--
+    ============================================================
+    DIVINE RAYS TECH HUB — PINNED BASELINE v1.0 (2026-10-13)
+    Source: commit 7cc032def5ad3a8e4771c6ed46074f428e9a161d
+            "index boot: pin lock v18 + avatar v3 + ticket-card-render v3"
+    Shell:  2aa22823e014414ef2bad79bceae69b792cb56c0  (known good)
+    Pins:
+      admin-portal-lock  38ee37552bd3fa8d80bfcea3677987b3bdb044fb
+      ticket-card-css    4326d1ddf5e9a5628834aa36f87999d7e0a4b87a
+      ticket-card-render 895cb8b253e0fab3ad79e2d06fa06f30feded687
+      avatar-fix         51facff11f44ff41c897107bad8583c6f9d5f3bf
+      theme              bef23962c979e19d937950b628f10649f3f10b2f
+    RULE: Do not replace this bootloader or change SHAs unless the
+          user explicitly asks to update a specific feature pin.
+    ============================================================
+  -->
   <title>Divine Rays Tech Hub — Support</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.9.22-av-cards" />
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@38ee37552bd3fa8d80bfcea3677987b3bdb044fb/js/admin-portal-lock.js"></script>
@@ -23,6 +39,7 @@
   <div id="boot">Loading Divine Rays Tech Hub…</div>
   <script>
   (async function () {
+    /* PINNED BASELINE v1.0 — shell 2aa22823 (known good). Do not change without explicit user request. */
     var B = Date.now();
     var urls = [
       'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/2aa22823e014414ef2bad79bceae69b792cb56c0/index.html?b=' + B,
