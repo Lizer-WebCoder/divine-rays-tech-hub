@@ -10,16 +10,11 @@
     ============================================================
     DIVINE RAYS TECH HUB — PINNED BASELINE v1.0 (2026-10-13)
     Source: commit 7cc032def5ad3a8e4771c6ed46074f428e9a161d
-            "index boot: pin lock v18 + avatar v3 + ticket-card-render v3"
     Shell:  2aa22823e014414ef2bad79bceae69b792cb56c0  (known good)
-    Pins:
-      admin-portal-lock  38ee37552bd3fa8d80bfcea3677987b3bdb044fb
-      ticket-card-css    4326d1ddf5e9a5628834aa36f87999d7e0a4b87a
-      ticket-card-render 895cb8b253e0fab3ad79e2d06fa06f30feded687
-      avatar-fix         51facff11f44ff41c897107bad8583c6f9d5f3bf
-      theme              bef23962c979e19d937950b628f10649f3f10b2f
-    RULE: Do not replace this bootloader or change SHAs unless the
-          user explicitly asks to update a specific feature pin.
+    Extra pins (feature-only updates):
+      pending-approved-fix  91453fecdb8928b4b3c84a925444e76132eb912c  (v3 exact DEV match)
+      light-login-depth       91453fecdb8928b4b3c84a925444e76132eb912c
+    RULE: only change a pin when user asks for that feature.
     ============================================================
   -->
   <title>Divine Rays Tech Hub — Support</title>
@@ -39,7 +34,7 @@
   <div id="boot">Loading Divine Rays Tech Hub…</div>
   <script>
   (async function () {
-    /* PINNED BASELINE v1.0 — shell 2aa22823 (known good). Do not change without explicit user request. */
+    /* PINNED BASELINE v1.0 — shell 2aa22823. Feature pins only when requested. */
     var B = Date.now();
     var urls = [
       'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/2aa22823e014414ef2bad79bceae69b792cb56c0/index.html?b=' + B,
@@ -59,6 +54,9 @@
     }
     html = html.replace(/@main\/js\/admin-portal-lock\.js/g, '@38ee37552bd3fa8d80bfcea3677987b3bdb044fb/js/admin-portal-lock.js');
     html = html.replace(/c7cf1603252db483e7e5badebb1271f0da23c21a\/js\/ticket-card-render\.js/g, '895cb8b253e0fab3ad79e2d06fa06f30feded687/js/ticket-card-render.js');
+    /* pending glow/shake: exact DEV match only (v3) */
+    html = html.replace(/94a5aeaaa38fafaaa1ac94872341ce3bf992dfd1\/js\/pending-approved-fix\.js/g, '91453fecdb8928b4b3c84a925444e76132eb912c/js/pending-approved-fix.js');
+    html = html.replace(/PENDING_FIX_SHA\s*=\s*'94a5aeaaa38fafaaa1ac94872341ce3bf992dfd1'/g, "PENDING_FIX_SHA = '91453fecdb8928b4b3c84a925444e76132eb912c'");
     if (html.indexOf('ticket-card-render.js') === -1) {
       html = html.replace('</head>',
         '<script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@4326d1ddf5e9a5628834aa36f87999d7e0a4b87a/js/ticket-card-css.js"><\/script>' +
@@ -66,6 +64,10 @@
         '<script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@51facff11f44ff41c897107bad8583c6f9d5f3bf/js/avatar-fix.js"><\/script></head>'
       );
     }
+    /* light mode login depth — behind card, not flat */
+    html = html.replace('</head>',
+      '<script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@91453fecdb8928b4b3c84a925444e76132eb912c/js/light-login-depth.js"><\/script></head>'
+    );
     document.open();
     document.write(html);
     document.close();
