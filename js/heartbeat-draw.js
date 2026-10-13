@@ -1,20 +1,16 @@
 /**
- * Divine Rays — ECG + gears v29 — start only after boot fade completes
- * - Single instance only (no double timers / ghost lines)
- * - Duration = viewport width so EVERY pattern reaches the right edge
- * - Longer paths auto-draw faster; shorter paths slower — same finish time
- * - Core + glow always paired; orphans removed
+ * Divine Rays — ECG + gears v29.1 — start right after boot fade
  */
 (function () {
   'use strict';
-  if (window.__DR_HEARTBEAT_DRAW >= 29) return;
+  if (window.__DR_HEARTBEAT_DRAW >= 30) return;
   try {
     if (window.__DR_ECG_TIMER) clearTimeout(window.__DR_ECG_TIMER);
     if (window.__DR_ECG_INTERVAL) clearInterval(window.__DR_ECG_INTERVAL);
   } catch (e0) {}
-  window.__DR_HEARTBEAT_DRAW = 29;
+  window.__DR_HEARTBEAT_DRAW = 30;
 
-  var CSS_ID = 'dr-gears-bg-v29';
+  var CSS_ID = 'dr-gears-bg-v30';
   var BOX_ID = 'dr-lifeline';
   var lastTheme = null;
   var lastMode = null;
@@ -41,28 +37,20 @@
     try {
       if (window.__DR_BOOT_DONE === true) {
         var oDone = document.getElementById('dr-boot-overlay');
-        if (!oDone) return false;
+        if (!oDone || oDone.classList.contains('dr-boot-removed')) return false;
         if (oDone.classList.contains('is-done')) {
           try {
-            var op = parseFloat(window.getComputedStyle(oDone).opacity || '0');
-            if (op <= 0.05) return false;
-            return true;
+            return parseFloat(window.getComputedStyle(oDone).opacity || '0') > 0.08;
           } catch (eF) { return false; }
         }
       }
       if (document.body && document.body.classList.contains('dr-boot-holding')) return true;
       var o = document.getElementById('dr-boot-overlay');
-      if (o && !o.classList.contains('is-done')) return true;
+      if (o && !o.classList.contains('is-done') && !o.classList.contains('dr-boot-removed')) return true;
       if (o && o.classList.contains('is-done')) {
         try {
-          var op2 = parseFloat(window.getComputedStyle(o).opacity || '0');
-          if (op2 > 0.05) return true;
+          if (parseFloat(window.getComputedStyle(o).opacity || '0') > 0.08) return true;
         } catch (e3) {}
-      }
-      var boot = document.getElementById('boot');
-      if (boot && !boot.hidden) {
-        var st = window.getComputedStyle(boot);
-        if (st.display !== 'none' && st.visibility !== 'hidden') return true;
       }
     } catch (e) {}
     return false;
@@ -77,7 +65,7 @@
     return false;
   }
   function loginVisible() {
-    if (isBooting() || !shellReady()) return false;
+    if (isBooting()) return false;
     var login = document.getElementById('login-screen') || document.querySelector('.login-screen');
     if (!login || login.hidden || login.classList.contains('is-hidden')) return false;
     try {
@@ -88,7 +76,7 @@
     return true;
   }
   function portalActive() {
-    if (isBooting() || !shellReady() || loginVisible()) return false;
+    if (isBooting() || loginVisible()) return false;
     try {
       var pa = document.getElementById('portal-agent');
       var pc = document.getElementById('portal-customer');
@@ -157,10 +145,9 @@
   }
 
   var CSS = [
-    '#' + BOX_ID + '{z-index:0!important;pointer-events:none!important;overflow:visible!important;background:transparent!important;box-shadow:none!important;filter:none!important}',
+    '#' + BOX_ID + '{z-index:0!important;pointer-events:none!important;overflow:visible!important;background:transparent!important}',
     '#dr-lifeline,#dr-lifeline *{pointer-events:none!important}',
     '#dr-lifeline svg{width:100%;height:100%;display:block;overflow:visible}',
-    '#dr-lifeline .dr-ecg-core,#dr-lifeline .dr-ecg-glow{will-change:stroke-dashoffset,opacity;transform:translateZ(0)}',
     '#dr-lifeline .dr-spin-cw{transform-origin:0 0;animation:drGearCW 30s linear infinite}',
     '#dr-lifeline .dr-spin-ccw{transform-origin:0 0;animation:drGearCCW 24s linear infinite}',
     '#dr-lifeline .dr-spin-cw-fast{transform-origin:0 0;animation:drGearCW 18s linear infinite}',
@@ -168,7 +155,6 @@
     '@keyframes drGearCW{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}',
     '@keyframes drGearCCW{from{transform:rotate(0deg)}to{transform:rotate(-360deg)}}',
     '#login-screen,.login-screen{position:relative!important;z-index:2!important}',
-    '#login-screen .login-card,.login-card{position:relative!important;z-index:5!important}',
     '@keyframes drEcgGlowPulse{0%,100%{opacity:0.28}50%{opacity:0.42}}',
     '@keyframes drEcgCorePulse{0%,100%{opacity:0.85}50%{opacity:0.95}}'
   ].join('');
@@ -195,9 +181,8 @@
     var glow = ecgGlowStroke();
     var fid = 'drEcgBlur' + Date.now();
     return (
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 100" preserveAspectRatio="none" ' +
-      'width="100%" height="100%" style="display:block;overflow:visible">' +
-      '<defs><filter id="' + fid + '" x="-25%" y="-60%" width="150%" height="220%" color-interpolation-filters="sRGB">' +
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 100" preserveAspectRatio="none" width="100%" height="100%" style="display:block;overflow:visible">' +
+      '<defs><filter id="' + fid + '" x="-25%" y="-60%" width="150%" height="220%">' +
       '<feGaussianBlur in="SourceGraphic" stdDeviation="1.6" result="blur"/>' +
       '<feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>' +
       '<path class="dr-ecg-glow" fill="none" stroke="' + glow + '" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" filter="url(#' + fid + ')" opacity="0.55" d="' + d + '"/>' +
@@ -220,7 +205,7 @@
   function viewportWidth() {
     try {
       var login = document.getElementById('login-screen') || document.querySelector('.login-screen');
-      var w = (login && login.clientWidth) || window.innerWidth || document.documentElement.clientWidth || 1200;
+      var w = (login && login.clientWidth) || window.innerWidth || 1200;
       return w < 320 ? 320 : w;
     } catch (e) { return 1200; }
   }
@@ -252,14 +237,6 @@
       document.querySelectorAll('.dr-ecg-core, .dr-ecg-glow').forEach(function (el) {
         if (!el.closest('#dr-lifeline') && el.parentNode) el.parentNode.removeChild(el);
       });
-      if (box) {
-        box.querySelectorAll('.dr-ecg-core').forEach(function (core) {
-          var svg = core.ownerSVGElement || core.closest('svg');
-          if (svg && !svg.querySelector('.dr-ecg-glow')) {
-            try { svg.parentNode && svg.parentNode.removeChild(svg); } catch (e2) {}
-          }
-        });
-      }
     } catch (e) {}
   }
 
@@ -283,7 +260,8 @@
 
   function runEcgCycle(opt) {
     if (__ecgBusy) return;
-    if (isBooting() || !loginVisible()) return;
+    if (isBooting()) return;
+    if (!loginVisible()) return;
     var forceNew = opt && opt.forceNew;
     if (__startedOnce && !forceNew) return;
     if (!forceNew && document.querySelector('#dr-lifeline .dr-ecg-core')) return;
@@ -300,8 +278,7 @@
       'display:block!important;position:absolute!important;left:0!important;right:0!important;' +
       'width:100%!important;top:50%!important;height:180px!important;margin-top:-90px!important;' +
       'z-index:1!important;pointer-events:none!important;opacity:0!important;visibility:visible!important;' +
-      'background:transparent!important;overflow:visible!important;box-shadow:none!important;filter:none!important;' +
-      'transition:opacity 0.45s ease-out!important';
+      'background:transparent!important;overflow:visible!important;transition:opacity 0.35s ease-out!important';
 
     box.innerHTML = ecgMarkup();
     var paths = box.querySelectorAll('.dr-ecg-core, .dr-ecg-glow');
@@ -349,19 +326,19 @@
     });
 
     __ecgBusy = false;
-    var waitMs = Math.round(dur * 1000) + 700;
     ecgTimer = setTimeout(function () {
       ecgIndex = (ecgIndex + 1) % ECG_PATTERNS.length;
       if (loginVisible()) runEcgCycle({ forceNew: true });
-    }, waitMs);
+    }, Math.round(dur * 1000) + 700);
     window.__DR_ECG_TIMER = ecgTimer;
   }
 
   function ensureGears(force) {
-    if (isBooting() || !shellReady()) return;
+    if (isBooting()) return;
     var box = ensureBox();
     var mode = portalActive() ? 'portal' : 'login';
     if (mode === 'login') {
+      if (!loginVisible()) return;
       box.style.display = 'block';
       purgeClones(box);
       if (box.querySelector('.dr-ecg-core') && box.querySelector('.dr-ecg-glow')) {
@@ -371,18 +348,16 @@
       }
       lastMode = 'login';
       lastTheme = themeKey();
-      runEcgCycle(null);
+      runEcgCycle(force ? { forceNew: true } : null);
       return;
     }
     clearEcgTimer();
     if (box.parentNode !== document.body) document.body.insertBefore(box, document.body.firstChild);
     box.style.cssText =
       'position:fixed!important;inset:0!important;width:100%!important;height:100%!important;' +
-      'z-index:0!important;pointer-events:none!important;overflow:hidden!important;' +
-      'opacity:1!important;visibility:visible!important;display:block!important;background:transparent!important';
+      'z-index:0!important;pointer-events:none!important;overflow:hidden!important;opacity:1!important;display:block!important';
     var theme = themeKey();
-    var hasGears = !!box.querySelector('.dr-spin-cw');
-    if (force || !hasGears || lastTheme !== theme || lastMode !== 'portal') {
+    if (force || !box.querySelector('.dr-spin-cw') || lastTheme !== theme || lastMode !== 'portal') {
       box.innerHTML = svgMarkup();
       lastTheme = theme;
       lastMode = 'portal';
@@ -394,10 +369,6 @@
     __tickBusy = true;
     try {
       injectCss();
-      try {
-        document.body.classList.toggle('is-login', loginVisible());
-        document.body.classList.toggle('is-portal', portalActive());
-      } catch (e) {}
       ensureGears(!!force);
       purgeClones(document.getElementById(BOX_ID));
     } finally {
@@ -406,65 +377,39 @@
   }
 
   function waitForLogin() {
-    if (isBooting() || !shellReady() || !loginVisible()) {
-      setTimeout(waitForLogin, 120);
+    if (isBooting() || !loginVisible()) {
+      setTimeout(waitForLogin, 80);
       return;
     }
-    if (!window.__DR_BOOT_DONE) {
-      setTimeout(waitForLogin, 120);
+    if (window.__DR_ECG_OK !== true) {
+      setTimeout(waitForLogin, 80);
       return;
     }
     if (__startedOnce || document.querySelector('#dr-lifeline .dr-ecg-core')) return;
-    setTimeout(function () { tick(true); }, 80);
+    tick(true);
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function () { setTimeout(waitForLogin, 80); });
+    document.addEventListener('DOMContentLoaded', function () { setTimeout(waitForLogin, 40); });
   } else {
-    setTimeout(waitForLogin, 80);
+    setTimeout(waitForLogin, 40);
   }
-
-  document.addEventListener('click', function (e) {
-    var t = e.target;
-    if (t && (t.id === 'btn-theme' || t.id === 'dr-login-theme' || (t.classList && t.classList.contains('btn-theme')))) {
-      setTimeout(function () {
-        if (portalActive()) tick(true);
-        else if (loginVisible()) recolorEcgOnly();
-      }, 40);
-    }
-  }, true);
-
-  try {
-    new MutationObserver(function () {
-      if (!loginVisible()) return;
-      if (themeKey() === lastTheme) return;
-      recolorEcgOnly();
-    }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-  } catch (eMo) {}
 
   window.__DR_ECG_INTERVAL = setInterval(function () {
-    if (isBooting() || !shellReady()) return;
-    tick(false);
-  }, 1500);
-
-  if (!window.__drEcgResizeWiredV29) {
-    window.__drEcgResizeWiredV29 = 1;
-    var resizeT = null;
-    window.addEventListener('resize', function () {
-      if (resizeT) clearTimeout(resizeT);
-      resizeT = setTimeout(function () {
-        var w = viewportWidth();
-        if (Math.abs(w - lastEcgWidth) > 40 && loginVisible()) {
-          runEcgCycle({ forceNew: true });
-        }
-      }, 200);
-    });
-  }
+    if (isBooting()) return;
+    if (loginVisible() && window.__DR_ECG_OK) tick(false);
+  }, 1000);
 
   window.DRHeartbeatDraw = {
     refresh: function () { tick(false); },
     force: function () {
-      if (__startedOnce || document.querySelector('#dr-lifeline .dr-ecg-core')) return;
+      __startedOnce = false;
+      __ecgBusy = false;
+      try {
+        window.__DR_ECG_OK = true;
+        document.documentElement.setAttribute('data-ecg', 'on');
+        window.__DR_BOOT_DONE = true;
+      } catch (e) {}
       tick(true);
     }
   };
