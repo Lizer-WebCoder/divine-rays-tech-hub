@@ -8,16 +8,15 @@
   <meta http-equiv="Expires" content="0" />
   <!--
     PINNED BASELINE v1.0 + feature pins:
-      force-pending-block   9f05410ae46387d8fb64b697c2e03c60d465ae58  (v12 staff-only approval)
-      tab-session           a5c3575f4872f9a0fdf2423701c609c685623187  (logout on tab close)
+      force-pending-block   9f05410ae46387d8fb64b697c2e03c60d465ae58
+      tab-session           12b7798ad583123e884a9d954595025d8dd6ba20  (v2 multi-tab share)
       sidebar-role-label    77f89e2eec92896bdc08399c7a578e8e9bbed3ba
       light-login-depth     b012b1beaed677db6185895ed8f7319fc2e0fb27
     Shell: 2aa22823e014414ef2bad79bceae69b792cb56c0
   -->
   <title>Divine Rays Tech Hub — Support</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.9.22-av-cards" />
-  <!-- tab-session first: sessionStorage auth before any Supabase client -->
-  <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@a5c3575f4872f9a0fdf2423701c609c685623187/js/tab-session.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@12b7798ad583123e884a9d954595025d8dd6ba20/js/tab-session.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@38ee37552bd3fa8d80bfcea3677987b3bdb044fb/js/admin-portal-lock.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@4326d1ddf5e9a5628834aa36f87999d7e0a4b87a/js/ticket-card-css.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@895cb8b253e0fab3ad79e2d06fa06f30feded687/js/ticket-card-render.js"></script>
@@ -61,9 +60,8 @@
     html = html.replace(/transition:opacity \.2s ease/g, 'transition:opacity .75s ease');
     html = html.replace(/setTimeout\(function \(\) \{ try \{ o\.remove\(\); \} catch \(e3\) \{\} \}, 250\)/g,
       'setTimeout(function () { try { o.remove(); } catch (e3) {} }, 800)');
-    /* tab-session early in shell head */
     html = html.replace('<head>',
-      '<head><script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@a5c3575f4872f9a0fdf2423701c609c685623187/js/tab-session.js"><\/script>'
+      '<head><script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@12b7798ad583123e884a9d954595025d8dd6ba20/js/tab-session.js"><\/script>'
     );
     if (html.indexOf('ticket-card-render.js') === -1) {
       html = html.replace('</head>',
