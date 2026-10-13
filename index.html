@@ -9,13 +9,15 @@
   <!--
     PINNED BASELINE v1.0 + feature pins:
       force-pending-block   9f05410ae46387d8fb64b697c2e03c60d465ae58  (v12 staff-only approval)
-      sidebar-role-label    77f89e2eec92896bdc08399c7a578e8e9bbed3ba  (v5 real role)
+      tab-session           a5c3575f4872f9a0fdf2423701c609c685623187  (logout on tab close)
+      sidebar-role-label    77f89e2eec92896bdc08399c7a578e8e9bbed3ba
       light-login-depth     b012b1beaed677db6185895ed8f7319fc2e0fb27
-      pending-approved-fix  91453fecdb8928b4b3c84a925444e76132eb912c
     Shell: 2aa22823e014414ef2bad79bceae69b792cb56c0
   -->
   <title>Divine Rays Tech Hub — Support</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.9.22-av-cards" />
+  <!-- tab-session first: sessionStorage auth before any Supabase client -->
+  <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@a5c3575f4872f9a0fdf2423701c609c685623187/js/tab-session.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@38ee37552bd3fa8d80bfcea3677987b3bdb044fb/js/admin-portal-lock.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@4326d1ddf5e9a5628834aa36f87999d7e0a4b87a/js/ticket-card-css.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@895cb8b253e0fab3ad79e2d06fa06f30feded687/js/ticket-card-render.js"></script>
@@ -52,7 +54,6 @@
     html = html.replace(/c7cf1603252db483e7e5badebb1271f0da23c21a\/js\/ticket-card-render\.js/g, '895cb8b253e0fab3ad79e2d06fa06f30feded687/js/ticket-card-render.js');
     html = html.replace(/94a5aeaaa38fafaaa1ac94872341ce3bf992dfd1\/js\/pending-approved-fix\.js/g, '91453fecdb8928b4b3c84a925444e76132eb912c/js/pending-approved-fix.js');
     html = html.replace(/PENDING_FIX_SHA\s*=\s*'94a5aeaaa38fafaaa1ac94872341ce3bf992dfd1'/g, "PENDING_FIX_SHA = '91453fecdb8928b4b3c84a925444e76132eb912c'");
-    /* force-pending v12 — staff only */
     html = html.replace(/[a-f0-9]{40}\/js\/force-pending-block\.js/g, '9f05410ae46387d8fb64b697c2e03c60d465ae58/js/force-pending-block.js');
     html = html.replace(/FORCE_PENDING_SHA\s*=\s*'[^']+'/g, "FORCE_PENDING_SHA = '9f05410ae46387d8fb64b697c2e03c60d465ae58'");
     html = html.replace(/[a-f0-9]{40}\/js\/sidebar-role-label\.js/g, '77f89e2eec92896bdc08399c7a578e8e9bbed3ba/js/sidebar-role-label.js');
@@ -60,6 +61,10 @@
     html = html.replace(/transition:opacity \.2s ease/g, 'transition:opacity .75s ease');
     html = html.replace(/setTimeout\(function \(\) \{ try \{ o\.remove\(\); \} catch \(e3\) \{\} \}, 250\)/g,
       'setTimeout(function () { try { o.remove(); } catch (e3) {} }, 800)');
+    /* tab-session early in shell head */
+    html = html.replace('<head>',
+      '<head><script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@a5c3575f4872f9a0fdf2423701c609c685623187/js/tab-session.js"><\/script>'
+    );
     if (html.indexOf('ticket-card-render.js') === -1) {
       html = html.replace('</head>',
         '<script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@4326d1ddf5e9a5628834aa36f87999d7e0a4b87a/js/ticket-card-css.js"><\/script>' +
