@@ -7,7 +7,7 @@
   if (window.__DR_BG_ANIM_PIN >= 3) return;
   window.__DR_BG_ANIM_PIN = 3;
 
-  var HB_SHA = 'NEED_V29';
+  var HB_SHA = '3bc50d042182f34d7c05eb077927231267170e5a';
   var HB =
     'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' +
     HB_SHA +
@@ -16,28 +16,33 @@
 
   function bootStillUp() {
     try {
-      if (window.__DR_BOOT_DONE === true) return false;
+      if (window.__DR_BOOT_DONE === true) {
+        var oD = document.getElementById('dr-boot-overlay');
+        if (!oD) return false;
+        if (oD.classList.contains('is-done')) {
+          try {
+            return parseFloat(window.getComputedStyle(oD).opacity || '0') > 0.05;
+          } catch (e) { return false; }
+        }
+      }
       if (document.body && document.body.classList.contains('dr-boot-holding')) return true;
       var o = document.getElementById('dr-boot-overlay');
       if (o && !o.classList.contains('is-done')) return true;
       if (o && o.classList.contains('is-done')) {
-        /* still fading out */
         try {
-          var op = parseFloat(window.getComputedStyle(o).opacity || '0');
-          if (op > 0.05) return true;
-        } catch (e) {}
+          if (parseFloat(window.getComputedStyle(o).opacity || '0') > 0.05) return true;
+        } catch (e2) {}
       }
       var boot = document.getElementById('boot');
       if (boot && !boot.hidden) {
         var st = window.getComputedStyle(boot);
         if (st.display !== 'none' && st.visibility !== 'hidden') return true;
       }
-    } catch (e2) {}
+    } catch (e3) {}
     return false;
   }
 
   function assertFlags() {
-    /* Do NOT enable ECG while boot is visible / fading */
     if (bootStillUp()) return;
     try {
       window.__DR_BOOT_DONE = true;
@@ -71,9 +76,11 @@
   function purgeGhosts() {
     try {
       if (bootStillUp()) {
-        /* hide any premature lifeline under the boot UI */
         document.querySelectorAll('#dr-lifeline').forEach(function (el) {
-          try { el.style.setProperty('opacity', '0', 'important'); el.style.setProperty('visibility', 'hidden', 'important'); } catch (e) {}
+          try {
+            el.style.setProperty('opacity', '0', 'important');
+            el.style.setProperty('visibility', 'hidden', 'important');
+          } catch (e) {}
         });
         return;
       }
@@ -95,7 +102,7 @@
     el.textContent = [
       'html[data-ecg="on"] #dr-lifeline{display:block!important;visibility:visible!important;pointer-events:none!important}',
       '#dr-lifeline{pointer-events:none!important}',
-      'body.dr-boot-holding #dr-lifeline,#dr-boot-overlay:not(.is-done) ~ #dr-lifeline{opacity:0!important;visibility:hidden!important}'
+      'body.dr-boot-holding #dr-lifeline{opacity:0!important;visibility:hidden!important}'
     ].join('');
     (document.head || document.documentElement).appendChild(el);
   }
