@@ -10,7 +10,7 @@
     PINNED:
       boot-fade-sync  449a55bb47f7e66cb45d4f616119a91bec3dd33d
       heartbeat-draw  80f8a73413ed5698b24c61856ddc5a1569714ac0
-      bg-anim-pin     e7eb85d8670580a5579f8fa2f6d3638ca4aa5265
+      bg-anim-pin     dd941697b969c4e269c2d1f17b68455d879ba080
   -->
   <title>Divine Rays Tech Hub — Support</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.9.22-av-cards" />
@@ -33,7 +33,7 @@
   (async function () {
     var B = Date.now();
     var HB = '80f8a73413ed5698b24c61856ddc5a1569714ac0';
-    var BG_PIN = 'e7eb85d8670580a5579f8fa2f6d3638ca4aa5265';
+    var BG_PIN = 'dd941697b969c4e269c2d1f17b68455d879ba080';
     var FADE = '449a55bb47f7e66cb45d4f616119a91bec3dd33d';
     var OLD_HB = 'a9046e485443b24e800a4f4d10747c10146ca663';
     var urls = [
@@ -71,7 +71,6 @@
       html = html.split('90094058c1f476b163296855e186984add6a625d').join(BG_PIN);
     }
 
-    /* Kill instant hide — allow real opacity fade */
     html = html.replace(
       /#dr-boot-overlay\.is-done\{opacity:0;pointer-events:none;visibility:hidden\}/g,
       '#dr-boot-overlay.is-done{opacity:0;pointer-events:none}'
@@ -80,12 +79,10 @@
     html = html.replace(/transition:opacity \.75s ease/g, 'transition:opacity 1.2s ease');
     html = html.replace(/transition:opacity 1s ease/g, 'transition:opacity 1.2s ease');
 
-    /* Inject boot-fade-sync early in shell head */
     html = html.replace(
       '<head>',
       '<head><script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + FADE + '/js/boot-fade-sync.js"><\/script>'
     );
-
     html = html.replace('<head>',
       '<head><script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@12b7798ad583123e884a9d954595025d8dd6ba20/js/tab-session.js"><\/script>'
     );
