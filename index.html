@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=956" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=957" />
   <script>
     window.__DR_ECG_OK = true;
     try {
@@ -15,11 +15,22 @@
     } catch (e) {}
   </script>
   <style>
-    html,body{margin:0;min-height:100vh;background:#0c0c14;color:#eeeef6;font-family:Inter,system-ui,sans-serif}
+    html,body{
+      margin:0;min-height:100vh;color:#eeeef6;
+      font-family:Inter,system-ui,sans-serif;
+      background:
+        radial-gradient(ellipse 100% 70% at 50% 45%, rgba(124,58,237,0.35), transparent 55%),
+        radial-gradient(ellipse 70% 50% at 15% 20%, rgba(139,92,246,0.22), transparent 50%),
+        radial-gradient(ellipse 70% 50% at 85% 80%, rgba(91,33,182,0.28), transparent 50%),
+        linear-gradient(180deg, #2a1058 0%, #1a0a3e 35%, #120830 65%, #0a0518 100%)!important;
+      background-attachment:fixed!important
+    }
     #boot{
       display:flex;align-items:center;justify-content:center;min-height:100vh;
       flex-direction:column;gap:.85rem;position:relative;z-index:9999;
-      background:radial-gradient(ellipse 80% 60% at 50% 40%,#1a1530 0%,#0c0c14 55%,#08080f 100%)
+      background:
+        radial-gradient(ellipse 100% 70% at 50% 45%, rgba(124,58,237,0.35), transparent 55%),
+        linear-gradient(180deg, #2a1058 0%, #1a0a3e 35%, #120830 65%, #0a0518 100%)
     }
     #boot .boot-gear{
       width:52px;height:52px;border-radius:14px;
@@ -49,15 +60,11 @@
       display:none!important;visibility:hidden!important;pointer-events:none!important;
       width:0!important;height:0!important;overflow:hidden!important;opacity:0!important
     }
-    /* Login field: purple radial only — no JS ambient rebuild (freeze fix) */
-    body.is-login,
+    /* Login screen must stay transparent so body purple + ECG show through */
     #login-screen,.login-screen{
-      background:
-        radial-gradient(ellipse 100% 70% at 50% 45%, rgba(124,58,237,0.35), transparent 55%),
-        radial-gradient(ellipse 70% 50% at 15% 20%, rgba(139,92,246,0.22), transparent 50%),
-        radial-gradient(ellipse 70% 50% at 85% 80%, rgba(91,33,182,0.28), transparent 50%),
-        linear-gradient(180deg, #2a1058 0%, #1a0a3e 35%, #120830 65%, #0a0518 100%)!important;
-      background-attachment:fixed!important
+      background:transparent!important;
+      background-image:none!important;
+      background-color:transparent!important
     }
     #dr-lifeline{
       display:block!important;visibility:visible!important;
@@ -73,11 +80,10 @@
       stroke-width:2.5px!important;
       filter:drop-shadow(0 0 3px rgba(243,232,255,.7))!important
     }
-    /* Kill any ambient layer that might still appear from cache */
-    #dr-login-ambient{pointer-events:none!important}
+    #dr-login-ambient{display:none!important}
   </style>
 </head>
-<body>
+<body class="is-login">
   <div id="boot">
     <div class="boot-gear" aria-hidden="true">
       <svg viewBox="0 0 64 64"><g transform="translate(32,32)"><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(45)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(90)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(135)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(180)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(225)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(270)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(315)"/><circle r="17"/><circle r="9" fill="#1a1625"/><circle r="5"/></g></svg>
@@ -90,6 +96,12 @@
     var PIN = '830dac02096eb08be1b2dc22bdc191a14df91a04';
     var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
     var B = Date.now();
+    var LOGIN_BG =
+      'radial-gradient(ellipse 100% 70% at 50% 45%, rgba(124,58,237,0.35), transparent 55%),' +
+      'radial-gradient(ellipse 70% 50% at 15% 20%, rgba(139,92,246,0.22), transparent 50%),' +
+      'radial-gradient(ellipse 70% 50% at 85% 80%, rgba(91,33,182,0.28), transparent 50%),' +
+      'linear-gradient(180deg, #2a1058 0%, #1a0a3e 35%, #120830 65%, #0a0518 100%)';
+
     window.__DR_ECG_OK = true;
     try {
       document.documentElement.setAttribute('data-ecg', 'on');
@@ -106,6 +118,29 @@
         s.onerror = function () { res(); };
         document.body.appendChild(s);
       });
+    }
+
+    function injectDefer(src) {
+      var s = document.createElement('script');
+      s.src = src;
+      s.defer = true;
+      document.body.appendChild(s);
+    }
+
+    function lockLoginBg() {
+      try {
+        document.body.classList.add('is-login');
+        document.documentElement.style.setProperty('background', LOGIN_BG, 'important');
+        document.body.style.setProperty('background', LOGIN_BG, 'important');
+        document.body.style.setProperty('background-attachment', 'fixed', 'important');
+        document.querySelectorAll('#login-screen, .login-screen').forEach(function (el) {
+          el.style.setProperty('background', 'transparent', 'important');
+          el.style.setProperty('background-image', 'none', 'important');
+          el.style.setProperty('background-color', 'transparent', 'important');
+        });
+        var amb = document.getElementById('dr-login-ambient');
+        if (amb) amb.remove();
+      } catch (e) {}
     }
 
     function killLightBtn() {
@@ -153,7 +188,7 @@
         if (n.tagName === 'LINK') {
           var href = n.getAttribute('href') || '';
           if (href && href.indexOf('http') !== 0) {
-            href = CDN + PIN + '/' + href.replace(/^\.\//, '').split('?')[0] + '?v=956';
+            href = CDN + PIN + '/' + href.replace(/^\.\//, '').split('?')[0] + '?v=957';
             n.setAttribute('href', href);
           }
           document.head.appendChild(document.importNode(n, true));
@@ -170,6 +205,7 @@
       });
       document.body.innerHTML = bodyHtml;
 
+      lockLoginBg();
       window.__DR_ECG_OK = true;
       try {
         document.documentElement.setAttribute('data-ecg', 'on');
@@ -178,82 +214,76 @@
       } catch (e1) {}
       killLightBtn();
 
+      /* Core app scripts from shell */
       var core = [];
       doc.querySelectorAll('script[src]').forEach(function (sc) {
         var src = sc.getAttribute('src') || '';
         if (!src) return;
-        if (src.indexOf('http') !== 0) src = CDN + PIN + '/' + src.replace(/^\.\//, '').split('?')[0] + '?v=956';
+        if (src.indexOf('http') !== 0) src = CDN + PIN + '/' + src.replace(/^\.\//, '').split('?')[0] + '?v=957';
         core.push(src);
       });
       for (var c = 0; c < core.length; c++) await loadScript(core[c]);
 
-      /* NO heavy force-light-bg 0962 (rebuilds SVG on every interaction = freeze while typing).
-         Lightweight force-bg only + ECG. */
-      var extras = [
+      /* LOGIN-ONLY scripts first — keeps form responsive */
+      var loginScripts = [
         '90094058c1f476b163296855e186984add6a625d/js/bg-anim-pin.js',
         'a9046e485443b24e800a4f4d10747c10146ca663/js/heartbeat-draw.js',
         '8c56504dc4ae1c397eb336de3d117dd3bd022ed7/js/login-theme.js',
         '233f36150987e8576aab9114d1ca329bf09fa6a0/js/login-nav-fix.js',
         '8afd47c0aa694ef7483f413d2ad7c15ea2be7b30/js/login-shell-sep.js',
-        '9beff1f92931/js/login-tab-labels.js',
-        '9a17dcda7cbe5a9ad3f9af120b4135532b149a13/js/admin-portal-lock.js',
-        '545afd29cbaede602653f78631d8c97ce7558683/js/sidebar-profile-layout.js',
-        'cf85fe34e66bb092edf09e521e0ef0879071354a/js/sidebar-role-label.js',
-        'cf94fa12898891abef9c93bf7b1ebd3a06883293/js/sidebar-design.js',
-        '39e8c69ab7c04cb4900cc40992419ecffb482735/js/supabase-400-fix.js',
-        '51facff11f44ff41c897107bad8583c6f9d5f3bf/js/avatar-fix.js',
-        'e65c070009674e02288c96a305daab5e0245e28e/js/filters.js',
-        '45f63dc9924d354f246b3cc18d6f0cb0459a9997/js/filters-toolbar-fix.js',
-        '1a8c72424c7698af6fc25ecf8e2c5476e864d906/js/priority-force.js',
-        '5fa3d4a86e002268a75ed1068d1f96259ecb9344/js/priority-p1-display.js',
-        'd987fd7a6e51a612230c882e1da3138486010593/js/ticket-stable.js',
-        '895cb8b253e0fab3ad79e2d06fa06f30feded687/js/ticket-card-render.js',
-        '4326d1ddf5e9a5628834aa36f87999d7e0a4b87a/js/ticket-card-css.js',
-        '01d6078d7a6a6ff64a1c9f53621d1bc2446156cf/js/ticket-list-design.js',
-        '875b2f5b1c8293bb219943429c01020f28114d5b/js/ticket-list-fix.js',
-        '7a09542332b8227930871a5a055162c570a3fdb7/js/csat-dashboard.js',
-        '53aba5366d53c7fc6c8208ecb594eeeb10d46e2f/js/admin.js',
-        '1e6520dca83cccafdc0f0d7d031f3bf6cde80c82/js/status-card.js',
-        'bd4e6cf77fb157a42f39f763f178634835b41e66/js/portal-guard.js',
-        '44d07e7df4ce692c899111256cd0355ec14f4cc8/js/force-light-bg.js',
-        '7d6d66cbe63fda91cf71d64bbddd1af80f3adfc3/js/design-system-v10.js',
-        '655a1f16fb5792f66ec0eb61f789bc5687b5b945/js/agent-views.js',
-        '910b2ffba037e5926610ca013f778e0b7937bf21/js/ticket-claim-lock.js',
-        '2a3c434aeef8cbb03bcb25cefc1a886a4b2f5feb/js/users-nav.js'
+        '9beff1f92931/js/login-tab-labels.js'
       ];
-      for (var j = 0; j < extras.length; j++) await loadScript(CDN + extras[j] + '?v=956');
+      for (var L = 0; L < loginScripts.length; L++) await loadScript(CDN + loginScripts[L] + '?v=957');
 
-      /* Remove any leftover ambient layer from older cache */
-      try {
-        var amb = document.getElementById('dr-login-ambient');
-        if (amb) amb.remove();
-      } catch (eAmb) {}
-
+      lockLoginBg();
       killLightBtn();
       window.__DR_ECG_OK = true;
-      try { document.documentElement.setAttribute('data-ecg', 'on'); } catch (e2) {}
-      try { if (window.DRBgAnimPin && window.DRBgAnimPin.refresh) window.DRBgAnimPin.refresh(); } catch (e3) {}
       try {
+        document.documentElement.setAttribute('data-ecg', 'on');
+        if (window.DRBgAnimPin && window.DRBgAnimPin.refresh) window.DRBgAnimPin.refresh();
         if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.refresh) window.DRHeartbeatDraw.refresh();
         if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.start) window.DRHeartbeatDraw.start();
-      } catch (e3b) {}
+      } catch (e3) {}
 
+      /* Portal scripts deferred — do not block typing / Sign In */
       setTimeout(function () {
+        [
+          '9a17dcda7cbe5a9ad3f9af120b4135532b149a13/js/admin-portal-lock.js',
+          '545afd29cbaede602653f78631d8c97ce7558683/js/sidebar-profile-layout.js',
+          'cf85fe34e66bb092edf09e521e0ef0879071354a/js/sidebar-role-label.js',
+          'cf94fa12898891abef9c93bf7b1ebd3a06883293/js/sidebar-design.js',
+          '39e8c69ab7c04cb4900cc40992419ecffb482735/js/supabase-400-fix.js',
+          '51facff11f44ff41c897107bad8583c6f9d5f3bf/js/avatar-fix.js',
+          'e65c070009674e02288c96a305daab5e0245e28e/js/filters.js',
+          '45f63dc9924d354f246b3cc18d6f0cb0459a9997/js/filters-toolbar-fix.js',
+          '1a8c72424c7698af6fc25ecf8e2c5476e864d906/js/priority-force.js',
+          '5fa3d4a86e002268a75ed1068d1f96259ecb9344/js/priority-p1-display.js',
+          'd987fd7a6e51a612230c882e1da3138486010593/js/ticket-stable.js',
+          '895cb8b253e0fab3ad79e2d06fa06f30feded687/js/ticket-card-render.js',
+          '4326d1ddf5e9a5628834aa36f87999d7e0a4b87a/js/ticket-card-css.js',
+          '01d6078d7a6a6ff64a1c9f53621d1bc2446156cf/js/ticket-list-design.js',
+          '875b2f5b1c8293bb219943429c01020f28114d5b/js/ticket-list-fix.js',
+          '7a09542332b8227930871a5a055162c570a3fdb7/js/csat-dashboard.js',
+          '53aba5366d53c7fc6c8208ecb594eeeb10d46e2f/js/admin.js',
+          '1e6520dca83cccafdc0f0d7d031f3bf6cde80c82/js/status-card.js',
+          'bd4e6cf77fb157a42f39f763f178634835b41e66/js/portal-guard.js',
+          '7d6d66cbe63fda91cf71d64bbddd1af80f3adfc3/js/design-system-v10.js',
+          '655a1f16fb5792f66ec0eb61f789bc5687b5b945/js/agent-views.js',
+          '910b2ffba037e5926610ca013f778e0b7937bf21/js/ticket-claim-lock.js',
+          '2a3c434aeef8cbb03bcb25cefc1a886a4b2f5feb/js/users-nav.js'
+        ].forEach(function (p) { injectDefer(CDN + p + '?v=957'); });
+      }, 2500);
+
+      setTimeout(function () { lockLoginBg(); killLightBtn(); }, 400);
+      setTimeout(function () {
+        lockLoginBg();
         killLightBtn();
         window.__DR_ECG_OK = true;
-        try { document.documentElement.setAttribute('data-ecg', 'on'); } catch (e4) {}
-        try { if (window.DRBgAnimPin && window.DRBgAnimPin.refresh) window.DRBgAnimPin.refresh(); } catch (e5) {}
-        try { if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.refresh) window.DRHeartbeatDraw.refresh(); } catch (e5b) {}
         try {
-          var amb2 = document.getElementById('dr-login-ambient');
-          if (amb2) amb2.remove();
-        } catch (eA2) {}
-      }, 500);
-      setTimeout(function () {
-        killLightBtn();
-        window.__DR_ECG_OK = true;
-        try { document.documentElement.setAttribute('data-ecg', 'on'); } catch (e6) {}
-      }, 2000);
+          document.documentElement.setAttribute('data-ecg', 'on');
+          if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.refresh) window.DRHeartbeatDraw.refresh();
+        } catch (e5) {}
+      }, 1200);
     } catch (err) {
       var boot = document.getElementById('boot');
       if (boot) boot.innerHTML = '<p style="color:#fca5a5">Could not load app.</p><button onclick="location.reload()" style="margin-top:12px;padding:8px 14px;cursor:pointer">Retry</button><p style="color:#6b6b80;font-size:.8rem">' + String(err && err.message || err) + '</p>';
