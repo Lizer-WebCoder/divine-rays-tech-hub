@@ -7,10 +7,27 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <!--
-    PINNED:
-      boot-fade-sync  449a55bb47f7e66cb45d4f616119a91bec3dd33d
-      heartbeat-draw  80f8a73413ed5698b24c61856ddc5a1569714ac0
-      bg-anim-pin     dd941697b969c4e269c2d1f17b68455d879ba080
+    ═══════════════════════════════════════════════════════════════
+    LOGIN PAGE BASELINE LOCKED v2.0 — DO NOT ROLL BACK
+    Confirmed working 2026-10-13: slow boot fade + ECG starts after fade
+    Shell: 2aa22823e014414ef2bad79bceae69b792cb56c0
+
+    LOGIN STACK (never load older SHAs for these):
+      boot-fade-sync   449a55bb47f7e66cb45d4f616119a91bec3dd33d  (1.2s fade)
+      heartbeat-draw   80f8a73413ed5698b24c61856ddc5a1569714ac0  (v30 full-width ECG)
+      bg-anim-pin      dd941697b969c4e269c2d1f17b68455d879ba080  (v3.1)
+      light-login-depth b012b1beaed677db6185895ed8f7319fc2e0fb27
+
+    BLOCKED OLD ECG / BOOT (always rewritten away):
+      a9046e485443b24e800a4f4d10747c10146ca663  (v25)
+      1887c6e9fe2436bf5402f2c4fa40dda29597416f  (v26)
+      89e270ee25cc2e779e36e9c3011ddd21da3724c3  (v27)
+      0f5ae49d8c798d58d91acf840190dab5cf059408  (v28)
+      3bc50d042182f34d7c05eb077927231267170e5a  (v29)
+      90094058c1f476b163296855e186984add6a625d  (old bg-anim-pin)
+
+    RULE: only change a pin when user asks for that feature.
+    ═══════════════════════════════════════════════════════════════
   -->
   <title>Divine Rays Tech Hub — Support</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.9.22-av-cards" />
@@ -32,10 +49,22 @@
   <script>
   (async function () {
     var B = Date.now();
+    /* LOGIN PAGE BASELINE LOCKED v2.0 */
     var HB = '80f8a73413ed5698b24c61856ddc5a1569714ac0';
     var BG_PIN = 'dd941697b969c4e269c2d1f17b68455d879ba080';
     var FADE = '449a55bb47f7e66cb45d4f616119a91bec3dd33d';
-    var OLD_HB = 'a9046e485443b24e800a4f4d10747c10146ca663';
+    var BLOCKED_HB = [
+      'a9046e485443b24e800a4f4d10747c10146ca663',
+      '1887c6e9fe2436bf5402f2c4fa40dda29597416f',
+      '89e270ee25cc2e779e36e9c3011ddd21da3724c3',
+      '0f5ae49d8c798d58d91acf840190dab5cf059408',
+      '3bc50d042182f34d7c05eb077927231267170e5a'
+    ];
+    var BLOCKED_BG = [
+      '90094058c1f476b163296855e186984add6a625d',
+      '29ecd577333c6bd3b558c66a02c2fb32da4e01ca',
+      'e7eb85d8670580a5579f8fa2f6d3638ca4aa5265'
+    ];
     var urls = [
       'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/2aa22823e014414ef2bad79bceae69b792cb56c0/index.html?b=' + B,
       'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@2aa22823e014414ef2bad79bceae69b792cb56c0/index.html?b=' + B
@@ -61,16 +90,21 @@
     html = html.replace(/[a-f0-9]{40}\/js\/sidebar-role-label\.js/g, '77f89e2eec92896bdc08399c7a578e8e9bbed3ba/js/sidebar-role-label.js');
     html = html.replace(/SIDEBAR_ROLE_SHA\s*=\s*'[^']+'/g, "SIDEBAR_ROLE_SHA = '77f89e2eec92896bdc08399c7a578e8e9bbed3ba'");
 
-    while (html.indexOf(OLD_HB) !== -1) html = html.split(OLD_HB).join(HB);
+    /* Force current ECG — strip every known old SHA */
+    for (var bi = 0; bi < BLOCKED_HB.length; bi++) {
+      while (html.indexOf(BLOCKED_HB[bi]) !== -1) html = html.split(BLOCKED_HB[bi]).join(HB);
+    }
     html = html.replace(/'heartbeat-draw\.js'\s*:\s*'[a-f0-9]+'/g, "'heartbeat-draw.js': '" + HB + "'");
     html = html.replace(/[a-f0-9]{40}\/js\/heartbeat-draw\.js/g, HB + '/js/heartbeat-draw.js');
+    html = html.replace(/HB_SHA\s*=\s*'[^']+'/g, "HB_SHA = '" + HB + "'");
 
+    for (var bj = 0; bj < BLOCKED_BG.length; bj++) {
+      while (html.indexOf(BLOCKED_BG[bj]) !== -1) html = html.split(BLOCKED_BG[bj]).join(BG_PIN);
+    }
     html = html.replace(/'bg-anim-pin\.js'\s*:\s*'[a-f0-9]+'/g, "'bg-anim-pin.js': '" + BG_PIN + "'");
     html = html.replace(/[a-f0-9]{40}\/js\/bg-anim-pin\.js/g, BG_PIN + '/js/bg-anim-pin.js');
-    while (html.indexOf('90094058c1f476b163296855e186984add6a625d') !== -1) {
-      html = html.split('90094058c1f476b163296855e186984add6a625d').join(BG_PIN);
-    }
 
+    /* Boot fade: real opacity transition, no instant visibility:hidden */
     html = html.replace(
       /#dr-boot-overlay\.is-done\{opacity:0;pointer-events:none;visibility:hidden\}/g,
       '#dr-boot-overlay.is-done{opacity:0;pointer-events:none}'
