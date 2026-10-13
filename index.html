@@ -8,8 +8,8 @@
   <meta http-equiv="Expires" content="0" />
   <!--
     PINNED BASELINE v1.0 + feature pins:
-      force-pending-block   35c052daa16a39a913661016d55c2b98648bd0c2  (v8 default-deny staff)
-      light-login-depth     b012b1beaed677db6185895ed8f7319fc2e0fb27  (v2 darker behind card)
+      force-pending-block   c2bb745a197215e1adee27943ae8b926cf86928c  (v9 toast/msg/shake/Enter)
+      light-login-depth     b012b1beaed677db6185895ed8f7319fc2e0fb27
       pending-approved-fix  91453fecdb8928b4b3c84a925444e76132eb912c
     Shell: 2aa22823e014414ef2bad79bceae69b792cb56c0
   -->
@@ -49,12 +49,12 @@
     }
     html = html.replace(/@main\/js\/admin-portal-lock\.js/g, '@38ee37552bd3fa8d80bfcea3677987b3bdb044fb/js/admin-portal-lock.js');
     html = html.replace(/c7cf1603252db483e7e5badebb1271f0da23c21a\/js\/ticket-card-render\.js/g, '895cb8b253e0fab3ad79e2d06fa06f30feded687/js/ticket-card-render.js');
-    /* pending-approved-fix v3 */
     html = html.replace(/94a5aeaaa38fafaaa1ac94872341ce3bf992dfd1\/js\/pending-approved-fix\.js/g, '91453fecdb8928b4b3c84a925444e76132eb912c/js/pending-approved-fix.js');
     html = html.replace(/PENDING_FIX_SHA\s*=\s*'94a5aeaaa38fafaaa1ac94872341ce3bf992dfd1'/g, "PENDING_FIX_SHA = '91453fecdb8928b4b3c84a925444e76132eb912c'");
-    /* force-pending-block v8 — staff default-deny */
-    html = html.replace(/f3988b77a2f35efc5cd53a040d78a56becb58261\/js\/force-pending-block\.js/g, '35c052daa16a39a913661016d55c2b98648bd0c2/js/force-pending-block.js');
-    html = html.replace(/FORCE_PENDING_SHA\s*=\s*'f3988b77a2f35efc5cd53a040d78a56becb58261'/g, "FORCE_PENDING_SHA = '35c052daa16a39a913661016d55c2b98648bd0c2'");
+    /* force-pending v9 */
+    html = html.replace(/f3988b77a2f35efc5cd53a040d78a56becb58261\/js\/force-pending-block\.js/g, 'c2bb745a197215e1adee27943ae8b926cf86928c/js/force-pending-block.js');
+    html = html.replace(/35c052daa16a39a913661016d55c2b98648bd0c2\/js\/force-pending-block\.js/g, 'c2bb745a197215e1adee27943ae8b926cf86928c/js/force-pending-block.js');
+    html = html.replace(/FORCE_PENDING_SHA\s*=\s*'[^']+'/g, "FORCE_PENDING_SHA = 'c2bb745a197215e1adee27943ae8b926cf86928c'");
     if (html.indexOf('ticket-card-render.js') === -1) {
       html = html.replace('</head>',
         '<script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@4326d1ddf5e9a5628834aa36f87999d7e0a4b87a/js/ticket-card-css.js"><\/script>' +
@@ -62,7 +62,6 @@
         '<script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@51facff11f44ff41c897107bad8583c6f9d5f3bf/js/avatar-fix.js"><\/script></head>'
       );
     }
-    /* light mode: darker radial only behind card */
     html = html.replace('</head>',
       '<script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@b012b1beaed677db6185895ed8f7319fc2e0fb27/js/light-login-depth.js"><\/script></head>'
     );
