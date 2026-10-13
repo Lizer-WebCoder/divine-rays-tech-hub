@@ -7,12 +7,9 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <!--
-    PINNED BASELINE v1.0 + feature pins:
-      heartbeat-draw        89e270ee25cc2e779e36e9c3011ddd21da3724c3  (v27 full-width any resolution)
-      force-pending-block   9f05410ae46387d8fb64b697c2e03c60d465ae58
-      tab-session           12b7798ad583123e884a9d954595025d8dd6ba20
-      sidebar-role-label    77f89e2eec92896bdc08399c7a578e8e9bbed3ba
-      light-login-depth     b012b1beaed677db6185895ed8f7319fc2e0fb27
+    PINNED:
+      heartbeat-draw  0f5ae49d8c798d58d91acf840190dab5cf059408  (v28)
+      bg-anim-pin     29ecd577333c6bd3b558c66a02c2fb32da4e01ca  (v2)
     Shell: 2aa22823e014414ef2bad79bceae69b792cb56c0
   -->
   <title>Divine Rays Tech Hub — Support</title>
@@ -34,6 +31,9 @@
   <script>
   (async function () {
     var B = Date.now();
+    var HB = '0f5ae49d8c798d58d91acf840190dab5cf059408';
+    var BG_PIN = '29ecd577333c6bd3b558c66a02c2fb32da4e01ca';
+    var OLD_HB = 'a9046e485443b24e800a4f4d10747c10146ca663';
     var urls = [
       'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/2aa22823e014414ef2bad79bceae69b792cb56c0/index.html?b=' + B,
       'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@2aa22823e014414ef2bad79bceae69b792cb56c0/index.html?b=' + B
@@ -58,10 +58,22 @@
     html = html.replace(/FORCE_PENDING_SHA\s*=\s*'[^']+'/g, "FORCE_PENDING_SHA = '9f05410ae46387d8fb64b697c2e03c60d465ae58'");
     html = html.replace(/[a-f0-9]{40}\/js\/sidebar-role-label\.js/g, '77f89e2eec92896bdc08399c7a578e8e9bbed3ba/js/sidebar-role-label.js');
     html = html.replace(/SIDEBAR_ROLE_SHA\s*=\s*'[^']+'/g, "SIDEBAR_ROLE_SHA = '77f89e2eec92896bdc08399c7a578e8e9bbed3ba'");
-    /* ECG v27 — MUST rewrite map entry (shell hardcodes a9046e48) */
-    html = html.replace(/'heartbeat-draw\.js'\s*:\s*'[a-f0-9]+'/g, "'heartbeat-draw.js': '89e270ee25cc2e779e36e9c3011ddd21da3724c3'");
-    html = html.replace(/[a-f0-9]{40}\/js\/heartbeat-draw\.js/g, '89e270ee25cc2e779e36e9c3011ddd21da3724c3/js/heartbeat-draw.js');
-    html = html.replace(/HB_SHA\s*=\s*'[^']+'/g, "HB_SHA = '89e270ee25cc2e779e36e9c3011ddd21da3724c3'");
+
+    /* CRITICAL: shell hardcodes old ECG SHA in map + loadScript concatenations */
+    while (html.indexOf(OLD_HB) !== -1) {
+      html = html.split(OLD_HB).join(HB);
+    }
+    html = html.replace(/'heartbeat-draw\.js'\s*:\s*'[a-f0-9]+'/g, "'heartbeat-draw.js': '" + HB + "'");
+    html = html.replace(/[a-f0-9]{40}\/js\/heartbeat-draw\.js/g, HB + '/js/heartbeat-draw.js');
+    html = html.replace(/HB_SHA\s*=\s*'[^']+'/g, "HB_SHA = '" + HB + "'");
+
+    /* bg-anim-pin must not re-inject a9046e48 */
+    html = html.replace(/'bg-anim-pin\.js'\s*:\s*'[a-f0-9]+'/g, "'bg-anim-pin.js': '" + BG_PIN + "'");
+    html = html.replace(/[a-f0-9]{40}\/js\/bg-anim-pin\.js/g, BG_PIN + '/js/bg-anim-pin.js');
+    while (html.indexOf('90094058c1f476b163296855e186984add6a625d') !== -1) {
+      html = html.split('90094058c1f476b163296855e186984add6a625d').join(BG_PIN);
+    }
+
     html = html.replace(/transition:opacity \.2s ease/g, 'transition:opacity .75s ease');
     html = html.replace(/setTimeout\(function \(\) \{ try \{ o\.remove\(\); \} catch \(e3\) \{\} \}, 250\)/g,
       'setTimeout(function () { try { o.remove(); } catch (e3) {} }, 800)');
