@@ -1,14 +1,21 @@
 /**
- * Divine Rays — ECG + gears v27 — resolution-aware full-width draw, numeric keyframes, no clones
- * Requires __DR_ECG_OK + data-ecg=on — never during boot
- * Credit: Boyz at the Back · All Rights Reserved
+ * Divine Rays — ECG + gears v28
+ * - Single instance only (no double timers / ghost lines)
+ * - Duration = viewport width so EVERY pattern reaches the right edge
+ * - Longer paths auto-draw faster; shorter paths slower — same finish time
+ * - Core + glow always paired; orphans removed
  */
 (function () {
   'use strict';
-  try { delete window.__DR_HEARTBEAT_DRAW; } catch (e0) {}
-  window.__DR_HEARTBEAT_DRAW = 27;
+  if (window.__DR_HEARTBEAT_DRAW >= 28) return;
+  /* kill older versions' timers if any */
+  try {
+    if (window.__DR_ECG_TIMER) clearTimeout(window.__DR_ECG_TIMER);
+    if (window.__DR_ECG_INTERVAL) clearInterval(window.__DR_ECG_INTERVAL);
+  } catch (e0) {}
+  window.__DR_HEARTBEAT_DRAW = 28;
 
-  var CSS_ID = 'dr-gears-bg-v27';
+  var CSS_ID = 'dr-gears-bg-v28';
   var BOX_ID = 'dr-lifeline';
   var lastTheme = null;
   var lastMode = null;
@@ -17,9 +24,8 @@
   var __ecgBusy = false;
   var __tickBusy = false;
   var lastEcgWidth = 0;
-  var ECG_SPEED_PX_PER_SEC = 100;
-  var ECG_VIEWBOX_W = 720;
-  var __cycleStartedAt = 0;
+  /* px/sec across viewport — same wall-clock time for all patterns */
+  var ECG_SPEED_PX_PER_SEC = 95;
   var __startedOnce = false;
 
   function isLight() {
@@ -134,7 +140,7 @@
     '#' + BOX_ID + '{z-index:0!important;pointer-events:none!important;overflow:visible!important;background:transparent!important;box-shadow:none!important;filter:none!important}',
     '#dr-lifeline,#dr-lifeline *{pointer-events:none!important}',
     '#dr-lifeline svg{width:100%;height:100%;display:block;overflow:visible}',
-    '#dr-lifeline .dr-ecg-core,#dr-lifeline .dr-ecg-glow{will-change:stroke-dashoffset,opacity;transform:translateZ(0);backface-visibility:hidden}',
+    '#dr-lifeline .dr-ecg-core,#dr-lifeline .dr-ecg-glow{will-change:stroke-dashoffset,opacity;transform:translateZ(0)}',
     '#dr-lifeline .dr-spin-cw{transform-origin:0 0;animation:drGearCW 30s linear infinite}',
     '#dr-lifeline .dr-spin-ccw{transform-origin:0 0;animation:drGearCCW 24s linear infinite}',
     '#dr-lifeline .dr-spin-cw-fast{transform-origin:0 0;animation:drGearCW 18s linear infinite}',
@@ -143,7 +149,6 @@
     '@keyframes drGearCCW{from{transform:rotate(0deg)}to{transform:rotate(-360deg)}}',
     '#login-screen,.login-screen{position:relative!important;z-index:2!important}',
     '#login-screen .login-card,.login-card{position:relative!important;z-index:5!important}',
-    'body,.app-shell,#portal-customer,#portal-agent{position:relative;z-index:1}',
     '@keyframes drEcgGlowPulse{0%,100%{opacity:0.28}50%{opacity:0.42}}',
     '@keyframes drEcgCorePulse{0%,100%{opacity:0.85}50%{opacity:0.95}}'
   ].join('');
@@ -168,13 +173,14 @@
     var d = ECG_PATTERNS[ecgIndex % ECG_PATTERNS.length];
     var core = ecgStroke();
     var glow = ecgGlowStroke();
+    var fid = 'drEcgBlur' + Date.now();
     return (
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 100" preserveAspectRatio="none" ' +
       'width="100%" height="100%" style="display:block;overflow:visible">' +
-      '<defs><filter id="drEcgBlur" x="-25%" y="-60%" width="150%" height="220%" color-interpolation-filters="sRGB">' +
+      '<defs><filter id="' + fid + '" x="-25%" y="-60%" width="150%" height="220%" color-interpolation-filters="sRGB">' +
       '<feGaussianBlur in="SourceGraphic" stdDeviation="1.6" result="blur"/>' +
       '<feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>' +
-      '<path class="dr-ecg-glow" fill="none" stroke="' + glow + '" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" filter="url(#drEcgBlur)" opacity="0.55" d="' + d + '"/>' +
+      '<path class="dr-ecg-glow" fill="none" stroke="' + glow + '" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" filter="url(#' + fid + ')" opacity="0.55" d="' + d + '"/>' +
       '<path class="dr-ecg-core" fill="none" stroke="' + core + '" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="' + d + '"/>' +
       '</svg>'
     );
@@ -199,9 +205,10 @@
     } catch (e) { return 1200; }
   }
 
+  /* Same finish time on any resolution; longer paths draw faster automatically */
   function ecgDurationSec() {
     var w = viewportWidth();
-    var sec = (w / ECG_SPEED_PX_PER_SEC) * 1.4;
+    var sec = (w / ECG_SPEED_PX_PER_SEC) * 1.35;
     if (sec < 8) sec = 8;
     if (sec > 36) sec = 36;
     return sec;
@@ -223,9 +230,19 @@
       document.querySelectorAll('#dr-lifeline').forEach(function (el) {
         if (box && el !== box && el.parentNode) el.parentNode.removeChild(el);
       });
+      /* any ECG path not inside the single #dr-lifeline */
       document.querySelectorAll('.dr-ecg-core, .dr-ecg-glow').forEach(function (el) {
         if (!el.closest('#dr-lifeline') && el.parentNode) el.parentNode.removeChild(el);
       });
+      /* core without glow sibling = ghost */
+      if (box) {
+        box.querySelectorAll('.dr-ecg-core').forEach(function (core) {
+          var svg = core.ownerSVGElement || core.closest('svg');
+          if (svg && !svg.querySelector('.dr-ecg-glow')) {
+            try { svg.parentNode && svg.parentNode.removeChild(svg); } catch (e2) {}
+          }
+        });
+      }
     } catch (e) {}
   }
 
@@ -243,6 +260,8 @@
 
   function clearEcgTimer() {
     if (ecgTimer) { clearTimeout(ecgTimer); ecgTimer = null; }
+    try { if (window.__DR_ECG_TIMER) clearTimeout(window.__DR_ECG_TIMER); } catch (e) {}
+    window.__DR_ECG_TIMER = null;
   }
 
   function runEcgCycle(opt) {
@@ -253,7 +272,6 @@
     if (!forceNew && document.querySelector('#dr-lifeline .dr-ecg-core')) return;
     clearEcgTimer();
     __ecgBusy = true;
-    __cycleStartedAt = Date.now();
     __startedOnce = true;
 
     var login = document.getElementById('login-screen') || document.querySelector('.login-screen');
@@ -314,11 +332,12 @@
     });
 
     __ecgBusy = false;
-    /* Reset only after full travel across the current screen width */
+    var waitMs = Math.round(dur * 1000) + 700;
     ecgTimer = setTimeout(function () {
       ecgIndex = (ecgIndex + 1) % ECG_PATTERNS.length;
       if (loginVisible()) runEcgCycle({ forceNew: true });
-    }, Math.round(dur * 1000) + 700);
+    }, waitMs);
+    window.__DR_ECG_TIMER = ecgTimer;
   }
 
   function ensureGears(force) {
@@ -327,7 +346,8 @@
     var mode = portalActive() ? 'portal' : 'login';
     if (mode === 'login') {
       box.style.display = 'block';
-      if (box.querySelector('.dr-ecg-core')) {
+      purgeClones(box);
+      if (box.querySelector('.dr-ecg-core') && box.querySelector('.dr-ecg-glow')) {
         if (themeKey() !== lastTheme) recolorEcgOnly();
         lastMode = 'login';
         return;
@@ -401,13 +421,13 @@
     }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
   } catch (eMo) {}
 
-  setInterval(function () {
+  window.__DR_ECG_INTERVAL = setInterval(function () {
     if (isBooting() || !shellReady()) return;
     tick(false);
-  }, 2000);
+  }, 1500);
 
-  if (!window.__drEcgResizeWired) {
-    window.__drEcgResizeWired = 1;
+  if (!window.__drEcgResizeWiredV28) {
+    window.__drEcgResizeWiredV28 = 1;
     var resizeT = null;
     window.addEventListener('resize', function () {
       if (resizeT) clearTimeout(resizeT);
