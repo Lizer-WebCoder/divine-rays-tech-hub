@@ -1,12 +1,12 @@
 /**
- * Divine Rays — pending approved fix v2
- * Approved staff never get orange login glow; clears stale localStorage pending marks.
+ * Divine Rays — pending approved fix v3
+ * Exact-match DEVs only (no prefix). Pending accounts keep orange glow + shake.
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_PENDING_APPROVED_FIX >= 2) return;
-  window.__DR_PENDING_APPROVED_FIX = 2;
+  if (window.__DR_PENDING_APPROVED_FIX >= 3) return;
+  window.__DR_PENDING_APPROVED_FIX = 3;
 
   var KEY = 'dr_staff_approval';
   var DEVS = { kirzhian: 1, kirzhianquijano: 1, jamesjerlow123: 1, liya: 1, iiya: 1 };
@@ -29,7 +29,9 @@
   }
   function isDev(n) {
     n = String(n || '').toLowerCase().trim();
-    return !!DEVS[n] || n.indexOf('kirzhian') === 0;
+    if (!n) return false;
+    /* Exact username only — no prefix match (was clearing glow for kirzhianthegreat etc.) */
+    return !!DEVS[n];
   }
   function isApprovedProfile(p, meta) {
     meta = meta || {};
@@ -60,11 +62,11 @@
 
   function patch() {
     try {
-      if (window.DRForcePending && typeof window.DRForcePending.shouldBlock === 'function' && !window.DRForcePending.__apFix) {
+      if (window.DRForcePending && typeof window.DRForcePending.shouldBlock === 'function' && !window.DRForcePending.__apFix3) {
         var prev = window.DRForcePending.shouldBlock;
         window.DRForcePending.shouldBlock = function (user, profile, hint) {
           var meta = (user && user.user_metadata) || {};
-          var un = String(meta.username || (profile && profile.username) || hint || '').toLowerCase().trim();
+          var un = String(meta.username || (profile && profile.username) || '').toLowerCase().trim();
           var em = String((user && user.email) || (profile && profile.email) || '').toLowerCase();
           var id = user && user.id;
           if (isDev(un) || isApprovedProfile(profile, meta)) {
@@ -74,15 +76,17 @@
           }
           return prev.apply(this, arguments);
         };
-        window.DRForcePending.__apFix = 1;
+        window.DRForcePending.__apFix3 = 1;
       }
     } catch (e) {}
     try {
-      if (window.DRAgentApproval && typeof window.DRAgentApproval.isPending === 'function' && !window.DRAgentApproval.__apFix) {
-        var prev2 = window.DRAgentApproval.isPending;
-        window.DRAgentApproval.isPending = function (user, profile, hint) {
+      if (window.DRAgentApproval && typeof window.DRAgentApproval.shouldBlock === 'function' && !window.DRAgentApproval.__apFix3) {
+        var prev2 = window.DRAgentApproval.shouldBlock;
+        window.DRAgentApproval.shouldBlock = function () {
+          var args = arguments;
+          var user = args[0], profile = args[1];
           var meta = (user && user.user_metadata) || {};
-          var un = String(meta.username || (profile && profile.username) || hint || '').toLowerCase().trim();
+          var un = String(meta.username || (profile && profile.username) || '').toLowerCase().trim();
           var em = String((user && user.email) || (profile && profile.email) || '').toLowerCase();
           var id = user && user.id;
           if (isDev(un) || isApprovedProfile(profile, meta)) {
@@ -90,16 +94,16 @@
             clearGlow();
             return false;
           }
-          return prev2.apply(this, arguments);
+          return prev2.apply(this, args);
         };
-        window.DRAgentApproval.__apFix = 1;
+        window.DRAgentApproval.__apFix3 = 1;
       }
     } catch (e2) {}
   }
 
   function wrapShowApp() {
     function wrap(obj, key) {
-      if (!obj || typeof obj[key] !== 'function' || obj[key].__apFix) return;
+      if (!obj || typeof obj[key] !== 'function' || obj[key].__apFix3) return;
       var prev = obj[key];
       obj[key] = function (p) {
         if (p) {
@@ -112,7 +116,7 @@
         }
         return prev.apply(this, arguments);
       };
-      obj[key].__apFix = 1;
+      obj[key].__apFix3 = 1;
     }
     try { if (window.DR) wrap(window.DR, 'showApp'); } catch (e) {}
     try { wrap(window, 'showApp'); } catch (e2) {}
