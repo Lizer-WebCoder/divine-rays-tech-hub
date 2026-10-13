@@ -1,5 +1,5 @@
 /**
- * Divine Rays — ECG + gears v28
+ * Divine Rays — ECG + gears v29 — start only after boot fade completes
  * - Single instance only (no double timers / ghost lines)
  * - Duration = viewport width so EVERY pattern reaches the right edge
  * - Longer paths auto-draw faster; shorter paths slower — same finish time
@@ -7,15 +7,14 @@
  */
 (function () {
   'use strict';
-  if (window.__DR_HEARTBEAT_DRAW >= 28) return;
-  /* kill older versions' timers if any */
+  if (window.__DR_HEARTBEAT_DRAW >= 29) return;
   try {
     if (window.__DR_ECG_TIMER) clearTimeout(window.__DR_ECG_TIMER);
     if (window.__DR_ECG_INTERVAL) clearInterval(window.__DR_ECG_INTERVAL);
   } catch (e0) {}
-  window.__DR_HEARTBEAT_DRAW = 28;
+  window.__DR_HEARTBEAT_DRAW = 29;
 
-  var CSS_ID = 'dr-gears-bg-v28';
+  var CSS_ID = 'dr-gears-bg-v29';
   var BOX_ID = 'dr-lifeline';
   var lastTheme = null;
   var lastMode = null;
@@ -24,7 +23,6 @@
   var __ecgBusy = false;
   var __tickBusy = false;
   var lastEcgWidth = 0;
-  /* px/sec across viewport — same wall-clock time for all patterns */
   var ECG_SPEED_PX_PER_SEC = 95;
   var __startedOnce = false;
 
@@ -39,22 +37,44 @@
     }
   }
   function themeKey() { return isLight() ? 'light' : 'dark'; }
+  function isBooting() {
+    try {
+      if (window.__DR_BOOT_DONE === true) {
+        var oDone = document.getElementById('dr-boot-overlay');
+        if (!oDone) return false;
+        if (oDone.classList.contains('is-done')) {
+          try {
+            var op = parseFloat(window.getComputedStyle(oDone).opacity || '0');
+            if (op <= 0.05) return false;
+            return true;
+          } catch (eF) { return false; }
+        }
+      }
+      if (document.body && document.body.classList.contains('dr-boot-holding')) return true;
+      var o = document.getElementById('dr-boot-overlay');
+      if (o && !o.classList.contains('is-done')) return true;
+      if (o && o.classList.contains('is-done')) {
+        try {
+          var op2 = parseFloat(window.getComputedStyle(o).opacity || '0');
+          if (op2 > 0.05) return true;
+        } catch (e3) {}
+      }
+      var boot = document.getElementById('boot');
+      if (boot && !boot.hidden) {
+        var st = window.getComputedStyle(boot);
+        if (st.display !== 'none' && st.visibility !== 'hidden') return true;
+      }
+    } catch (e) {}
+    return false;
+  }
   function shellReady() {
     try {
+      if (isBooting()) return false;
       if (window.__DR_ECG_OK !== true) return false;
       if (document.documentElement.getAttribute('data-ecg') !== 'on') return false;
       return true;
     } catch (e) {}
     return false;
-  }
-  function isBooting() {
-    var boot = document.getElementById('boot');
-    if (!boot) return false;
-    try {
-      var st = window.getComputedStyle(boot);
-      if (st.display === 'none' || boot.hidden) return false;
-    } catch (e) {}
-    return true;
   }
   function loginVisible() {
     if (isBooting() || !shellReady()) return false;
@@ -205,7 +225,6 @@
     } catch (e) { return 1200; }
   }
 
-  /* Same finish time on any resolution; longer paths draw faster automatically */
   function ecgDurationSec() {
     var w = viewportWidth();
     var sec = (w / ECG_SPEED_PX_PER_SEC) * 1.35;
@@ -230,11 +249,9 @@
       document.querySelectorAll('#dr-lifeline').forEach(function (el) {
         if (box && el !== box && el.parentNode) el.parentNode.removeChild(el);
       });
-      /* any ECG path not inside the single #dr-lifeline */
       document.querySelectorAll('.dr-ecg-core, .dr-ecg-glow').forEach(function (el) {
         if (!el.closest('#dr-lifeline') && el.parentNode) el.parentNode.removeChild(el);
       });
-      /* core without glow sibling = ghost */
       if (box) {
         box.querySelectorAll('.dr-ecg-core').forEach(function (core) {
           var svg = core.ownerSVGElement || core.closest('svg');
@@ -266,7 +283,7 @@
 
   function runEcgCycle(opt) {
     if (__ecgBusy) return;
-    if (!loginVisible()) return;
+    if (isBooting() || !loginVisible()) return;
     var forceNew = opt && opt.forceNew;
     if (__startedOnce && !forceNew) return;
     if (!forceNew && document.querySelector('#dr-lifeline .dr-ecg-core')) return;
@@ -390,11 +407,15 @@
 
   function waitForLogin() {
     if (isBooting() || !shellReady() || !loginVisible()) {
-      setTimeout(waitForLogin, 100);
+      setTimeout(waitForLogin, 120);
+      return;
+    }
+    if (!window.__DR_BOOT_DONE) {
+      setTimeout(waitForLogin, 120);
       return;
     }
     if (__startedOnce || document.querySelector('#dr-lifeline .dr-ecg-core')) return;
-    tick(true);
+    setTimeout(function () { tick(true); }, 80);
   }
 
   if (document.readyState === 'loading') {
@@ -426,8 +447,8 @@
     tick(false);
   }, 1500);
 
-  if (!window.__drEcgResizeWiredV28) {
-    window.__drEcgResizeWiredV28 = 1;
+  if (!window.__drEcgResizeWiredV29) {
+    window.__drEcgResizeWiredV29 = 1;
     var resizeT = null;
     window.addEventListener('resize', function () {
       if (resizeT) clearTimeout(resizeT);
