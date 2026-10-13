@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <title>Divine Rays Tech Hub — Support</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=958" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=959" />
   <script>
     window.__DR_ECG_OK = true;
     try {
@@ -140,7 +140,6 @@
           el.style.setProperty('background-image', 'none', 'important');
           el.style.setProperty('background-color', 'transparent', 'important');
         });
-        /* Do NOT remove #dr-login-ambient — honeycomb lives there */
       } catch (e) {}
     }
 
@@ -189,7 +188,7 @@
         if (n.tagName === 'LINK') {
           var href = n.getAttribute('href') || '';
           if (href && href.indexOf('http') !== 0) {
-            href = CDN + PIN + '/' + href.replace(/^\.\//, '').split('?')[0] + '?v=958';
+            href = CDN + PIN + '/' + href.replace(/^\.\//, '').split('?')[0] + '?v=959';
             n.setAttribute('href', href);
           }
           document.head.appendChild(document.importNode(n, true));
@@ -219,22 +218,27 @@
       doc.querySelectorAll('script[src]').forEach(function (sc) {
         var src = sc.getAttribute('src') || '';
         if (!src) return;
-        if (src.indexOf('http') !== 0) src = CDN + PIN + '/' + src.replace(/^\.\//, '').split('?')[0] + '?v=958';
+        if (src.indexOf('http') !== 0) src = CDN + PIN + '/' + src.replace(/^\.\//, '').split('?')[0] + '?v=959';
         core.push(src);
       });
       for (var c = 0; c < core.length; c++) await loadScript(core[c]);
 
-      /* Login scripts: ECG + one-shot honeycomb (never rebuilds) */
+      /* ORDER MATTERS:
+         1) freeze-guard (wraps click listeners)
+         2) ORIGINAL force-light-bg 0962 (full honeycomb + icons + dashed lines)
+         3) ECG + login UI
+         Guard locks ambient after first paint so password/login clicks never rebuild it. */
       var loginScripts = [
+        '6ed9aa3cf1cbfc0f2716f0fc88161a6e814b177f/js/ambient-freeze-guard.js',
+        '0962f5535b86b390f60be2a3435a2e0500a18cb7/js/force-light-bg.js',
         '90094058c1f476b163296855e186984add6a625d/js/bg-anim-pin.js',
         'a9046e485443b24e800a4f4d10747c10146ca663/js/heartbeat-draw.js',
-        'eb32bdbe765ca11ae103a099c00c4d0746a78fb4/js/login-ambient-oneshot.js',
         '8c56504dc4ae1c397eb336de3d117dd3bd022ed7/js/login-theme.js',
         '233f36150987e8576aab9114d1ca329bf09fa6a0/js/login-nav-fix.js',
         '8afd47c0aa694ef7483f413d2ad7c15ea2be7b30/js/login-shell-sep.js',
         '9beff1f92931/js/login-tab-labels.js'
       ];
-      for (var L = 0; L < loginScripts.length; L++) await loadScript(CDN + loginScripts[L] + '?v=958');
+      for (var L = 0; L < loginScripts.length; L++) await loadScript(CDN + loginScripts[L] + '?v=959');
 
       lockLoginBg();
       killLightBtn();
@@ -271,7 +275,7 @@
           '655a1f16fb5792f66ec0eb61f789bc5687b5b945/js/agent-views.js',
           '910b2ffba037e5926610ca013f778e0b7937bf21/js/ticket-claim-lock.js',
           '2a3c434aeef8cbb03bcb25cefc1a886a4b2f5feb/js/users-nav.js'
-        ].forEach(function (p) { injectDefer(CDN + p + '?v=958'); });
+        ].forEach(function (p) { injectDefer(CDN + p + '?v=959'); });
       }, 2500);
 
       setTimeout(function () { lockLoginBg(); killLightBtn(); }, 400);
