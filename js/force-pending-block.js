@@ -1,15 +1,14 @@
 /**
- * Divine Rays — force-pending-block v11
- * Same rule as Users Admin list: staff default PENDING until Approve.
- * Blocks first login. Orange glow + shake + right toast every attempt.
+ * Divine Rays — force-pending-block v12
+ * ONLY Admin / IT Tech Support / Owner need approval (pending until Approve).
+ * End-Users / Employees: no approval — full Employee portal access anytime.
  */
 (function () {
   'use strict';
-  if (window.__DR_FORCE_PENDING_BLOCK >= 11) return;
-  window.__DR_FORCE_PENDING_BLOCK = 11;
+  if (window.__DR_FORCE_PENDING_BLOCK >= 12) return;
+  window.__DR_FORCE_PENDING_BLOCK = 12;
 
   var KEY = 'dr_staff_approval';
-  /* Exact DEVs only — same as admin Users list */
   var DEVS = { kirzhian: 1, jamesjerlow123: 1, liya: 1 };
   var FADE_MS = 10000;
   var MSG = 'Your account is pending Administrator approval. Please wait until a Developer/Admin approves your account.';
@@ -29,7 +28,6 @@
   function isDev(n) {
     return !!DEVS[String(n || '').toLowerCase().trim()];
   }
-  /* Mirrors admin.js getStatus: approved only if DEVS or localStorage approved */
   function getApprovalStatus(id, un, em) {
     un = un ? String(un).toLowerCase().trim() : '';
     em = em ? String(em).toLowerCase().trim() : '';
@@ -41,7 +39,7 @@
     if (id && m[id] === 'pending') return 'pending';
     if (un && m['pending:' + un] === 'pending') return 'pending';
     if (em && m['pending:' + em] === 'pending') return 'pending';
-    return 'pending'; /* default — matches Users list */
+    return 'pending';
   }
   function markPending(id, un, em) {
     var m = map();
@@ -53,8 +51,21 @@
     save(m);
   }
   function isCustomer(r) {
-    r = String(r || '').toLowerCase();
-    return r === 'customer' || r === 'user' || r === 'end-user' || r === 'enduser' || r === 'client';
+    r = String(r || '').toLowerCase().trim();
+    return (
+      r === 'customer' || r === 'user' || r === 'end-user' || r === 'enduser' ||
+      r === 'client' || r === 'employee' || r === 'end user'
+    );
+  }
+  function isStaffRole(r) {
+    r = String(r || '').toLowerCase().trim();
+    if (!r || isCustomer(r)) return false;
+    return (
+      r === 'agent' || r === 'admin' || r === 'administrator' || r === 'owner' ||
+      r === 'developer' || r === 'dev' || r === 'tech' || r === 'tech support' ||
+      r === 'techsupport' || r === 'it' || r === 'it tech support' || r === 'staff' ||
+      r === 'support' || r.indexOf('admin') !== -1 || r.indexOf('agent') !== -1
+    );
   }
   function sb() {
     try {
@@ -169,11 +180,6 @@
         }, 420);
       } catch (e2) {}
     }
-    if (_toastEl) {
-      _toastEl.classList.remove('dr-pending-toast-shake');
-      void _toastEl.offsetWidth;
-      _toastEl.classList.add('dr-pending-toast-shake');
-    }
   }
   function showPending() {
     ensureCss();
@@ -221,17 +227,10 @@
     quietSignOut();
     lockPortal();
     setApprovalError();
-    setTimeout(function () {
-      lockPortal();
-      applyOrangeGlow(card());
-      shake();
-    }, 80);
-    setTimeout(function () {
-      lockPortal();
-      applyOrangeGlow(card());
-    }, 250);
+    setTimeout(function () { lockPortal(); applyOrangeGlow(card()); shake(); }, 80);
+    setTimeout(function () { lockPortal(); applyOrangeGlow(card()); }, 250);
   }
-  /* true = BLOCK */
+  /* ONLY staff (Admin / Tech Support / Owner). End-Users never blocked. */
   function shouldBlockUser(id, un, em, role) {
     un = String(un || '').toLowerCase().trim();
     em = String(em || '').toLowerCase().trim();
@@ -240,39 +239,34 @@
     if (isCustomer(role)) return false;
     var st = getApprovalStatus(id, un, em);
     if (st === 'approved') return false;
-    markPending(id, un, em);
-    return true;
+    if (isStaffRole(role) || !role) {
+      markPending(id, un, em);
+      return true;
+    }
+    return false;
   }
   function gateProfile(p) {
-    if (!p) return true;
+    if (!p) return false;
+    if (isCustomer(p.role || p.staff_role)) return false;
     var un = String(p.username || '').toLowerCase().trim();
     var em = String(p.email || '').toLowerCase();
-    var id = p.id;
-    var role = p.role || p.staff_role || '';
-    return shouldBlockUser(id, un, em, role);
+    return shouldBlockUser(p.id, un, em, p.role || p.staff_role || '');
   }
   function wrapShowApp() {
     function wrap(fn) {
-      if (!fn || fn.__drFpWrapV11) return fn;
+      if (!fn || fn.__drFpWrapV12) return fn;
       var w = function (p) {
         try {
-          if (gateProfile(p)) {
-            blockNow();
-            return;
-          }
+          if (gateProfile(p)) { blockNow(); return; }
         } catch (e) {}
         return fn.apply(this, arguments);
       };
-      w.__drFpWrapV11 = 1;
+      w.__drFpWrapV12 = 1;
       return w;
     }
     try {
-      if (typeof window.showApp === 'function' && !window.showApp.__drFpWrapV11) {
-        window.showApp = wrap(window.showApp);
-      }
-      if (window.DR && typeof window.DR.showApp === 'function' && !window.DR.showApp.__drFpWrapV11) {
-        window.DR.showApp = wrap(window.DR.showApp);
-      }
+      if (typeof window.showApp === 'function' && !window.showApp.__drFpWrapV12) window.showApp = wrap(window.showApp);
+      if (window.DR && typeof window.DR.showApp === 'function' && !window.DR.showApp.__drFpWrapV12) window.DR.showApp = wrap(window.DR.showApp);
     } catch (e) {}
   }
   async function checkSession() {
@@ -290,12 +284,14 @@
         var pr = await client.from('profiles').select('*').eq('id', user.id).maybeSingle();
         profile = pr && pr.data;
       } catch (e) {}
+      var role = (profile && (profile.role || profile.staff_role)) || meta.role || '';
+      if (isCustomer(role)) return; /* End-User session — never block */
       var un = String(meta.username || (profile && profile.username) || '').toLowerCase().trim();
       var em = String(user.email || (profile && profile.email) || '').toLowerCase();
-      var role = (profile && (profile.role || profile.staff_role)) || meta.role || '';
       if (shouldBlockUser(user.id, un, em, role)) blockNow();
     } catch (e) {}
   }
+  /* Only applies to Tech Support form — End-User form is never gated */
   function isPendingIdentity() {
     var u = readUserEmail();
     if (!u.raw) return false;
@@ -346,9 +342,10 @@
   try {
     new MutationObserver(function () {
       if (!isPendingIdentity() && !_uiOn) return;
-      if (document.body.classList.contains('is-portal')) blockNow();
-      var pa = document.getElementById('portal-agent');
-      if (pa && pa.classList.contains('active') && isPendingIdentity()) blockNow();
+      if (document.body.classList.contains('is-portal')) {
+        var pa = document.getElementById('portal-agent');
+        if (pa && pa.classList.contains('active')) blockNow();
+      }
     }).observe(document.documentElement, { attributes: true, subtree: true, attributeFilter: ['class'] });
   } catch (eObs) {}
 
@@ -360,8 +357,8 @@
     }
   }, 400);
 
-  if (!window.__drForcePendingSubmitV11) {
-    window.__drForcePendingSubmitV11 = 1;
+  if (!window.__drForcePendingSubmitV12) {
+    window.__drForcePendingSubmitV12 = 1;
     document.addEventListener('submit', onSubmit, true);
     document.addEventListener('click', onAgentButtonClick, true);
     document.addEventListener('keydown', onEnterKey, true);
