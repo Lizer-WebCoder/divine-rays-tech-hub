@@ -7,10 +7,10 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <!--
-    PRODUCTION LOGIN LOCK v3.1
-    force-pending v22 be76bf28 — card-only pending, sticky clear, server approval_status
-    admin V21 c54201aa — Approve writes profiles.approval_status (any device)
-    app.js eda5cefe + portal-boot e933bee7 — Successfully logged in + gear boot until portal ready
+    PRODUCTION LOGIN LOCK v3.2
+    force-pending v23 90b8cc49 — click-only pending (no mousedown steal)
+    app.js 4bdfb05 — first-click runAgentLogin
+    portal-boot e933bee7 — Successfully logged in + gear boot
   -->
   <title>Divine Rays Tech Hub — Support</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.9.22-av-cards" />
@@ -68,10 +68,10 @@
     var STABLE_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + AMBIENT_STABLE + '/js/ambient-stable.js';
     var HARD_LOCK = 'f4e7f568ebc07db459b5e6e6344486d6a7103c64';
     var HARD_LOCK_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + HARD_LOCK + '/js/ambient-hard-lock.js';
-    var FORCE_PENDING = 'be76bf28d019fd05e7515cd55eff8590f7e689c0';
+    var FORCE_PENDING = '90b8cc49d229bea4e22dfa64e7366f690141d887';
     var FORCE_PENDING_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + FORCE_PENDING + '/js/force-pending-block.js';
     var ADMIN_JS = 'c54201aa340f2f53d81f10aa0bb07680811f58c4';
-    var APP_JS = 'eda5cefe233f8314cd2bf75921db75f7a2febe9c';
+    var APP_JS = '4bdfb058854580b30858e4401acc1f513b24893d';
     var PORTAL_BOOT = 'e933bee7ba89c2c0d7a6eec91ec541146143f42f';
     var PORTAL_BOOT_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PORTAL_BOOT + '/js/portal-boot-login.js';
     var BLOCKED_HB = [
