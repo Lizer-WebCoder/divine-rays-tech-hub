@@ -1,5 +1,5 @@
 /**
- * Divine Rays Tech Hub — login loader (safe role switch) + pending gate v2
+ * Divine Rays Tech Hub — login loader (safe role switch) + pending gate v3
  * Credit: Lizzz · All Rights Reserved
  */
 (function () {
@@ -83,6 +83,51 @@
       }
     } catch (e2) {}
   }
+
+  function drEnsurePortalReady() {
+    try {
+      if (window.DRForcePending && window.DRForcePending.clearPendingUI) {
+        window.DRForcePending.clearPendingUI();
+      }
+    } catch (e) {}
+    try {
+      document.body.classList.add('dr-portal-ok', 'is-portal');
+      document.body.classList.remove('dr-pending-blocked', 'is-login');
+    } catch (e2) {}
+    try {
+      var pa = document.getElementById('portal-agent');
+      if (pa) {
+        pa.classList.add('active');
+        pa.style.removeProperty('display');
+        pa.style.removeProperty('visibility');
+      }
+      var shell = document.getElementById('app-shell');
+      if (shell) {
+        shell.hidden = false;
+        shell.classList.remove('is-hidden');
+        shell.style.cssText = '';
+      }
+      var ls = document.getElementById('login-screen');
+      if (ls) {
+        ls.hidden = true;
+        ls.classList.add('is-hidden');
+        ls.style.cssText = 'display:none!important';
+      }
+    } catch (e3) {}
+    try {
+      var list = document.getElementById('ticket-list');
+      if (list) list.classList.add('dr-cards-ready');
+      var pager = document.getElementById('dr-ticket-pager');
+      if (pager) pager.classList.add('dr-pager-ready');
+    } catch (e4) {}
+    try {
+      if (typeof window.showAgentView === 'function') window.showAgentView('dashboard');
+    } catch (e5) {}
+    try {
+      if (typeof window.renderTicketList === 'function') window.renderTicketList();
+    } catch (e6) {}
+  }
+
   async function drHardSignOutLocal() {
     try {
       if (sb && sb.auth) await sb.auth.signOut({ scope: 'local' });
@@ -304,6 +349,9 @@
           showApp(prof);
         }
         applyPortalForRole(prof && prof.role);
+        drEnsurePortalReady();
+        setTimeout(drEnsurePortalReady, 300);
+        setTimeout(drEnsurePortalReady, 1000);
         window.__drFullLoaded = true;
       }
     } catch (e) {
@@ -352,10 +400,12 @@
       e.stopImmediatePropagation();
       clearErrors();
       if (!usingCloud) { showError('login-agent', 'Supabase not configured'); return; }
+      if (window.__drBooting) return;
       var __au = document.getElementById('agent-username') || document.getElementById('agent-user');
       if (!__au) { showError('login-agent', 'Login form missing username field'); return; }
       var userOrEmail = __au.value.trim();
-      var password = document.getElementById('agent-password').value;
+      var passwordEl = document.getElementById('agent-password');
+      var password = passwordEl ? passwordEl.value : '';
       var email = userOrEmail;
       var unHint = userOrEmail.indexOf('@') === -1 ? userOrEmail.toLowerCase() : '';
       var emHint = userOrEmail.indexOf('@') !== -1 ? userOrEmail.toLowerCase() : '';
@@ -365,10 +415,21 @@
         drShowPendingLogin();
         return;
       }
+      var btn = la.querySelector('button[type="submit"], button.btn-primary, button.btn');
+      var prevLabel = btn ? btn.textContent : '';
+      function setBusy(on) {
+        try {
+          if (!btn) return;
+          btn.disabled = !!on;
+          btn.textContent = on ? 'Signing in…' : (prevLabel || 'Sign in as Admin');
+          btn.style.opacity = on ? '0.85' : '';
+        } catch (eB) {}
+      }
+      setBusy(true);
       try {
         if (userOrEmail.indexOf('@') === -1) {
           var resolved = await resolveAgentEmail(userOrEmail);
-          if (!resolved) { showError('login-agent', 'Username not found'); return; }
+          if (!resolved) { showError('login-agent', 'Username not found'); setBusy(false); return; }
           email = resolved;
           emHint = String(email).toLowerCase();
         }
@@ -376,21 +437,28 @@
           drMarkPending(null, unHint, emHint);
           showError('login-agent', 'Account needs approval.');
           drShowPendingLogin();
+          setBusy(false);
           return;
         }
         var r = await signIn(email, password);
-        if (r.error) { showError('login-agent', r.error); return; }
+        if (r.error) { showError('login-agent', r.error); setBusy(false); return; }
         if (drMustBlockStaff(r.profile, email, unHint || (r.profile && r.profile.username))) {
           showError('login-agent', 'Account needs approval.');
           drShowPendingLogin();
           await drHardSignOutLocal();
+          setBusy(false);
           return;
         }
+        try {
+          if (window.DRForcePending && window.DRForcePending.clearPendingUI) window.DRForcePending.clearPendingUI();
+        } catch (eC) {}
         window.__drProfile = r.profile;
         await loadFullAppThen(r.profile && r.profile.role);
+        drEnsurePortalReady();
       } catch (err) {
         console.error(err);
         showError('login-agent', err.message || String(err));
+        setBusy(false);
       }
     });
 
