@@ -7,8 +7,9 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <!--
-    LOGIN PAGE BASELINE LOCKED v2.2
-    login-tab-labels  2d121dc89b96a2ebc268cfbca58ca9796c498fa3  (v6 Employee|Admin)
+    LOGIN PAGE BASELINE LOCKED v2.3
+    login-tab-labels     2d121dc89b96a2ebc268cfbca58ca9796c498fa3
+    agent-username-auth  0258ae2a6a77a4d0458a79d1ad80114b72f3037b  (Email only, no flicker)
   -->
   <title>Divine Rays Tech Hub — Support</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.9.22-av-cards" />
@@ -35,7 +36,10 @@
     var BG_PIN = 'dd941697b969c4e269c2d1f17b68455d879ba080';
     var FADE = '449a55bb47f7e66cb45d4f616119a91bec3dd33d';
     var LOGIN_TAB = '2d121dc89b96a2ebc268cfbca58ca9796c498fa3';
+    var AGENT_AUTH = '0258ae2a6a77a4d0458a79d1ad80114b72f3037b';
+    var OLD_AGENT_AUTH = '352793740bb2621d2d132e892827df83a58803f5';
     var LOGIN_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LOGIN_TAB + '/js/login-tab-labels.js';
+    var AGENT_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + AGENT_AUTH + '/js/agent-username-auth.js';
     var BLOCKED_HB = [
       'a9046e485443b24e800a4f4d10747c10146ca663',
       '1887c6e9fe2436bf5402f2c4fa40dda29597416f',
@@ -96,6 +100,12 @@
     html = html.replace(/'login-tab-labels\.js'\s*:\s*'[a-f0-9]+'/g, "'login-tab-labels.js': '" + LOGIN_TAB + "'");
     html = html.replace(/[a-f0-9]{40}\/js\/login-tab-labels\.js/g, LOGIN_TAB + '/js/login-tab-labels.js');
 
+    /* agent-username-auth: stop Username or Email flicker */
+    while (html.indexOf(OLD_AGENT_AUTH) !== -1) {
+      html = html.split(OLD_AGENT_AUTH).join(AGENT_AUTH);
+    }
+    html = html.replace(/[a-f0-9]{40}\/js\/agent-username-auth\.js/g, AGENT_AUTH + '/js/agent-username-auth.js');
+
     html = html.replace(
       /#dr-boot-overlay\.is-done\{opacity:0;pointer-events:none;visibility:hidden\}/g,
       '#dr-boot-overlay.is-done{opacity:0;pointer-events:none}'
@@ -127,25 +137,37 @@
     document.write(html);
     document.close();
 
-    /* document.write wipes outer scripts — re-inject labels after shell is live */
-    function injectLabels() {
+    function inject(src, flag, min) {
       try {
-        if (window.__DR_LOGIN_TAB_LABELS >= 6) {
-          if (window.DRLoginTabLabels) window.DRLoginTabLabels.refresh();
-          return;
-        }
-        var existing = document.querySelector('script[src*="login-tab-labels.js"]');
-        if (existing) existing.remove();
+        if (flag && window[flag] >= min) return;
         var s = document.createElement('script');
-        s.src = LOGIN_SRC + (LOGIN_SRC.indexOf('?') === -1 ? '?' : '&') + 'b=' + Date.now();
+        s.src = src + (src.indexOf('?') === -1 ? '?' : '&') + 'b=' + Date.now();
         s.async = false;
         (document.head || document.documentElement).appendChild(s);
       } catch (e) {}
     }
-    setTimeout(injectLabels, 100);
-    setTimeout(injectLabels, 600);
-    setTimeout(injectLabels, 1500);
-    setTimeout(injectLabels, 3000);
+    function stripOldAgentAuth() {
+      try {
+        document.querySelectorAll('script[src*="agent-username-auth.js"]').forEach(function (el) {
+          var src = el.getAttribute('src') || '';
+          if (src.indexOf(OLD_AGENT_AUTH) !== -1) {
+            try { el.parentNode && el.parentNode.removeChild(el); } catch (e) {}
+          }
+        });
+      } catch (e2) {}
+    }
+    function postBoot() {
+      stripOldAgentAuth();
+      inject(LOGIN_SRC, '__DR_LOGIN_TAB_LABELS', 6);
+      inject(AGENT_SRC, '__DR_AGENT_USERNAME_AUTH', 2);
+      try {
+        if (window.DRLoginTabLabels) window.DRLoginTabLabels.refresh();
+      } catch (e3) {}
+    }
+    setTimeout(postBoot, 100);
+    setTimeout(postBoot, 600);
+    setTimeout(postBoot, 1500);
+    setTimeout(postBoot, 3000);
   })();
   </script>
 </body>
