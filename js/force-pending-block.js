@@ -1,16 +1,20 @@
 /**
- * Divine Rays — force-pending-block v14
+ * Divine Rays — force-pending-block v15
  * ONLY Admin / IT Tech Support / Owner need approval.
  * End-Users never gated.
- * v14: no re-entrant blockNow / no MutationObserver loops (fixes page freeze).
+ * v15: block portal BEFORE paint (no 1s flash); intercept login-agent submit hard.
  */
 (function () {
   'use strict';
-  if (window.__DR_FORCE_PENDING_BLOCK >= 14) return;
-  window.__DR_FORCE_PENDING_BLOCK = 14;
+  if (window.__DR_FORCE_PENDING_BLOCK >= 15) return;
+  window.__DR_FORCE_PENDING_BLOCK = 15;
 
   var KEY = 'dr_staff_approval';
-  var DEVS = { kirzhian: 1, jamesjerlow123: 1, liya: 1 };
+  var DEVS = {
+    kirzhian: 1,
+    jamesjerlow123: 1,
+    liya: 1
+  };
   var FADE_MS = 10000;
   var MSG = 'Your account is pending Administrator approval. Please wait until a Developer/Admin approves your account.';
   var ERR_MSG = 'Account needs approval.';
@@ -21,6 +25,7 @@
   var _uiOn = false;
   var _blocking = false;
   var _checkBusy = false;
+  var _portalOk = false;
 
   function map() {
     try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { return {}; }
@@ -50,8 +55,14 @@
     if (id) m[id] = 'pending';
     un = un ? String(un).toLowerCase().trim() : '';
     em = em ? String(em).toLowerCase().trim() : '';
-    if (un) { m['pending:' + un] = 'pending'; delete m['u:' + un]; }
-    if (em) { m['pending:' + em] = 'pending'; delete m['e:' + em]; }
+    if (un) {
+      m['pending:' + un] = 'pending';
+      delete m['u:' + un];
+    }
+    if (em) {
+      m['pending:' + em] = 'pending';
+      delete m['e:' + em];
+    }
     save(m);
   }
   function isCustomer(r) {
@@ -105,6 +116,7 @@
     var s = document.createElement('style');
     s.id = 'dr-force-pending-css';
     s.textContent = [
+      'body:not(.dr-portal-ok) #portal-agent,body:not(.dr-portal-ok) .portal-agent{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}',
       'body.dr-pending-blocked #portal-agent,body.dr-pending-blocked .portal-agent{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}',
       'body.dr-pending-blocked #app-shell{display:none!important}',
       'body.dr-pending-blocked #login-screen,body.dr-pending-blocked .login-screen{display:flex!important;visibility:visible!important;opacity:1!important}',
@@ -134,7 +146,9 @@
   }
   function lockPortal() {
     ensureCss();
+    _portalOk = false;
     try {
+      document.body.classList.remove('dr-portal-ok');
       document.body.classList.add('dr-pending-blocked', 'is-login');
       document.body.classList.remove('is-portal');
       var pa = document.getElementById('portal-agent');
@@ -150,6 +164,13 @@
         ls.style.setProperty('display', 'flex', 'important');
         ls.classList.add('active');
       }
+    } catch (e) {}
+  }
+  function unlockPortal() {
+    _portalOk = true;
+    try {
+      document.body.classList.add('dr-portal-ok');
+      document.body.classList.remove('dr-pending-blocked');
     } catch (e) {}
   }
   function setApprovalError() {
@@ -230,12 +251,8 @@
       quietSignOut();
       lockPortal();
       setApprovalError();
-      setTimeout(function () {
-        lockPortal();
-        applyOrangeGlow(card());
-      }, 100);
     } finally {
-      setTimeout(function () { _blocking = false; }, 600);
+      setTimeout(function () { _blocking = false; }, 500);
     }
   }
   function shouldBlockUser(id, un, em, role) {
@@ -262,28 +279,35 @@
 
   function wrapGates() {
     try {
-      if (typeof window.showApp === 'function' && !window.showApp.__drFpWrapV14) {
+      if (typeof window.showApp === 'function' && !window.showApp.__drFpWrapV15) {
         var sa = window.showApp;
-        var wsa = function (p) {
-          if (gateProfile(p)) { blockNow(); return; }
+        window.showApp = function (p) {
+          if (gateProfile(p)) {
+            blockNow();
+            return;
+          }
+          unlockPortal();
           return sa.apply(this, arguments);
         };
-        wsa.__drFpWrapV14 = 1;
-        window.showApp = wsa;
+        window.showApp.__drFpWrapV15 = 1;
       }
     } catch (e) {}
     try {
-      if (window.DR && typeof window.DR.showApp === 'function' && !window.DR.showApp.__drFpWrapV14) {
+      if (window.DR && typeof window.DR.showApp === 'function' && !window.DR.showApp.__drFpWrapV15) {
         var d0 = window.DR.showApp;
         window.DR.showApp = function (p) {
-          if (gateProfile(p)) { blockNow(); return; }
+          if (gateProfile(p)) {
+            blockNow();
+            return;
+          }
+          unlockPortal();
           return d0.apply(this, arguments);
         };
-        window.DR.showApp.__drFpWrapV14 = 1;
+        window.DR.showApp.__drFpWrapV15 = 1;
       }
     } catch (e2) {}
     try {
-      if (typeof window.applyPortalForRole === 'function' && !window.applyPortalForRole.__drFpWrapV14) {
+      if (typeof window.applyPortalForRole === 'function' && !window.applyPortalForRole.__drFpWrapV15) {
         var apr = window.applyPortalForRole;
         window.applyPortalForRole = function (role) {
           try {
@@ -296,11 +320,28 @@
               }
             }
           } catch (e) {}
+          unlockPortal();
           return apr.apply(this, arguments);
         };
-        window.applyPortalForRole.__drFpWrapV14 = 1;
+        window.applyPortalForRole.__drFpWrapV15 = 1;
       }
     } catch (e3) {}
+    try {
+      if (typeof window.loadFullAppThen === 'function' && !window.loadFullAppThen.__drFpWrapV15) {
+        var lfa = window.loadFullAppThen;
+        window.loadFullAppThen = function (role) {
+          try {
+            var r = String(role || '').toLowerCase();
+            if (!isCustomer(r) && isStaffRole(r) && isPendingIdentity()) {
+              blockNow();
+              return Promise.resolve();
+            }
+          } catch (e) {}
+          return lfa.apply(this, arguments);
+        };
+        window.loadFullAppThen.__drFpWrapV15 = 1;
+      }
+    } catch (e4) {}
   }
 
   async function checkSession() {
@@ -321,10 +362,17 @@
         profile = pr && pr.data;
       } catch (e) {}
       var role = (profile && (profile.role || profile.staff_role)) || meta.role || '';
-      if (isCustomer(role)) return;
+      if (isCustomer(role)) {
+        unlockPortal();
+        return;
+      }
       var un = String(meta.username || (profile && profile.username) || '').toLowerCase().trim();
       var em = String(user.email || (profile && profile.email) || '').toLowerCase();
-      if (shouldBlockUser(user.id, un, em, role)) blockNow();
+      if (shouldBlockUser(user.id, un, em, role)) {
+        blockNow();
+      } else {
+        unlockPortal();
+      }
     } catch (e) {
     } finally {
       _checkBusy = false;
@@ -342,7 +390,11 @@
     var form = ev.target;
     if (!form || form.id !== 'login-agent') return;
     if (isPendingIdentity()) {
-      try { ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation(); } catch (e) {}
+      try {
+        ev.preventDefault();
+        ev.stopPropagation();
+        ev.stopImmediatePropagation();
+      } catch (e) {}
       blockNow();
     }
   }
@@ -353,7 +405,11 @@
     var btn = t.closest('#login-agent button[type="submit"], #login-agent .btn-primary');
     if (!btn) return;
     if (isPendingIdentity()) {
-      try { ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation(); } catch (e) {}
+      try {
+        ev.preventDefault();
+        ev.stopPropagation();
+        ev.stopImmediatePropagation();
+      } catch (e) {}
       blockNow();
     }
   }
@@ -366,13 +422,17 @@
     if (!form) return;
     if (t.tagName === 'TEXTAREA') return;
     if (isPendingIdentity()) {
-      try { ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation(); } catch (e) {}
+      try {
+        ev.preventDefault();
+        ev.stopPropagation();
+        ev.stopImmediatePropagation();
+      } catch (e) {}
       blockNow();
     }
   }
 
-  if (!window.__drForcePendingSubmitV14) {
-    window.__drForcePendingSubmitV14 = 1;
+  if (!window.__drForcePendingSubmitV15) {
+    window.__drForcePendingSubmitV15 = 1;
     document.addEventListener('submit', onSubmit, true);
     document.addEventListener('click', onAgentButtonClick, true);
     document.addEventListener('keydown', onEnterKey, true);
@@ -380,9 +440,9 @@
 
   ensureCss();
   wrapGates();
-  setTimeout(checkSession, 300);
-  setTimeout(checkSession, 1200);
-  setTimeout(checkSession, 2500);
+  setTimeout(checkSession, 200);
+  setTimeout(checkSession, 1000);
+  setTimeout(checkSession, 2200);
   setInterval(function () {
     if (_uiOn || document.body.classList.contains('dr-pending-blocked')) {
       lockPortal();
@@ -394,7 +454,12 @@
   }, 2000);
   setInterval(function () {
     if (!_blocking && !_checkBusy) checkSession();
-  }, 4000);
+  }, 5000);
 
-  window.DRForcePending = { showPendingUI: showPending, blockNow: blockNow, v: 14 };
+  window.DRForcePending = {
+    showPendingUI: showPending,
+    blockNow: blockNow,
+    unlockPortal: unlockPortal,
+    v: 15
+  };
 })();
