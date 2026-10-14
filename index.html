@@ -9,8 +9,6 @@
   <!--
     LOGIN PAGE BASELINE LOCKED v2.2
     login-tab-labels  2d121dc89b96a2ebc268cfbca58ca9796c498fa3  (v6 Employee|Admin)
-    boot-fade-sync    449a55bb47f7e66cb45d4f616119a91bec3dd33d
-    heartbeat-draw    80f8a73413ed5698b24c61856ddc5a1569714ac0
   -->
   <title>Divine Rays Tech Hub — Support</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.9.22-av-cards" />
@@ -37,6 +35,7 @@
     var BG_PIN = 'dd941697b969c4e269c2d1f17b68455d879ba080';
     var FADE = '449a55bb47f7e66cb45d4f616119a91bec3dd33d';
     var LOGIN_TAB = '2d121dc89b96a2ebc268cfbca58ca9796c498fa3';
+    var LOGIN_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LOGIN_TAB + '/js/login-tab-labels.js';
     var BLOCKED_HB = [
       'a9046e485443b24e800a4f4d10747c10146ca663',
       '1887c6e9fe2436bf5402f2c4fa40dda29597416f',
@@ -87,7 +86,6 @@
     html = html.replace(/'bg-anim-pin\.js'\s*:\s*'[a-f0-9]+'/g, "'bg-anim-pin.js': '" + BG_PIN + "'");
     html = html.replace(/[a-f0-9]{40}\/js\/bg-anim-pin\.js/g, BG_PIN + '/js/bg-anim-pin.js');
 
-    /* login-tab-labels v6 — pin + block old */
     while (html.indexOf('9beff1f929318ca08d9a71a1d4718ec4afebf539') !== -1) {
       html = html.split('9beff1f929318ca08d9a71a1d4718ec4afebf539').join(LOGIN_TAB);
     }
@@ -106,11 +104,10 @@
     html = html.replace(/transition:opacity \.75s ease/g, 'transition:opacity 1.2s ease');
     html = html.replace(/transition:opacity 1s ease/g, 'transition:opacity 1.2s ease');
 
-    /* inject early in rewritten shell so labels survive document.write */
     html = html.replace(
       '<head>',
       '<head><script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + FADE + '/js/boot-fade-sync.js"><\/script>' +
-      '<script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LOGIN_TAB + '/js/login-tab-labels.js"><\/script>'
+      '<script src="' + LOGIN_SRC + '"><\/script>'
     );
     html = html.replace('<head>',
       '<head><script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@12b7798ad583123e884a9d954595025d8dd6ba20/js/tab-session.js"><\/script>'
@@ -125,9 +122,30 @@
     html = html.replace('</head>',
       '<script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@b012b1beaed677db6185895ed8f7319fc2e0fb27/js/light-login-depth.js"><\/script></head>'
     );
+
     document.open();
     document.write(html);
     document.close();
+
+    /* document.write wipes outer scripts — re-inject labels after shell is live */
+    function injectLabels() {
+      try {
+        if (window.__DR_LOGIN_TAB_LABELS >= 6) {
+          if (window.DRLoginTabLabels) window.DRLoginTabLabels.refresh();
+          return;
+        }
+        var existing = document.querySelector('script[src*="login-tab-labels.js"]');
+        if (existing) existing.remove();
+        var s = document.createElement('script');
+        s.src = LOGIN_SRC + (LOGIN_SRC.indexOf('?') === -1 ? '?' : '&') + 'b=' + Date.now();
+        s.async = false;
+        (document.head || document.documentElement).appendChild(s);
+      } catch (e) {}
+    }
+    setTimeout(injectLabels, 100);
+    setTimeout(injectLabels, 600);
+    setTimeout(injectLabels, 1500);
+    setTimeout(injectLabels, 3000);
   })();
   </script>
 </body>
