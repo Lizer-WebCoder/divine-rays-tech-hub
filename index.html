@@ -1,1 +1,274 @@
-PLACEHOLDER_WILL_FAIL
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <title>Divine Rays Tech Hub — Support</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.9.22-av-cards" />
+  <style>
+    html,body{margin:0;min-height:100vh;font-family:Inter,system-ui,sans-serif;
+      background:radial-gradient(ellipse 80% 60% at 50% 40%,#1a1530 0%,#0c0c14 55%,#08080f 100%);color:#eeeef6}
+    #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:1.25rem;text-align:center;padding:1.5rem}
+    #boot .boot-logo{width:72px;height:72px;border-radius:16px;display:block;box-shadow:0 8px 32px rgba(109,90,154,.35);animation:none}
+    #boot .boot-gear-spin{transform-origin:32px 32px;animation:drBootGearSpin 1.4s linear infinite}
+    #boot .boot-title{font-size:1.35rem;font-weight:650;margin:0;color:#eeeef6}
+    #boot .boot-sub{font-size:.85rem;color:#9494ae;margin:0}
+    #boot .err{color:#fca5a5;font-size:.9rem;max-width:28rem}
+    @keyframes drBootGearSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+  </style>
+</head>
+<body>
+  <div id="boot" role="status" aria-live="polite">
+    <svg class="boot-logo" viewBox="0 0 64 64" width="72" height="72" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="drBootBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#6d5a9a"/>
+      <stop offset="100%" stop-color="#2a1f3d"/>
+    </linearGradient>
+    <linearGradient id="drBootMetal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f3e8ff"/>
+      <stop offset="100%" stop-color="#c4b5fd"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#drBootBg)"/>
+  <g class="boot-gear-spin" fill="url(#drBootMetal)">
+    <g transform="translate(32,32)">
+      <rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2"/>
+      <rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(45)"/>
+      <rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(90)"/>
+      <rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(135)"/>
+      <rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(180)"/>
+      <rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(225)"/>
+      <rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(270)"/>
+      <rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(315)"/>
+      <circle r="17" fill="url(#drBootMetal)"/>
+      <circle r="9" fill="#2a1f3d"/>
+      <circle r="5" fill="url(#drBootMetal)"/>
+      <circle r="2.2" fill="#1a1625"/>
+    </g>
+  </g>
+</svg>
+    <h1 class="boot-title">Divine Rays Tech Hub</h1>
+    <p class="boot-sub">Loading…</p>
+  </div>
+  <script>
+  (async function () {
+    var B = Date.now();
+    var HB = '80f8a73413ed5698b24c61856ddc5a1569714ac0';
+    var BG_PIN = 'dd941697b969c4e269c2d1f17b68455d879ba080';
+    var FADE = '449a55bb47f7e66cb45d4f616119a91bec3dd33d';
+    var LOGIN_TAB = '75e92e768f6e5eba04b7090709953d7885f6fd14';
+    var AGENT_AUTH = '761f65a9a4148efcabd6a78afb7e13f144943fa6';
+    var OLD_AGENT_AUTH = '352793740bb2621d2d132e892827df83a58803f5';
+    var LABEL_LOCK = '9de1260ef28bff8b7a0d8009d7ed4c38e904e272';
+    var LOGIN_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LOGIN_TAB + '/js/login-tab-labels.js';
+    var AGENT_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + AGENT_AUTH + '/js/agent-username-auth.js';
+    var LOCK_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LABEL_LOCK + '/js/login-label-lock.js';
+    var AMBIENT_NO_RESET = '771607f8ff1bc501b305c8aa75be23628f58c058';
+    var AMBIENT_STABLE = '4aec2854b1cfcf968600c3466b579a83c215547f';
+    var NO_RESET_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + AMBIENT_NO_RESET + '/js/ambient-no-reset.js';
+    var STABLE_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + AMBIENT_STABLE + '/js/ambient-stable.js';
+    var HARD_LOCK = 'f4e7f568ebc07db459b5e6e6344486d6a7103c64';
+    var HARD_LOCK_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + HARD_LOCK + '/js/ambient-hard-lock.js';
+    var FORCE_PENDING = '90b8cc49d229bea4e22dfa64e7366f690141d887';
+    var FORCE_PENDING_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + FORCE_PENDING + '/js/force-pending-block.js';
+    var LOGIN_CLICK = 'e0a944ec55d250dddc0917cc61400ffd2dcbc715';
+    var LOGIN_CLICK_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LOGIN_CLICK + '/js/login-click-fix.js';
+    var ADMIN_JS = 'c54201aa340f2f53d81f10aa0bb07680811f58c4';
+    var APP_JS = '5e1107f239eb33e0c397f62839334c57b1d56edb';
+    var PORTAL_BOOT = 'e933bee7ba89c2c0d7a6eec91ec541146143f42f';
+    var PORTAL_BOOT_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PORTAL_BOOT + '/js/portal-boot-login.js';
+    var BLOCKED_HB = ['a9046e485443b24e800a4f4d10747c10146ca663','1887c6e9fe2436bf5402f2c4fa40dda29597416f','89e270ee25cc2e779e36e9c3011ddd21da3724c3','0f5ae49d8c798d58d91acf840190dab5cf059408','3bc50d042182f34d7c05eb077927231267170e5a'];
+    var BLOCKED_BG = ['90094058c1f476b163296855e186984add6a625d','29ecd577333c6bd3b558c66a02c2fb32da4e01ca','e7eb85d8670580a5579f8fa2f6d3638ca4aa5265'];
+    var BOOT_CSS = '#boot .boot-logo,#dr-boot-overlay .boot-logo{width:72px;height:72px;border-radius:16px;display:block;box-shadow:0 8px 32px rgba(109,90,154,.35);animation:none!important}#boot .boot-gear-spin,#dr-boot-overlay .boot-gear-spin{transform-origin:32px 32px;transform-box:fill-box;animation:drBootGearSpin 1.4s linear infinite!important}@keyframes drBootGearSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}#boot .boot-loader,#boot .boot-bar,#dr-boot-overlay .boot-loader,#dr-boot-overlay .boot-bar,#boot .boot-dot,#dr-boot-overlay .boot-dot{display:none!important;height:0!important;overflow:hidden!important;opacity:0!important}';
+    var BOOT_SVG = '<svg class="boot-logo" viewBox="0 0 64 64" width="72" height="72" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="drBootBg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6d5a9a"/><stop offset="100%" stop-color="#2a1f3d"/></linearGradient><linearGradient id="drBootMetal" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#f3e8ff"/><stop offset="100%" stop-color="#c4b5fd"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#drBootBg)"/><g class="boot-gear-spin" fill="url(#drBootMetal)"><g transform="translate(32,32)"><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(45)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(90)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(135)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(180)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(225)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(270)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(315)"/><circle r="17" fill="url(#drBootMetal)"/><circle r="9" fill="#2a1f3d"/><circle r="5" fill="url(#drBootMetal)"/><circle r="2.2" fill="#1a1625"/></g></g></svg>';
+
+    var urls = [
+      'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/2aa22823e014414ef2bad79bceae69b792cb56c0/index.html?b=' + B,
+      'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@2aa22823e014414ef2bad79bceae69b792cb56c0/index.html?b=' + B
+    ];
+    var html = null, lastErr = '';
+    for (var i = 0; i < urls.length; i++) {
+      try {
+        var r = await fetch(urls[i], { cache: 'no-store', credentials: 'omit' });
+        if (r.ok) { html = await r.text(); if (html && html.indexOf('SHELL_SHA') !== -1) break; html = null; }
+        else lastErr = 'HTTP ' + r.status;
+      } catch (e) { lastErr = String(e && e.message || e); }
+    }
+    if (!html) {
+      var bootEl = document.getElementById('boot');
+      if (bootEl) bootEl.innerHTML = '<p class="err">Could not load app shell (' + lastErr + '). Try again.</p>';
+      return;
+    }
+    html = html.replace(/@main\/js\/admin-portal-lock\.js/g, '@38ee37552bd3fa8d80bfcea3677987b3bdb044fb/js/admin-portal-lock.js');
+    html = html.replace(/[a-f0-9]{40}\/js\/force-pending-block\.js/g, FORCE_PENDING + '/js/force-pending-block.js');
+    html = html.replace(/FORCE_PENDING_SHA\s*=\s*'[^']+'/g, "FORCE_PENDING_SHA = '" + FORCE_PENDING + "'");
+    html = html.replace(/[a-f0-9]{40}\/js\/admin\.js/g, ADMIN_JS + '/js/admin.js');
+    html = html.replace(/[a-f0-9]{40}\/js\/app\.js/g, APP_JS + '/js/app.js');
+    html = html.replace(/[a-f0-9]{40}\/js\/sidebar-role-label\.js/g, 'bb96f36c73f4d2f33bd3e0e63774f2f9b4975c48/js/sidebar-role-label.js');
+    for (var bi = 0; bi < BLOCKED_HB.length; bi++) {
+      while (html.indexOf(BLOCKED_HB[bi]) !== -1) html = html.split(BLOCKED_HB[bi]).join(HB);
+    }
+    html = html.replace(/[a-f0-9]{40}\/js\/heartbeat-draw\.js/g, HB + '/js/heartbeat-draw.js');
+    for (var bj = 0; bj < BLOCKED_BG.length; bj++) {
+      while (html.indexOf(BLOCKED_BG[bj]) !== -1) html = html.split(BLOCKED_BG[bj]).join(BG_PIN);
+    }
+    html = html.replace(/[a-f0-9]{40}\/js\/bg-anim-pin\.js/g, BG_PIN + '/js/bg-anim-pin.js');
+    var FORCE_LIGHT = '0091e77d27bbb73e655a498ddd1ebf944583e000';
+    while (html.indexOf('ebcbb4637a65511602a399006a8ccc29f346ecfa') !== -1) html = html.split('ebcbb4637a65511602a399006a8ccc29f346ecfa').join(FORCE_LIGHT);
+    html = html.replace(/[a-f0-9]{40}\/js\/force-light-bg\.js/g, FORCE_LIGHT + '/js/force-light-bg.js');
+    while (html.indexOf(OLD_AGENT_AUTH) !== -1) html = html.split(OLD_AGENT_AUTH).join(AGENT_AUTH);
+    html = html.replace(/[a-f0-9]{40}\/js\/agent-username-auth\.js/g, AGENT_AUTH + '/js/agent-username-auth.js');
+    html = html.replace(/[a-f0-9]{40}\/js\/login-tab-labels\.js/g, LOGIN_TAB + '/js/login-tab-labels.js');
+    html = html.replace(/animation:bootLogoPulse[^;}\"]*/g, 'animation:none');
+    html = html.replace(
+      '<head>',
+      '<head><style id="dr-boot-gear-spin">' + BOOT_CSS + '</style>' +
+      '<script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + FADE + '/js/boot-fade-sync.js"><\/script>' +
+      '<script src="' + LOGIN_SRC + '"><\/script><script src="' + LOCK_SRC + '"><\/script>' +
+      '<script src="' + FORCE_PENDING_SRC + '"><\/script><script src="' + LOGIN_CLICK_SRC + '"><\/script>'
+    );
+    html = html.replace(
+      /ov\.innerHTML\s*=\s*'[^']*boot-logo[^']*';/,
+      'ov.innerHTML = ' + JSON.stringify(BOOT_SVG + '<h1 class="boot-title">Divine Rays Tech Hub</h1><p class="boot-sub">Loading…</p>') + ';'
+    );
+
+    document.open();
+    document.write(html);
+    document.close();
+
+    function forceGearSpin() {
+      try {
+        var st = document.getElementById('dr-boot-gear-spin-live');
+        if (!st) {
+          st = document.createElement('style');
+          st.id = 'dr-boot-gear-spin-live';
+          (document.head || document.documentElement).appendChild(st);
+        }
+        st.textContent = BOOT_CSS;
+        document.querySelectorAll('img.boot-logo, #boot img, #dr-boot-overlay img.boot-logo').forEach(function (img) {
+          try {
+            var wrap = document.createElement('div');
+            wrap.innerHTML = BOOT_SVG;
+            var svg = wrap.firstChild;
+            if (img.parentNode) img.parentNode.replaceChild(svg, img);
+          } catch (e) {}
+        });
+      } catch (e2) {}
+    }
+    forceGearSpin();
+    setTimeout(forceGearSpin, 50);
+    setTimeout(forceGearSpin, 300);
+    setTimeout(forceGearSpin, 800);
+    setTimeout(forceGearSpin, 1500);
+
+    (function () {
+      if (window.__DR_EARLY_LOGIN) return;
+      window.__DR_EARLY_LOGIN = 1;
+
+      function isSignInBtn(el) {
+        if (!el || !el.closest) return null;
+        var btn = el.closest('button, input[type="submit"], [role="button"]');
+        if (!btn) return null;
+        var inLogin = btn.closest('#login-agent, #login-screen, .login-card, form.login-form');
+        if (!inLogin) return null;
+        var t = (btn.textContent || btn.value || '').toLowerCase();
+        if (t.indexOf('sign in') !== -1 || t.indexOf('signing') !== -1 || btn.type === 'submit') return btn;
+        if (btn.closest('#login-agent') && (btn.classList.contains('btn-primary') || btn.classList.contains('btn'))) return btn;
+        return null;
+      }
+
+      function tryLogin(btn) {
+        if (window.__drAgentLoginBusy || window.__drBooting || window.__drEarlyFired) return;
+        try {
+          if (window.DRForcePending && window.DRForcePending.isPendingIdentity && window.DRForcePending.isPendingIdentity()) return;
+        } catch (e) {}
+        window.__drEarlyFired = 1;
+        try {
+          if (btn) {
+            btn.setAttribute('data-dr-prev-label', btn.textContent || 'Sign in as Admin');
+            btn.textContent = 'Signing in…';
+            btn.disabled = true;
+            btn.style.opacity = '0.85';
+            btn.style.pointerEvents = 'none';
+          }
+        } catch (e2) {}
+        function go() {
+          if (typeof window.__drDoAgentLogin === 'function') {
+            window.__drDoAgentLogin(btn || null);
+            return true;
+          }
+          return false;
+        }
+        if (go()) return;
+        window.__drEarlyLoginQueued = btn || true;
+        var n = 0;
+        var t = setInterval(function () {
+          n++;
+          if (go()) {
+            clearInterval(t);
+            window.__drEarlyLoginQueued = null;
+          } else if (n > 60) {
+            clearInterval(t);
+            window.__drEarlyFired = 0;
+            try {
+              if (btn) {
+                btn.disabled = false;
+                btn.style.pointerEvents = '';
+                btn.style.opacity = '';
+                btn.textContent = btn.getAttribute('data-dr-prev-label') || 'Sign in as Admin';
+              }
+            } catch (e3) {}
+          }
+        }, 100);
+      }
+
+      function onPtr(ev) {
+        if (ev.button != null && ev.button !== 0) return;
+        var btn = isSignInBtn(ev.target);
+        if (!btn) return;
+        tryLogin(btn);
+      }
+      document.addEventListener('pointerdown', onPtr, true);
+      document.addEventListener('click', function (ev) {
+        var btn = isSignInBtn(ev.target);
+        if (!btn) return;
+        if (window.__drAgentLoginBusy || window.__drBooting || window.__drEarlyFired) {
+          ev.preventDefault();
+          ev.stopPropagation();
+          return;
+        }
+        ev.preventDefault();
+        tryLogin(btn);
+      }, true);
+    })();
+
+    function inject(src) {
+      try {
+        var s = document.createElement('script');
+        s.src = src + (src.indexOf('?') === -1 ? '?' : '&') + 'b=' + Date.now();
+        s.async = false;
+        (document.head || document.documentElement).appendChild(s);
+      } catch (e) {}
+    }
+    function postBoot() {
+      inject(LOGIN_SRC);
+      inject(LOCK_SRC);
+      inject(AGENT_SRC);
+      inject(FORCE_PENDING_SRC);
+      inject(LOGIN_CLICK_SRC);
+      inject(PORTAL_BOOT_SRC);
+      inject(NO_RESET_SRC);
+      inject(STABLE_SRC);
+      inject(HARD_LOCK_SRC);
+      forceGearSpin();
+    }
+    setTimeout(postBoot, 50);
+    setTimeout(postBoot, 400);
+    setTimeout(postBoot, 1200);
+    setTimeout(postBoot, 2500);
+  })();
+  </script>
+</body>
+</html>
