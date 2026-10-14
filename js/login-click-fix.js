@@ -1,11 +1,12 @@
 /**
- * Divine Rays — login-click-fix v2
- * Mouse first-click parity with Enter; fill empty Admin portal after login.
+ * Divine Rays — login-click-fix v3 (stable)
+ * Backup click path only; early bridge owns first pointerdown.
+ * Soft portal fill without aggressive intervals.
  */
 (function () {
   'use strict';
-  if (window.__DR_LOGIN_CLICK_FIX >= 2) return;
-  window.__DR_LOGIN_CLICK_FIX = 2;
+  if (window.__DR_LOGIN_CLICK_FIX >= 3) return;
+  window.__DR_LOGIN_CLICK_FIX = 3;
 
   function isPending() {
     try {
@@ -18,8 +19,6 @@
 
   function agentForm() {
     return document.getElementById('login-agent') ||
-      document.querySelector('form.login-form#login-agent') ||
-      document.querySelector('form.login-form[data-role="agent"]') ||
       document.querySelector('#login-screen form.login-form.active');
   }
 
@@ -27,63 +26,23 @@
     if (!t || !t.closest) return null;
     var form = agentForm();
     if (!form) return null;
-    var btn = t.closest('button, input[type="submit"], .btn-primary, [type="submit"]');
+    var btn = t.closest('button, input[type="submit"]');
     if (!btn) return null;
     if (form.contains(btn)) return btn;
-    var card = form.closest('.login-card, .login-panel, #login-screen');
-    if (card && card.contains(btn)) return btn;
-    return null;
-  }
-
-  function busyBtn(btn, on) {
-    try {
-      if (!btn) return;
-      if (on) {
-        btn.setAttribute('data-dr-prev-label', btn.textContent || 'Sign in as Admin');
-        btn.textContent = 'Signing in…';
-        btn.disabled = true;
-        btn.style.opacity = '0.85';
-      } else {
-        btn.textContent = btn.getAttribute('data-dr-prev-label') || 'Sign in as Admin';
-        btn.disabled = false;
-        btn.style.opacity = '';
-      }
-    } catch (e) {}
+    var card = form.closest('.login-card, #login-screen');
+    return (card && card.contains(btn)) ? btn : null;
   }
 
   function runLogin(btn) {
     if (isPending()) return;
     if (window.__drAgentLoginBusy || window.__drBooting) return;
-    busyBtn(btn, true);
+    if (window.__drEarlyLoginQueued) return;
     try {
       if (typeof window.__drDoAgentLogin === 'function') {
         window.__drDoAgentLogin(btn || null);
-        return;
       }
     } catch (e) {}
-    try {
-      var form = agentForm();
-      if (form && typeof form.requestSubmit === 'function') {
-        form.requestSubmit(btn || undefined);
-        return;
-      }
-      if (form) {
-        form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-      }
-    } catch (e2) {}
   }
-
-  function onInteract(ev) {
-    var btn = findBtn(ev.target);
-    if (!btn) return;
-    if (isPending()) return;
-    runLogin(btn);
-  }
-
-  document.addEventListener('pointerdown', function (ev) {
-    if (ev.button != null && ev.button !== 0) return;
-    onInteract(ev);
-  }, true);
 
   document.addEventListener('click', function (ev) {
     var btn = findBtn(ev.target);
@@ -93,31 +52,23 @@
       ev.preventDefault();
       return;
     }
+    if (window.__DR_EARLY_LOGIN) return;
     ev.preventDefault();
-    onInteract(ev);
+    runLogin(btn);
   }, true);
 
-  function normalizeProfile(p) {
-    if (!p) return null;
-    var name = p.name || p.full_name || p.username || (p.email && p.email.split('@')[0]) || 'User';
-    var role = p.role || p.staff_role || 'admin';
-    return Object.assign({}, p, { name: name, role: role });
-  }
-
+  var _filling = false;
   function fillPortal() {
+    if (_filling) return;
+    _filling = true;
     try {
       document.body.classList.add('dr-portal-ok', 'is-portal');
-      document.body.classList.remove('dr-pending-blocked', 'is-login', 'dr-boot-holding', 'dr-session-restoring');
-    } catch (e) {}
-    try {
-      if (typeof window.hideLoginShowApp === 'function') window.hideLoginShowApp();
-    } catch (e0) {}
-    try {
+      document.body.classList.remove('dr-pending-blocked', 'is-login', 'dr-boot-holding');
       var ls = document.getElementById('login-screen');
       if (ls) {
         ls.hidden = true;
         ls.classList.add('is-hidden');
-        ls.style.cssText = 'display:none!important;height:0!important;overflow:hidden!important;';
+        ls.style.cssText = 'display:none!important';
       }
       var shell = document.getElementById('app-shell');
       if (shell) {
@@ -130,53 +81,18 @@
         pa.classList.add('active');
         pa.hidden = false;
         pa.style.cssText = '';
-        pa.style.visibility = 'visible';
-        pa.style.opacity = '1';
       }
-      var pc = document.getElementById('portal-customer');
-      if (pc) pc.classList.remove('active');
-    } catch (e1) {}
-
-    var p = normalizeProfile(window.__drProfile || (window.DR && window.DR.getProfile && window.DR.getProfile()));
-    try {
-      if (p && typeof window.showApp === 'function') window.showApp(p);
-    } catch (e2) {}
-    try {
+      if (typeof window.hideLoginShowApp === 'function') window.hideLoginShowApp();
+      var p = window.__drProfile;
+      if (p && typeof window.showApp === 'function') {
+        var name = p.name || p.full_name || p.username || 'User';
+        var role = p.role || 'admin';
+        window.showApp(Object.assign({}, p, { name: name, role: role }));
+      }
       if (typeof window.showAgentView === 'function') window.showAgentView('dashboard');
-    } catch (e3) {}
-    try {
       if (typeof window.renderTicketList === 'function') window.renderTicketList();
-    } catch (e4) {}
-    try {
-      if (typeof window.renderStats === 'function') window.renderStats();
-    } catch (e5) {}
-    try {
-      if (typeof window.renderDashboard === 'function') window.renderDashboard();
-    } catch (e6) {}
-
-    try {
-      var selectors = [
-        '#portal-agent', '#portal-agent .sidebar', '#portal-agent nav',
-        '#agent-sidebar', '#sidebar', '.agent-sidebar', '.sidebar',
-        '#view-dashboard', '#ticket-list', '#main-content', '.main-content',
-        '#portal-agent .content', '#portal-agent .main', '#agent-main'
-      ];
-      selectors.forEach(function (sel) {
-        document.querySelectorAll(sel).forEach(function (el) {
-          el.hidden = false;
-          el.classList.remove('is-hidden', 'hidden');
-          if (el.style) {
-            if (el.style.display === 'none') el.style.display = '';
-            el.style.visibility = 'visible';
-            el.style.opacity = '1';
-          }
-        });
-      });
       var list = document.getElementById('ticket-list');
       if (list) list.classList.add('dr-cards-ready');
-    } catch (e7) {}
-
-    try {
       var ov = document.getElementById('dr-boot-overlay');
       if (ov) {
         ov.classList.add('is-done');
@@ -184,36 +100,29 @@
           try { ov.parentNode && ov.parentNode.removeChild(ov); } catch (e) {}
         }, 400);
       }
-    } catch (e8) {}
+    } catch (e) {
+    } finally {
+      setTimeout(function () { _filling = false; }, 500);
+    }
   }
 
-  var _fillN = 0;
-  setInterval(function () {
+  var _fillTried = 0;
+  function scheduleFill() {
+    if (_fillTried >= 4) return;
     if (!document.body.classList.contains('is-portal') && !document.body.classList.contains('dr-portal-ok')) return;
-    var pa = document.getElementById('portal-agent');
-    if (!pa || !pa.classList.contains('active')) return;
-    var dash = document.getElementById('view-dashboard');
-    var list = document.getElementById('ticket-list');
-    var side = document.querySelector('#portal-agent .sidebar, #sidebar, .sidebar, #agent-sidebar');
-    var looksEmpty =
-      (list && list.children.length === 0 && (!dash || !dash.classList.contains('active'))) ||
-      (side && (side.offsetWidth < 8 || getComputedStyle(side).display === 'none'));
-    if ((looksEmpty || !side) && _fillN < 20) {
-      _fillN++;
-      fillPortal();
-    }
-  }, 400);
+    _fillTried++;
+    fillPortal();
+  }
 
   function wrapLoad() {
-    if (typeof window.loadFullAppThen !== 'function' || window.loadFullAppThen.__drClickFix2) return;
+    if (typeof window.loadFullAppThen !== 'function' || window.loadFullAppThen.__drClickFix3) return;
     var prev = window.loadFullAppThen;
     window.loadFullAppThen = function () {
       var ret = prev.apply(this, arguments);
       function after() {
-        setTimeout(fillPortal, 200);
-        setTimeout(fillPortal, 600);
-        setTimeout(fillPortal, 1200);
-        setTimeout(fillPortal, 2000);
+        setTimeout(scheduleFill, 300);
+        setTimeout(scheduleFill, 900);
+        setTimeout(scheduleFill, 1800);
       }
       if (ret && typeof ret.then === 'function') {
         return ret.then(function (v) { after(); return v; }).catch(function (err) { after(); throw err; });
@@ -221,10 +130,11 @@
       after();
       return ret;
     };
-    window.loadFullAppThen.__drClickFix2 = 1;
+    window.loadFullAppThen.__drClickFix3 = 1;
   }
   wrapLoad();
-  setInterval(wrapLoad, 700);
+  setTimeout(wrapLoad, 1000);
+  setTimeout(wrapLoad, 3000);
 
-  window.DRLoginClickFix = { runLogin: runLogin, fillPortal: fillPortal, v: 2 };
+  window.DRLoginClickFix = { runLogin: runLogin, fillPortal: fillPortal, v: 3 };
 })();
