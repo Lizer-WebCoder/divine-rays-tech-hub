@@ -1,12 +1,13 @@
 /**
- * Divine Rays — force-pending-block v18
- * Instant block on first click; no portal flash for pending Admins.
- * Developers (2 only): kirzhianquijano@gmail.com, iiyasora2002@gmail.com
+ * Divine Rays — force-pending-block v19
+ * Pending login: card glow + shake + toast ONLY.
+ * Never restyle page background / login-screen layout.
+ * Developers (2): kirzhianquijano@gmail.com, iiyasora2002@gmail.com
  */
 (function () {
   'use strict';
-  if (window.__DR_FORCE_PENDING_BLOCK >= 18) return;
-  window.__DR_FORCE_PENDING_BLOCK = 18;
+  if (window.__DR_FORCE_PENDING_BLOCK >= 19) return;
+  window.__DR_FORCE_PENDING_BLOCK = 19;
 
   var KEY = 'dr_staff_approval';
   var DEVS = { kirzhianquijano: 1, iiyasora2002: 1 };
@@ -21,7 +22,7 @@
   var _uiOn = false;
   var _blocking = false;
   var _checkBusy = false;
-  var _portalOk = false;
+  var _signedOut = false;
 
   function map() {
     try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { return {}; }
@@ -45,9 +46,6 @@
     if (id && m[id] === 'approved') return 'approved';
     if (un && m['u:' + un] === 'approved') return 'approved';
     if (em && m['e:' + em] === 'approved') return 'approved';
-    if (id && m[id] === 'pending') return 'pending';
-    if (un && (m['pending:' + un] === 'pending' || m['u:' + un] === 'pending')) return 'pending';
-    if (em && (m['pending:' + em] === 'pending' || m['e:' + em] === 'pending')) return 'pending';
     return 'pending';
   }
   function markPending(id, un, em) {
@@ -66,7 +64,7 @@
   function isStaffRole(r) {
     r = String(r || '').toLowerCase().trim();
     if (!r || isCustomer(r)) return false;
-    return r === 'agent' || r === 'admin' || r === 'administrator' || r === 'owner' || r === 'developer' || r === 'dev' || r === 'tech' || r === 'tech support' || r === 'techsupport' || r === 'it' || r === 'staff' || r === 'support' || r.indexOf('admin') !== -1 || r.indexOf('agent') !== -1 || r.indexOf('developer') !== -1 || r.indexOf('tech') !== -1;
+    return r === 'agent' || r === 'admin' || r === 'administrator' || r === 'owner' || r === 'developer' || r === 'dev' || r === 'tech' || r === 'staff' || r.indexOf('admin') !== -1 || r.indexOf('agent') !== -1 || r.indexOf('tech') !== -1;
   }
   function sb() {
     try { if (window.DR && typeof window.DR.sb === 'function') return window.DR.sb(); } catch (e) {}
@@ -74,7 +72,7 @@
     return null;
   }
   function card() {
-    return document.querySelector('#login-screen .login-card') || document.querySelector('.login-card') || document.querySelector('#login-screen [class*="card"]');
+    return document.querySelector('#login-screen .login-card') || document.querySelector('.login-card');
   }
   function agentForm() { return document.getElementById('login-agent'); }
   function readUserEmail() {
@@ -92,13 +90,11 @@
     s.textContent = [
       'body:not(.dr-portal-ok) #portal-agent,body:not(.dr-portal-ok) .portal-agent{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}',
       'body.dr-pending-blocked #portal-agent,body.dr-pending-blocked .portal-agent{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}',
-      'body.dr-pending-blocked #app-shell{display:none!important}',
-      'body.dr-pending-blocked #login-screen,body.dr-pending-blocked .login-screen{display:flex!important;visibility:visible!important;opacity:1!important}',
-      'body.dr-pending-blocked{overflow:auto!important}',
-      '.login-card.login-pending-glow,.login-card.dr-login-pending,#login-screen .login-card.login-pending-glow{box-shadow:' + ORANGE_SHADOW + '!important;border-color:' + ORANGE_BORDER + '!important}',
+      'body.dr-pending-blocked #app-shell{display:none!important;visibility:hidden!important}',
+      '.login-card.login-pending-glow,.login-card.dr-login-pending{box-shadow:' + ORANGE_SHADOW + '!important;border-color:' + ORANGE_BORDER + '!important}',
       '@keyframes dr-fp-shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}',
       '.login-card.login-pending-shake{animation:dr-fp-shake 0.4s ease!important}',
-      '.toast[data-dr-force-pending]{pointer-events:auto!important;padding:0.9rem 1.15rem!important;border-radius:14px!important;background:rgba(30,20,10,0.95)!important;color:#fdba74!important;border:1px solid rgba(251,146,60,0.5)!important;box-shadow:0 8px 28px rgba(0,0,0,0.35)!important;font-size:0.9rem!important;line-height:1.4!important}',
+      '.toast[data-dr-force-pending]{pointer-events:auto!important;padding:0.9rem 1.15rem!important;border-radius:14px!important;background:rgba(30,20,10,0.95)!important;color:#fdba74!important;border:1px solid rgba(251,146,60,0.5)!important;box-shadow:0 8px 28px rgba(0,0,0,0.35)!important;font-size:0.9rem!important;line-height:1.4!important;z-index:2147483647!important}',
       '.login-error.dr-pending-err{color:#f97316!important;background:rgba(249,115,22,0.12)!important;border:1px solid rgba(249,115,22,0.35)!important;border-radius:10px!important;padding:0.55rem 0.75rem!important}'
     ].join('');
     (document.head || document.documentElement).appendChild(s);
@@ -110,34 +106,42 @@
     try {
       c.style.setProperty('box-shadow', ORANGE_SHADOW, 'important');
       c.style.setProperty('border-color', ORANGE_BORDER, 'important');
-      c.style.setProperty('outline', '2px solid rgba(251,146,60,0.7)', 'important');
     } catch (e) {}
   }
-  function lockPortal() {
+  function hidePortalOnly() {
     ensureCss();
-    _portalOk = false;
     try {
       document.body.classList.remove('dr-portal-ok');
-      document.body.classList.add('dr-pending-blocked', 'is-login');
-      document.body.classList.remove('is-portal');
+      document.body.classList.add('dr-pending-blocked');
       var pa = document.getElementById('portal-agent');
-      if (pa) { pa.classList.remove('active'); pa.style.setProperty('display', 'none', 'important'); }
+      if (pa) {
+        pa.classList.remove('active');
+        pa.style.setProperty('display', 'none', 'important');
+        pa.style.setProperty('visibility', 'hidden', 'important');
+      }
       var shell = document.getElementById('app-shell');
-      if (shell) shell.style.setProperty('display', 'none', 'important');
-      var ls = document.getElementById('login-screen');
-      if (ls) { ls.hidden = false; ls.style.setProperty('display', 'flex', 'important'); ls.classList.add('active'); }
+      if (shell) {
+        shell.style.setProperty('display', 'none', 'important');
+        shell.style.setProperty('visibility', 'hidden', 'important');
+      }
     } catch (e) {}
   }
   function unlockPortal() {
-    _portalOk = true;
-    try { document.body.classList.add('dr-portal-ok'); document.body.classList.remove('dr-pending-blocked'); } catch (e) {}
+    try {
+      document.body.classList.add('dr-portal-ok');
+      document.body.classList.remove('dr-pending-blocked');
+    } catch (e) {}
   }
   function setApprovalError() {
     try {
       var f = agentForm();
       if (!f) return;
       var e = f.querySelector('.login-error');
-      if (!e) { e = document.createElement('div'); e.className = 'login-error'; f.insertBefore(e, f.firstChild); }
+      if (!e) {
+        e = document.createElement('div');
+        e.className = 'login-error';
+        f.insertBefore(e, f.firstChild);
+      }
       e.classList.add('dr-pending-err');
       e.textContent = ERR_MSG;
       e.style.display = 'block';
@@ -157,13 +161,17 @@
       }, 420);
     } catch (e2) {}
   }
-  function showPending() {
+  function showPendingUI() {
     ensureCss();
-    lockPortal();
     applyOrangeGlow(card());
+    requestAnimationFrame(shake);
+    setApprovalError();
     var box = document.getElementById('toast-container');
-    if (!box) { box = document.createElement('div'); box.id = 'toast-container'; document.body.appendChild(box); }
-    box.classList.add('dr-fp-toast-box');
+    if (!box) {
+      box = document.createElement('div');
+      box.id = 'toast-container';
+      document.body.appendChild(box);
+    }
     box.style.cssText = 'position:fixed;top:1rem;right:1rem;z-index:2147483647;display:flex;flex-direction:column;gap:0.5rem;max-width:min(22rem,92vw);pointer-events:none';
     if (!_toastEl || !_toastEl.parentNode) {
       _toastEl = document.createElement('div');
@@ -174,31 +182,37 @@
     _toastEl.textContent = MSG;
     _toastEl.style.display = 'block';
     _toastEl.style.opacity = '1';
-    setApprovalError();
-    requestAnimationFrame(shake);
     _uiOn = true;
     if (_timer) clearTimeout(_timer);
-    _timer = setTimeout(function () { try { if (_toastEl) _toastEl.style.opacity = '0.9'; } catch (e) {} }, FADE_MS);
+    _timer = setTimeout(function () {
+      try { if (_toastEl) _toastEl.style.opacity = '0.9'; } catch (e) {}
+    }, FADE_MS);
   }
-  async function quietSignOut() {
-    try { var client = sb(); if (client && client.auth) await client.auth.signOut({ scope: 'local' }); } catch (e) {}
-    try { window.__drFullLoaded = false; window.__drBooting = false; window.__drProfile = null; } catch (e2) {}
+  async function quietSignOutIfNeeded() {
+    try {
+      var client = sb();
+      if (!client || !client.auth) return;
+      var s = await client.auth.getSession();
+      var session = s && s.data && s.data.session;
+      if (!session) return;
+      if (_signedOut) return;
+      _signedOut = true;
+      await client.auth.signOut({ scope: 'local' });
+      try {
+        window.__drFullLoaded = false;
+        window.__drBooting = false;
+        window.__drProfile = null;
+      } catch (e2) {}
+      setTimeout(function () { _signedOut = false; }, 800);
+    } catch (e) {}
   }
   function blockNow() {
-    if (_blocking) {
-      lockPortal();
-      applyOrangeGlow(card());
-      setApprovalError();
-      return;
-    }
+    showPendingUI();
+    hidePortalOnly();
+    if (_blocking) return;
     _blocking = true;
-    try {
-      showPending();
-      quietSignOut();
-      lockPortal();
-      setApprovalError();
-    } finally {
-      setTimeout(function () { _blocking = false; }, 300);
+    try { quietSignOutIfNeeded(); } finally {
+      setTimeout(function () { _blocking = false; }, 250);
     }
   }
   function shouldBlockUser(id, un, em, role) {
@@ -207,52 +221,52 @@
     role = String(role || '').toLowerCase().trim();
     if (isDev(un) || isDevEmail(em)) return false;
     if (isCustomer(role)) return false;
-    var st = getApprovalStatus(id, un, em);
-    if (st === 'approved') return false;
-    if (isStaffRole(role) || !role) { markPending(id, un, em); return true; }
+    if (getApprovalStatus(id, un, em) === 'approved') return false;
+    if (isStaffRole(role) || !role) {
+      markPending(id, un, em);
+      return true;
+    }
     return false;
   }
   function gateProfile(p) {
     if (!p) return false;
     if (isCustomer(p.role || p.staff_role)) return false;
-    var un = String(p.username || '').toLowerCase().trim();
-    var em = String(p.email || '').toLowerCase();
-    return shouldBlockUser(p.id, un, em, p.role || p.staff_role || '');
+    return shouldBlockUser(p.id, p.username, p.email, p.role || p.staff_role || '');
+  }
+  function isPendingIdentity() {
+    var u = readUserEmail();
+    if (!u.raw) return false;
+    if (isDev(u.un) || isDevEmail(u.em)) return false;
+    return getApprovalStatus(null, u.un, u.em) !== 'approved';
   }
   function wrapGates() {
     try {
-      if (typeof window.showApp === 'function' && !window.showApp.__drFpWrapV18) {
+      if (typeof window.showApp === 'function' && !window.showApp.__drFpWrapV19) {
         var sa = window.showApp;
-        window.showApp = function (p) { if (gateProfile(p)) { blockNow(); return; } unlockPortal(); return sa.apply(this, arguments); };
-        window.showApp.__drFpWrapV18 = 1;
+        window.showApp = function (p) {
+          if (gateProfile(p)) { blockNow(); return; }
+          unlockPortal();
+          return sa.apply(this, arguments);
+        };
+        window.showApp.__drFpWrapV19 = 1;
       }
     } catch (e) {}
     try {
-      if (window.DR && typeof window.DR.showApp === 'function' && !window.DR.showApp.__drFpWrapV18) {
-        var d0 = window.DR.showApp;
-        window.DR.showApp = function (p) { if (gateProfile(p)) { blockNow(); return; } unlockPortal(); return d0.apply(this, arguments); };
-        window.DR.showApp.__drFpWrapV18 = 1;
-      }
-    } catch (e2) {}
-    try {
-      if (typeof window.applyPortalForRole === 'function' && !window.applyPortalForRole.__drFpWrapV18) {
+      if (typeof window.applyPortalForRole === 'function' && !window.applyPortalForRole.__drFpWrapV19) {
         var apr = window.applyPortalForRole;
         window.applyPortalForRole = function (role) {
           try {
             var r = String(role || '').toLowerCase();
-            if (!isCustomer(r) && isStaffRole(r)) {
-              var u = readUserEmail();
-              if (getApprovalStatus(null, u.un, u.em) !== 'approved' && !isDev(u.un) && !isDevEmail(u.em)) { blockNow(); return; }
-            }
+            if (!isCustomer(r) && isStaffRole(r) && isPendingIdentity()) { blockNow(); return; }
           } catch (e) {}
           unlockPortal();
           return apr.apply(this, arguments);
         };
-        window.applyPortalForRole.__drFpWrapV18 = 1;
+        window.applyPortalForRole.__drFpWrapV19 = 1;
       }
-    } catch (e3) {}
+    } catch (e2) {}
     try {
-      if (typeof window.loadFullAppThen === 'function' && !window.loadFullAppThen.__drFpWrapV18) {
+      if (typeof window.loadFullAppThen === 'function' && !window.loadFullAppThen.__drFpWrapV19) {
         var lfa = window.loadFullAppThen;
         window.loadFullAppThen = function (role) {
           try {
@@ -261,9 +275,9 @@
           } catch (e) {}
           return lfa.apply(this, arguments);
         };
-        window.loadFullAppThen.__drFpWrapV18 = 1;
+        window.loadFullAppThen.__drFpWrapV19 = 1;
       }
-    } catch (e4) {}
+    } catch (e3) {}
   }
   async function checkSession() {
     if (_checkBusy || _blocking) return;
@@ -293,59 +307,35 @@
       _checkBusy = false;
     }
   }
-  function isPendingIdentity() {
-    var u = readUserEmail();
-    if (!u.raw) return false;
-    if (isDev(u.un) || isDevEmail(u.em)) return false;
-    return getApprovalStatus(null, u.un, u.em) !== 'approved';
+  function stopEvent(ev) {
+    try { ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation(); } catch (e) {}
   }
   function onSubmit(ev) {
-    var form = ev.target;
-    if (!form || form.id !== 'login-agent') return;
-    if (isPendingIdentity()) {
-      try { ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation(); } catch (e) {}
-      blockNow();
-    }
+    if (!ev.target || ev.target.id !== 'login-agent') return;
+    if (isPendingIdentity()) { stopEvent(ev); blockNow(); }
   }
-  function onAgentButtonClick(ev) {
+  function onAgentButton(ev) {
     var t = ev.target;
     if (!t || !t.closest) return;
     var btn = t.closest('#login-agent button[type="submit"], #login-agent .btn-primary, #login-agent button.btn');
     if (!btn) return;
-    if (isPendingIdentity()) {
-      try { ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation(); } catch (e) {}
-      blockNow();
-    }
+    if (isPendingIdentity()) { stopEvent(ev); blockNow(); }
   }
   function onEnterKey(ev) {
     if (ev.key !== 'Enter' && ev.keyCode !== 13) return;
     var t = ev.target;
     if (!t || !t.closest) return;
-    var form = t.closest('#login-agent');
-    if (!form) return;
+    if (!t.closest('#login-agent')) return;
     if (t.tagName === 'TEXTAREA') return;
-    if (isPendingIdentity()) {
-      try { ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation(); } catch (e) {}
-      blockNow();
-    }
-  }
-  function onPointerDown(ev) {
-    var t = ev.target;
-    if (!t || !t.closest) return;
-    var btn = t.closest('#login-agent button[type="submit"], #login-agent .btn-primary, #login-agent button.btn');
-    if (!btn) return;
-    if (isPendingIdentity()) {
-      try { ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation(); } catch (e) {}
-      blockNow();
-    }
+    if (isPendingIdentity()) { stopEvent(ev); blockNow(); }
   }
 
-  if (!window.__drForcePendingSubmitV18) {
-    window.__drForcePendingSubmitV18 = 1;
+  if (!window.__drForcePendingSubmitV19) {
+    window.__drForcePendingSubmitV19 = 1;
     document.addEventListener('submit', onSubmit, true);
-    document.addEventListener('click', onAgentButtonClick, true);
+    document.addEventListener('click', onAgentButton, true);
+    document.addEventListener('pointerdown', onAgentButton, true);
     document.addEventListener('keydown', onEnterKey, true);
-    document.addEventListener('pointerdown', onPointerDown, true);
   }
 
   try {
@@ -355,39 +345,34 @@
         try {
           if (document.body.classList.contains('dr-portal-ok')) return;
           var pa = document.getElementById('portal-agent');
-          if (pa && pa.classList.contains('active')) {
-            if (isPendingIdentity() || document.body.classList.contains('dr-pending-blocked')) blockNow();
+          if (pa && pa.classList.contains('active') && (isPendingIdentity() || document.body.classList.contains('dr-pending-blocked'))) {
+            hidePortalOnly();
+            showPendingUI();
           }
         } catch (e) {}
       });
-      function armObs() {
+      function arm() {
         var pa0 = document.getElementById('portal-agent');
         if (pa0) _obs.observe(pa0, { attributes: true, attributeFilter: ['class', 'style'] });
-        _obs.observe(document.body, { attributes: true, attributeFilter: ['class'] });
       }
-      armObs();
-      setTimeout(armObs, 500);
-      setTimeout(armObs, 1500);
+      arm();
+      setTimeout(arm, 600);
     }
   } catch (eObs) {}
 
   ensureCss();
   wrapGates();
-  setTimeout(checkSession, 200);
-  setTimeout(checkSession, 1000);
-  setTimeout(checkSession, 2200);
+  setTimeout(checkSession, 300);
+  setTimeout(checkSession, 1200);
   setInterval(function () {
     if (_uiOn || document.body.classList.contains('dr-pending-blocked')) {
-      lockPortal();
       applyOrangeGlow(card());
       setApprovalError();
+      hidePortalOnly();
     } else {
       wrapGates();
     }
-  }, 1500);
-  setInterval(function () {
-    if (!_blocking && !_checkBusy) checkSession();
-  }, 4000);
+  }, 2000);
 
-  window.DRForcePending = { showPendingUI: showPending, blockNow: blockNow, unlockPortal: unlockPortal, v: 18 };
+  window.DRForcePending = { showPendingUI: showPendingUI, blockNow: blockNow, unlockPortal: unlockPortal, v: 19 };
 })();
