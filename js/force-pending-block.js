@@ -1,13 +1,14 @@
 /**
- * Divine Rays — force-pending-block v22
+ * Divine Rays — force-pending-block v23
  * Production: first-click pending block, card-only UI, clear sticky state,
  * respect profiles.approval_status so approved users work on any device.
  * Developers (2): kirzhianquijano@gmail.com, iiyasora2002@gmail.com
+ * v23: click-only intercept (no mousedown/pointerdown) so approved first-click works
  */
 (function () {
   'use strict';
-  if (window.__DR_FORCE_PENDING_BLOCK >= 22) return;
-  window.__DR_FORCE_PENDING_BLOCK = 22;
+  if (window.__DR_FORCE_PENDING_BLOCK >= 23) return;
+  window.__DR_FORCE_PENDING_BLOCK = 23;
 
   var KEY = 'dr_staff_approval';
   var DEVS = { kirzhianquijano: 1, iiyasora2002: 1 };
@@ -264,38 +265,33 @@
   function wireForm() {
     var form = agentForm();
     if (!form) return;
-    if (!form.__drFpV22Submit) {
-      form.__drFpV22Submit = 1;
+    if (!form.__drFpV23Submit) {
+      form.__drFpV23Submit = 1;
       form.addEventListener('submit', function (ev) { onPendingAttempt(ev); }, true);
     }
     var btns = form.querySelectorAll('button, input[type="submit"]');
     for (var i = 0; i < btns.length; i++) {
       var b = btns[i];
-      if (b.__drFpV22Btn) continue;
-      b.__drFpV22Btn = 1;
-      b.addEventListener('mousedown', function (ev) {
-        if (ev.button !== 0) return;
-        onPendingAttempt(ev);
-      }, true);
-      b.addEventListener('pointerdown', function (ev) { onPendingAttempt(ev); }, true);
+      if (b.__drFpV23Btn) continue;
+      b.__drFpV23Btn = 1;
       b.addEventListener('click', function (ev) { onPendingAttempt(ev); }, true);
     }
-    if (!form.__drFpV22Key) {
-      form.__drFpV22Key = 1;
+    if (!form.__drFpV23Key) {
+      form.__drFpV23Key = 1;
       form.addEventListener('keydown', function (ev) {
         if (ev.key !== 'Enter' && ev.keyCode !== 13) return;
         if (ev.target && ev.target.tagName === 'TEXTAREA') return;
         onPendingAttempt(ev);
       }, true);
     }
-    if (!form.__drFpV22Input) {
-      form.__drFpV22Input = 1;
+    if (!form.__drFpV23Input) {
+      form.__drFpV23Input = 1;
       form.addEventListener('input', function () { syncIdentityUI(); }, true);
       form.addEventListener('change', function () { syncIdentityUI(); }, true);
     }
   }
-  if (!window.__drFpV22Doc) {
-    window.__drFpV22Doc = 1;
+  if (!window.__drFpV23Doc) {
+    window.__drFpV23Doc = 1;
     document.addEventListener('submit', function (ev) {
       if (ev.target && ev.target.id === 'login-agent') onPendingAttempt(ev);
     }, true);
@@ -309,7 +305,7 @@
   }
   function wrapGates() {
     try {
-      if (typeof window.loadFullAppThen === 'function' && !window.loadFullAppThen.__drFpV22) {
+      if (typeof window.loadFullAppThen === 'function' && !window.loadFullAppThen.__drFpV23) {
         var lfa = window.loadFullAppThen;
         window.loadFullAppThen = function (role) {
           var r = String(role || '').toLowerCase();
@@ -321,11 +317,11 @@
           unlockPortal();
           return lfa.apply(this, arguments);
         };
-        window.loadFullAppThen.__drFpV22 = 1;
+        window.loadFullAppThen.__drFpV23 = 1;
       }
     } catch (e) {}
     try {
-      if (typeof window.applyPortalForRole === 'function' && !window.applyPortalForRole.__drFpV22) {
+      if (typeof window.applyPortalForRole === 'function' && !window.applyPortalForRole.__drFpV23) {
         var apr = window.applyPortalForRole;
         window.applyPortalForRole = function (role) {
           var r = String(role || '').toLowerCase();
@@ -337,11 +333,11 @@
           unlockPortal();
           return apr.apply(this, arguments);
         };
-        window.applyPortalForRole.__drFpV22 = 1;
+        window.applyPortalForRole.__drFpV23 = 1;
       }
     } catch (e2) {}
     try {
-      if (typeof window.showApp === 'function' && !window.showApp.__drFpV22) {
+      if (typeof window.showApp === 'function' && !window.showApp.__drFpV23) {
         var sa = window.showApp;
         window.showApp = function (p) {
           try {
@@ -362,7 +358,7 @@
           }
           return sa.apply(this, arguments);
         };
-        window.showApp.__drFpV22 = 1;
+        window.showApp.__drFpV23 = 1;
       }
     } catch (e3) {}
   }
@@ -388,6 +384,6 @@
     isPendingIdentity: isPendingIdentity,
     unlockPortal: unlockPortal,
     markApproved: markApproved,
-    v: 22
+    v: 23
   };
 })();
