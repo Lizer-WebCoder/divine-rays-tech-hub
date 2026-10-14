@@ -1,13 +1,13 @@
 /**
- * Divine Rays — login card labels v6
+ * Divine Rays — login card labels v7
  * Tabs: Employee | Admin
- * Admin form: Email + you@company.com / password dots
- * Injected early; re-applies until stuck.
+ * Admin form: Email + Password (never overwrite Password with Email)
+ * Placeholders: you@company.com / ••••••••
  */
 (function () {
   'use strict';
-  if (window.__DR_LOGIN_TAB_LABELS >= 6) return;
-  window.__DR_LOGIN_TAB_LABELS = 6;
+  if (window.__DR_LOGIN_TAB_LABELS >= 7) return;
+  window.__DR_LOGIN_TAB_LABELS = 7;
 
   var _busy = false;
 
@@ -26,7 +26,6 @@
         setText(btn, 'Admin');
       }
     });
-    /* catch any leftover wording */
     document.querySelectorAll('.ltab').forEach(function (btn) {
       var tx = (btn.textContent || '').replace(/\s+/g, ' ').trim();
       if (/end[-\s]?user|customer/i.test(tx)) setText(btn, 'Employee');
@@ -38,21 +37,24 @@
     var form = document.getElementById('login-agent');
     if (!form) return;
 
-    form.querySelectorAll('label').forEach(function (lab) {
-      var t = (lab.textContent || '').replace(/\s+/g, ' ').trim();
-      if (/username/i.test(t) || /email/i.test(t)) setText(lab, 'Email');
-    });
-
     var user =
       document.getElementById('agent-username') ||
       form.querySelector('input[type="text"], input[type="email"]');
     if (user) {
+      var ug = user.closest ? user.closest('.form-group') : user.parentNode;
+      var ulab = ug ? ug.querySelector('label') : null;
+      if (ulab) setText(ulab, 'Email');
       user.setAttribute('placeholder', 'you@company.com');
       try { user.type = 'email'; } catch (e) {}
     }
 
     var pass = document.getElementById('agent-password') || form.querySelector('input[type="password"]');
-    if (pass) pass.setAttribute('placeholder', '••••••••');
+    if (pass) {
+      var pg = pass.closest ? pass.closest('.form-group') : pass.parentNode;
+      var plab = pg ? pg.querySelector('label') : null;
+      if (plab) setText(plab, 'Password');
+      pass.setAttribute('placeholder', '••••••••');
+    }
 
     var sw = form.querySelector('.login-switch');
     if (sw) {
@@ -77,14 +79,25 @@
   function applyCustomerForm() {
     var form = document.getElementById('login-customer');
     if (!form) return;
-    form.querySelectorAll('label').forEach(function (lab) {
-      var t = (lab.textContent || '').replace(/\s+/g, ' ').trim();
-      if (/username\s*or\s*email/i.test(t)) setText(lab, 'Email');
-    });
+
     var email = document.getElementById('cust-email') || form.querySelector('input[type="email"]');
-    if (email) email.setAttribute('placeholder', 'you@company.com');
+    if (email) {
+      var eg = email.closest ? email.closest('.form-group') : email.parentNode;
+      var elab = eg ? eg.querySelector('label') : null;
+      if (elab) {
+        var t = (elab.textContent || '').replace(/\s+/g, ' ').trim();
+        if (/username/i.test(t) || /email/i.test(t)) setText(elab, 'Email');
+      }
+      email.setAttribute('placeholder', 'you@company.com');
+    }
+
     var pass = document.getElementById('cust-password') || form.querySelector('input[type="password"]');
-    if (pass) pass.setAttribute('placeholder', '••••••••');
+    if (pass) {
+      var pg = pass.closest ? pass.closest('.form-group') : pass.parentNode;
+      var plab = pg ? pg.querySelector('label') : null;
+      if (plab) setText(plab, 'Password');
+      pass.setAttribute('placeholder', '••••••••');
+    }
   }
 
   function applyRegister() {
@@ -127,5 +140,5 @@
     boot();
   }
   setInterval(apply, 1500);
-  window.DRLoginTabLabels = { refresh: apply, v: 6 };
+  window.DRLoginTabLabels = { refresh: apply, v: 7 };
 })();
