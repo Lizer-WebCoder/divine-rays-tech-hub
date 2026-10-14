@@ -7,9 +7,9 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <!--
-    LOGIN PAGE BASELINE LOCKED v2.9 + pending-gate v16 + admin V19
-    force-pending-block v16 9ed67d90 — Developer whitelist + pending tester
-    admin.js V19 332bde29 — Approve/Deny (Deny deletes)
+    LOGIN PAGE BASELINE LOCKED v2.9 + pending-gate v17 + admin V20 — 2 Developers only
+    force-pending-block v17 99911852 — kirzhianquijano + iiyasora2002 only
+    admin.js V20 b52eac53 — Approve/Deny (Deny deletes)
   -->
   <title>Divine Rays Tech Hub — Support</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.9.22-av-cards" />
@@ -69,9 +69,9 @@
     var STABLE_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + AMBIENT_STABLE + '/js/ambient-stable.js';
     var HARD_LOCK = 'f4e7f568ebc07db459b5e6e6344486d6a7103c64';
     var HARD_LOCK_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + HARD_LOCK + '/js/ambient-hard-lock.js';
-    var FORCE_PENDING = '9ed67d9087224e73952af2a5ee96dce86b3eeb9f';
+    var FORCE_PENDING = '999118522ca24555d0c6d7e70c2951a2f0923ec6';
     var FORCE_PENDING_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + FORCE_PENDING + '/js/force-pending-block.js';
-    var ADMIN_JS = '332bde29798383dc90c9c88d21a8464359c24095';
+    var ADMIN_JS = 'b52eac537178f984af32f88cfdd34c9bd923e196';
     var BLOCKED_HB = [
       'a9046e485443b24e800a4f4d10747c10146ca663',
       '1887c6e9fe2436bf5402f2c4fa40dda29597416f',
@@ -109,8 +109,8 @@
     html = html.replace(/FORCE_PENDING_SHA\s*=\s*'[^']+'/g, "FORCE_PENDING_SHA = '" + FORCE_PENDING + "'");
     html = html.replace(/[a-f0-9]{40}\/js\/admin\.js/g, ADMIN_JS + '/js/admin.js');
     html = html.replace(/ADMIN_SHA\s*=\s*'[^']+'/g, "ADMIN_SHA = '" + ADMIN_JS + "'");
-    html = html.replace(/[a-f0-9]{40}\/js\/sidebar-role-label\.js/g, '77f89e2eec92896bdc08399c7a578e8e9bbed3ba/js/sidebar-role-label.js');
-    html = html.replace(/SIDEBAR_ROLE_SHA\s*=\s*'[^']+'/g, "SIDEBAR_ROLE_SHA = '77f89e2eec92896bdc08399c7a578e8e9bbed3ba'");
+    html = html.replace(/[a-f0-9]{40}\/js\/sidebar-role-label\.js/g, 'bb96f36c73f4d2f33bd3e0e63774f2f9b4975c48/js/sidebar-role-label.js');
+    html = html.replace(/SIDEBAR_ROLE_SHA\s*=\s*'[^']+'/g, "SIDEBAR_ROLE_SHA = 'bb96f36c73f4d2f33bd3e0e63774f2f9b4975c48'");
 
     for (var bi = 0; bi < BLOCKED_HB.length; bi++) {
       while (html.indexOf(BLOCKED_HB[bi]) !== -1) html = html.split(BLOCKED_HB[bi]).join(HB);
