@@ -7,12 +7,12 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <!--
-    LOGIN PAGE BASELINE LOCKED v2.6
-    login-label-lock  9de1260ef28bff8b7a0d8009d7ed4c38e904e272  (v3 Email+Password correct)
-    login-tab-labels  75e92e768f6e5eba04b7090709953d7885f6fd14  (v7)
+    LOGIN PAGE BASELINE LOCKED v2.7
+    login-label-lock  9de1260ef28bff8b7a0d8009d7ed4c38e904e272
+    login-tab-labels  75e92e768f6e5eba04b7090709953d7885f6fd14
     agent-username-auth 761f65a9a4148efcabd6a78afb7e13f144943fa6
-    ambient-no-reset  771607f8ff1bc501b305c8aa75be23628f58c058
-    login-ambient-oneshot eb32bdbe765ca11ae103a099c00c4d0746a78fb4
+    ambient-hard-lock 704df46fce6787c4a9b337c0633556e885433eb1
+    spinning gear boot (no dots/bar)
   -->
   <title>Divine Rays Tech Hub — Support</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.9.22-av-cards" />
@@ -52,6 +52,8 @@
     var AMBIENT_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LOGIN_AMBIENT + '/js/login-ambient-oneshot.js';
     var NO_RESET_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + AMBIENT_NO_RESET + '/js/ambient-no-reset.js';
     var STABLE_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + AMBIENT_STABLE + '/js/ambient-stable.js';
+    var HARD_LOCK = '704df46fce6787c4a9b337c0633556e885433eb1';
+    var HARD_LOCK_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + HARD_LOCK + '/js/ambient-hard-lock.js';
     var BLOCKED_HB = [
       'a9046e485443b24e800a4f4d10747c10146ca663',
       '1887c6e9fe2436bf5402f2c4fa40dda29597416f',
@@ -149,6 +151,62 @@
       '<script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@b012b1beaed677db6185895ed8f7319fc2e0fb27/js/light-login-depth.js"><\/script></head>'
     );
 
+    /* Boot UI: spinning gear only — remove dots + progress bar */
+    html = html.replace(
+      /#boot \.boot-logo\{width:72px;height:72px;border-radius:16px;box-shadow:0 8px 32px rgba\(109,90,154,\.35\);animation:bootLogoPulse 2\.2s ease-in-out infinite\}/g,
+      '#boot .boot-logo{width:72px;height:72px;border-radius:16px;box-shadow:0 8px 32px rgba(109,90,154,.35);animation:bootGearSpin 1.4s linear infinite}'
+    );
+    html = html.replace(
+      /@keyframes bootLogoPulse\{0%,100%\{transform:scale\(1\);opacity:1\}50%\{transform:scale\(1\.04\);opacity:\.92\}\}/g,
+      '@keyframes bootGearSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}@keyframes bootLogoPulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.04);opacity:.92}}'
+    );
+    html = html.replace(
+      /#boot \.boot-loader\{[^}]+\}/g,
+      '#boot .boot-loader{display:none!important}'
+    );
+    html = html.replace(
+      /#boot \.boot-bar\{[^}]+\}/g,
+      '#boot .boot-bar{display:none!important}'
+    );
+    html = html.replace(
+      /<div class="boot-loader"[^>]*>[\s\S]*?<\/div>\s*<div class="boot-bar"[^>]*>[\s\S]*?<\/div>/g,
+      ''
+    );
+    html = html.replace(
+      /<div class="boot-loader"[^>]*>[\s\S]*?<\/div>/g,
+      ''
+    );
+
+    /* Injected #dr-boot-overlay: spin gear, hide dots */
+    html = html.replace(
+      /#dr-boot-overlay \.boot-logo\{width:72px;height:72px;border-radius:16px\}/g,
+      '#dr-boot-overlay .boot-logo{width:72px;height:72px;border-radius:16px;animation:drBootGearSpin 1.4s linear infinite}'
+    );
+    html = html.replace(
+      /#dr-boot-overlay \.boot-loader\{display:flex;gap:8px;height:28px;align-items:center\}/g,
+      '#dr-boot-overlay .boot-loader{display:none!important}'
+    );
+    if (html.indexOf('drBootGearSpin') === -1) {
+      html = html.replace(
+        '@keyframes drBootDot',
+        '@keyframes drBootGearSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}@keyframes drBootDot'
+      );
+    }
+    html = html.split('<div class="boot-loader"><span class="boot-dot"></span><span class="boot-dot"></span><span class="boot-dot"></span></div>').join('');
+    html = html.split("<div class=\\\"boot-loader\\\"><span class=\\\"boot-dot\\\"></span><span class=\\\"boot-dot\\\"></span><span class=\\\"boot-dot\\\"></span></div>").join('');
+
+    /* Always-on boot UI CSS: spinning gear, no dots/bar */
+    (function () {
+      var bootCss =
+        '#boot .boot-logo,#dr-boot-overlay .boot-logo{' +
+        'animation:drBootGearSpin 1.4s linear infinite!important;' +
+        'transform-origin:center center!important}' +
+        '#boot .boot-loader,#boot .boot-bar,#dr-boot-overlay .boot-loader,' +
+        '#dr-boot-overlay .boot-bar{display:none!important;height:0!important;overflow:hidden!important}' +
+        '@keyframes drBootGearSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}';
+      html = html.replace('</head>', '<style id="dr-boot-gear-spin">' + bootCss + '</style></head>');
+    })();
+
     document.open();
     document.write(html);
     document.close();
@@ -176,6 +234,7 @@
       inject(AMBIENT_SRC);
       inject(NO_RESET_SRC);
       inject(STABLE_SRC);
+      inject(HARD_LOCK_SRC);
       try {
         if (window.DRLoginLabelLock) window.DRLoginLabelLock.refresh();
         if (window.DRLoginTabLabels) window.DRLoginTabLabels.refresh();
