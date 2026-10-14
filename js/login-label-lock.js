@@ -1,14 +1,16 @@
 /**
- * Divine Rays — lock Admin login field labels v3
- * Email field stays "Email"; Password field stays "Password".
- * Never force every label to Email (that was the double-Email bug).
+ * Divine Rays — login-label-lock v4 (stable, no freeze)
+ * Email/Password labels only; no MutationObserver characterData loops.
  */
 (function () {
   'use strict';
-  if (window.__DR_LOGIN_LABEL_LOCK >= 3) return;
-  window.__DR_LOGIN_LABEL_LOCK = 3;
+  if (window.__DR_LOGIN_LABEL_LOCK >= 4) return;
+  window.__DR_LOGIN_LABEL_LOCK = 4;
 
+  var _busy = false;
   function fix() {
+    if (_busy) return;
+    _busy = true;
     try {
       var form = document.getElementById('login-agent');
       if (!form) return;
@@ -34,7 +36,7 @@
         try {
           if (emailInput.type !== 'email') emailInput.type = 'email';
         } catch (e) {}
-        emailInput.setAttribute('autocomplete', 'username');
+        try { emailInput.setAttribute('autocomplete', 'username'); } catch (e2) {}
       }
 
       var pass =
@@ -55,44 +57,35 @@
           pass.setAttribute('placeholder', '••••••••');
         }
       }
-    } catch (e2) {}
+    } catch (e3) {
+    } finally {
+      setTimeout(function () { _busy = false; }, 50);
+    }
   }
 
   fix();
+  setTimeout(fix, 200);
+  setTimeout(fix, 800);
 
   try {
     var mo = new MutationObserver(function () {
+      if (_busy) return;
       fix();
     });
     mo.observe(document.documentElement, {
       subtree: true,
       childList: true,
-      characterData: true,
       attributes: true,
-      attributeFilter: ['placeholder', 'type']
+      attributeFilter: ['placeholder', 'type', 'class']
     });
-  } catch (e3) {}
+  } catch (e4) {}
 
   setInterval(function () {
     try {
-      var ls = document.getElementById('login-screen');
-      if (ls && ls.offsetParent === null && document.body && document.body.classList.contains('is-portal')) return;
+      if (document.body && document.body.classList.contains('is-portal')) return;
       fix();
-    } catch (e4) {
-      fix();
-    }
-  }, 400);
+    } catch (e5) {}
+  }, 2000);
 
-  var frames = 0;
-  function rafBurst() {
-    fix();
-    if (++frames < 40) requestAnimationFrame(rafBurst);
-  }
-  try {
-    requestAnimationFrame(rafBurst);
-  } catch (e5) {
-    fix();
-  }
-
-  window.DRLoginLabelLock = { refresh: fix, v: 3 };
+  window.DRLoginLabelLock = { refresh: fix, v: 4 };
 })();
