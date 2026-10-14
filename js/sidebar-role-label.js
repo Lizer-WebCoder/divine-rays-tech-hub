@@ -1,85 +1,70 @@
 /**
- * Divine Rays — Sidebar role label v5
+ * Divine Rays — Sidebar role label v6
  * Show real role (Admin / Developer / etc). Only exact DEVS forced to Developer.
- * kirzhianthegreat is NOT a forced Developer — uses profile role.
+ * Developers (2 only): kirzhianquijano, iiyasora2002
  */
 (function () {
   'use strict';
-  if (window.__DR_SIDEBAR_ROLE_LABEL >= 5) return;
-  window.__DR_SIDEBAR_ROLE_LABEL = 5;
+  if (window.__DR_SIDEBAR_ROLE_LABEL >= 6) return;
+  window.__DR_SIDEBAR_ROLE_LABEL = 6;
 
-  var DEVS = { kirzhian: 1, jamesjerlow123: 1, liya: 1 };
+  var DEVS = { kirzhianquijano: 1, iiyasora2002: 1 };
+  var DEV_EMAILS = { 'kirzhianquijano@gmail.com': 1, 'iiyasora2002@gmail.com': 1 };
 
   function isDev(s) {
     s = String(s || '').toLowerCase().trim();
-    return !!DEVS[s];
+    if (DEVS[s] || DEV_EMAILS[s]) return true;
+    return false;
   }
 
   function esc(s) {
     return String(s || '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
+      .replace(/&/g, '&')
+      .replace(/</g, '<')
+      .replace(/>/g, '>')
+      .replace(/"/g, '"');
   }
 
   function profile() {
     try {
       if (window.__drProfile) return window.__drProfile;
-      if (window.DR && window.DR.profile) return window.DR.profile;
-      if (window.DR && window.DR.user) return window.DR.user;
-      if (window.currentProfile) return window.currentProfile;
+      if (window.DR && window.DR.currentProfile) return window.DR.currentProfile;
     } catch (e) {}
     return null;
   }
 
-  function roleOf(p) {
-    if (!p) return { label: 'Admin', cls: 'admin' };
-    var r = String(p.role || p.staff_role || '').toLowerCase().trim();
-    var un = String(p.username || p.name || '').toLowerCase().trim();
-    if (isDev(un)) return { label: 'Developer', cls: 'developer' };
-    if (r === 'developer' || r === 'dev') return { label: 'Developer', cls: 'developer' };
-    if (r === 'owner') return { label: 'Owner', cls: 'owner' };
-    if (r === 'admin' || r === 'administrator') return { label: 'Admin', cls: 'admin' };
-    if (r === 'agent' || r === 'tech' || r === 'tech support' || r === 'support') return { label: 'Tech Support', cls: 'agent' };
-    if (r) return { label: r.charAt(0).toUpperCase() + r.slice(1), cls: 'admin' };
-    return { label: 'Admin', cls: 'admin' };
+  function roleText(p) {
+    if (!p) return '';
+    var un = String(p.username || '').toLowerCase().trim();
+    var em = String(p.email || '').toLowerCase().trim();
+    if (isDev(un) || isDev(em)) return 'Developer';
+    var staff = p.staff_role || p.job_title || '';
+    if (staff) return String(staff);
+    var r = String(p.role || '').toLowerCase();
+    if (r === 'admin' || r === 'administrator') return 'Admin';
+    if (r === 'agent' || r === 'tech support' || r === 'techsupport') return 'IT Tech Support';
+    if (r === 'developer' || r === 'dev') return 'Developer';
+    if (r === 'owner') return 'Owner';
+    if (r === 'customer' || r === 'user' || r === 'end-user' || r === 'employee') return 'Employee';
+    return p.role || '';
   }
 
   function apply() {
-    try {
-      var p = profile();
-      var info = roleOf(p);
-      var name = '';
-      if (p) name = p.username || p.full_name || p.name || '';
-      document.querySelectorAll('.sidebar-role, .role-badge, [data-role-label], .dr-role-label').forEach(function (el) {
-        el.textContent = info.label;
-        el.className = (el.className || '').replace(/\b(developer|admin|owner|agent)\b/g, '').trim() + ' ' + info.cls;
-      });
-      var badge = document.querySelector('.sidebar .role-pill, .sidebar-user-role, #sidebar-role');
-      if (badge) {
-        badge.textContent = info.label;
-        badge.classList.remove('developer', 'admin', 'owner', 'agent');
-        badge.classList.add(info.cls);
+    var p = profile();
+    var label = roleText(p);
+    if (!label) return;
+    var nodes = document.querySelectorAll(
+      '.dr-role-label, #agent-role-label, [data-role-label], .sidebar-role, .user-role-badge'
+    );
+    nodes.forEach(function (el) {
+      if (el.textContent !== label) el.textContent = label;
+      if (label === 'Developer') {
+        el.classList.add('badge-role-developer');
       }
-      /* orange Developer pill in sidebar header */
-      document.querySelectorAll('.sidebar .user-meta, .sidebar-profile, .sidebar-user').forEach(function (wrap) {
-        var pills = wrap.querySelectorAll('span, .badge, .pill');
-        pills.forEach(function (sp) {
-          var t = String(sp.textContent || '').trim().toLowerCase();
-          if (t === 'developer' || t === 'admin' || t === 'owner' || t === 'tech support') {
-            sp.textContent = info.label;
-            sp.classList.remove('developer', 'admin');
-            sp.classList.add(info.cls);
-          }
-        });
-      });
-    } catch (e) {}
+    });
   }
 
   apply();
-  setTimeout(apply, 400);
-  setTimeout(apply, 1200);
   setInterval(apply, 2000);
-  window.DRSidebarRole = { refresh: apply };
+  window.DRSidebarRoleLabel = { refresh: apply, v: 6 };
 })();
