@@ -1,52 +1,58 @@
 /**
- * Divine Rays — lock Admin login field label to Email (no flicker) v2
- * Defeats any residual agent-username-auth v1 setInterval that resets
- * "Username or Email". Runs MutationObserver + fast interval + RAF burst.
+ * Divine Rays — lock Admin login field labels v3
+ * Email field stays "Email"; Password field stays "Password".
+ * Never force every label to Email (that was the double-Email bug).
  */
 (function () {
   'use strict';
-  if (window.__DR_LOGIN_LABEL_LOCK >= 2) return;
-  window.__DR_LOGIN_LABEL_LOCK = 2;
-
-  function forceEmailLabel(lab) {
-    if (!lab) return;
-    var t = (lab.textContent || '').replace(/\s+/g, ' ').trim();
-    if (t !== 'Email') {
-      lab.textContent = 'Email';
-      lab.setAttribute('data-dr-locked-label', 'email');
-    }
-  }
+  if (window.__DR_LOGIN_LABEL_LOCK >= 3) return;
+  window.__DR_LOGIN_LABEL_LOCK = 3;
 
   function fix() {
     try {
       var form = document.getElementById('login-agent');
       if (!form) return;
 
-      form.querySelectorAll('label').forEach(function (lab) {
-        var t = (lab.textContent || '').replace(/\s+/g, ' ').trim();
-        if (/username/i.test(t) || t !== 'Email') forceEmailLabel(lab);
-      });
-
-      var input =
+      var emailInput =
         document.getElementById('agent-username') ||
         document.getElementById('agent-user') ||
-        form.querySelector('input[type="text"], input[type="email"]');
-      if (input) {
-        var ph = input.getAttribute('placeholder') || '';
+        form.querySelector('input[type="email"], input[type="text"]');
+      if (emailInput) {
+        var eg = emailInput.closest ? emailInput.closest('.form-group') : emailInput.parentNode;
+        var elab = eg ? eg.querySelector('label') : null;
+        if (elab) {
+          var et = (elab.textContent || '').replace(/\s+/g, ' ').trim();
+          if (et !== 'Email') {
+            elab.textContent = 'Email';
+            elab.setAttribute('data-dr-locked-label', 'email');
+          }
+        }
+        var ph = emailInput.getAttribute('placeholder') || '';
         if (/username/i.test(ph) || !ph || ph === 'Username or email') {
-          input.setAttribute('placeholder', 'you@company.com');
+          emailInput.setAttribute('placeholder', 'you@company.com');
         }
         try {
-          if (input.type !== 'email') input.type = 'email';
+          if (emailInput.type !== 'email') emailInput.type = 'email';
         } catch (e) {}
-        input.setAttribute('autocomplete', 'username');
+        emailInput.setAttribute('autocomplete', 'username');
       }
 
-      var pass = document.getElementById('agent-password') || form.querySelector('input[type="password"]');
+      var pass =
+        document.getElementById('agent-password') ||
+        form.querySelector('input[type="password"]');
       if (pass) {
+        var pg = pass.closest ? pass.closest('.form-group') : pass.parentNode;
+        var plab = pg ? pg.querySelector('label') : null;
+        if (plab) {
+          var pt = (plab.textContent || '').replace(/\s+/g, ' ').trim();
+          if (pt !== 'Password') {
+            plab.textContent = 'Password';
+            plab.setAttribute('data-dr-locked-label', 'password');
+          }
+        }
         var pph = pass.getAttribute('placeholder') || '';
-        if (!pph || (/password/i.test(pph) && pph.indexOf('\u2022') === -1)) {
-          pass.setAttribute('placeholder', '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022');
+        if (!pph || (/password/i.test(pph) && pph.indexOf('\u2022') === -1 && pph.indexOf('•') === -1)) {
+          pass.setAttribute('placeholder', '••••••••');
         }
       }
     } catch (e2) {}
@@ -88,5 +94,5 @@
     fix();
   }
 
-  window.DRLoginLabelLock = { refresh: fix, v: 2 };
+  window.DRLoginLabelLock = { refresh: fix, v: 3 };
 })();
