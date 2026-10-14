@@ -11,16 +11,14 @@
       background:radial-gradient(ellipse 80% 60% at 50% 40%,#1a1530 0%,#0c0c14 55%,#08080f 100%);color:#eeeef6}
     #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:1.25rem;text-align:center;padding:1.5rem}
     #boot .boot-logo{width:72px;height:72px;border-radius:16px;display:block;box-shadow:0 8px 32px rgba(109,90,154,.35);animation:none}
-    #boot .boot-gear-spin{transform-origin:0 0;animation:drBootGearSpin 1.4s linear infinite}
     #boot .boot-title{font-size:1.35rem;font-weight:650;margin:0;color:#eeeef6}
     #boot .boot-sub{font-size:.85rem;color:#9494ae;margin:0}
     #boot .err{color:#fca5a5;font-size:.9rem;max-width:28rem}
-    @keyframes drBootGearSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
   </style>
 </head>
 <body>
   <div id="boot" role="status" aria-live="polite">
-    <svg class="boot-logo" viewBox="0 0 64 64" width="72" height="72" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="drBootBg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6d5a9a"/><stop offset="100%" stop-color="#2a1f3d"/></linearGradient><linearGradient id="drBootMetal" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#f3e8ff"/><stop offset="100%" stop-color="#c4b5fd"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#drBootBg)"/><g transform="translate(32,32)"><g class="boot-gear-spin" fill="url(#drBootMetal)"><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(45)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(90)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(135)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(180)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(225)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(270)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(315)"/><circle r="17" fill="url(#drBootMetal)"/><circle r="9" fill="#2a1f3d"/><circle r="5" fill="url(#drBootMetal)"/><circle r="2.2" fill="#1a1625"/></g></g></svg>
+    <svg class="boot-logo" viewBox="0 0 64 64" width="72" height="72" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="drBootBg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6d5a9a"/><stop offset="100%" stop-color="#2a1f3d"/></linearGradient><linearGradient id="drBootMetal" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#f3e8ff"/><stop offset="100%" stop-color="#c4b5fd"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#drBootBg)"/><g><animateTransform attributeName="transform" type="rotate" from="0 32 32" to="360 32 32" dur="1.4s" repeatCount="indefinite"/><g fill="url(#drBootMetal)" transform="translate(32,32)"><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(45)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(90)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(135)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(180)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(225)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(270)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(315)"/><circle r="17" fill="url(#drBootMetal)"/><circle r="9" fill="#2a1f3d"/><circle r="5" fill="url(#drBootMetal)"/><circle r="2.2" fill="#1a1625"/></g></g></svg>
     <h1 class="boot-title">Divine Rays Tech Hub</h1>
     <p class="boot-sub">Loading…</p>
   </div>
@@ -53,8 +51,8 @@
     var PORTAL_BOOT_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PORTAL_BOOT + '/js/portal-boot-login.js';
     var BLOCKED_HB = ['a9046e485443b24e800a4f4d10747c10146ca663','1887c6e9fe2436bf5402f2c4fa40dda29597416f','89e270ee25cc2e779e36e9c3011ddd21da3724c3','0f5ae49d8c798d58d91acf840190dab5cf059408','3bc50d042182f34d7c05eb077927231267170e5a'];
     var BLOCKED_BG = ['90094058c1f476b163296855e186984add6a625d','29ecd577333c6bd3b558c66a02c2fb32da4e01ca','e7eb85d8670580a5579f8fa2f6d3638ca4aa5265'];
-    var BOOT_CSS = '#boot .boot-logo,#dr-boot-overlay .boot-logo{width:72px;height:72px;border-radius:16px;display:block;box-shadow:0 8px 32px rgba(109,90,154,.35);animation:none!important;overflow:visible}#boot .boot-gear-spin,#dr-boot-overlay .boot-gear-spin{transform-origin:0 0;transform-box:fill-box;animation:drBootGearSpin 1.4s linear infinite!important}@keyframes drBootGearSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}#boot .boot-loader,#boot .boot-bar,#dr-boot-overlay .boot-loader,#dr-boot-overlay .boot-bar,#boot .boot-dot,#dr-boot-overlay .boot-dot{display:none!important;height:0!important;opacity:0!important}';
-    var BOOT_SVG = '<svg class="boot-logo" viewBox="0 0 64 64" width="72" height="72" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="drBootBg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6d5a9a"/><stop offset="100%" stop-color="#2a1f3d"/></linearGradient><linearGradient id="drBootMetal" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#f3e8ff"/><stop offset="100%" stop-color="#c4b5fd"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#drBootBg)"/><g transform="translate(32,32)"><g class="boot-gear-spin" fill="url(#drBootMetal)"><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(45)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(90)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(135)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(180)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(225)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(270)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(315)"/><circle r="17" fill="url(#drBootMetal)"/><circle r="9" fill="#2a1f3d"/><circle r="5" fill="url(#drBootMetal)"/><circle r="2.2" fill="#1a1625"/></g></g></svg>';
+    var BOOT_CSS = '#boot .boot-logo,#dr-boot-overlay .boot-logo{width:72px;height:72px;border-radius:16px;display:block;box-shadow:0 8px 32px rgba(109,90,154,.35);animation:none!important}#boot .boot-loader,#boot .boot-bar,#dr-boot-overlay .boot-loader,#dr-boot-overlay .boot-bar,#boot .boot-dot,#dr-boot-overlay .boot-dot{display:none!important;height:0!important;opacity:0!important}';
+    var BOOT_SVG = '<svg class="boot-logo" viewBox="0 0 64 64" width="72" height="72" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="drBootBg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6d5a9a"/><stop offset="100%" stop-color="#2a1f3d"/></linearGradient><linearGradient id="drBootMetal" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#f3e8ff"/><stop offset="100%" stop-color="#c4b5fd"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#drBootBg)"/><g><animateTransform attributeName="transform" type="rotate" from="0 32 32" to="360 32 32" dur="1.4s" repeatCount="indefinite"/><g fill="url(#drBootMetal)" transform="translate(32,32)"><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(45)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(90)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(135)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(180)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(225)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(270)"/><rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="rotate(315)"/><circle r="17" fill="url(#drBootMetal)"/><circle r="9" fill="#2a1f3d"/><circle r="5" fill="url(#drBootMetal)"/><circle r="2.2" fill="#1a1625"/></g></g></svg>';
 
     var urls = [
       'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/2aa22823e014414ef2bad79bceae69b792cb56c0/index.html?b=' + B,
@@ -119,12 +117,13 @@
           (document.head || document.documentElement).appendChild(st);
         }
         st.textContent = BOOT_CSS;
-        document.querySelectorAll('img.boot-logo, #boot img, #dr-boot-overlay img.boot-logo').forEach(function (img) {
+        document.querySelectorAll('img.boot-logo, #boot img, #dr-boot-overlay img.boot-logo, #boot svg.boot-logo, #dr-boot-overlay svg.boot-logo').forEach(function (el) {
           try {
+            if (el.tagName === 'svg' && el.innerHTML.indexOf('animateTransform') !== -1) return;
             var wrap = document.createElement('div');
             wrap.innerHTML = BOOT_SVG;
             var svg = wrap.firstChild;
-            if (img.parentNode) img.parentNode.replaceChild(svg, img);
+            if (el.parentNode) el.parentNode.replaceChild(svg, el);
           } catch (e) {}
         });
       } catch (e2) {}
@@ -140,30 +139,38 @@
       window.__DR_EARLY_LOGIN = 1;
       function isSignInBtn(el) {
         if (!el || !el.closest) return null;
-        var btn = el.closest('button, input[type="submit"], [role="button"]');
+        var btn = el.closest('button, input[type="submit"], [role="button"], a.btn');
         if (!btn) return null;
-        var inLogin = btn.closest('#login-agent, #login-screen, .login-card, form.login-form');
+        var inLogin = btn.closest('#login-agent, #login-screen, .login-card, form.login-form, .login-panel');
         if (!inLogin) return null;
-        var t = (btn.textContent || btn.value || '').toLowerCase();
-        if (t.indexOf('sign in') !== -1 || t.indexOf('signing') !== -1 || btn.type === 'submit') return btn;
-        if (btn.closest('#login-agent') && (btn.classList.contains('btn-primary') || btn.classList.contains('btn'))) return btn;
-        return null;
+        return btn;
       }
       function tryLogin(btn) {
         if (window.__drAgentLoginBusy || window.__drBooting || window.__drEarlyFired) return;
         try {
-          if (window.DRForcePending && window.DRForcePending.isPendingIdentity && window.DRForcePending.isPendingIdentity()) return;
-        } catch (e) {}
-        window.__drEarlyFired = 1;
-        try {
           if (btn) {
-            btn.setAttribute('data-dr-prev-label', btn.textContent || 'Sign in as Admin');
+            btn.setAttribute('data-dr-prev-label', (btn.textContent || 'Sign in as Admin').trim());
             btn.textContent = 'Signing in…';
             btn.disabled = true;
             btn.style.opacity = '0.85';
             btn.style.pointerEvents = 'none';
           }
-        } catch (e2) {}
+        } catch (eVis) {}
+        try {
+          if (window.DRForcePending && window.DRForcePending.isPendingIdentity && window.DRForcePending.isPendingIdentity()) {
+            window.__drEarlyFired = 0;
+            try {
+              if (btn) {
+                btn.disabled = false;
+                btn.style.pointerEvents = '';
+                btn.style.opacity = '';
+                btn.textContent = btn.getAttribute('data-dr-prev-label') || 'Sign in as Admin';
+              }
+            } catch (eR) {}
+            return;
+          }
+        } catch (e) {}
+        window.__drEarlyFired = 1;
         function go() {
           if (typeof window.__drDoAgentLogin === 'function') {
             window.__drDoAgentLogin(btn || null);
