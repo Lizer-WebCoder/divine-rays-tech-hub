@@ -1,14 +1,13 @@
 /**
- * Divine Rays — force-pending-block v13
+ * Divine Rays — force-pending-block v14
  * ONLY Admin / IT Tech Support / Owner need approval.
- * End-Users / Employees: never gated.
- * v13: hard-gate applyPortalForRole + showApp (was bypassing after login);
- *      Enter key only intercepts when pending (fixes multi-click lag).
+ * End-Users never gated.
+ * v14: no re-entrant blockNow / no MutationObserver loops (fixes page freeze).
  */
 (function () {
   'use strict';
-  if (window.__DR_FORCE_PENDING_BLOCK >= 13) return;
-  window.__DR_FORCE_PENDING_BLOCK = 13;
+  if (window.__DR_FORCE_PENDING_BLOCK >= 14) return;
+  window.__DR_FORCE_PENDING_BLOCK = 14;
 
   var KEY = 'dr_staff_approval';
   var DEVS = { kirzhian: 1, jamesjerlow123: 1, liya: 1 };
@@ -20,6 +19,8 @@
   var _timer = null;
   var _toastEl = null;
   var _uiOn = false;
+  var _blocking = false;
+  var _checkBusy = false;
 
   function map() {
     try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { return {}; }
@@ -29,9 +30,7 @@
   }
   function isDev(n) {
     var s = String(n || '').toLowerCase().trim();
-    if (!s) return false;
-    if (DEVS[s]) return true;
-    return false;
+    return !!(s && DEVS[s]);
   }
   function getApprovalStatus(id, un, em) {
     un = un ? String(un).toLowerCase().trim() : '';
@@ -170,18 +169,17 @@
   }
   function shake() {
     var c = card();
-    if (c) {
-      c.classList.remove('login-pending-shake');
-      void c.offsetWidth;
-      c.classList.add('login-pending-shake');
-      try {
-        c.style.setProperty('animation', 'dr-fp-shake 0.4s ease', 'important');
-        setTimeout(function () {
-          try { c.style.removeProperty('animation'); } catch (e) {}
-          c.classList.remove('login-pending-shake');
-        }, 420);
-      } catch (e2) {}
-    }
+    if (!c) return;
+    c.classList.remove('login-pending-shake');
+    void c.offsetWidth;
+    c.classList.add('login-pending-shake');
+    try {
+      c.style.setProperty('animation', 'dr-fp-shake 0.4s ease', 'important');
+      setTimeout(function () {
+        try { c.style.removeProperty('animation'); } catch (e) {}
+        c.classList.remove('login-pending-shake');
+      }, 420);
+    } catch (e2) {}
   }
   function showPending() {
     ensureCss();
@@ -225,12 +223,20 @@
     } catch (e2) {}
   }
   function blockNow() {
-    showPending();
-    quietSignOut();
-    lockPortal();
-    setApprovalError();
-    setTimeout(function () { lockPortal(); applyOrangeGlow(card()); shake(); }, 80);
-    setTimeout(function () { lockPortal(); applyOrangeGlow(card()); }, 250);
+    if (_blocking) return;
+    _blocking = true;
+    try {
+      showPending();
+      quietSignOut();
+      lockPortal();
+      setApprovalError();
+      setTimeout(function () {
+        lockPortal();
+        applyOrangeGlow(card());
+      }, 100);
+    } finally {
+      setTimeout(function () { _blocking = false; }, 600);
+    }
   }
   function shouldBlockUser(id, un, em, role) {
     un = String(un || '').toLowerCase().trim();
@@ -254,65 +260,37 @@
     return shouldBlockUser(p.id, un, em, p.role || p.staff_role || '');
   }
 
-  function wrapFn(name, get, set) {
-    try {
-      var cur = get();
-      if (!cur || cur.__drFpWrapV13) return !!cur;
-      var wrapped = function () {
-        try {
-          var arg0 = arguments[0];
-          if (arg0 && typeof arg0 === 'object' && gateProfile(arg0)) {
-            blockNow();
-            return;
-          }
-        } catch (e) {}
-        return cur.apply(this, arguments);
-      };
-      wrapped.__drFpWrapV13 = 1;
-      set(wrapped);
-      return true;
-    } catch (e2) {
-      return false;
-    }
-  }
-
   function wrapGates() {
-    wrapFn(
-      'showApp',
-      function () { return window.showApp; },
-      function (fn) {
-        try {
-          Object.defineProperty(window, 'showApp', {
-            configurable: true,
-            enumerable: true,
-            writable: true,
-            value: fn
-          });
-        } catch (e) {
-          window.showApp = fn;
-        }
-      }
-    );
     try {
-      if (window.DR && typeof window.DR.showApp === 'function' && !window.DR.showApp.__drFpWrapV13) {
+      if (typeof window.showApp === 'function' && !window.showApp.__drFpWrapV14) {
+        var sa = window.showApp;
+        var wsa = function (p) {
+          if (gateProfile(p)) { blockNow(); return; }
+          return sa.apply(this, arguments);
+        };
+        wsa.__drFpWrapV14 = 1;
+        window.showApp = wsa;
+      }
+    } catch (e) {}
+    try {
+      if (window.DR && typeof window.DR.showApp === 'function' && !window.DR.showApp.__drFpWrapV14) {
         var d0 = window.DR.showApp;
         window.DR.showApp = function (p) {
           if (gateProfile(p)) { blockNow(); return; }
           return d0.apply(this, arguments);
         };
-        window.DR.showApp.__drFpWrapV13 = 1;
+        window.DR.showApp.__drFpWrapV14 = 1;
       }
-    } catch (e) {}
+    } catch (e2) {}
     try {
-      if (typeof window.applyPortalForRole === 'function' && !window.applyPortalForRole.__drFpRoleV13) {
+      if (typeof window.applyPortalForRole === 'function' && !window.applyPortalForRole.__drFpWrapV14) {
         var apr = window.applyPortalForRole;
         window.applyPortalForRole = function (role) {
           try {
             var r = String(role || '').toLowerCase();
             if (!isCustomer(r) && isStaffRole(r)) {
               var u = readUserEmail();
-              var st = getApprovalStatus(null, u.un, u.em);
-              if (st !== 'approved' && !isDev(u.un)) {
+              if (getApprovalStatus(null, u.un, u.em) !== 'approved' && !isDev(u.un)) {
                 blockNow();
                 return;
               }
@@ -320,13 +298,14 @@
           } catch (e) {}
           return apr.apply(this, arguments);
         };
-        window.applyPortalForRole.__drFpRoleV13 = 1;
-        window.applyPortalForRole.__drFpWrapV13 = 1;
+        window.applyPortalForRole.__drFpWrapV14 = 1;
       }
     } catch (e3) {}
   }
 
   async function checkSession() {
+    if (_checkBusy || _blocking) return;
+    _checkBusy = true;
     try {
       wrapGates();
       var client = sb();
@@ -346,7 +325,10 @@
       var un = String(meta.username || (profile && profile.username) || '').toLowerCase().trim();
       var em = String(user.email || (profile && profile.email) || '').toLowerCase();
       if (shouldBlockUser(user.id, un, em, role)) blockNow();
-    } catch (e) {}
+    } catch (e) {
+    } finally {
+      _checkBusy = false;
+    }
   }
 
   function isPendingIdentity() {
@@ -389,39 +371,30 @@
     }
   }
 
-  try {
-    new MutationObserver(function () {
-      wrapGates();
-      if (document.body.classList.contains('is-portal') || document.body.classList.contains('dr-pending-blocked')) {
-        var pa = document.getElementById('portal-agent');
-        if (pa && pa.classList.contains('active')) {
-          checkSession();
-        }
-      }
-    }).observe(document.documentElement, { attributes: true, subtree: true, attributeFilter: ['class'] });
-  } catch (eObs) {}
-
-  setInterval(function () {
-    if (_uiOn || document.body.classList.contains('dr-pending-blocked')) {
-      setApprovalError();
-      applyOrangeGlow(card());
-      lockPortal();
-    }
-  }, 400);
-
-  if (!window.__drForcePendingSubmitV13) {
-    window.__drForcePendingSubmitV13 = 1;
+  if (!window.__drForcePendingSubmitV14) {
+    window.__drForcePendingSubmitV14 = 1;
     document.addEventListener('submit', onSubmit, true);
     document.addEventListener('click', onAgentButtonClick, true);
     document.addEventListener('keydown', onEnterKey, true);
   }
+
   ensureCss();
   wrapGates();
-  checkSession();
-  setTimeout(checkSession, 100);
-  setTimeout(checkSession, 400);
-  setTimeout(checkSession, 900);
-  setTimeout(checkSession, 1800);
-  setInterval(function () { wrapGates(); checkSession(); }, 800);
-  window.DRForcePending = { showPendingUI: showPending, blockNow: blockNow, v: 13 };
+  setTimeout(checkSession, 300);
+  setTimeout(checkSession, 1200);
+  setTimeout(checkSession, 2500);
+  setInterval(function () {
+    if (_uiOn || document.body.classList.contains('dr-pending-blocked')) {
+      lockPortal();
+      applyOrangeGlow(card());
+      setApprovalError();
+    } else {
+      wrapGates();
+    }
+  }, 2000);
+  setInterval(function () {
+    if (!_blocking && !_checkBusy) checkSession();
+  }, 4000);
+
+  window.DRForcePending = { showPendingUI: showPending, blockNow: blockNow, v: 14 };
 })();
