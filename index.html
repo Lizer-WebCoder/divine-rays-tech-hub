@@ -7,10 +7,10 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <!--
-    PRODUCTION LOGIN LOCK v3.0
+    PRODUCTION LOGIN LOCK v3.1
     force-pending v22 be76bf28 — card-only pending, sticky clear, server approval_status
     admin V21 c54201aa — Approve writes profiles.approval_status (any device)
-    app.js eda5cefe — Signing in feedback + portal ready + server approval check
+    app.js eda5cefe + portal-boot e933bee7 — Successfully logged in + gear boot until portal ready
   -->
   <title>Divine Rays Tech Hub — Support</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.9.22-av-cards" />
@@ -72,6 +72,8 @@
     var FORCE_PENDING_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + FORCE_PENDING + '/js/force-pending-block.js';
     var ADMIN_JS = 'c54201aa340f2f53d81f10aa0bb07680811f58c4';
     var APP_JS = 'eda5cefe233f8314cd2bf75921db75f7a2febe9c';
+    var PORTAL_BOOT = 'e933bee7ba89c2c0d7a6eec91ec541146143f42f';
+    var PORTAL_BOOT_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + PORTAL_BOOT + '/js/portal-boot-login.js';
     var BLOCKED_HB = [
       'a9046e485443b24e800a4f4d10747c10146ca663',
       '1887c6e9fe2436bf5402f2c4fa40dda29597416f',
@@ -259,6 +261,7 @@
       inject(LOCK_SRC);
       inject(AGENT_SRC);
       inject(FORCE_PENDING_SRC);
+      inject(PORTAL_BOOT_SRC);
       inject(NO_RESET_SRC);
       inject(STABLE_SRC);
       inject(HARD_LOCK_SRC);
