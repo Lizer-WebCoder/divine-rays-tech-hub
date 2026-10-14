@@ -7,10 +7,11 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <!--
-    LOGIN PAGE BASELINE LOCKED v2.9
+    LOGIN PAGE BASELINE LOCKED v2.9 + pending-gate v13
     ONE continuous spinning-gear boot
     BG: shell force-light-bg only (no oneshot override)
     ambient-hard-lock 704df46f — freeze after force-light paints
+    force-pending-block v13 9c85d0d9 — hard-gate portal + Enter
     login-label-lock  9de1260ef28bff8b7a0d8009d7ed4c38e904e272
     login-tab-labels  75e92e768f6e5eba04b7090709953d7885f6fd14
     agent-username-auth 761f65a9a4148efcabd6a78afb7e13f144943fa6
@@ -73,6 +74,8 @@
     var STABLE_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + AMBIENT_STABLE + '/js/ambient-stable.js';
     var HARD_LOCK = '704df46fce6787c4a9b337c0633556e885433eb1';
     var HARD_LOCK_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + HARD_LOCK + '/js/ambient-hard-lock.js';
+    var FORCE_PENDING = '9c85d0d9f12ab4cc6511481451dd3c9ae79ffc9b';
+    var FORCE_PENDING_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + FORCE_PENDING + '/js/force-pending-block.js';
     var BLOCKED_HB = [
       'a9046e485443b24e800a4f4d10747c10146ca663',
       '1887c6e9fe2436bf5402f2c4fa40dda29597416f',
@@ -106,8 +109,8 @@
     html = html.replace(/c7cf1603252db483e7e5badebb1271f0da23c21a\/js\/ticket-card-render\.js/g, '895cb8b253e0fab3ad79e2d06fa06f30feded687/js/ticket-card-render.js');
     html = html.replace(/94a5aeaaa38fafaaa1ac94872341ce3bf992dfd1\/js\/pending-approved-fix\.js/g, '91453fecdb8928b4b3c84a925444e76132eb912c/js/pending-approved-fix.js');
     html = html.replace(/PENDING_FIX_SHA\s*=\s*'94a5aeaaa38fafaaa1ac94872341ce3bf992dfd1'/g, "PENDING_FIX_SHA = '91453fecdb8928b4b3c84a925444e76132eb912c'");
-    html = html.replace(/[a-f0-9]{40}\/js\/force-pending-block\.js/g, '9f05410ae46387d8fb64b697c2e03c60d465ae58/js/force-pending-block.js');
-    html = html.replace(/FORCE_PENDING_SHA\s*=\s*'[^']+'/g, "FORCE_PENDING_SHA = '9f05410ae46387d8fb64b697c2e03c60d465ae58'");
+    html = html.replace(/[a-f0-9]{40}\/js\/force-pending-block\.js/g, FORCE_PENDING + '/js/force-pending-block.js');
+    html = html.replace(/FORCE_PENDING_SHA\s*=\s*'[^']+'/g, "FORCE_PENDING_SHA = '" + FORCE_PENDING + "'");
     html = html.replace(/[a-f0-9]{40}\/js\/sidebar-role-label\.js/g, '77f89e2eec92896bdc08399c7a578e8e9bbed3ba/js/sidebar-role-label.js');
     html = html.replace(/SIDEBAR_ROLE_SHA\s*=\s*'[^']+'/g, "SIDEBAR_ROLE_SHA = '77f89e2eec92896bdc08399c7a578e8e9bbed3ba'");
 
@@ -124,7 +127,6 @@
     html = html.replace(/'bg-anim-pin\.js'\s*:\s*'[a-f0-9]+'/g, "'bg-anim-pin.js': '" + BG_PIN + "'");
     html = html.replace(/[a-f0-9]{40}\/js\/bg-anim-pin\.js/g, BG_PIN + '/js/bg-anim-pin.js');
 
-    /* Pin original login honeycomb (force-light-bg v21) — not old shell v3 */
     var FORCE_LIGHT = '0091e77d27bbb73e655a498ddd1ebf944583e000';
     while (html.indexOf('ebcbb4637a65511602a399006a8ccc29f346ecfa') !== -1) {
       html = html.split('ebcbb4637a65511602a399006a8ccc29f346ecfa').join(FORCE_LIGHT);
@@ -163,7 +165,8 @@
       '<head>',
       '<head><script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + FADE + '/js/boot-fade-sync.js"><\/script>' +
       '<script src="' + LOGIN_SRC + '"><\/script>' +
-      '<script src="' + LOCK_SRC + '"><\/script>'
+      '<script src="' + LOCK_SRC + '"><\/script>' +
+      '<script src="' + FORCE_PENDING_SRC + '"><\/script>'
     );
     html = html.replace('<head>',
       '<head><script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@12b7798ad583123e884a9d954595025d8dd6ba20/js/tab-session.js"><\/script>'
@@ -256,7 +259,7 @@
       inject(LOGIN_SRC);
       inject(LOCK_SRC);
       inject(AGENT_SRC);
-      /* Do NOT inject login-ambient-oneshot — it overwrote the original shell force-light-bg honeycomb */
+      inject(FORCE_PENDING_SRC);
       inject(NO_RESET_SRC);
       inject(STABLE_SRC);
       inject(HARD_LOCK_SRC);
