@@ -1,5 +1,5 @@
 /**
- * Divine Rays Tech Hub — login loader (safe role switch)
+ * Divine Rays Tech Hub — login loader (safe role switch) + pending gate v2
  * Credit: Lizzz · All Rights Reserved
  */
 (function () {
@@ -16,7 +16,6 @@
   var sb = null;
   var usingCloud = !!(cfg.SUPABASE_URL && cfg.SUPABASE_ANON_KEY && window.supabase);
   if (usingCloud) {
-    // Reuse one client to avoid "Multiple GoTrueClient instances" warnings
     if (window.__drSb) {
       sb = window.__drSb;
     } else {
@@ -27,60 +26,107 @@
     }
   }
 
+  /* Pending Admin gate — block portal before it opens */
+  var DR_APPROVAL_KEY = 'dr_staff_approval';
+  var DR_DEVS = { kirzhianquijano: 1, iiyasora2002: 1 };
+  var DR_DEV_EMAILS = { 'kirzhianquijano@gmail.com': 1, 'iiyasora2002@gmail.com': 1 };
+  function drIsDev(n) {
+    var s = String(n || '').toLowerCase().trim();
+    return !!(s && (DR_DEVS[s] || DR_DEV_EMAILS[s]));
+  }
+  function drApprovalMap() {
+    try { return JSON.parse(localStorage.getItem(DR_APPROVAL_KEY) || '{}') || {}; } catch (e) { return {}; }
+  }
+  function drGetStatus(id, un, em) {
+    un = String(un || '').toLowerCase().trim();
+    em = String(em || '').toLowerCase().trim();
+    if (drIsDev(un) || drIsDev(em)) return 'approved';
+    var m = drApprovalMap();
+    if (id && m[id] === 'approved') return 'approved';
+    if (un && m['u:' + un] === 'approved') return 'approved';
+    if (em && m['e:' + em] === 'approved') return 'approved';
+    return 'pending';
+  }
+  function drIsCustomerRole(r) {
+    r = String(r || '').toLowerCase().trim();
+    return !r || r === 'customer' || r === 'user' || r === 'end-user' || r === 'enduser' || r === 'employee' || r === 'client';
+  }
+  function drMarkPending(id, un, em) {
+    try {
+      var m = drApprovalMap();
+      if (id) m[id] = 'pending';
+      un = String(un || '').toLowerCase().trim();
+      em = String(em || '').toLowerCase().trim();
+      if (un) { m['pending:' + un] = 'pending'; delete m['u:' + un]; }
+      if (em) { m['pending:' + em] = 'pending'; delete m['e:' + em]; }
+      localStorage.setItem(DR_APPROVAL_KEY, JSON.stringify(m));
+    } catch (e) {}
+  }
+  function drShowPendingLogin() {
+    try {
+      if (window.DRForcePending && window.DRForcePending.blockNow) {
+        window.DRForcePending.blockNow();
+        return;
+      }
+    } catch (e) {}
+    try {
+      document.body.classList.add('dr-pending-blocked', 'is-login');
+      document.body.classList.remove('dr-portal-ok', 'is-portal');
+      var pa = document.getElementById('portal-agent');
+      if (pa) { pa.classList.remove('active'); pa.style.display = 'none'; }
+      var ls = document.getElementById('login-screen');
+      if (ls) { ls.hidden = false; ls.style.display = 'flex'; ls.classList.add('active'); }
+      var card = document.querySelector('#login-screen .login-card, .login-card');
+      if (card) {
+        card.style.boxShadow = '0 0 22px rgba(251,146,60,0.9),0 0 52px rgba(249,115,22,0.6)';
+        card.style.borderColor = 'rgba(251,146,60,0.95)';
+      }
+      if (window.DR && window.DR.toast) {
+        window.DR.toast('Your account is pending Administrator approval. Please wait until a Developer/Admin approves your account.', 'error');
+      }
+    } catch (e2) {}
+  }
+  async function drHardSignOutLocal() {
+    try {
+      if (sb && sb.auth) await sb.auth.signOut({ scope: 'local' });
+    } catch (e) {}
+    try {
+      window.__drFullLoaded = false;
+      window.__drBooting = false;
+      window.__drProfile = null;
+    } catch (e2) {}
+  }
+  function drMustBlockStaff(profile, email, username) {
+    if (!profile) return true;
+    var role = profile.role || profile.staff_role || '';
+    if (drIsCustomerRole(role)) return false;
+    var un = String(username || profile.username || '').toLowerCase().trim();
+    var em = String(email || profile.email || '').toLowerCase().trim();
+    if (drIsDev(un) || drIsDev(em)) return false;
+    if (drGetStatus(profile.id, un, em) === 'approved') return false;
+    drMarkPending(profile.id, un, em);
+    return true;
+  }
+
   function toast(m, t) {
-    var c = document.getElementById('toast-container');
-    if (!c) {
-      console.log('[toast]', m);
-      return;
-    }
-    var e = document.createElement('div');
-    e.className = 'toast ' + (t || 'info');
-    e.textContent = m;
-    c.appendChild(e);
-    setTimeout(function () { e.remove(); }, 3200);
+    try { if (window.DR && window.DR.toast) window.DR.toast(m, t || 'info'); } catch (e) {}
   }
-
   function showError(formId, msg) {
-    var f = document.getElementById(formId);
-    if (!f) {
-      alert(msg);
-      return;
-    }
-    var e = f.querySelector('.login-error');
-    if (!e) {
-      e = document.createElement('div');
-      e.className = 'login-error';
-      e.style.color = '#f87171';
-      e.style.marginBottom = '0.5rem';
-      e.style.fontSize = '0.9rem';
-      f.insertBefore(e, f.firstChild);
-    }
-    e.textContent = msg;
+    try {
+      var f = document.getElementById(formId);
+      if (!f) return;
+      var e = f.querySelector('.login-error');
+      if (!e) { e = document.createElement('div'); e.className = 'login-error'; f.insertBefore(e, f.firstChild); }
+      e.textContent = msg || '';
+      e.style.display = msg ? 'block' : 'none';
+    } catch (err) {}
   }
-
   function clearErrors() {
-    document.querySelectorAll('.login-error').forEach(function (e) { e.remove(); });
+    document.querySelectorAll('.login-error').forEach(function (e) { e.textContent = ''; e.style.display = 'none'; });
   }
-
-  window.switchLoginTab = function (tab) {
-    document.querySelectorAll('.ltab').forEach(function (b) {
-      b.classList.remove('active');
-    });
-    document.querySelectorAll('.login-form').forEach(function (f) {
-      f.classList.remove('active');
-    });
-    var t = document.querySelector('[data-ltab="' + tab + '"]');
-    if (t) t.classList.add('active');
-    var formId = tab === 'customer' ? 'login-customer' : 'login-agent';
-    var f = document.getElementById(formId);
-    if (f) f.classList.add('active');
-    clearErrors();
-  };
 
   window.showForm = function (id) {
-    document.querySelectorAll('.login-form').forEach(function (f) {
-      f.classList.remove('active');
-    });
+    document.querySelectorAll('.login-form').forEach(function (f) { f.classList.remove('active'); });
     var f = document.getElementById(id);
     if (f) f.classList.add('active');
     var tab = id.indexOf('agent') !== -1 ? 'agent' : 'customer';
@@ -91,9 +137,7 @@
   };
 
   async function hardSignOut() {
-    if (sb) {
-      try { await sb.auth.signOut({ scope: 'local' }); } catch (e) {}
-    }
+    if (sb) { try { await sb.auth.signOut({ scope: 'local' }); } catch (e) {} }
     try {
       Object.keys(localStorage).forEach(function (k) {
         if (k.indexOf('supabase') !== -1 || k.indexOf('sb-') === 0) localStorage.removeItem(k);
@@ -143,8 +187,9 @@
     });
     if (r.error) return { error: r.error.message };
     var user = r.data.user;
-    if (user) await ensureProfile(user, 'customer');
-    return { user: user, profile: user ? await getProfile(user.id) : null };
+    if (!user) return { error: 'Check email to confirm signup' };
+    var prof = await ensureProfile(user, 'customer');
+    return { user: user, profile: prof };
   }
 
   async function signUpAgent(name, username, password, email) {
@@ -155,16 +200,30 @@
     });
     if (r.error) return { error: r.error.message };
     var user = r.data.user;
-    if (user) await ensureProfile(user, 'agent');
-    return { user: user, profile: user ? await getProfile(user.id) : null };
+    if (!user) return { error: 'Check email to confirm signup' };
+    var prof = await ensureProfile(user, 'agent');
+    return { user: user, profile: prof };
   }
 
   function applyPortalForRole(role) {
+    var r = String(role || '').toLowerCase();
+    if (!drIsCustomerRole(r) && (r === 'agent' || r === 'admin' || r === 'developer' || r === 'owner' || r === 'staff')) {
+      try {
+        var p = window.__drProfile;
+        var em = (p && p.email) || '';
+        var un = (p && p.username) || '';
+        if (drMustBlockStaff(p || { role: r }, em, un)) {
+          drShowPendingLogin();
+          return;
+        }
+      } catch (e) {}
+    }
+    try { document.body.classList.add('dr-portal-ok'); document.body.classList.remove('dr-pending-blocked'); } catch (e2) {}
     var pc = document.getElementById('portal-customer');
     var pa = document.getElementById('portal-agent');
     if (pc) pc.classList.remove('active');
     if (pa) pa.classList.remove('active');
-    if (role === 'agent' || role === 'admin') {
+    if (r === 'agent' || r === 'admin' || r === 'developer' || r === 'owner') {
       if (pa) pa.classList.add('active');
     } else {
       if (pc) pc.classList.add('active');
@@ -173,6 +232,28 @@
 
   async function loadFullAppThen(expectedRole) {
     if (window.__drBooting) return;
+    var er = String(expectedRole || '').toLowerCase();
+    if (!drIsCustomerRole(er)) {
+      try {
+        var p0 = window.__drProfile;
+        if (p0 && drMustBlockStaff(p0, p0.email, p0.username)) {
+          drShowPendingLogin();
+          await drHardSignOutLocal();
+          return;
+        }
+        if (!p0) {
+          var au = document.getElementById('agent-username') || document.getElementById('agent-user');
+          var raw = au ? String(au.value || '').trim() : '';
+          var un = raw.indexOf('@') === -1 ? raw.toLowerCase() : '';
+          var em = raw.indexOf('@') !== -1 ? raw.toLowerCase() : '';
+          if (raw && !drIsDev(un) && !drIsDev(em) && drGetStatus(null, un, em) !== 'approved') {
+            drShowPendingLogin();
+            await drHardSignOutLocal();
+            return;
+          }
+        }
+      } catch (e0) {}
+    }
     window.__drBooting = true;
     toast('Signed in…', 'success');
 
@@ -199,33 +280,6 @@
     );
     code = code.replace(/\}\);\s*\}\)\(\);\s*$/m, "}\n__drBoot();\n})();");
 
-    code = code.replace(
-      "await sb.from('profiles').upsert({id:session.user.id,full_name:meta.full_name||'User',role:meta.role||'customer',username:meta.username||null});",
-      "var __ex=await sb.from('profiles').select('id,role').eq('id',session.user.id).maybeSingle();if(!__ex.data){await sb.from('profiles').upsert({id:session.user.id,full_name:meta.full_name||'User',role:meta.role||'customer',username:meta.username||null});}"
-    );
-
-    code = code.replace(
-      "function showApp(p){",
-      "function showApp(p){if(p&&!p.name&&p.full_name)p.name=p.full_name;if(p&&!p.name)p.name=p.email||'User';"
-    );
-
-    code = code.replace(
-      "async function signOut(){if(usingCloud)await sb.auth.signOut();currentProfile=null;}",
-      "async function signOut(){currentProfile=null;window.__drFullLoaded=false;window.__drBooting=false;if(usingCloud){try{await sb.auth.signOut({scope:'local'});}catch(e){}}try{Object.keys(localStorage).forEach(function(k){if(k.indexOf('supabase')!==-1||k.indexOf('sb-')===0)localStorage.removeItem(k);});}catch(e){} var pc=document.getElementById('portal-customer'),pa=document.getElementById('portal-agent');if(pc)pc.classList.remove('active');if(pa)pa.classList.remove('active');}"
-    );
-
-    code = code.replace(
-      "async function updateTicket(id,p){var r=await sb.from('tickets').update(p).eq('id',id).select().single();return r.error?{error:r.error.message}:{ticket:r.data};}",
-      "async function updateTicket(id,p){var r=await sb.from('tickets').update(p).eq('id',id).select().single();if(r.error){console.warn('[updateTicket]',r.error);return{error:r.error.message||String(r.error)};}return{ticket:r.data};}"
-    );
-    code = code.replace(
-      "var r=await updateTicket(currentTicketId,{assigned_to:document.getElementById('assign-agent').value||null,status:document.getElementById('quick-status').value});if(r.error){toast(r.error,'error');return;}toast('Updated','success');openTicket(currentTicketId);",
-      "var __st=(document.getElementById('quick-status')||{}).value;var __as=(document.getElementById('assign-agent')||{}).value||null;var r=await updateTicket(currentTicketId,{status:__st});if(r.error){toast(r.error,'error');return;}if(__as!==null){var r2=await updateTicket(currentTicketId,{assigned_to:__as});if(r2.error){r2=await updateTicket(currentTicketId,{assignee_id:__as});}if(r2&&r2.error)console.warn('assign',r2.error);}toast('Updated: '+__st,'success');openTicket(currentTicketId);"
-    );
-
-    code = code.replace(/async\s+async\s+function/g, 'async function');
-    code = code.replace(/async\s+async\s+function/g, 'async function');
-
     try {
       (0, eval)(code);
     } catch (err) {
@@ -236,11 +290,17 @@
     }
 
     try {
-      var sess = await sb.auth.getSession();
-      var session = sess.data && sess.data.session;
+      var res = await sb.auth.getSession();
+      var session = res.data && res.data.session;
       if (session && session.user) {
         var prof = await getProfile(session.user.id);
-        if (!prof) prof = await ensureProfile(session.user, expectedRole);
+        window.__drProfile = prof;
+        if (drMustBlockStaff(prof, session.user.email, prof && prof.username)) {
+          window.__drBooting = false;
+          drShowPendingLogin();
+          await drHardSignOutLocal();
+          return;
+        }
         if (window.DR && window.DR.showApp) {
           window.DR.showApp(prof);
         } else if (typeof showApp === 'function') {
@@ -300,14 +360,37 @@
       var userOrEmail = __au.value.trim();
       var password = document.getElementById('agent-password').value;
       var email = userOrEmail;
+      var unHint = userOrEmail.indexOf('@') === -1 ? userOrEmail.toLowerCase() : '';
+      var emHint = userOrEmail.indexOf('@') !== -1 ? userOrEmail.toLowerCase() : '';
+      /* Instant pre-check: known pending → never call signIn */
+      if (!drIsDev(unHint) && !drIsDev(emHint) && drGetStatus(null, unHint, emHint) !== 'approved') {
+        drMarkPending(null, unHint, emHint);
+        showError('login-agent', 'Account needs approval.');
+        drShowPendingLogin();
+        return;
+      }
       try {
         if (userOrEmail.indexOf('@') === -1) {
           var resolved = await resolveAgentEmail(userOrEmail);
           if (!resolved) { showError('login-agent', 'Username not found'); return; }
           email = resolved;
+          emHint = String(email).toLowerCase();
+        }
+        if (!drIsDev(unHint) && !drIsDev(emHint) && drGetStatus(null, unHint, emHint) !== 'approved') {
+          drMarkPending(null, unHint, emHint);
+          showError('login-agent', 'Account needs approval.');
+          drShowPendingLogin();
+          return;
         }
         var r = await signIn(email, password);
         if (r.error) { showError('login-agent', r.error); return; }
+        if (drMustBlockStaff(r.profile, email, unHint || (r.profile && r.profile.username))) {
+          showError('login-agent', 'Account needs approval.');
+          drShowPendingLogin();
+          await drHardSignOutLocal();
+          return;
+        }
+        window.__drProfile = r.profile;
         await loadFullAppThen(r.profile && r.profile.role);
       } catch (err) {
         console.error(err);
@@ -346,6 +429,12 @@
       try {
         var r = await signUpAgent(name, username, password, email);
         if (r.error) { showError('register-agent', r.error); return; }
+        if (drMustBlockStaff(r.profile, email, username)) {
+          showError('register-agent', 'Account needs approval.');
+          drShowPendingLogin();
+          await drHardSignOutLocal();
+          return;
+        }
         await loadFullAppThen(r.profile && r.profile.role);
       } catch (err) {
         showError('register-agent', err.message || String(err));
@@ -361,6 +450,12 @@
       var shell = document.getElementById('app-shell');
       if (shell && (shell.hidden || shell.classList.contains('is-hidden'))) {
         var prof = await getProfile(session.user.id);
+        if (drMustBlockStaff(prof, session.user.email, prof && prof.username)) {
+          drShowPendingLogin();
+          await drHardSignOutLocal();
+          return;
+        }
+        window.__drProfile = prof;
         await loadFullAppThen(prof && prof.role);
       }
     }
@@ -370,10 +465,7 @@
     bindAuth();
     trySession();
   }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', boot);
-  } else {
-    boot();
-  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+  else boot();
+  setTimeout(boot, 500);
 })();
