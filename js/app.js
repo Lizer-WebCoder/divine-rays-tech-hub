@@ -1,6 +1,6 @@
 /**
- * Divine Rays Tech Hub — login loader + pending gate v6
- * First-click Sign in via direct runAgentLogin; server approval_status
+ * Divine Rays Tech Hub — login loader + pending gate v7
+ * First-click Sign in + early queue flush; server approval_status
  * Credit: Lizzz · All Rights Reserved
  */
 (function () {
@@ -485,6 +485,13 @@
       }
     }
     window.__drDoAgentLogin = runAgentLogin;
+    try {
+      if (window.__drEarlyLoginQueued) {
+        var qb = window.__drEarlyLoginQueued === true ? null : window.__drEarlyLoginQueued;
+        window.__drEarlyLoginQueued = null;
+        setTimeout(function () { runAgentLogin(qb); }, 0);
+      }
+    } catch (eQ) {}
 
     function wireAgentLogin() {
       var la = document.getElementById('login-agent');
