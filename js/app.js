@@ -1,5 +1,6 @@
 /**
- * Divine Rays Tech Hub — login loader (safe role switch) + pending gate v3
+ * Divine Rays Tech Hub — login loader (safe role switch) + pending gate v4
+ * Production: server approval_status, Signing in feedback, portal ensure
  * Credit: Lizzz · All Rights Reserved
  */
 (function () {
@@ -145,6 +146,17 @@
     var un = String(username || profile.username || '').toLowerCase().trim();
     var em = String(email || profile.email || '').toLowerCase().trim();
     if (drIsDev(un) || drIsDev(em)) return false;
+    var server = String(profile.approval_status || profile.status || '').toLowerCase().trim();
+    if (server === 'approved' || server === 'active') {
+      try {
+        var m = drApprovalMap();
+        if (profile.id) m[profile.id] = 'approved';
+        if (un) { m['u:' + un] = 'approved'; delete m['pending:' + un]; }
+        if (em) { m['e:' + em] = 'approved'; delete m['pending:' + em]; }
+        localStorage.setItem(DR_APPROVAL_KEY, JSON.stringify(m));
+      } catch (e) {}
+      return false;
+    }
     if (drGetStatus(profile.id, un, em) === 'approved') return false;
     drMarkPending(profile.id, un, em);
     return true;
@@ -198,13 +210,15 @@
     if (prof) return prof;
     var meta = user.user_metadata || {};
     var role = roleHint || meta.role || 'customer';
-    await sb.from('profiles').upsert({
+    var row = {
       id: user.id,
       full_name: meta.full_name || meta.name || 'User',
       role: role,
       username: meta.username || null,
       email: user.email || null
-    });
+    };
+    if (role === 'agent' || role === 'admin') row.approval_status = 'pending';
+    await sb.from('profiles').upsert(row);
     return getProfile(user.id);
   }
 
