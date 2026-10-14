@@ -1,16 +1,16 @@
 /**
- * Divine Rays — Admin V20 — Developer gold badges; Roles match sidebar
+ * Divine Rays — Admin V21 — Developer gold badges; Roles match sidebar
  * End-Users: customers only | Admin: staff Status/Approve/Deny (deny deletes)
  * Pending stays listed until Approve or Deny; Deny deletes profile.
+ * Approve writes profiles.approval_status (source of truth across devices).
  * Developers (2 only): kirzhianquijano@gmail.com, iiyasora2002@gmail.com
  * Credit: Boyz at the Back · All Rights Reserved
  */
 (function () {
   'use strict';
-  if (window.__DR_ADMIN_V20) return;
-  window.__DR_ADMIN_V20 = 1;
+  if (window.__DR_ADMIN_V21) return;
+  window.__DR_ADMIN_V21 = 1;
 
-  /* Only these two Developer accounts */
   var DEVS = { kirzhianquijano: 1, iiyasora2002: 1 };
   var DEV_EMAILS = { 'kirzhianquijano@gmail.com': 1, 'iiyasora2002@gmail.com': 1 };
   var KEY = 'dr_staff_approval';
@@ -67,9 +67,32 @@
     }
     mapSet(m);
   }
+  async function setStatusServer(id, status, username, email) {
+    setStatus(id, status, username, email);
+    if (!id) return { ok: true };
+    var client = sb();
+    if (!client) return { ok: true };
+    try {
+      var payload = { approval_status: status };
+      if (status === 'approved') {
+        try { payload.approved_at = new Date().toISOString(); } catch (e) {}
+      }
+      var r = await client.from('profiles').update(payload).eq('id', id);
+      if (r && r.error) {
+        var r2 = await client.from('profiles').update({ status: status }).eq('id', id);
+        if (r2 && r2.error) return { ok: false, error: r.error.message || r2.error.message };
+      }
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, error: String(e && e.message || e) };
+    }
+  }
   function getStatus(u) {
     if (!u) return 'pending';
     if (isDev(u.username) || isDev(u.email)) return 'approved';
+    var server = String(u.approval_status || u.status || '').toLowerCase().trim();
+    if (server === 'approved' || server === 'active') return 'approved';
+    if (server === 'denied' || server === 'disapproved' || server === 'rejected') return 'denied';
     var m = mapGet();
     if (u.id && m[u.id] === 'approved') return 'approved';
     if (u.id && (m[u.id] === 'denied' || m[u.id] === 'disapproved')) return 'denied';
@@ -81,55 +104,40 @@
     if (em && m['pending:' + em] === 'pending') return 'pending';
     return 'pending';
   }
-  function roleLabel(u) {
-    if (isDev(u.username) || isDev(u.email)) return 'Developer';
-    var staff = (u && (u.staff_role || u.job_title)) || '';
-    if (staff) return staff;
-    if (u && u.role === 'admin') return 'Admin';
-    if (u && u.role === 'agent') return 'IT Tech Support';
-    return (u && u.role) || '—';
-  }
-  function roleBadgeClass(u) {
-    if (isDev(u.username) || isDev(u.email)) return 'badge badge-role-developer';
-    var st = getStatus(u);
+  function statusBadgeClass(st) {
     if (st === 'pending') return 'badge badge-role-pending';
-    if (/admin/i.test(roleLabel(u))) return 'badge badge-role-admin';
-    return 'badge badge-role-agent';
+    if (st === 'approved') return 'badge badge-role-approved';
+    if (st === 'denied') return 'badge badge-role-denied';
+    return 'badge';
   }
-  function isStaffUser(u) {
-    if (!u) return false;
-    if (isDev(u.username) || isDev(u.email)) return true;
+  function roleLabel(u) {
+    if (isDevProfile(u)) return 'Developer';
     var r = String(u.role || '').toLowerCase();
-    return r === 'admin' || r === 'agent' || r === 'developer' || r === 'owner' || r === 'staff';
-  }
-  function isCustomerUser(u) {
-    if (!u) return true;
-    if (isStaffUser(u)) return false;
-    var r = String(u.role || '').toLowerCase();
-    return r === 'customer' || r === 'user' || r === 'end-user' || r === 'employee' || !r;
+    if (r === 'admin' || r === 'administrator') return 'Admin';
+    if (r === 'agent' || r === 'staff') return 'Agent';
+    return 'End-User';
   }
   async function deleteUserProfile(userId) {
     var client = sb();
-    if (!client) return { error: 'Not connected' };
-    try { await client.from('notifications').delete().eq('user_id', userId); } catch (e) {}
+    if (!client || !userId) return { error: 'No client' };
     try {
       var r = await client.from('profiles').delete().eq('id', userId);
-      if (r && r.error) return { error: r.error.message || 'Delete failed' };
+      if (r.error) return { error: r.error.message };
       return { ok: true };
     } catch (e) {
-      return { error: e.message || 'Delete failed' };
+      return { error: String(e && e.message || e) };
     }
   }
   function injectCss() {
-    if (document.getElementById('dr-admin-v20-css')) return;
+    if (document.getElementById('dr-admin-v21-css')) return;
     var s = document.createElement('style');
-    s.id = 'dr-admin-v20-css';
+    s.id = 'dr-admin-v21-css';
     s.textContent = [
-      '.badge-role-developer{background:rgba(251,191,36,0.2)!important;color:#fbbf24!important;border:1px solid rgba(251,191,36,0.35)}',
       '.badge-role-pending{background:rgba(251,146,60,0.2)!important;color:#fb923c!important}',
-      '.badge-role-admin{background:rgba(167,139,250,0.2)!important;color:#a78bfa!important}',
-      '.badge-role-agent{background:rgba(96,165,250,0.2)!important;color:#60a5fa!important}',
-      '#staff-admin-list .dr-v10-approve,#admin-users-list .dr-v10-approve{margin-right:0.35rem}'
+      '.badge-role-approved{background:rgba(34,197,94,0.2)!important;color:#4ade80!important}',
+      '.badge-role-denied{background:rgba(239,68,68,0.2)!important;color:#f87171!important}',
+      '.badge-role-developer{background:rgba(234,179,8,0.25)!important;color:#fbbf24!important}',
+      '#admin-users-list .dr-v10-approve,#admin-users-list .dr-v10-deny{margin-right:0.35rem}'
     ].join('');
     (document.head || document.documentElement).appendChild(s);
   }
@@ -141,148 +149,82 @@
     return null;
   }
   function adminBox() {
-    return document.getElementById('staff-admin-list') || document.getElementById('admin-users-list');
+    return document.getElementById('staff-admin-list') || document.getElementById('admin-users-list') || document.getElementById('admin-users');
   }
-  function hideShowingMeta() {
-    try {
-      var meta = document.querySelector('#view-admin .showing-meta, #view-admin .list-meta');
-      if (meta) meta.style.display = 'none';
-    } catch (e) {}
-  }
-  function wireRoleFilter() {
-    var afr = document.getElementById('admin-filter-role');
-    if (!afr || afr.__v20) return;
-    afr.__v20 = 1;
-  }
-
-  async function loadProfiles() {
+  async function fetchUsers() {
     var client = sb();
     if (!client) return [];
     try {
       var r = await client.from('profiles').select('*').order('created_at', { ascending: false });
-      if (r.error) { console.warn(r.error); return []; }
-      return r.data || [];
+      return (r && r.data) || [];
     } catch (e) {
-      console.warn(e);
       return [];
     }
   }
-
-  async function renderAdminUsers(mode) {
-    injectCss();
-    var listMode = mode || window.__DR_USERS_LIST_MODE || 'endusers';
+  function isStaffUser(u) {
+    var r = String(u.role || '').toLowerCase();
+    return r === 'admin' || r === 'agent' || r === 'staff' || r === 'developer' || r === 'owner' || isDevProfile(u);
+  }
+  function isEndUser(u) {
+    return !isStaffUser(u);
+  }
+  async function renderAdminUsers(listMode) {
+    listMode = listMode || window.__DR_USERS_LIST_MODE || 'endusers';
     window.__DR_USERS_LIST_MODE = listMode;
-    var profile = currentProfile();
-    if (!canManage(profile)) { toast('Admin only', 'error'); return; }
+    injectCss();
     var box = adminBox();
     if (!box) return;
-
-    var users = await loadProfiles();
-    var q = '';
-    try {
-      var search = document.getElementById('admin-search');
-      if (search) q = String(search.value || '').toLowerCase().trim();
-    } catch (e) {}
-    var roleFilter = '';
-    try {
-      var afr = document.getElementById('admin-filter-role');
-      if (afr) roleFilter = String(afr.value || '').toLowerCase().trim();
-    } catch (e2) {}
-
-    users = users.filter(function (u) {
-      var isStaff = isStaffUser(u);
-      var isCust = isCustomerUser(u);
-      if (listMode === 'endusers' || listMode === 'customers') {
-        if (!isCust) return false;
-      } else {
-        if (!isStaff && !isDev(u.username) && !isDev(u.email)) return false;
-      }
+    box.innerHTML = '<p class="empty-state">Loading…</p>';
+    var users = await fetchUsers();
+    var searchEl = document.getElementById('admin-search');
+    var q = searchEl ? String(searchEl.value || '').toLowerCase().trim() : '';
+    var roleFilterEl = document.getElementById('admin-filter-role');
+    var roleFilter = roleFilterEl ? String(roleFilterEl.value || '').toLowerCase() : '';
+    var filtered = users.filter(function (u) {
+      if (listMode === 'staff' && !isStaffUser(u)) return false;
+      if (listMode === 'endusers' && !isEndUser(u)) return false;
       if (q) {
-        var hay = ((u.full_name || '') + ' ' + (u.username || '') + ' ' + (u.email || '')).toLowerCase();
-        if (hay.indexOf(q) === -1) return false;
+        var blob = ((u.full_name || u.name || '') + ' ' + (u.email || '') + ' ' + (u.username || '')).toLowerCase();
+        if (blob.indexOf(q) === -1) return false;
       }
-      if (roleFilter) {
-        var r = String(roleLabel(u) || '').toLowerCase();
+      if (roleFilter && roleFilter !== 'all') {
         if (roleFilter === 'pending' && getStatus(u) !== 'pending') return false;
         else if (roleFilter === 'approved' && getStatus(u) !== 'approved') return false;
-        else if (r !== roleFilter && !(roleFilter === 'developer' && (isDev(u.username) || isDev(u.email)))) return false;
+        else if (roleFilter === 'developer' && !isDevProfile(u)) return false;
+        else if (roleFilter === 'admin' && String(u.role || '').toLowerCase() !== 'admin' && !isDevProfile(u)) return false;
       }
       return true;
     });
-
-    var pageSize = 20;
-    var page = window.__drUsersPage || 0;
-    var total = users.length;
-    var pages = Math.max(1, Math.ceil(total / pageSize));
-    if (page >= pages) page = pages - 1;
-    if (page < 0) page = 0;
-    window.__drUsersPage = page;
-    var slice = users.slice(page * pageSize, page * pageSize + pageSize);
-    var viewerDev = isDevProfile(profile);
-
-    var rows = slice.map(function (u) {
+    if (!filtered.length) {
+      box.innerHTML = '<p class="empty-state">No users found.</p>';
+      return;
+    }
+    var html = filtered.map(function (u) {
       var st = getStatus(u);
-      var dev = isDev(u.username) || isDev(u.email);
-      var statusHtml = '';
-      var actionHtml = '';
-      if (listMode === 'staff' || listMode === 'admin') {
-        if (dev) {
-          statusHtml = '<span class="badge badge-role-developer">Developer</span>';
-          actionHtml = '';
+      var name = esc(u.full_name || u.name || u.username || 'User');
+      var em = esc(u.email || '');
+      var un = esc(u.username || '');
+      var role = isDevProfile(u) ? '<span class="badge badge-role-developer">Developer</span>' : '<span class="badge">' + esc(roleLabel(u)) + '</span>';
+      var status = '<span class="' + statusBadgeClass(st) + '">' + esc(st) + '</span>';
+      var actions = '';
+      if (listMode === 'staff' && !isDevProfile(u)) {
+        if (st === 'pending') {
+          actions = '<button type="button" class="btn btn-sm dr-v10-approve" data-id="' + esc(u.id) + '" data-username="' + un + '" data-email="' + em + '">Approve</button>' +
+            '<button type="button" class="btn btn-sm dr-v10-deny" data-id="' + esc(u.id) + '" data-name="' + name + '" data-username="' + un + '" data-email="' + em + '">Deny</button>';
         } else if (st === 'approved') {
-          statusHtml = '<span class="badge" style="background:rgba(52,211,153,0.2);color:#34d399">Approved</span>';
-          actionHtml = viewerDev
-            ? '<button type="button" class="btn btn-ghost btn-sm dr-v10-deny" data-id="' + esc(u.id) + '" data-username="' + esc(u.username || '') + '" data-email="' + esc(u.email || '') + '" data-name="' + esc(u.full_name || u.username || 'user') + '">Deny</button>'
-            : '';
-        } else {
-          statusHtml = '<span class="badge" style="background:rgba(251,146,60,0.2);color:#fb923c">Pending</span>';
-          actionHtml = viewerDev
-            ? '<button type="button" class="btn btn-sm btn-primary dr-v10-approve" data-id="' + esc(u.id) + '" data-username="' + esc(u.username || '') + '" data-email="' + esc(u.email || '') + '">Approve</button><button type="button" class="btn btn-danger btn-sm dr-v10-deny" data-id="' + esc(u.id) + '" data-username="' + esc(u.username || '') + '" data-email="' + esc(u.email || '') + '" data-name="' + esc(u.full_name || u.username || 'user') + '">Deny</button>'
-            : '<span style="opacity:0.65;font-size:0.8rem">Developer only</span>';
+          actions = '<button type="button" class="btn btn-sm dr-v10-deny" data-id="' + esc(u.id) + '" data-name="' + name + '" data-username="' + un + '" data-email="' + em + '">Deny</button>';
         }
-      } else {
-        statusHtml = '<span class="badge">Active</span>';
-        actionHtml = viewerDev
-          ? '<button type="button" class="btn btn-danger btn-sm dr-v10-del" data-id="' + esc(u.id) + '" data-name="' + esc(u.full_name || u.username || 'user') + '">Delete</button>'
-          : '';
       }
-      return (
-        '<tr data-user-id="' + esc(u.id) + '">' +
-        '<td>' + esc(u.full_name || u.username || '—') + '</td>' +
-        '<td>' + esc(u.email || u.username || '—') + '</td>' +
-        '<td><span class="' + roleBadgeClass(u) + '">' + esc(roleLabel(u)) + '</span></td>' +
-        '<td>' + statusHtml + '</td>' +
-        '<td>' + actionHtml + '</td>' +
-        '</tr>'
-      );
+      if (listMode === 'endusers') {
+        actions = '<button type="button" class="btn btn-sm dr-v10-delete" data-id="' + esc(u.id) + '" data-name="' + name + '">Delete</button>';
+      }
+      return '<div class="admin-user-row" data-id="' + esc(u.id) + '">' +
+        '<div class="admin-user-main"><strong>' + name + '</strong> ' + role + ' ' + status +
+        '<div class="muted">' + em + (un ? ' · @' + un : '') + '</div></div>' +
+        '<div class="admin-user-actions">' + actions + '</div></div>';
     }).join('');
-
-    box.innerHTML =
-      '<div class="table-wrap"><table class="data-table"><thead><tr>' +
-      '<th>Name</th><th>Email / Username</th><th>Role</th><th>Status</th><th>Actions</th>' +
-      '</tr></thead><tbody>' +
-      (rows || '<tr><td colspan="5" style="opacity:0.7">No users found</td></tr>') +
-      '</tbody></table></div>' +
-      '<div class="pager" style="display:flex;gap:0.5rem;align-items:center;margin-top:0.75rem">' +
-      '<button type="button" class="btn btn-ghost btn-sm" id="dr-users-prev">Prev</button>' +
-      '<span style="opacity:0.8;font-size:0.85rem">Page ' + (page + 1) + ' / ' + pages + ' · ' + total + ' users</span>' +
-      '<button type="button" class="btn btn-ghost btn-sm" id="dr-users-next">Next</button></div>';
-
-    var prev = document.getElementById('dr-users-prev');
-    var next = document.getElementById('dr-users-next');
-    if (prev) {
-      prev.onclick = function () {
-        if (window.__drUsersPage > 0) { window.__drUsersPage -= 1; renderAdminUsers(window.__DR_USERS_LIST_MODE || listMode); }
-      };
-    }
-    if (next) {
-      next.onclick = function () {
-        window.__drUsersPage = (window.__drUsersPage || 0) + 1;
-        renderAdminUsers(window.__DR_USERS_LIST_MODE || listMode);
-      };
-    }
-
-    box.querySelectorAll('.dr-v10-del').forEach(function (btn) {
+    box.innerHTML = html;
+    box.querySelectorAll('.dr-v10-delete').forEach(function (btn) {
       btn.addEventListener('click', async function () {
         var id = btn.getAttribute('data-id');
         var name = btn.getAttribute('data-name') || 'this user';
@@ -294,13 +236,18 @@
       });
     });
     box.querySelectorAll('.dr-v10-approve').forEach(function (btn) {
-      btn.addEventListener('click', function () {
+      btn.addEventListener('click', async function () {
         if (!isDevProfile(currentProfile())) {
           toast('Only Developers can approve accounts', 'error');
           return;
         }
-        setStatus(btn.getAttribute('data-id'), 'approved', btn.getAttribute('data-username'), btn.getAttribute('data-email'));
-        toast('Account approved — can sign in', 'success');
+        var id = btn.getAttribute('data-id');
+        var r = await setStatusServer(id, 'approved', btn.getAttribute('data-username'), btn.getAttribute('data-email'));
+        if (r && r.error) {
+          toast('Approved locally, but server save failed: ' + r.error, 'error');
+        } else {
+          toast('Account approved — can sign in from any device', 'success');
+        }
         renderAdminUsers('staff');
       });
     });
@@ -313,14 +260,13 @@
         var id = btn.getAttribute('data-id');
         var name = btn.getAttribute('data-name') || 'this user';
         if (!(await ask('Deny and delete ' + name + '? This removes the account permanently.'))) return;
-        setStatus(id, 'denied', btn.getAttribute('data-username'), btn.getAttribute('data-email'));
+        await setStatusServer(id, 'denied', btn.getAttribute('data-username'), btn.getAttribute('data-email'));
         var r = await deleteUserProfile(id);
         if (r.error) { toast(r.error, 'error'); return; }
         toast('Account denied and removed', 'success');
         renderAdminUsers('staff');
       });
     });
-    hideShowingMeta();
   }
 
   window.renderAdminUsers = renderAdminUsers;
@@ -328,23 +274,19 @@
   window.DRAdmin.renderUsers = renderAdminUsers;
   window.DRAdmin.refresh = function () { renderAdminUsers(window.__DR_USERS_LIST_MODE || 'endusers'); };
 
+  function wireRoleFilter() {}
+  function hideShowingMeta() {}
   function boot() {
     injectCss();
     wireRoleFilter();
     var ar = document.getElementById('admin-refresh');
-    if (ar && !ar.__v20) { ar.__v20 = 1; ar.addEventListener('click', function () { renderAdminUsers(); }); }
+    if (ar && !ar.__v21) { ar.__v21 = 1; ar.addEventListener('click', function () { renderAdminUsers(); }); }
     var as = document.getElementById('admin-search');
-    if (as && !as.__v20) { as.__v20 = 1; as.addEventListener('input', function () { window.__drUsersPage = 0; renderAdminUsers(); }); }
+    if (as && !as.__v21) { as.__v21 = 1; as.addEventListener('input', function () { window.__drUsersPage = 0; renderAdminUsers(); }); }
     var afr = document.getElementById('admin-filter-role');
-    if (afr && !afr.__v20) { afr.__v20 = 1; afr.addEventListener('change', function () { window.__drUsersPage = 0; renderAdminUsers(); }); }
+    if (afr && !afr.__v21) { afr.__v21 = 1; afr.addEventListener('change', function () { window.__drUsersPage = 0; renderAdminUsers(); }); }
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();
-  setTimeout(boot, 500);
-  setTimeout(boot, 2000);
-  setInterval(function () {
-    try {
-      if (window.renderAdminUsers !== renderAdminUsers) window.renderAdminUsers = renderAdminUsers;
-    } catch (e) {}
-  }, 1500);
+  setTimeout(boot, 800);
 })();
