@@ -1,14 +1,12 @@
 /**
- * Divine Rays — Agent/Admin auth
+ * Divine Rays — Agent/Admin auth v2
+ * Login field: Email (no Username or Email flicker)
  * Register: Username + Email + Password + Role
- * Login: Username OR Email + Password
- * Email taken: same red glow + message as End-User register
- * Credit: Boyz at the Back
  */
 (function () {
   'use strict';
-  if (window.__DR_AGENT_USERNAME_AUTH) return;
-  window.__DR_AGENT_USERNAME_AUTH = 1;
+  if (window.__DR_AGENT_USERNAME_AUTH >= 2) return;
+  window.__DR_AGENT_USERNAME_AUTH = 2;
 
   function sb() {
     try {
@@ -196,6 +194,7 @@
     input.addEventListener('change', run);
   }
 
+  /* FIXED: stay on Email — was fighting login-tab-labels */
   function patchAgentLoginLabels() {
     var input =
       document.getElementById('agent-username') ||
@@ -203,12 +202,13 @@
     if (!input) return;
     var group = input.closest ? input.closest('.form-group') : input.parentNode;
     var label = group ? group.querySelector('label') : null;
-    if (label) label.textContent = 'Username or Email';
-    input.setAttribute('type', 'text');
+    if (label) label.textContent = 'Email';
+    try { input.type = 'email'; } catch (e) {}
     input.setAttribute('autocomplete', 'username');
-    input.setAttribute('placeholder', 'Username or email');
-    input.removeAttribute('inputmode');
+    input.setAttribute('placeholder', 'you@company.com');
     input.removeAttribute('pattern');
+    var pass = document.getElementById('agent-password');
+    if (pass) pass.setAttribute('placeholder', '••••••••');
   }
 
   function ensureAgentEmailField(form) {
