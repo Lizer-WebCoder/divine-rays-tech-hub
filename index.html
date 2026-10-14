@@ -7,9 +7,9 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <!--
-    PRODUCTION LOGIN LOCK v3.2
-    force-pending v23 90b8cc49 — click-only pending (no mousedown steal)
-    app.js 4bdfb05 — first-click runAgentLogin
+    PRODUCTION LOGIN LOCK v3.3
+    force-pending v23 90b8cc49 — click-only pending
+    app.js 4bdfb05 + login-click-fix 47a30e2d — first-click + portal fill
     portal-boot e933bee7 — Successfully logged in + gear boot
   -->
   <title>Divine Rays Tech Hub — Support</title>
@@ -70,6 +70,8 @@
     var HARD_LOCK_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + HARD_LOCK + '/js/ambient-hard-lock.js';
     var FORCE_PENDING = '90b8cc49d229bea4e22dfa64e7366f690141d887';
     var FORCE_PENDING_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + FORCE_PENDING + '/js/force-pending-block.js';
+    var LOGIN_CLICK = '47a30e2d06fd07ac7053bb07eabf3eab8978db0c';
+    var LOGIN_CLICK_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LOGIN_CLICK + '/js/login-click-fix.js';
     var ADMIN_JS = 'c54201aa340f2f53d81f10aa0bb07680811f58c4';
     var APP_JS = '4bdfb058854580b30858e4401acc1f513b24893d';
     var PORTAL_BOOT = 'e933bee7ba89c2c0d7a6eec91ec541146143f42f';
@@ -167,7 +169,8 @@
       '<head><script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + FADE + '/js/boot-fade-sync.js"><\/script>' +
       '<script src="' + LOGIN_SRC + '"><\/script>' +
       '<script src="' + LOCK_SRC + '"><\/script>' +
-      '<script src="' + FORCE_PENDING_SRC + '"><\/script>'
+      '<script src="' + FORCE_PENDING_SRC + '"><\/script>' +
+      '<script src="' + LOGIN_CLICK_SRC + '"><\/script>'
     );
     html = html.replace('<head>',
       '<head><script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@12b7798ad583123e884a9d954595025d8dd6ba20/js/tab-session.js"><\/script>'
@@ -261,6 +264,7 @@
       inject(LOCK_SRC);
       inject(AGENT_SRC);
       inject(FORCE_PENDING_SRC);
+      inject(LOGIN_CLICK_SRC);
       inject(PORTAL_BOOT_SRC);
       inject(NO_RESET_SRC);
       inject(STABLE_SRC);
