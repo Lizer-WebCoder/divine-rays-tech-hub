@@ -26,7 +26,6 @@
     }
   }
 
-  /* Pending Admin gate — block portal before it opens */
   var DR_APPROVAL_KEY = 'dr_staff_approval';
   var DR_DEVS = { kirzhianquijano: 1, iiyasora2002: 1 };
   var DR_DEV_EMAILS = { 'kirzhianquijano@gmail.com': 1, 'iiyasora2002@gmail.com': 1 };
@@ -70,12 +69,10 @@
       }
     } catch (e) {}
     try {
-      document.body.classList.add('dr-pending-blocked', 'is-login');
-      document.body.classList.remove('dr-portal-ok', 'is-portal');
+      document.body.classList.add('dr-pending-blocked');
+      document.body.classList.remove('dr-portal-ok');
       var pa = document.getElementById('portal-agent');
       if (pa) { pa.classList.remove('active'); pa.style.display = 'none'; }
-      var ls = document.getElementById('login-screen');
-      if (ls) { ls.hidden = false; ls.style.display = 'flex'; ls.classList.add('active'); }
       var card = document.querySelector('#login-screen .login-card, .login-card');
       if (card) {
         card.style.boxShadow = '0 0 22px rgba(251,146,60,0.9),0 0 52px rgba(249,115,22,0.6)';
@@ -362,7 +359,6 @@
       var email = userOrEmail;
       var unHint = userOrEmail.indexOf('@') === -1 ? userOrEmail.toLowerCase() : '';
       var emHint = userOrEmail.indexOf('@') !== -1 ? userOrEmail.toLowerCase() : '';
-      /* Instant pre-check: known pending → never call signIn */
       if (!drIsDev(unHint) && !drIsDev(emHint) && drGetStatus(null, unHint, emHint) !== 'approved') {
         drMarkPending(null, unHint, emHint);
         showError('login-agent', 'Account needs approval.');
