@@ -7,14 +7,16 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <!--
-    LOGIN PAGE BASELINE LOCKED v2.3
-    login-tab-labels     2d121dc89b96a2ebc268cfbca58ca9796c498fa3
-    agent-username-auth  0258ae2a6a77a4d0458a79d1ad80114b72f3037b  (Email only, no flicker)
+    LOGIN PAGE BASELINE LOCKED v2.4
+    login-label-lock  2a1a2ceee28dccf5185e4c4ee654f444503ad94a  (no Email flicker)
+    login-tab-labels  2d121dc89b96a2ebc268cfbca58ca9796c498fa3
+    agent-username-auth 0258ae2a6a77a4d0458a79d1ad80114b72f3037b
   -->
   <title>Divine Rays Tech Hub — Support</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg?v=9.9.22-av-cards" />
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@449a55bb47f7e66cb45d4f616119a91bec3dd33d/js/boot-fade-sync.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@2d121dc89b96a2ebc268cfbca58ca9796c498fa3/js/login-tab-labels.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@2a1a2ceee28dccf5185e4c4ee654f444503ad94a/js/login-label-lock.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@12b7798ad583123e884a9d954595025d8dd6ba20/js/tab-session.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@38ee37552bd3fa8d80bfcea3677987b3bdb044fb/js/admin-portal-lock.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@4326d1ddf5e9a5628834aa36f87999d7e0a4b87a/js/ticket-card-css.js"></script>
@@ -38,8 +40,10 @@
     var LOGIN_TAB = '2d121dc89b96a2ebc268cfbca58ca9796c498fa3';
     var AGENT_AUTH = '0258ae2a6a77a4d0458a79d1ad80114b72f3037b';
     var OLD_AGENT_AUTH = '352793740bb2621d2d132e892827df83a58803f5';
+    var LABEL_LOCK = '2a1a2ceee28dccf5185e4c4ee654f444503ad94a';
     var LOGIN_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LOGIN_TAB + '/js/login-tab-labels.js';
     var AGENT_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + AGENT_AUTH + '/js/agent-username-auth.js';
+    var LOCK_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LABEL_LOCK + '/js/login-label-lock.js';
     var BLOCKED_HB = [
       'a9046e485443b24e800a4f4d10747c10146ca663',
       '1887c6e9fe2436bf5402f2c4fa40dda29597416f',
@@ -100,7 +104,6 @@
     html = html.replace(/'login-tab-labels\.js'\s*:\s*'[a-f0-9]+'/g, "'login-tab-labels.js': '" + LOGIN_TAB + "'");
     html = html.replace(/[a-f0-9]{40}\/js\/login-tab-labels\.js/g, LOGIN_TAB + '/js/login-tab-labels.js');
 
-    /* agent-username-auth: stop Username or Email flicker */
     while (html.indexOf(OLD_AGENT_AUTH) !== -1) {
       html = html.split(OLD_AGENT_AUTH).join(AGENT_AUTH);
     }
@@ -117,7 +120,8 @@
     html = html.replace(
       '<head>',
       '<head><script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + FADE + '/js/boot-fade-sync.js"><\/script>' +
-      '<script src="' + LOGIN_SRC + '"><\/script>'
+      '<script src="' + LOGIN_SRC + '"><\/script>' +
+      '<script src="' + LOCK_SRC + '"><\/script>'
     );
     html = html.replace('<head>',
       '<head><script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@12b7798ad583123e884a9d954595025d8dd6ba20/js/tab-session.js"><\/script>'
@@ -137,16 +141,15 @@
     document.write(html);
     document.close();
 
-    function inject(src, flag, min) {
+    function inject(src) {
       try {
-        if (flag && window[flag] >= min) return;
         var s = document.createElement('script');
         s.src = src + (src.indexOf('?') === -1 ? '?' : '&') + 'b=' + Date.now();
         s.async = false;
         (document.head || document.documentElement).appendChild(s);
       } catch (e) {}
     }
-    function stripOldAgentAuth() {
+    function postBoot() {
       try {
         document.querySelectorAll('script[src*="agent-username-auth.js"]').forEach(function (el) {
           var src = el.getAttribute('src') || '';
@@ -155,19 +158,18 @@
           }
         });
       } catch (e2) {}
-    }
-    function postBoot() {
-      stripOldAgentAuth();
-      inject(LOGIN_SRC, '__DR_LOGIN_TAB_LABELS', 6);
-      inject(AGENT_SRC, '__DR_AGENT_USERNAME_AUTH', 2);
+      inject(LOGIN_SRC);
+      inject(LOCK_SRC);
+      inject(AGENT_SRC);
       try {
+        if (window.DRLoginLabelLock) window.DRLoginLabelLock.refresh();
         if (window.DRLoginTabLabels) window.DRLoginTabLabels.refresh();
       } catch (e3) {}
     }
-    setTimeout(postBoot, 100);
-    setTimeout(postBoot, 600);
-    setTimeout(postBoot, 1500);
-    setTimeout(postBoot, 3000);
+    setTimeout(postBoot, 50);
+    setTimeout(postBoot, 400);
+    setTimeout(postBoot, 1200);
+    setTimeout(postBoot, 2500);
   })();
   </script>
 </body>
