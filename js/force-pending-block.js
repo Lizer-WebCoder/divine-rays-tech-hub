@@ -1,24 +1,22 @@
 /**
- * Divine Rays — force-pending-block v16
- * ONLY Admin / IT Tech Support / Owner need approval.
- * End-Users never gated.
- * v16: whitelist Developer kirzhianquijano; tester accounts stay pending-gated.
- * v15: hide Admin portal until approved (no flash).
+ * Divine Rays — force-pending-block v17
+ * ONLY Admin / IT Tech Support need approval.
+ * Developers (2 only): kirzhianquijano@gmail.com, iiyasora2002@gmail.com
  */
 (function () {
   'use strict';
-  if (window.__DR_FORCE_PENDING_BLOCK >= 16) return;
-  window.__DR_FORCE_PENDING_BLOCK = 16;
+  if (window.__DR_FORCE_PENDING_BLOCK >= 17) return;
+  window.__DR_FORCE_PENDING_BLOCK = 17;
 
   var KEY = 'dr_staff_approval';
+  /* Only these two Developer accounts */
   var DEVS = {
-    kirzhian: 1,
     kirzhianquijano: 1,
-    jamesjerlow123: 1,
-    liya: 1
+    iiyasora2002: 1
   };
   var DEV_EMAILS = {
-    'kirzhianquijano@gmail.com': 1
+    'kirzhianquijano@gmail.com': 1,
+    'iiyasora2002@gmail.com': 1
   };
   var FADE_MS = 10000;
   var MSG = 'Your account is pending Administrator approval. Please wait until a Developer/Admin approves your account.';
@@ -290,35 +288,29 @@
 
   function wrapGates() {
     try {
-      if (typeof window.showApp === 'function' && !window.showApp.__drFpWrapV16) {
+      if (typeof window.showApp === 'function' && !window.showApp.__drFpWrapV17) {
         var sa = window.showApp;
         window.showApp = function (p) {
-          if (gateProfile(p)) {
-            blockNow();
-            return;
-          }
+          if (gateProfile(p)) { blockNow(); return; }
           unlockPortal();
           return sa.apply(this, arguments);
         };
-        window.showApp.__drFpWrapV16 = 1;
+        window.showApp.__drFpWrapV17 = 1;
       }
     } catch (e) {}
     try {
-      if (window.DR && typeof window.DR.showApp === 'function' && !window.DR.showApp.__drFpWrapV16) {
+      if (window.DR && typeof window.DR.showApp === 'function' && !window.DR.showApp.__drFpWrapV17) {
         var d0 = window.DR.showApp;
         window.DR.showApp = function (p) {
-          if (gateProfile(p)) {
-            blockNow();
-            return;
-          }
+          if (gateProfile(p)) { blockNow(); return; }
           unlockPortal();
           return d0.apply(this, arguments);
         };
-        window.DR.showApp.__drFpWrapV16 = 1;
+        window.DR.showApp.__drFpWrapV17 = 1;
       }
     } catch (e2) {}
     try {
-      if (typeof window.applyPortalForRole === 'function' && !window.applyPortalForRole.__drFpWrapV16) {
+      if (typeof window.applyPortalForRole === 'function' && !window.applyPortalForRole.__drFpWrapV17) {
         var apr = window.applyPortalForRole;
         window.applyPortalForRole = function (role) {
           try {
@@ -334,11 +326,11 @@
           unlockPortal();
           return apr.apply(this, arguments);
         };
-        window.applyPortalForRole.__drFpWrapV16 = 1;
+        window.applyPortalForRole.__drFpWrapV17 = 1;
       }
     } catch (e3) {}
     try {
-      if (typeof window.loadFullAppThen === 'function' && !window.loadFullAppThen.__drFpWrapV16) {
+      if (typeof window.loadFullAppThen === 'function' && !window.loadFullAppThen.__drFpWrapV17) {
         var lfa = window.loadFullAppThen;
         window.loadFullAppThen = function (role) {
           try {
@@ -350,7 +342,7 @@
           } catch (e) {}
           return lfa.apply(this, arguments);
         };
-        window.loadFullAppThen.__drFpWrapV16 = 1;
+        window.loadFullAppThen.__drFpWrapV17 = 1;
       }
     } catch (e4) {}
   }
@@ -373,17 +365,11 @@
         profile = pr && pr.data;
       } catch (e) {}
       var role = (profile && (profile.role || profile.staff_role)) || meta.role || '';
-      if (isCustomer(role)) {
-        unlockPortal();
-        return;
-      }
+      if (isCustomer(role)) { unlockPortal(); return; }
       var un = String(meta.username || (profile && profile.username) || '').toLowerCase().trim();
       var em = String(user.email || (profile && profile.email) || '').toLowerCase();
-      if (shouldBlockUser(user.id, un, em, role)) {
-        blockNow();
-      } else {
-        unlockPortal();
-      }
+      if (shouldBlockUser(user.id, un, em, role)) blockNow();
+      else unlockPortal();
     } catch (e) {
     } finally {
       _checkBusy = false;
@@ -401,30 +387,20 @@
     var form = ev.target;
     if (!form || form.id !== 'login-agent') return;
     if (isPendingIdentity()) {
-      try {
-        ev.preventDefault();
-        ev.stopPropagation();
-        ev.stopImmediatePropagation();
-      } catch (e) {}
+      try { ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation(); } catch (e) {}
       blockNow();
     }
   }
-
   function onAgentButtonClick(ev) {
     var t = ev.target;
     if (!t || !t.closest) return;
     var btn = t.closest('#login-agent button[type="submit"], #login-agent .btn-primary');
     if (!btn) return;
     if (isPendingIdentity()) {
-      try {
-        ev.preventDefault();
-        ev.stopPropagation();
-        ev.stopImmediatePropagation();
-      } catch (e) {}
+      try { ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation(); } catch (e) {}
       blockNow();
     }
   }
-
   function onEnterKey(ev) {
     if (ev.key !== 'Enter' && ev.keyCode !== 13) return;
     var t = ev.target;
@@ -433,17 +409,13 @@
     if (!form) return;
     if (t.tagName === 'TEXTAREA') return;
     if (isPendingIdentity()) {
-      try {
-        ev.preventDefault();
-        ev.stopPropagation();
-        ev.stopImmediatePropagation();
-      } catch (e) {}
+      try { ev.preventDefault(); ev.stopPropagation(); ev.stopImmediatePropagation(); } catch (e) {}
       blockNow();
     }
   }
 
-  if (!window.__drForcePendingSubmitV16) {
-    window.__drForcePendingSubmitV16 = 1;
+  if (!window.__drForcePendingSubmitV17) {
+    window.__drForcePendingSubmitV17 = 1;
     document.addEventListener('submit', onSubmit, true);
     document.addEventListener('click', onAgentButtonClick, true);
     document.addEventListener('keydown', onEnterKey, true);
@@ -467,10 +439,5 @@
     if (!_blocking && !_checkBusy) checkSession();
   }, 5000);
 
-  window.DRForcePending = {
-    showPendingUI: showPending,
-    blockNow: blockNow,
-    unlockPortal: unlockPortal,
-    v: 16
-  };
+  window.DRForcePending = { showPendingUI: showPending, blockNow: blockNow, unlockPortal: unlockPortal, v: 17 };
 })();
