@@ -1,13 +1,14 @@
 /**
- * Divine Rays — force-pending-block v20
- * Instant first-click block via direct form wiring.
- * Pending UI = card glow + shake + toast ONLY (no body/bg restyle).
+ * Divine Rays — force-pending-block v21
+ * - First-click block for pending (direct form wire)
+ * - Clears pending UI when identity switches to Developer/approved
+ * - Never leaves sticky toast/glow after a prior pending attempt
  * Developers (2): kirzhianquijano@gmail.com, iiyasora2002@gmail.com
  */
 (function () {
   'use strict';
-  if (window.__DR_FORCE_PENDING_BLOCK >= 20) return;
-  window.__DR_FORCE_PENDING_BLOCK = 20;
+  if (window.__DR_FORCE_PENDING_BLOCK >= 21) return;
+  window.__DR_FORCE_PENDING_BLOCK = 21;
 
   var KEY = 'dr_staff_approval';
   var DEVS = { kirzhianquijano: 1, iiyasora2002: 1 };
@@ -19,6 +20,7 @@
   var _toastEl = null;
   var _timer = null;
   var _uiOn = false;
+  var _lastIdent = '';
 
   function map() {
     try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { return {}; }
@@ -95,6 +97,42 @@
     ].join('');
     (document.head || document.documentElement).appendChild(s);
   }
+  function clearPendingUI() {
+    _uiOn = false;
+    if (_timer) { clearTimeout(_timer); _timer = null; }
+    try {
+      var c = card();
+      if (c) {
+        c.classList.remove('login-pending-glow', 'dr-login-pending', 'login-pending-shake');
+        try {
+          c.style.removeProperty('box-shadow');
+          c.style.removeProperty('border-color');
+          c.style.removeProperty('animation');
+        } catch (e) {}
+      }
+    } catch (e2) {}
+    try {
+      var f = agentForm();
+      if (f) {
+        var err = f.querySelector('.login-error.dr-pending-err, .login-error');
+        if (err && (err.classList.contains('dr-pending-err') || err.textContent === ERR_MSG)) {
+          err.textContent = '';
+          err.style.display = 'none';
+          err.classList.remove('dr-pending-err');
+        }
+      }
+    } catch (e3) {}
+    try {
+      if (_toastEl) {
+        if (_toastEl.parentNode) _toastEl.parentNode.removeChild(_toastEl);
+        _toastEl = null;
+      }
+      document.querySelectorAll('.toast[data-dr-force-pending]').forEach(function (el) {
+        try { el.parentNode && el.parentNode.removeChild(el); } catch (e) {}
+      });
+    } catch (e4) {}
+    try { document.body.classList.remove('dr-pending-blocked'); } catch (e5) {}
+  }
   function showPendingUI() {
     ensureCss();
     var c = card();
@@ -164,11 +202,29 @@
       }
     } catch (e) {}
   }
+  function unlockPortal() {
+    try {
+      document.body.classList.add('dr-portal-ok');
+      document.body.classList.remove('dr-pending-blocked');
+    } catch (e) {}
+  }
   function blockNow() {
     var u = readIdentity();
     if (u.raw) markPending(u.un, u.em);
     showPendingUI();
     hidePortalIfOpen();
+  }
+  function syncIdentityUI() {
+    var u = readIdentity();
+    var key = u.raw || '';
+    if (key === _lastIdent && _uiOn === isPendingIdentity()) return;
+    _lastIdent = key;
+    if (!key) return;
+    if (isDev(u.un) || isDev(u.em) || getStatus(u.un, u.em) === 'approved') {
+      if (_uiOn || document.querySelector('.toast[data-dr-force-pending]') || document.querySelector('.login-card.login-pending-glow')) {
+        clearPendingUI();
+      }
+    }
   }
   function stop(ev) {
     try {
@@ -178,7 +234,11 @@
     } catch (e) {}
   }
   function onPendingAttempt(ev) {
-    if (!isPendingIdentity()) return false;
+    syncIdentityUI();
+    if (!isPendingIdentity()) {
+      clearPendingUI();
+      return false;
+    }
     stop(ev);
     blockNow();
     return true;
@@ -186,15 +246,15 @@
   function wireForm() {
     var form = agentForm();
     if (!form) return;
-    if (!form.__drFpV20Submit) {
-      form.__drFpV20Submit = 1;
+    if (!form.__drFpV21Submit) {
+      form.__drFpV21Submit = 1;
       form.addEventListener('submit', function (ev) { onPendingAttempt(ev); }, true);
     }
     var btns = form.querySelectorAll('button, input[type="submit"]');
     for (var i = 0; i < btns.length; i++) {
       var b = btns[i];
-      if (b.__drFpV20Btn) continue;
-      b.__drFpV20Btn = 1;
+      if (b.__drFpV21Btn) continue;
+      b.__drFpV21Btn = 1;
       b.addEventListener('mousedown', function (ev) {
         if (ev.button !== 0) return;
         onPendingAttempt(ev);
@@ -202,18 +262,22 @@
       b.addEventListener('pointerdown', function (ev) { onPendingAttempt(ev); }, true);
       b.addEventListener('click', function (ev) { onPendingAttempt(ev); }, true);
     }
-    if (!form.__drFpV20Key) {
-      form.__drFpV20Key = 1;
+    if (!form.__drFpV21Key) {
+      form.__drFpV21Key = 1;
       form.addEventListener('keydown', function (ev) {
         if (ev.key !== 'Enter' && ev.keyCode !== 13) return;
         if (ev.target && ev.target.tagName === 'TEXTAREA') return;
         onPendingAttempt(ev);
       }, true);
     }
+    if (!form.__drFpV21Input) {
+      form.__drFpV21Input = 1;
+      form.addEventListener('input', function () { syncIdentityUI(); }, true);
+      form.addEventListener('change', function () { syncIdentityUI(); }, true);
+    }
   }
-
-  if (!window.__drFpV20Doc) {
-    window.__drFpV20Doc = 1;
+  if (!window.__drFpV21Doc) {
+    window.__drFpV21Doc = 1;
     document.addEventListener('submit', function (ev) {
       if (ev.target && ev.target.id === 'login-agent') onPendingAttempt(ev);
     }, true);
@@ -225,24 +289,25 @@
       onPendingAttempt(ev);
     }, true);
   }
-
   function wrapGates() {
     try {
-      if (typeof window.loadFullAppThen === 'function' && !window.loadFullAppThen.__drFpV20) {
+      if (typeof window.loadFullAppThen === 'function' && !window.loadFullAppThen.__drFpV21) {
         var lfa = window.loadFullAppThen;
         window.loadFullAppThen = function (role) {
           var r = String(role || '').toLowerCase();
+          clearPendingUI();
           if (r && r !== 'customer' && r !== 'user' && r !== 'employee' && isPendingIdentity()) {
             blockNow();
             return Promise.resolve();
           }
+          unlockPortal();
           return lfa.apply(this, arguments);
         };
-        window.loadFullAppThen.__drFpV20 = 1;
+        window.loadFullAppThen.__drFpV21 = 1;
       }
     } catch (e) {}
     try {
-      if (typeof window.applyPortalForRole === 'function' && !window.applyPortalForRole.__drFpV20) {
+      if (typeof window.applyPortalForRole === 'function' && !window.applyPortalForRole.__drFpV21) {
         var apr = window.applyPortalForRole;
         window.applyPortalForRole = function (role) {
           var r = String(role || '').toLowerCase();
@@ -250,17 +315,35 @@
             blockNow();
             return;
           }
+          clearPendingUI();
+          unlockPortal();
           return apr.apply(this, arguments);
         };
-        window.applyPortalForRole.__drFpV20 = 1;
+        window.applyPortalForRole.__drFpV21 = 1;
       }
     } catch (e2) {}
+    try {
+      if (typeof window.showApp === 'function' && !window.showApp.__drFpV21) {
+        var sa = window.showApp;
+        window.showApp = function (p) {
+          clearPendingUI();
+          unlockPortal();
+          return sa.apply(this, arguments);
+        };
+        window.showApp.__drFpV21 = 1;
+      }
+    } catch (e3) {}
   }
 
   ensureCss();
   wireForm();
   wrapGates();
-  setInterval(function () { wireForm(); wrapGates(); }, 500);
+  syncIdentityUI();
+  setInterval(function () {
+    wireForm();
+    wrapGates();
+    syncIdentityUI();
+  }, 500);
   setTimeout(wireForm, 50);
   setTimeout(wireForm, 200);
   setTimeout(wireForm, 800);
@@ -268,8 +351,10 @@
 
   window.DRForcePending = {
     showPendingUI: showPendingUI,
+    clearPendingUI: clearPendingUI,
     blockNow: blockNow,
     isPendingIdentity: isPendingIdentity,
-    v: 20
+    unlockPortal: unlockPortal,
+    v: 21
   };
 })();
