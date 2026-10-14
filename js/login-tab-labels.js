@@ -1,14 +1,15 @@
 /**
- * Divine Rays — login card labels v5 (UI only)
- * Admin tab (not Tech Support), Email label + placeholders
- * End-User tab left as End-User
+ * Divine Rays — login card labels v6
+ * Tabs: Employee | Admin
+ * Admin form: Email + you@company.com / password dots
+ * Injected early; re-applies until stuck.
  */
 (function () {
   'use strict';
-  if (window.__DR_LOGIN_TAB_LABELS >= 5) return;
-  window.__DR_LOGIN_TAB_LABELS = 5;
+  if (window.__DR_LOGIN_TAB_LABELS >= 6) return;
+  window.__DR_LOGIN_TAB_LABELS = 6;
 
-  var _applying = false;
+  var _busy = false;
 
   function setText(el, want) {
     if (!el) return;
@@ -17,111 +18,97 @@
   }
 
   function applyTabs() {
-    document.querySelectorAll('.ltab').forEach(function (btn) {
+    document.querySelectorAll('.ltab, button[data-ltab]').forEach(function (btn) {
       var tab = (btn.getAttribute('data-ltab') || '').toLowerCase();
-      var tx = (btn.textContent || '').replace(/\s+/g, ' ').trim();
-      if (tab === 'agent' || /tech\s*support|\bagent\b/i.test(tx)) {
-        if (tx !== 'Admin') btn.textContent = 'Admin';
-      }
-      /* Keep End-User as End-User — do not force Employee */
-      if (tab === 'customer' || /end[-\s]?user|customer/i.test(tx)) {
-        if (/employee/i.test(tx)) btn.textContent = 'End-User';
-        else if (tx !== 'End-User' && !/end[-\s]?user/i.test(tx)) {
-          /* leave native End-User wording */
-        }
-        if (/tech\s*support/i.test(tx)) btn.textContent = 'Admin';
+      if (tab === 'customer') {
+        setText(btn, 'Employee');
+      } else if (tab === 'agent') {
+        setText(btn, 'Admin');
       }
     });
-    /* hard pass: any tab still saying Tech Support */
-    document.querySelectorAll('.ltab, [data-ltab="agent"], button').forEach(function (btn) {
+    /* catch any leftover wording */
+    document.querySelectorAll('.ltab').forEach(function (btn) {
       var tx = (btn.textContent || '').replace(/\s+/g, ' ').trim();
-      if (/^tech\s*support$/i.test(tx)) btn.textContent = 'Admin';
+      if (/end[-\s]?user|customer/i.test(tx)) setText(btn, 'Employee');
+      if (/tech\s*support|\bagent\b/i.test(tx)) setText(btn, 'Admin');
     });
   }
 
-  function applyAdminLoginForm() {
+  function applyAgentForm() {
     var form = document.getElementById('login-agent');
     if (!form) return;
 
-    /* Label: Email only */
-    var lab =
-      form.querySelector('label[for="agent-username"]') ||
-      form.querySelector('label[for="agent-email"]');
-    if (lab) setText(lab, 'Email');
-
-    form.querySelectorAll('label').forEach(function (l) {
-      var t = (l.textContent || '').replace(/\s+/g, ' ').trim();
-      if (/username\s*or\s*email/i.test(t) || /^username$/i.test(t)) setText(l, 'Email');
+    form.querySelectorAll('label').forEach(function (lab) {
+      var t = (lab.textContent || '').replace(/\s+/g, ' ').trim();
+      if (/username/i.test(t) || /email/i.test(t)) setText(lab, 'Email');
     });
 
-    /* Placeholders from design: you@company.com + dots */
-    var emailInput =
-      form.querySelector('#agent-username') ||
-      form.querySelector('#agent-email') ||
-      form.querySelector('input[type="email"]') ||
-      form.querySelector('input[name*="user"], input[name*="email"]');
-    if (emailInput) {
-      emailInput.setAttribute('placeholder', 'you@company.com');
-      emailInput.setAttribute('type', 'email');
-      emailInput.setAttribute('autocomplete', 'username');
+    var user =
+      document.getElementById('agent-username') ||
+      form.querySelector('input[type="text"], input[type="email"]');
+    if (user) {
+      user.setAttribute('placeholder', 'you@company.com');
+      try { user.type = 'email'; } catch (e) {}
     }
 
-    var passInput =
-      form.querySelector('#agent-password') ||
-      form.querySelector('input[type="password"]');
-    if (passInput) {
-      passInput.setAttribute('placeholder', '••••••••');
-      passInput.setAttribute('autocomplete', 'current-password');
-    }
+    var pass = document.getElementById('agent-password') || form.querySelector('input[type="password"]');
+    if (pass) pass.setAttribute('placeholder', '••••••••');
 
     var sw = form.querySelector('.login-switch');
     if (sw) {
       var link = sw.querySelector('a');
       if (link) {
         var lt = (link.textContent || '').replace(/\s+/g, ' ').trim();
-        if (/create\s+agent/i.test(lt) || /new\s+agent/i.test(lt)) {
-          setText(link, 'Create Admin account');
-        }
+        if (/agent/i.test(lt) || /create/i.test(lt)) setText(link, 'Create Admin account');
       }
-      var nodes = Array.prototype.slice.call(sw.childNodes);
-      for (var i = 0; i < nodes.length; i++) {
-        var n = nodes[i];
-        if (n.nodeType === 3 && /new\s+agent|agent\?/i.test(n.textContent || '')) {
+      Array.prototype.forEach.call(sw.childNodes, function (n) {
+        if (n.nodeType === 3 && /agent/i.test(n.textContent || '')) {
           n.textContent = 'New admin? ';
         }
-      }
+      });
     }
+
+    form.querySelectorAll('button[type="submit"]').forEach(function (btn) {
+      var t = (btn.textContent || '').replace(/\s+/g, ' ').trim();
+      if (/sign\s*in/i.test(t)) setText(btn, 'Sign in as Admin');
+    });
   }
 
-  function applyRegisterCards() {
+  function applyCustomerForm() {
+    var form = document.getElementById('login-customer');
+    if (!form) return;
+    form.querySelectorAll('label').forEach(function (lab) {
+      var t = (lab.textContent || '').replace(/\s+/g, ' ').trim();
+      if (/username\s*or\s*email/i.test(t)) setText(lab, 'Email');
+    });
+    var email = document.getElementById('cust-email') || form.querySelector('input[type="email"]');
+    if (email) email.setAttribute('placeholder', 'you@company.com');
+    var pass = document.getElementById('cust-password') || form.querySelector('input[type="password"]');
+    if (pass) pass.setAttribute('placeholder', '••••••••');
+  }
+
+  function applyRegister() {
     document.querySelectorAll('.login-card-register .reg-title, #login-screen .reg-title').forEach(function (el) {
       var t = (el.textContent || '').replace(/\s+/g, ' ').trim();
-      if (/create\s+agent\s+account/i.test(t)) setText(el, 'Create Admin Account');
+      if (/create\s+agent/i.test(t)) setText(el, 'Create Admin Account');
     });
-
-    document.querySelectorAll('.login-card-register .reg-sub, #login-screen .reg-sub').forEach(function (el) {
+    document.querySelectorAll('.login-card-register .reg-sub').forEach(function (el) {
       var t = (el.textContent || '').replace(/\s+/g, ' ').trim();
-      if (/tech\s*support\s*registration/i.test(t) || /^agent\s*registration$/i.test(t)) {
-        setText(el, 'Admin Registration');
-      }
-    });
-
-    document.querySelectorAll('.login-card-register button[type="submit"]').forEach(function (btn) {
-      var t = (btn.textContent || '').replace(/\s+/g, ' ').trim();
-      if (/create\s+agent\s+account/i.test(t)) setText(btn, 'Create Admin Account');
+      if (/tech\s*support|agent\s*registration/i.test(t)) setText(el, 'Admin Registration');
     });
   }
 
   function apply() {
-    if (_applying) return;
-    _applying = true;
+    if (_busy) return;
+    _busy = true;
     try {
       applyTabs();
-      applyAdminLoginForm();
-      applyRegisterCards();
+      applyAgentForm();
+      applyCustomerForm();
+      applyRegister();
     } catch (e) {
     } finally {
-      _applying = false;
+      _busy = false;
     }
   }
 
@@ -130,9 +117,8 @@
     var n = 0;
     var t = setInterval(function () {
       apply();
-      n++;
-      if (n >= 20) clearInterval(t);
-    }, 300);
+      if (++n >= 30) clearInterval(t);
+    }, 200);
   }
 
   if (document.readyState === 'loading') {
@@ -140,7 +126,6 @@
   } else {
     boot();
   }
-
-  setInterval(apply, 2500);
-  window.DRLoginTabLabels = { refresh: apply, v: 5 };
+  setInterval(apply, 1500);
+  window.DRLoginTabLabels = { refresh: apply, v: 6 };
 })();
