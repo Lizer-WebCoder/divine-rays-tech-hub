@@ -1,12 +1,19 @@
 /**
- * Divine Rays — Agent/Admin auth v2
- * Login field: Email (no Username or Email flicker)
+ * Divine Rays — Agent/Admin auth v3
+ * Login field: Email only (kills v1 interval flicker)
  * Register: Username + Email + Password + Role
  */
 (function () {
   'use strict';
-  if (window.__DR_AGENT_USERNAME_AUTH >= 2) return;
-  window.__DR_AGENT_USERNAME_AUTH = 2;
+  if (window.__DR_AGENT_USERNAME_AUTH >= 3) return;
+  window.__DR_AGENT_USERNAME_AUTH = 3;
+  /* Kill any leftover interval from v1 that still writes "Username or Email" */
+  try {
+    if (window.__DR_AGENT_AUTH_TICK) {
+      clearInterval(window.__DR_AGENT_AUTH_TICK);
+      window.__DR_AGENT_AUTH_TICK = null;
+    }
+  } catch (eKill) {}
 
   function sb() {
     try {
@@ -490,7 +497,10 @@
   }
 
   tick();
-  setInterval(tick, 2000);
+  try {
+    if (window.__DR_AGENT_AUTH_TICK) clearInterval(window.__DR_AGENT_AUTH_TICK);
+  } catch (e0) {}
+  window.__DR_AGENT_AUTH_TICK = setInterval(tick, 2000);
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', tick);
   }
