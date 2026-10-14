@@ -43,7 +43,7 @@
     var HARD_LOCK_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + HARD_LOCK + '/js/ambient-hard-lock.js';
     var FORCE_PENDING = '90b8cc49d229bea4e22dfa64e7366f690141d887';
     var FORCE_PENDING_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + FORCE_PENDING + '/js/force-pending-block.js';
-    var LOGIN_CLICK = 'b4a7d3b9eba51f165408aad269627da08f6e535b';
+    var LOGIN_CLICK = 'e0a944ec55d250dddc0917cc61400ffd2dcbc715';
     var LOGIN_CLICK_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LOGIN_CLICK + '/js/login-click-fix.js';
     var ADMIN_JS = 'c54201aa340f2f53d81f10aa0bb07680811f58c4';
     var APP_JS = '5e1107f239eb33e0c397f62839334c57b1d56edb';
@@ -100,7 +100,7 @@
     document.write(html);
     document.close();
 
-    /* IMMEDIATE first-click: works before CDN scripts load */
+    /* Single-fire first-click bridge — no dual handlers, no freeze loops */
     (function () {
       if (window.__DR_EARLY_LOGIN) return;
       window.__DR_EARLY_LOGIN = 1;
@@ -118,10 +118,11 @@
         return (card && card.contains(b)) ? b : null;
       }
       function tryLogin(btn) {
-        if (window.__drAgentLoginBusy || window.__drBooting) return;
+        if (window.__drAgentLoginBusy || window.__drBooting || window.__drEarlyFired) return;
         try {
           if (window.DRForcePending && window.DRForcePending.isPendingIdentity && window.DRForcePending.isPendingIdentity()) return;
         } catch (e) {}
+        window.__drEarlyFired = 1;
         try {
           if (btn) {
             btn.setAttribute('data-dr-prev-label', btn.textContent || 'Sign in as Admin');
@@ -145,12 +146,16 @@
             window.__drDoAgentLogin(b);
           } else if (n > 50) {
             clearInterval(t);
+            window.__drEarlyFired = 0;
             try {
-              var form = agentForm();
-              if (form) form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+              if (btn) {
+                btn.disabled = false;
+                btn.textContent = btn.getAttribute('data-dr-prev-label') || 'Sign in as Admin';
+                btn.style.opacity = '';
+              }
             } catch (e3) {}
           }
-        }, 100);
+        }, 120);
       }
       document.addEventListener('pointerdown', function (ev) {
         if (ev.button != null && ev.button !== 0) return;
