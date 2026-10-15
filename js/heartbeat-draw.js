@@ -1,16 +1,16 @@
 /**
- * Divine Rays — ECG + gears v31 — one-shot login ECG (no typing freeze)
+ * Divine Rays — ECG + gears v32 — no redraw if already drawn
  */
 (function () {
   'use strict';
-  if (window.__DR_HEARTBEAT_DRAW >= 31) return;
+  if (window.__DR_HEARTBEAT_DRAW >= 32) return;
   try {
     if (window.__DR_ECG_TIMER) clearTimeout(window.__DR_ECG_TIMER);
     if (window.__DR_ECG_INTERVAL) clearInterval(window.__DR_ECG_INTERVAL);
   } catch (e0) {}
-  window.__DR_HEARTBEAT_DRAW = 31;
+  window.__DR_HEARTBEAT_DRAW = 32;
 
-  var CSS_ID = 'dr-gears-bg-v31';
+  var CSS_ID = 'dr-gears-bg-v32';
   var BOX_ID = 'dr-lifeline';
   var lastTheme = null;
   var lastMode = null;
@@ -21,6 +21,12 @@
   var lastEcgWidth = 0;
   var ECG_SPEED_PX_PER_SEC = 95;
   var __startedOnce = false;
+  try {
+    if (document.querySelector('#dr-lifeline .dr-ecg-core') || window.__DR_ECG_DRAWN) {
+      __startedOnce = true;
+      window.__DR_ECG_DRAWN = 1;
+    }
+  } catch (eInit) {}
 
   function isLight() {
     try {
@@ -52,15 +58,6 @@
           if (parseFloat(window.getComputedStyle(o).opacity || '0') > 0.08) return true;
         } catch (e3) {}
       }
-    } catch (e) {}
-    return false;
-  }
-  function shellReady() {
-    try {
-      if (isBooting()) return false;
-      if (window.__DR_ECG_OK !== true) return false;
-      if (document.documentElement.getAttribute('data-ecg') !== 'on') return false;
-      return true;
     } catch (e) {}
     return false;
   }
@@ -340,6 +337,7 @@
 
     __ecgBusy = false;
     window.__DR_ECG_TIMER = null;
+    try { window.__DR_ECG_DRAWN = 1; } catch (eD) {}
   }
 
   function ensureGears(force) {
@@ -414,6 +412,7 @@
   window.DRHeartbeatDraw = {
     refresh: function () { tick(false); },
     force: function () {
+      if (window.__DR_ECG_DRAWN || document.querySelector('#dr-lifeline .dr-ecg-core')) return;
       __startedOnce = false;
       __ecgBusy = false;
       try {
