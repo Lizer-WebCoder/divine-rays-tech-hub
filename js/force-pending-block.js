@@ -1,12 +1,12 @@
 /**
- * Divine Rays — force-pending-block v26
- * Form-only pending gate. Ignores password field input (freeze fix).
+ * Divine Rays — force-pending-block v27
+ * Form-only pending gate v27. Wire once — no perpetual interval (freeze fix).
  * Developers: kirzhianquijano@gmail.com, iiyasora2002@gmail.com
  */
 (function () {
   'use strict';
-  if (window.__DR_FORCE_PENDING_V26) return;
-  window.__DR_FORCE_PENDING_V26 = 1;
+  if (window.__DR_FORCE_PENDING_V27) return;
+  window.__DR_FORCE_PENDING_V27 = 1;
 
   var DEVS = {
     'kirzhianquijano@gmail.com': 1,
@@ -154,25 +154,25 @@
     if (window.__DR_PAUSE_LOGIN_SCRIPTS) return;
     var form = agentForm();
     if (!form) return;
-    if (!form.__drFpV26Submit) {
-      form.__drFpV26Submit = 1;
+    if (!form.__drFpV27Submit) {
+      form.__drFpV27Submit = 1;
       form.addEventListener('submit', function (ev) { onPendingAttempt(ev); }, true);
     }
     var btns = form.querySelectorAll('button, input[type="submit"]');
     for (var i = 0; i < btns.length; i++) {
       var b = btns[i];
-      if (b.__drFpV26Btn) continue;
-      b.__drFpV26Btn = 1;
+      if (b.__drFpV27Btn) continue;
+      b.__drFpV27Btn = 1;
       b.addEventListener('click', function (ev) { onPendingAttempt(ev); }, true);
     }
-    if (!form.__drFpV26Key) {
-      form.__drFpV26Key = 1;
+    if (!form.__drFpV27Key) {
+      form.__drFpV27Key = 1;
       form.addEventListener('keydown', function (ev) {
         if (ev.key === 'Enter') onPendingAttempt(ev);
       }, true);
     }
-    if (!form.__drFpV26Input) {
-      form.__drFpV26Input = 1;
+    if (!form.__drFpV27Input) {
+      form.__drFpV27Input = 1;
       var t = null;
       form.addEventListener('input', function (ev) {
         try {
@@ -191,13 +191,11 @@
     clearPendingUI: clearPendingUI,
     blockNow: blockNow,
     unlockPortal: unlockPortal,
-    v: 26
+    v: 27
   };
 
   wireForm();
-  setTimeout(wireForm, 200);
-  setTimeout(wireForm, 1000);
-  setInterval(function () {
-    if (!window.__DR_PAUSE_LOGIN_SCRIPTS) wireForm();
-  }, 4000);
+  setTimeout(wireForm, 300);
+  setTimeout(wireForm, 1200);
+  /* no perpetual interval — caused main-thread jank while typing */
 })();
