@@ -37,7 +37,7 @@
     var LOGIN_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LOGIN_TAB + '/js/login-tab-labels.js';
     var AGENT_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + AGENT_AUTH + '/js/agent-username-auth.js';
     var LOCK_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LABEL_LOCK + '/js/login-label-lock.js';
-    var AMBIENT_STABLE = '4aec2854b1cfcf968600c3466b579a83c215547f';
+    var AMBIENT_STABLE = '164c17fd4f75a5ff30d463b421fea13481d3f88e';
     var STABLE_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + AMBIENT_STABLE + '/js/ambient-stable.js';
     var FORCE_PENDING = '8bc00921d62a698cf0b01f4d888160526d43d328';
     var FORCE_PENDING_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + FORCE_PENDING + '/js/force-pending-block.js';
@@ -49,6 +49,8 @@
     var LOGIN_FAST_FIX_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LOGIN_FAST_FIX + '/js/login-fast-fix.js';
     var TAB_SESSION = '19bc1007aec81f9f0525fe7a3167b9ec84fa05b6';
     var TAB_SESSION_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + TAB_SESSION + '/js/tab-session.js';
+    var ECG_SINGLE = 'df3c74fb24130479861920bf31b49f51f38b0383';
+    var ECG_SINGLE_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + ECG_SINGLE + '/js/ecg-single.js';
     var ADMIN_JS = 'c54201aa340f2f53d81f10aa0bb07680811f58c4';
     var APP_JS = '5e1107f239eb33e0c397f62839334c57b1d56edb';
     var PORTAL_BOOT = 'e933bee7ba89c2c0d7a6eec91ec541146143f42f';
@@ -101,7 +103,7 @@
       '<head><style id="dr-boot-gear-spin">' + BOOT_CSS + '</style>' +
       '<script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + FADE + '/js/boot-fade-sync.js"><\/script>' +
       '<script src="' + LOGIN_SRC + '"><\/script><script src="' + LOCK_SRC + '"><\/script>' +
-      '<script src="' + FORCE_PENDING_SRC + '"><\/script><script src="' + LOGIN_NO_FREEZE_SRC + '"><\/script><script src="' + LOGIN_FAST_FIX_SRC + '"><\/script><script src="' + TAB_SESSION_SRC + '"><\/script>'
+      '<script src="' + FORCE_PENDING_SRC + '"><\/script><script src="' + LOGIN_NO_FREEZE_SRC + '"><\/script><script src="' + LOGIN_FAST_FIX_SRC + '"><\/script><script src="' + TAB_SESSION_SRC + '"><\/script><script src="' + ECG_SINGLE_SRC + '"><\/script>'
     );
     html = html.replace(
       /ov\.innerHTML\s*=\s*'[^']*boot-logo[^']*';/,
@@ -236,6 +238,7 @@
       inject(LOGIN_NO_FREEZE_SRC);
       inject(LOGIN_FAST_FIX_SRC);
       inject(TAB_SESSION_SRC);
+      inject(ECG_SINGLE_SRC);
       inject(PORTAL_BOOT_SRC);
       inject(STABLE_SRC);
       forceGearSpin();
