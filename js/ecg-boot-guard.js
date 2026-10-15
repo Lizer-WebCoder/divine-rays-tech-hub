@@ -1,12 +1,11 @@
 /**
- * Divine Rays — ecg-boot-guard v1
- * Blocks ancient heartbeat (94e50…) that deletes version guards and redraws during boot.
- * Lifeline stays hidden until boot is fully gone, then one clean start is allowed.
+ * Divine Rays — ecg-boot-guard v2
+ * Block ancient 94e50; hide ECG during boot; load heartbeat v32 once after boot.
  */
 (function () {
   'use strict';
-  if (window.__DR_ECG_BOOT_GUARD >= 1) return;
-  window.__DR_ECG_BOOT_GUARD = 1;
+  if (window.__DR_ECG_BOOT_GUARD >= 2) return;
+  window.__DR_ECG_BOOT_GUARD = 2;
 
   var BAD = [
     '94e50c1b33158e9209a9f551eae599753a3ce75f',
@@ -14,13 +13,14 @@
     'a9046e485443b24e800a4f4d10747c10146ca663',
     '1887c6e9fe2436bf5402f2c4fa40dda29597416f'
   ];
-  var GOOD_MIN = 32;
+  var GOOD_HB =
+    'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@24b8859bff9763c7e547507abc3cc1fcb2c3f309/js/heartbeat-draw.js';
+  var _hb = Number(window.__DR_HEARTBEAT_DRAW) || 0;
+  var _loadedGood = false;
 
   try {
-    var _hb = window.__DR_HEARTBEAT_DRAW || 0;
-    if (_hb < GOOD_MIN) _hb = GOOD_MIN;
     Object.defineProperty(window, '__DR_HEARTBEAT_DRAW', {
-      configurable: false,
+      configurable: true,
       enumerable: true,
       get: function () {
         return _hb;
@@ -30,19 +30,17 @@
         if (v >= _hb) _hb = v;
       }
     });
-  } catch (eLock) {
-    window.__DR_HEARTBEAT_DRAW = GOOD_MIN;
-  }
+  } catch (eLock) {}
 
   function isBadSrc(src) {
     if (!src) return false;
     for (var i = 0; i < BAD.length; i++) {
-      if (src.indexOf(BAD[i]) !== -1) return true;
+      if (String(src).indexOf(BAD[i]) !== -1) return true;
     }
     return false;
   }
 
-  function neutralizeScript(el) {
+  function neutralize(el) {
     try {
       el.type = 'text/plain';
       el.removeAttribute('src');
@@ -51,17 +49,15 @@
   }
 
   try {
-    var obs = new MutationObserver(function (muts) {
+    new MutationObserver(function (muts) {
       for (var i = 0; i < muts.length; i++) {
         var nodes = muts[i].addedNodes;
         for (var j = 0; j < nodes.length; j++) {
           var n = nodes[j];
-          if (!n || n.tagName !== 'SCRIPT') continue;
-          if (isBadSrc(n.src || n.getAttribute('src') || '')) neutralizeScript(n);
+          if (n && n.tagName === 'SCRIPT' && isBadSrc(n.src || '')) neutralize(n);
         }
       }
-    });
-    obs.observe(document.documentElement, { childList: true, subtree: true });
+    }).observe(document.documentElement, { childList: true, subtree: true });
   } catch (eObs) {}
 
   try {
@@ -78,7 +74,7 @@
               return desc.get.call(this);
             },
             set: function (v) {
-              if (isBadSrc(String(v))) {
+              if (isBadSrc(v)) {
                 desc.set.call(this, 'about:blank');
                 this.type = 'text/plain';
                 return;
@@ -102,47 +98,59 @@
           if (parseFloat(window.getComputedStyle(o).opacity || '0') > 0.05) return true;
         } catch (e) {}
       }
-      if (window.__DR_BOOT_DONE !== true) return true;
+      var login = document.getElementById('login-screen');
+      if (login && !login.hidden && (!o || o.classList.contains('dr-boot-removed') || !document.body.contains(o))) {
+        return false;
+      }
+      if (window.__DR_BOOT_DONE !== true && o) return true;
     } catch (e2) {}
     return false;
   }
 
-  function hideLifeline() {
+  function clearPremature() {
+    if (!bootStillUp()) return;
     try {
       var box = document.getElementById('dr-lifeline');
       if (box) {
         box.style.setProperty('opacity', '0', 'important');
         box.style.setProperty('visibility', 'hidden', 'important');
-        box.setAttribute('data-dr-boot-hide', '1');
+        if (box.querySelector('.dr-ecg-core')) {
+          box.innerHTML = '';
+          window.__DR_ECG_DRAWN = 0;
+        }
       }
     } catch (e) {}
   }
 
-  function clearLifelineDuringBoot() {
-    if (!bootStillUp()) return;
-    hideLifeline();
-    try {
-      var box = document.getElementById('dr-lifeline');
-      if (box && box.querySelector('.dr-ecg-core')) {
-        box.innerHTML = '';
-        window.__DR_ECG_DRAWN = 0;
-      }
-    } catch (e) {}
-    try {
-      if (window.__DR_ECG_TIMER) {
-        clearTimeout(window.__DR_ECG_TIMER);
-        window.__DR_ECG_TIMER = null;
-      }
-    } catch (e2) {}
-  }
-
-  function revealAndAllowOnce() {
-    if (bootStillUp()) return false;
+  function loadGoodHeartbeat() {
+    if (_loadedGood) return;
+    if (document.querySelector('#dr-lifeline .dr-ecg-core')) {
+      _loadedGood = true;
+      window.__DR_ECG_DRAWN = 1;
+      return;
+    }
+    _loadedGood = true;
     try {
       window.__DR_ECG_OK = true;
       document.documentElement.setAttribute('data-ecg', 'on');
       window.__DR_BOOT_DONE = true;
-    } catch (e) {}
+      try {
+        delete window.__DR_HEARTBEAT_DRAW;
+      } catch (eDel) {}
+      _hb = 0;
+      try {
+        window.__DR_HEARTBEAT_DRAW = 0;
+      } catch (eSet) {}
+      var s = document.createElement('script');
+      s.src = GOOD_HB + '?b=' + Date.now();
+      s.async = false;
+      (document.head || document.documentElement).appendChild(s);
+    } catch (e) {
+      _loadedGood = false;
+    }
+  }
+
+  function reveal() {
     try {
       var box = document.getElementById('dr-lifeline');
       if (box) {
@@ -150,38 +158,35 @@
         box.style.removeProperty('visibility');
         box.removeAttribute('data-dr-boot-hide');
       }
-    } catch (e2) {}
-    return true;
+    } catch (e) {}
   }
 
   try {
     var st = document.createElement('style');
     st.id = 'dr-ecg-boot-guard-css';
     st.textContent =
-      'body.dr-boot-holding #dr-lifeline,' +
-      'html:not([data-ecg="on"]) #dr-lifeline,' +
-      '#dr-lifeline[data-dr-boot-hide="1"]{' +
-      'opacity:0!important;visibility:hidden!important;pointer-events:none!important}';
+      'body.dr-boot-holding #dr-lifeline{opacity:0!important;visibility:hidden!important}';
     (document.head || document.documentElement).appendChild(st);
   } catch (eCss) {}
 
   var n = 0;
   var iv = setInterval(function () {
-    clearLifelineDuringBoot();
-    if (revealAndAllowOnce() || ++n > 80) {
-      clearInterval(iv);
-      setTimeout(function () {
-        try {
-          if (!document.querySelector('#dr-lifeline .dr-ecg-core') && window.DRHeartbeatDraw) {
-            window.__DR_ECG_DRAWN = 0;
-            if (typeof window.DRHeartbeatDraw.refresh === 'function') {
-              window.DRHeartbeatDraw.refresh();
-            }
-          }
-        } catch (e) {}
-      }, 300);
+    if (bootStillUp()) {
+      clearPremature();
+      if (++n > 100) clearInterval(iv);
+      return;
     }
-  }, 200);
+    clearInterval(iv);
+    reveal();
+    loadGoodHeartbeat();
+    setTimeout(function () {
+      if (!document.querySelector('#dr-lifeline .dr-ecg-core')) {
+        _loadedGood = false;
+        loadGoodHeartbeat();
+      }
+      reveal();
+    }, 600);
+  }, 150);
 
-  window.DREcgBootGuard = { v: 1, bootStillUp: bootStillUp };
+  window.DREcgBootGuard = { v: 2, bootStillUp: bootStillUp };
 })();
