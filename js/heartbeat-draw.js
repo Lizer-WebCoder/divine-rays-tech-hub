@@ -1,16 +1,16 @@
 /**
- * Divine Rays — ECG + gears v29.1 — start right after boot fade
+ * Divine Rays — ECG + gears v31 — one-shot login ECG (no typing freeze)
  */
 (function () {
   'use strict';
-  if (window.__DR_HEARTBEAT_DRAW >= 30) return;
+  if (window.__DR_HEARTBEAT_DRAW >= 31) return;
   try {
     if (window.__DR_ECG_TIMER) clearTimeout(window.__DR_ECG_TIMER);
     if (window.__DR_ECG_INTERVAL) clearInterval(window.__DR_ECG_INTERVAL);
   } catch (e0) {}
-  window.__DR_HEARTBEAT_DRAW = 30;
+  window.__DR_HEARTBEAT_DRAW = 31;
 
-  var CSS_ID = 'dr-gears-bg-v30';
+  var CSS_ID = 'dr-gears-bg-v31';
   var BOX_ID = 'dr-lifeline';
   var lastTheme = null;
   var lastMode = null;
@@ -84,6 +84,18 @@
       if (pc && pc.classList.contains('active')) return true;
     } catch (e) {}
     return false;
+  }
+  function loginInputFocused() {
+    try {
+      if (window.__DR_PAUSE_LOGIN_SCRIPTS) return true;
+      var a = document.activeElement;
+      if (!a) return false;
+      var tag = (a.tagName || '').toUpperCase();
+      if (tag !== 'INPUT' && tag !== 'TEXTAREA' && tag !== 'SELECT') return false;
+      return !!(a.closest && a.closest('#login-screen, #login-agent, form.login-form, .login-card'));
+    } catch (e) {
+      return !!window.__DR_PAUSE_LOGIN_SCRIPTS;
+    }
   }
   function colors() {
     if (isLight()) return { a: '#7c6af0', b: '#9b8af5', c: '#b8a9fc', opacity: '0.28' };
@@ -262,8 +274,9 @@
     if (__ecgBusy) return;
     if (isBooting()) return;
     if (!loginVisible()) return;
+    if (loginInputFocused()) return;
     var forceNew = opt && opt.forceNew;
-    if (__startedOnce && !forceNew) return;
+    if (__startedOnce) return;
     if (!forceNew && document.querySelector('#dr-lifeline .dr-ecg-core')) return;
     clearEcgTimer();
     __ecgBusy = true;
@@ -326,11 +339,7 @@
     });
 
     __ecgBusy = false;
-    ecgTimer = setTimeout(function () {
-      ecgIndex = (ecgIndex + 1) % ECG_PATTERNS.length;
-      if (loginVisible()) runEcgCycle({ forceNew: true });
-    }, Math.round(dur * 1000) + 700);
-    window.__DR_ECG_TIMER = ecgTimer;
+    window.__DR_ECG_TIMER = null;
   }
 
   function ensureGears(force) {
@@ -366,6 +375,7 @@
 
   function tick(force) {
     if (__tickBusy) return;
+    if (loginInputFocused()) return;
     __tickBusy = true;
     try {
       injectCss();
@@ -397,8 +407,9 @@
 
   window.__DR_ECG_INTERVAL = setInterval(function () {
     if (isBooting()) return;
+    if (loginInputFocused()) return;
     if (loginVisible() && window.__DR_ECG_OK) tick(false);
-  }, 1000);
+  }, 2500);
 
   window.DRHeartbeatDraw = {
     refresh: function () { tick(false); },
