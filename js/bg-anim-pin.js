@@ -1,18 +1,18 @@
 /**
- * Divine Rays — PINNED background animations guard v3.1
- * ECG only after boot; pins heartbeat v30.
+ * Divine Rays — bg-anim-pin v5
+ * Pins heartbeat v31 only. Does not keep re-injecting old ECG.
  */
 (function () {
   'use strict';
-  if (window.__DR_BG_ANIM_PIN >= 4) return;
-  window.__DR_BG_ANIM_PIN = 4;
+  if (window.__DR_BG_ANIM_PIN >= 5) return;
+  window.__DR_BG_ANIM_PIN = 5;
 
-  var HB_SHA = '80f8a73413ed5698b24c61856ddc5a1569714ac0';
+  var HB_SHA = 'ee55f47e2ee25c39f696dff993dd30147d9b6398';
   var HB =
     'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' +
     HB_SHA +
     '/js/heartbeat-draw.js';
-  var NEED = 30;
+  var NEED = 31;
 
   function bootStillUp() {
     try {
@@ -51,15 +51,29 @@
     } catch (e) {}
   }
 
+  function neuterOldHeartbeats() {
+    try {
+      if (window.__DR_HEARTBEAT_DRAW < NEED && window.__DR_ECG_INTERVAL) {
+        clearInterval(window.__DR_ECG_INTERVAL);
+        window.__DR_ECG_INTERVAL = null;
+      }
+      if (window.__DR_ECG_TIMER) {
+        clearTimeout(window.__DR_ECG_TIMER);
+        window.__DR_ECG_TIMER = null;
+      }
+    } catch (e) {}
+  }
+
   function tick() {
+    neuterOldHeartbeats();
     ensureScript();
     assertFlags();
   }
 
   tick();
-  setTimeout(tick, 300);
-  setTimeout(tick, 1000);
-  setInterval(tick, 2000);
+  setTimeout(tick, 400);
+  setTimeout(tick, 1200);
+  setTimeout(tick, 3000);
 
-  window.DRBgAnimPin = { refresh: tick, v: 4 };
+  window.DRBgAnimPin = { refresh: tick, v: 5 };
 })();
