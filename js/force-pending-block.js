@@ -1,12 +1,12 @@
 /**
- * Divine Rays — force-pending-block v25
- * Form-only pending gate. No document click capture (login freeze fix).
+ * Divine Rays — force-pending-block v26
+ * Form-only pending gate. Ignores password field input (freeze fix).
  * Developers: kirzhianquijano@gmail.com, iiyasora2002@gmail.com
  */
 (function () {
   'use strict';
-  if (window.__DR_FORCE_PENDING_V25) return;
-  window.__DR_FORCE_PENDING_V25 = 1;
+  if (window.__DR_FORCE_PENDING_V26) return;
+  window.__DR_FORCE_PENDING_V26 = 1;
 
   var DEVS = {
     'kirzhianquijano@gmail.com': 1,
@@ -151,29 +151,35 @@
     return true;
   }
   function wireForm() {
+    if (window.__DR_PAUSE_LOGIN_SCRIPTS) return;
     var form = agentForm();
     if (!form) return;
-    if (!form.__drFpV25Submit) {
-      form.__drFpV25Submit = 1;
+    if (!form.__drFpV26Submit) {
+      form.__drFpV26Submit = 1;
       form.addEventListener('submit', function (ev) { onPendingAttempt(ev); }, true);
     }
     var btns = form.querySelectorAll('button, input[type="submit"]');
     for (var i = 0; i < btns.length; i++) {
       var b = btns[i];
-      if (b.__drFpV25Btn) continue;
-      b.__drFpV25Btn = 1;
+      if (b.__drFpV26Btn) continue;
+      b.__drFpV26Btn = 1;
       b.addEventListener('click', function (ev) { onPendingAttempt(ev); }, true);
     }
-    if (!form.__drFpV25Key) {
-      form.__drFpV25Key = 1;
+    if (!form.__drFpV26Key) {
+      form.__drFpV26Key = 1;
       form.addEventListener('keydown', function (ev) {
         if (ev.key === 'Enter') onPendingAttempt(ev);
       }, true);
     }
-    if (!form.__drFpV25Input) {
-      form.__drFpV25Input = 1;
+    if (!form.__drFpV26Input) {
+      form.__drFpV26Input = 1;
       var t = null;
-      form.addEventListener('input', function () {
+      form.addEventListener('input', function (ev) {
+        try {
+          var tgt = ev && ev.target;
+          if (tgt && (tgt.type === 'password' || (tgt.id || '').indexOf('password') !== -1)) return;
+        } catch (e0) {}
+        if (window.__DR_PAUSE_LOGIN_SCRIPTS) return;
         if (t) clearTimeout(t);
         t = setTimeout(function () { try { syncIdentityUI(); } catch (e) {} }, 500);
       }, true);
@@ -185,11 +191,13 @@
     clearPendingUI: clearPendingUI,
     blockNow: blockNow,
     unlockPortal: unlockPortal,
-    v: 25
+    v: 26
   };
 
   wireForm();
   setTimeout(wireForm, 200);
   setTimeout(wireForm, 1000);
-  setInterval(wireForm, 3000);
+  setInterval(function () {
+    if (!window.__DR_PAUSE_LOGIN_SCRIPTS) wireForm();
+  }, 4000);
 })();
