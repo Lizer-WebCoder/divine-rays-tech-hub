@@ -43,8 +43,10 @@
     var FORCE_PENDING_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + FORCE_PENDING + '/js/force-pending-block.js';
     var LOGIN_CLICK = 'e0a944ec55d250dddc0917cc61400ffd2dcbc715';
     var LOGIN_CLICK_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LOGIN_CLICK + '/js/login-click-fix.js';
-    var LOGIN_NO_FREEZE = 'bd88f45a32a3172d992f1e26fe26109fed7b9741';
+    var LOGIN_NO_FREEZE = '432a8107d1b50df90f780f0f9c66527608a5e669';
     var LOGIN_NO_FREEZE_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LOGIN_NO_FREEZE + '/js/login-no-freeze.js';
+    var LOGIN_FAST_FIX = 'd63f7caae7644c4c439f80eb860023625f7a964e';
+    var LOGIN_FAST_FIX_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LOGIN_FAST_FIX + '/js/login-fast-fix.js';
     var ADMIN_JS = 'c54201aa340f2f53d81f10aa0bb07680811f58c4';
     var APP_JS = '5e1107f239eb33e0c397f62839334c57b1d56edb';
     var PORTAL_BOOT = 'e933bee7ba89c2c0d7a6eec91ec541146143f42f';
@@ -97,7 +99,7 @@
       '<head><style id="dr-boot-gear-spin">' + BOOT_CSS + '</style>' +
       '<script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + FADE + '/js/boot-fade-sync.js"><\/script>' +
       '<script src="' + LOGIN_SRC + '"><\/script><script src="' + LOCK_SRC + '"><\/script>' +
-      '<script src="' + FORCE_PENDING_SRC + '"><\/script><script src="' + LOGIN_NO_FREEZE_SRC + '"><\/script>'
+      '<script src="' + FORCE_PENDING_SRC + '"><\/script><script src="' + LOGIN_NO_FREEZE_SRC + '"><\/script><script src="' + LOGIN_FAST_FIX_SRC + '"><\/script>'
     );
     html = html.replace(
       /ov\.innerHTML\s*=\s*'[^']*boot-logo[^']*';/,
@@ -170,7 +172,6 @@
           }
         } catch (e) {}
         window.__drEarlyFired = 1;
-        window.__drAgentLoginBusy = true;
         function go() {
           if (typeof window.__drDoAgentLogin === 'function') {
             window.__drDoAgentLogin(btn || null);
@@ -187,7 +188,6 @@
           else if (n > 60) {
             clearInterval(t);
             window.__drEarlyFired = 0;
-            window.__drAgentLoginBusy = false;
             try {
               if (btn) {
                 btn.disabled = false;
@@ -231,6 +231,7 @@
       inject(AGENT_SRC);
       inject(FORCE_PENDING_SRC);
       inject(LOGIN_NO_FREEZE_SRC);
+      inject(LOGIN_FAST_FIX_SRC);
       inject(PORTAL_BOOT_SRC);
       inject(STABLE_SRC);
       forceGearSpin();
