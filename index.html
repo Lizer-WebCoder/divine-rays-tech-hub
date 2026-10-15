@@ -43,7 +43,7 @@
     var FORCE_PENDING_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + FORCE_PENDING + '/js/force-pending-block.js';
     var LOGIN_CLICK = 'e0a944ec55d250dddc0917cc61400ffd2dcbc715';
     var LOGIN_CLICK_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LOGIN_CLICK + '/js/login-click-fix.js';
-    var LOGIN_NO_FREEZE = 'f60784de7b34211fa57313d33e4f593d5e25b78e';
+    var LOGIN_NO_FREEZE = '6f3caa98a3f9e6453876c56ef13faaa4cbb28570';
     var LOGIN_NO_FREEZE_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LOGIN_NO_FREEZE + '/js/login-no-freeze.js';
     var LOGIN_FAST_FIX = 'f08b131f7bbdec26d49b77d93183f8bc965474d3';
     var LOGIN_FAST_FIX_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LOGIN_FAST_FIX + '/js/login-fast-fix.js';
@@ -143,7 +143,7 @@
       try {
         var st = document.createElement('style');
         st.id = 'dr-typing-css-early';
-        st.textContent = 'body.dr-typing #dr-login-ambient,body.dr-typing #dr-lifeline,body.dr-typing #dr-lifeline *{animation-play-state:paused!important;transition:none!important;pointer-events:none!important}';
+        st.textContent = 'body.dr-typing #dr-login-ambient,body.dr-typing #dr-lifeline,body.dr-typing #dr-lifeline *{display:none!important;visibility:hidden!important;animation:none!important;transition:none!important;pointer-events:none!important}';
         (document.head || document.documentElement).appendChild(st);
       } catch (e) {}
     })();
