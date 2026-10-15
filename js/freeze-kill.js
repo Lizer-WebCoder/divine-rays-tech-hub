@@ -1,11 +1,11 @@
 /**
- * Divine Rays — freeze-kill v1
- * Stops main-thread jank on login inputs: kill ECG timers, static ambient.
+ * Divine Rays — freeze-kill v2
+ * Static ambient on type; never re-draw ECG if already present.
  */
 (function () {
   'use strict';
-  if (window.__DR_FREEZE_KILL >= 1) return;
-  window.__DR_FREEZE_KILL = 1;
+  if (window.__DR_FREEZE_KILL >= 2) return;
+  window.__DR_FREEZE_KILL = 2;
 
   function isLoginInput(el) {
     if (!el || !el.closest) return false;
@@ -29,7 +29,7 @@
     } catch (e2) {}
   }
 
-  function killEcg() {
+  function killEcgTimersOnly() {
     try {
       if (window.__DR_ECG_INTERVAL) {
         clearInterval(window.__DR_ECG_INTERVAL);
@@ -39,16 +39,12 @@
         clearTimeout(window.__DR_ECG_TIMER);
         window.__DR_ECG_TIMER = null;
       }
-      if (window.DRHeartbeatDraw) {
-        window.DRHeartbeatDraw.refresh = function () {};
-        window.DRHeartbeatDraw.force = function () {};
-      }
     } catch (e) {}
   }
 
   function onType() {
     window.__DR_PAUSE_LOGIN_SCRIPTS = 1;
-    killEcg();
+    killEcgTimersOnly();
     staticAmbient();
   }
 
@@ -66,12 +62,15 @@
   }, 250);
 
   setTimeout(function () {
-    if (window.__DR_HEARTBEAT_DRAW >= 31) return;
     try {
-      killEcg();
+      if (document.querySelector('#dr-lifeline .dr-ecg-core')) {
+        window.__DR_ECG_DRAWN = 1;
+        return;
+      }
+      if (window.__DR_HEARTBEAT_DRAW >= 31) return;
       var s = document.createElement('script');
       s.src = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@ee55f47e2ee25c39f696dff993dd30147d9b6398/js/heartbeat-draw.js?b=' + Date.now();
       (document.head || document.documentElement).appendChild(s);
     } catch (e) {}
-  }, 1500);
+  }, 1800);
 })();
