@@ -47,6 +47,8 @@
     var LOGIN_NO_FREEZE_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LOGIN_NO_FREEZE + '/js/login-no-freeze.js';
     var LOGIN_FAST_FIX = 'd63f7caae7644c4c439f80eb860023625f7a964e';
     var LOGIN_FAST_FIX_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LOGIN_FAST_FIX + '/js/login-fast-fix.js';
+    var TAB_SESSION = '879b02ffb886bebfea5fea406fd56d7a6e68289b';
+    var TAB_SESSION_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + TAB_SESSION + '/js/tab-session.js';
     var ADMIN_JS = 'c54201aa340f2f53d81f10aa0bb07680811f58c4';
     var APP_JS = '5e1107f239eb33e0c397f62839334c57b1d56edb';
     var PORTAL_BOOT = 'e933bee7ba89c2c0d7a6eec91ec541146143f42f';
@@ -99,7 +101,7 @@
       '<head><style id="dr-boot-gear-spin">' + BOOT_CSS + '</style>' +
       '<script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + FADE + '/js/boot-fade-sync.js"><\/script>' +
       '<script src="' + LOGIN_SRC + '"><\/script><script src="' + LOCK_SRC + '"><\/script>' +
-      '<script src="' + FORCE_PENDING_SRC + '"><\/script><script src="' + LOGIN_NO_FREEZE_SRC + '"><\/script><script src="' + LOGIN_FAST_FIX_SRC + '"><\/script>'
+      '<script src="' + FORCE_PENDING_SRC + '"><\/script><script src="' + LOGIN_NO_FREEZE_SRC + '"><\/script><script src="' + LOGIN_FAST_FIX_SRC + '"><\/script><script src="' + TAB_SESSION_SRC + '"><\/script>'
     );
     html = html.replace(
       /ov\.innerHTML\s*=\s*'[^']*boot-logo[^']*';/,
@@ -232,6 +234,7 @@
       inject(FORCE_PENDING_SRC);
       inject(LOGIN_NO_FREEZE_SRC);
       inject(LOGIN_FAST_FIX_SRC);
+      inject(TAB_SESSION_SRC);
       inject(PORTAL_BOOT_SRC);
       inject(STABLE_SRC);
       forceGearSpin();
