@@ -1,13 +1,15 @@
 /**
- * Divine Rays — login-no-freeze v2
- * Pause login helper scripts while password is focused.
+ * Divine Rays — login-no-freeze v3
+ * Single-flight without blocking the real runAgentLogin.
+ * Pause helpers while password focused.
  */
 (function () {
   'use strict';
-  if (window.__DR_LOGIN_NO_FREEZE >= 2) return;
-  window.__DR_LOGIN_NO_FREEZE = 2;
+  if (window.__DR_LOGIN_NO_FREEZE >= 3) return;
+  window.__DR_LOGIN_NO_FREEZE = 3;
 
   var _safety = null;
+  var _inFlight = false;
 
   function isPass(el) {
     return el && (el.type === 'password' || el.id === 'agent-password' || el.id === 'cust-password');
@@ -19,38 +21,50 @@
   document.addEventListener('focusout', function (ev) {
     if (isPass(ev.target)) window.__DR_PAUSE_LOGIN_SCRIPTS = 0;
   }, true);
-  document.addEventListener('keydown', function (ev) {
-    if (isPass(ev.target)) window.__DR_PAUSE_LOGIN_SCRIPTS = 1;
-  }, true);
 
   function patchDoLogin() {
     var fn = window.__drDoAgentLogin;
-    if (typeof fn !== 'function' || fn.__drNoFreeze) return !!fn;
+    if (typeof fn !== 'function' || fn.__drNoFreeze3) return !!fn;
+    var orig = fn.__drOrigLogin || fn;
     window.__drDoAgentLogin = function (btn) {
-      if (window.__drAgentLoginBusy || window.__drBooting) return;
-      window.__drAgentLoginBusy = true;
+      if (window.__drBooting) return;
+      if (_inFlight) return;
+      _inFlight = true;
       if (_safety) clearTimeout(_safety);
       _safety = setTimeout(function () {
+        _inFlight = false;
         window.__drAgentLoginBusy = false;
-      }, 20000);
+      }, 25000);
       setTimeout(function () {
         try {
-          var ret = fn.call(window, btn);
+          window.__drAgentLoginBusy = false;
+          var ret = orig.call(window, btn);
           if (ret && typeof ret.then === 'function') {
-            ret.then(function () {
-              if (_safety) clearTimeout(_safety);
-            }, function () {
-              window.__drAgentLoginBusy = false;
-              if (_safety) clearTimeout(_safety);
-            });
+            ret.then(
+              function () {
+                _inFlight = false;
+                if (_safety) clearTimeout(_safety);
+              },
+              function () {
+                _inFlight = false;
+                window.__drAgentLoginBusy = false;
+                if (_safety) clearTimeout(_safety);
+              }
+            );
+          } else {
+            setTimeout(function () {
+              if (!window.__drAgentLoginBusy) _inFlight = false;
+            }, 100);
           }
         } catch (e) {
           console.error(e);
+          _inFlight = false;
           window.__drAgentLoginBusy = false;
         }
-      }, 30);
+      }, 0);
     };
-    window.__drDoAgentLogin.__drNoFreeze = 1;
+    window.__drDoAgentLogin.__drNoFreeze3 = 1;
+    window.__drDoAgentLogin.__drOrigLogin = orig;
     return true;
   }
 
@@ -67,8 +81,9 @@
 
   var n = 0;
   var t = setInterval(function () {
-    if (patchDoLogin() || ++n > 80) clearInterval(t);
-  }, 100);
-  setTimeout(patchDoLogin, 50);
-  setTimeout(patchDoLogin, 500);
+    if (patchDoLogin() || ++n > 100) clearInterval(t);
+  }, 50);
+  setTimeout(patchDoLogin, 20);
+  setTimeout(patchDoLogin, 200);
+  setTimeout(patchDoLogin, 800);
 })();
