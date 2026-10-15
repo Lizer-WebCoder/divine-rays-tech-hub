@@ -1,20 +1,19 @@
 /**
- * Divine Rays — ecg-boot-guard v2
- * Block ancient 94e50; hide ECG during boot; load heartbeat v32 once after boot.
+ * Divine Rays — ecg-boot-guard v3
+ * Block ancient 94e50; after boot load ORIGINAL heartbeat v25 (a9046e4).
  */
 (function () {
   'use strict';
-  if (window.__DR_ECG_BOOT_GUARD >= 2) return;
-  window.__DR_ECG_BOOT_GUARD = 2;
+  if (window.__DR_ECG_BOOT_GUARD >= 3) return;
+  window.__DR_ECG_BOOT_GUARD = 3;
 
   var BAD = [
     '94e50c1b33158e9209a9f551eae599753a3ce75f',
     '80f8a73413ed5698b24c61856ddc5a1569714ac0',
-    'a9046e485443b24e800a4f4d10747c10146ca663',
     '1887c6e9fe2436bf5402f2c4fa40dda29597416f'
   ];
   var GOOD_HB =
-    'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@24b8859bff9763c7e547507abc3cc1fcb2c3f309/js/heartbeat-draw.js';
+    'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@a9046e485443b24e800a4f4d10747c10146ca663/js/heartbeat-draw.js';
   var _hb = Number(window.__DR_HEARTBEAT_DRAW) || 0;
   var _loadedGood = false;
 
@@ -188,5 +187,5 @@
     }, 600);
   }, 150);
 
-  window.DREcgBootGuard = { v: 2, bootStillUp: bootStillUp };
+  window.DREcgBootGuard = { v: 3, bootStillUp: bootStillUp };
 })();
