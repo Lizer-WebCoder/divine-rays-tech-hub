@@ -39,10 +39,12 @@
     var LOCK_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LABEL_LOCK + '/js/login-label-lock.js';
     var AMBIENT_STABLE = '4aec2854b1cfcf968600c3466b579a83c215547f';
     var STABLE_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + AMBIENT_STABLE + '/js/ambient-stable.js';
-    var FORCE_PENDING = 'a1be4c0b4cd6dccc0e68d75fcec98d07e5c9d439';
+    var FORCE_PENDING = '2b2fef80d7f56772cb7e923cfce64303906e98eb';
     var FORCE_PENDING_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + FORCE_PENDING + '/js/force-pending-block.js';
     var LOGIN_CLICK = 'e0a944ec55d250dddc0917cc61400ffd2dcbc715';
     var LOGIN_CLICK_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LOGIN_CLICK + '/js/login-click-fix.js';
+    var LOGIN_NO_FREEZE = '63404f73475f514e3f96e429c595dfb7d2a0f062';
+    var LOGIN_NO_FREEZE_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LOGIN_NO_FREEZE + '/js/login-no-freeze.js';
     var ADMIN_JS = 'c54201aa340f2f53d81f10aa0bb07680811f58c4';
     var APP_JS = '5e1107f239eb33e0c397f62839334c57b1d56edb';
     var PORTAL_BOOT = 'e933bee7ba89c2c0d7a6eec91ec541146143f42f';
@@ -95,7 +97,7 @@
       '<head><style id="dr-boot-gear-spin">' + BOOT_CSS + '</style>' +
       '<script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + FADE + '/js/boot-fade-sync.js"><\/script>' +
       '<script src="' + LOGIN_SRC + '"><\/script><script src="' + LOCK_SRC + '"><\/script>' +
-      '<script src="' + FORCE_PENDING_SRC + '"><\/script><script src="' + LOGIN_CLICK_SRC + '"><\/script>'
+      '<script src="' + FORCE_PENDING_SRC + '"><\/script><script src="' + LOGIN_NO_FREEZE_SRC + '"><\/script>'
     );
     html = html.replace(
       /ov\.innerHTML\s*=\s*'[^']*boot-logo[^']*';/,
@@ -168,6 +170,7 @@
           }
         } catch (e) {}
         window.__drEarlyFired = 1;
+        window.__drAgentLoginBusy = true;
         function go() {
           if (typeof window.__drDoAgentLogin === 'function') {
             window.__drDoAgentLogin(btn || null);
@@ -184,6 +187,7 @@
           else if (n > 60) {
             clearInterval(t);
             window.__drEarlyFired = 0;
+            window.__drAgentLoginBusy = false;
             try {
               if (btn) {
                 btn.disabled = false;
@@ -226,7 +230,7 @@
       inject(LOCK_SRC);
       inject(AGENT_SRC);
       inject(FORCE_PENDING_SRC);
-      inject(LOGIN_CLICK_SRC);
+      inject(LOGIN_NO_FREEZE_SRC);
       inject(PORTAL_BOOT_SRC);
       inject(STABLE_SRC);
       forceGearSpin();
