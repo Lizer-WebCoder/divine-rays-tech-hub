@@ -1,13 +1,18 @@
 /**
- * Divine Rays — login-fast-fix v2
- * Owns first Sign in click; clears stuck earlyFired/busy; Enter key.
+ * Divine Rays — login-fast-fix v3
+ * Owns first Sign in click. Ensures real app.js (__drDoAgentLogin) is present.
  */
 (function () {
   'use strict';
-  if (window.__DR_LOGIN_FAST_FIX >= 2) return;
-  window.__DR_LOGIN_FAST_FIX = 2;
+  if (window.__DR_LOGIN_FAST_FIX >= 3) return;
+  window.__DR_LOGIN_FAST_FIX = 3;
 
+  var APP_JS =
+    'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@5e1107f239eb33e0c397f62839334c57b1d56edb/js/app.js';
   var _locking = false;
+  var _loadingApp = false;
+
+  window.DRLoginFastFix = { v: 3 };
 
   function findBtn() {
     var form = document.getElementById('login-agent');
@@ -38,10 +43,61 @@
     } catch (e) {}
   }
 
+  function resetBtn(btn) {
+    try {
+      if (!btn) return;
+      btn.disabled = false;
+      btn.style.opacity = '';
+      btn.style.pointerEvents = '';
+      btn.textContent = btn.getAttribute('data-dr-prev-label') || 'Sign in as Admin';
+    } catch (e) {}
+  }
+
   function clearStuck() {
     window.__drAgentLoginBusy = false;
     window.__drEarlyFired = 0;
     window.__drEarlyLoginQueued = null;
+    try {
+      if (window.__drLoginInFlight) window.__drLoginInFlight = false;
+    } catch (e) {}
+  }
+
+  function ensureDoLogin(cb) {
+    if (typeof window.__drDoAgentLogin === 'function') {
+      cb();
+      return;
+    }
+    if (_loadingApp) {
+      var n = 0;
+      var t = setInterval(function () {
+        n++;
+        if (typeof window.__drDoAgentLogin === 'function') {
+          clearInterval(t);
+          cb();
+        } else if (n > 100) {
+          clearInterval(t);
+          cb();
+        }
+      }, 50);
+      return;
+    }
+    _loadingApp = true;
+    try {
+      var s = document.createElement('script');
+      s.src = APP_JS + (APP_JS.indexOf('?') === -1 ? '?' : '&') + 'b=' + Date.now();
+      s.onload = function () {
+        _loadingApp = false;
+        cb();
+      };
+      s.onerror = function () {
+        _loadingApp = false;
+        cb();
+      };
+      (document.head || document.documentElement).appendChild(s);
+    } catch (e) {
+      _loadingApp = false;
+      cb();
+    }
   }
 
   function doLogin(btn) {
@@ -50,54 +106,54 @@
     _locking = true;
     setTimeout(function () {
       _locking = false;
-    }, 1500);
+    }, 2000);
 
     btn = btn || findBtn();
     clearStuck();
     setSigning(btn);
 
     try {
-      if (window.DRForcePending && window.DRForcePending.isPendingIdentity && window.DRForcePending.isPendingIdentity()) {
+      if (
+        window.DRForcePending &&
+        window.DRForcePending.isPendingIdentity &&
+        window.DRForcePending.isPendingIdentity()
+      ) {
         clearStuck();
-        try {
-          if (btn) {
-            btn.disabled = false;
-            btn.style.opacity = '';
-            btn.style.pointerEvents = '';
-            btn.textContent = btn.getAttribute('data-dr-prev-label') || 'Sign in as Admin';
-          }
-        } catch (e) {}
+        resetBtn(btn);
         return;
       }
     } catch (eP) {}
 
-    function call() {
+    ensureDoLogin(function () {
       clearStuck();
       if (typeof window.__drDoAgentLogin === 'function') {
-        window.__drDoAgentLogin(btn || null);
-        return true;
-      }
-      return false;
-    }
-
-    if (call()) return;
-    var n = 0;
-    var t = setInterval(function () {
-      n++;
-      if (call()) clearInterval(t);
-      else if (n > 80) {
-        clearInterval(t);
-        clearStuck();
         try {
-          if (btn) {
-            btn.disabled = false;
-            btn.style.opacity = '';
-            btn.style.pointerEvents = '';
-            btn.textContent = btn.getAttribute('data-dr-prev-label') || 'Sign in as Admin';
-          }
-        } catch (e2) {}
+          window.__drDoAgentLogin(btn || null);
+        } catch (e) {
+          console.error(e);
+          resetBtn(btn);
+          clearStuck();
+        }
+        return;
       }
-    }, 50);
+      var n = 0;
+      var t = setInterval(function () {
+        n++;
+        clearStuck();
+        if (typeof window.__drDoAgentLogin === 'function') {
+          clearInterval(t);
+          try {
+            window.__drDoAgentLogin(btn || null);
+          } catch (e2) {
+            resetBtn(btn);
+          }
+        } else if (n > 80) {
+          clearInterval(t);
+          clearStuck();
+          resetBtn(btn);
+        }
+      }, 50);
+    });
   }
 
   document.addEventListener(
@@ -107,7 +163,7 @@
       var btn = isSignInTarget(ev.target);
       if (!btn) return;
       ev.preventDefault();
-      ev.stopPropagation();
+      ev.stopImmediatePropagation();
       doLogin(btn);
     },
     true
@@ -119,7 +175,7 @@
       var btn = isSignInTarget(ev.target);
       if (!btn) return;
       ev.preventDefault();
-      ev.stopPropagation();
+      ev.stopImmediatePropagation();
       if (!_locking) doLogin(btn);
     },
     true
@@ -134,11 +190,16 @@
       if (!t.closest('#login-agent, form#login-agent, #login-screen form.login-form')) return;
       if (window.__drBooting) return;
       ev.preventDefault();
-      ev.stopPropagation();
+      ev.stopImmediatePropagation();
       doLogin(findBtn());
     },
     true
   );
 
-  window.DRLoginFastFix = { doLogin: doLogin, v: 2 };
+  setTimeout(function () {
+    if (typeof window.__drDoAgentLogin === 'function') return;
+    ensureDoLogin(function () {});
+  }, 800);
+
+  window.DRLoginFastFix = { doLogin: doLogin, v: 3 };
 })();
