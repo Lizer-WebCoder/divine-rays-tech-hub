@@ -1,13 +1,27 @@
 /**
- * Divine Rays — login-no-freeze v1
- * Single-flight login; yield UI before heavy loadFullAppThen.
+ * Divine Rays — login-no-freeze v2
+ * Pause login helper scripts while password is focused.
  */
 (function () {
   'use strict';
-  if (window.__DR_LOGIN_NO_FREEZE >= 1) return;
-  window.__DR_LOGIN_NO_FREEZE = 1;
+  if (window.__DR_LOGIN_NO_FREEZE >= 2) return;
+  window.__DR_LOGIN_NO_FREEZE = 2;
 
   var _safety = null;
+
+  function isPass(el) {
+    return el && (el.type === 'password' || el.id === 'agent-password' || el.id === 'cust-password');
+  }
+
+  document.addEventListener('focusin', function (ev) {
+    if (isPass(ev.target)) window.__DR_PAUSE_LOGIN_SCRIPTS = 1;
+  }, true);
+  document.addEventListener('focusout', function (ev) {
+    if (isPass(ev.target)) window.__DR_PAUSE_LOGIN_SCRIPTS = 0;
+  }, true);
+  document.addEventListener('keydown', function (ev) {
+    if (isPass(ev.target)) window.__DR_PAUSE_LOGIN_SCRIPTS = 1;
+  }, true);
 
   function patchDoLogin() {
     var fn = window.__drDoAgentLogin;
@@ -41,18 +55,14 @@
   }
 
   try {
-    document.addEventListener(
-      'click',
-      function (ev) {
-        var t = ev.target;
-        if (!t || !t.closest) return;
-        if (!t.closest('#login-agent, form.login-form, .login-card')) return;
-        if (window.DRForceLightBg) {
-          try { window.DRForceLightBg.refresh = function () {}; } catch (e) {}
-        }
-      },
-      true
-    );
+    document.addEventListener('click', function (ev) {
+      var t = ev.target;
+      if (!t || !t.closest) return;
+      if (!t.closest('#login-agent, form.login-form, .login-card')) return;
+      if (window.DRForceLightBg) {
+        try { window.DRForceLightBg.refresh = function () {}; } catch (e) {}
+      }
+    }, true);
   } catch (e2) {}
 
   var n = 0;
