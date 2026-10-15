@@ -1,13 +1,12 @@
 /**
- * Divine Rays — force-pending-block v24
- * Production: first-click pending block, card-only UI, clear sticky state,
- * respect profiles.approval_status so approved users work on any device.
- * Developers (2): kirzhianquijano@gmail.com, iiyasora2002@gmail.com
+ * Divine Rays — force-pending-block v25
+ * Form-only pending gate. No document click capture (login freeze fix).
+ * Developers: kirzhianquijano@gmail.com, iiyasora2002@gmail.com
  */
 (function () {
   'use strict';
-  if (window.__DR_FORCE_PENDING_V24) return;
-  window.__DR_FORCE_PENDING_V24 = 1;
+  if (window.__DR_FORCE_PENDING_V25) return;
+  window.__DR_FORCE_PENDING_V25 = 1;
 
   var DEVS = {
     'kirzhianquijano@gmail.com': 1,
@@ -15,18 +14,14 @@
   };
   var MSG = 'Your account is pending Administrator approval. Please wait until a Developer approves your account.';
   var _toastEl = null;
-  var _timer = null;
   var _uiOn = false;
   var _lastIdent = '';
 
-  function norm(s) {
-    return String(s || '').trim().toLowerCase();
-  }
-  function isDev(v) {
-    return !!DEVS[norm(v)];
-  }
+  function norm(s) { return String(s || '').trim().toLowerCase(); }
+  function isDev(v) { return !!DEVS[norm(v)]; }
   function agentForm() {
-    return document.getElementById('login-agent') || document.querySelector('#login-screen form.login-form.active');
+    return document.getElementById('login-agent') ||
+      document.querySelector('#login-screen form.login-form.active');
   }
   function readIdentity() {
     var form = agentForm();
@@ -53,8 +48,7 @@
     } catch (e) {}
     try {
       var map = JSON.parse(localStorage.getItem('dr_approval_map') || '{}');
-      var k = un || em;
-      if (map[k]) return map[k];
+      if (map[un]) return map[un];
       if (map[em]) return map[em];
     } catch (e2) {}
     return 'pending';
@@ -71,8 +65,7 @@
     var u = readIdentity();
     if (!u.raw) return false;
     if (isDev(u.un) || isDev(u.em)) return false;
-    var st = getStatus(u.un, u.em);
-    return st !== 'approved';
+    return getStatus(u.un, u.em) !== 'approved';
   }
   function clearPendingUI() {
     try {
@@ -80,8 +73,7 @@
         c.classList.remove('login-pending-glow', 'dr-shake');
       });
       document.querySelectorAll('.toast[data-dr-force-pending]').forEach(function (t) {
-        t.style.display = 'none';
-        t.remove();
+        try { t.remove(); } catch (e) { t.style.display = 'none'; }
       });
       document.body.classList.remove('dr-pending-blocked');
       _uiOn = false;
@@ -108,10 +100,6 @@
       _toastEl.style.opacity = '1';
     } catch (e5) {}
     _uiOn = true;
-    if (_timer) clearTimeout(_timer);
-    _timer = setTimeout(function () {
-      try { if (_toastEl) _toastEl.style.opacity = '0.9'; } catch (e6) {}
-    }, 10000);
   }
   function hidePortalIfOpen() {
     try {
@@ -138,13 +126,11 @@
   function syncIdentityUI() {
     var u = readIdentity();
     var key = u.raw || '';
-    if (key === _lastIdent && _uiOn === isPendingIdentity()) return;
+    if (key === _lastIdent) return;
     _lastIdent = key;
     if (!key) return;
     if (isDev(u.un) || isDev(u.em) || getStatus(u.un, u.em) === 'approved') {
-      if (_uiOn || document.querySelector('.toast[data-dr-force-pending]') || document.querySelector('.login-card.login-pending-glow')) {
-        clearPendingUI();
-      }
+      if (_uiOn) clearPendingUI();
     }
   }
   function stop(ev) {
@@ -155,7 +141,7 @@
     } catch (e) {}
   }
   function onPendingAttempt(ev) {
-    syncIdentityUI();
+    if (window.__drAgentLoginBusy || window.__drBooting) return true;
     if (!isPendingIdentity()) {
       clearPendingUI();
       return false;
@@ -167,61 +153,43 @@
   function wireForm() {
     var form = agentForm();
     if (!form) return;
-    if (!form.__drFpV24Submit) {
-      form.__drFpV24Submit = 1;
+    if (!form.__drFpV25Submit) {
+      form.__drFpV25Submit = 1;
       form.addEventListener('submit', function (ev) { onPendingAttempt(ev); }, true);
     }
     var btns = form.querySelectorAll('button, input[type="submit"]');
     for (var i = 0; i < btns.length; i++) {
       var b = btns[i];
-      if (b.__drFpV24Btn) continue;
-      b.__drFpV24Btn = 1;
+      if (b.__drFpV25Btn) continue;
+      b.__drFpV25Btn = 1;
       b.addEventListener('click', function (ev) { onPendingAttempt(ev); }, true);
     }
-    if (!form.__drFpV24Key) {
-      form.__drFpV24Key = 1;
+    if (!form.__drFpV25Key) {
+      form.__drFpV25Key = 1;
       form.addEventListener('keydown', function (ev) {
         if (ev.key === 'Enter') onPendingAttempt(ev);
       }, true);
     }
-    if (!form.__drFpV24Input) {
-      form.__drFpV24Input = 1;
-      var _idt = null;
+    if (!form.__drFpV25Input) {
+      form.__drFpV25Input = 1;
+      var t = null;
       form.addEventListener('input', function () {
-        if (_idt) clearTimeout(_idt);
-        _idt = setTimeout(function () { try { syncIdentityUI(); } catch (e) {} }, 400);
+        if (t) clearTimeout(t);
+        t = setTimeout(function () { try { syncIdentityUI(); } catch (e) {} }, 500);
       }, true);
-      form.addEventListener('change', function () { try { syncIdentityUI(); } catch (e) {} }, true);
     }
   }
-  function wrapGates() {}
-  document.addEventListener('submit', function (ev) {
-    if (ev.target && (ev.target.id === 'login-agent' || (ev.target.closest && ev.target.closest('#login-agent')))) onPendingAttempt(ev);
-  }, true);
-  document.addEventListener('click', function (ev) {
-    var t = ev.target;
-    if (!t || !t.closest) return;
-    if (!t.closest('button, input[type="submit"]')) return;
-    if (!t.closest('#login-agent, #login-screen')) return;
-    onPendingAttempt(ev);
-  }, true);
 
   window.DRForcePending = {
     isPendingIdentity: isPendingIdentity,
     clearPendingUI: clearPendingUI,
     blockNow: blockNow,
     unlockPortal: unlockPortal,
-    v: 24
+    v: 25
   };
 
   wireForm();
-  syncIdentityUI();
-  setInterval(function () {
-    wireForm();
-    wrapGates();
-    syncIdentityUI();
-  }, 2000);
-  setTimeout(wireForm, 100);
-  setTimeout(wireForm, 500);
-  setTimeout(wireForm, 2000);
+  setTimeout(wireForm, 200);
+  setTimeout(wireForm, 1000);
+  setInterval(wireForm, 3000);
 })();
