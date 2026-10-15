@@ -1,21 +1,21 @@
 /**
- * Divine Rays — tab session v3
- * - Multiple tabs share the same login (localStorage auth).
- * - Closing one tab while others stay open keeps the session.
- * - Closing the LAST tab (or whole window) ends the session.
- * - Refresh of a single tab keeps the session (sessionStorage backup).
- * - Approval maps (dr_approval_map / dr_staff_approval) are never cleared.
+ * Divine Rays — tab session v4
+ * Last tab/window close → end session.
+ * Multi-tab → keep session.
+ * Refresh → keep session (sessionStorage backup).
+ * Hard flag dr_session_ended so reopen cannot auto sign-in.
  */
 (function () {
   'use strict';
-  if (window.__DR_TAB_SESSION >= 3) return;
-  window.__DR_TAB_SESSION = 3;
+  if (window.__DR_TAB_SESSION >= 4) return;
+  window.__DR_TAB_SESSION = 4;
 
   var TAB_KEY = 'dr_open_tabs';
   var BACKUP_KEY = 'dr_auth_tab_backup';
+  var ENDED_KEY = 'dr_session_ended';
   var tabId = 't_' + Math.random().toString(36).slice(2) + '_' + Date.now();
-  var STALE_MS = 15000;
-  var _unloading = false;
+  var STALE_MS = 10000;
+  var _done = false;
 
   function getTabs() {
     try {
@@ -37,12 +37,14 @@
     });
     return out;
   }
-
   function isAuthKey(k) {
+    if (!k) return false;
+    k = String(k);
     return (
       k.indexOf('sb-') === 0 ||
       k.indexOf('supabase.auth') !== -1 ||
-      k === 'supabase.auth.token'
+      k === 'supabase.auth.token' ||
+      /auth-token/i.test(k)
     );
   }
 
@@ -67,6 +69,9 @@
         if (pack[k] != null) localStorage.setItem(k, pack[k]);
       });
       sessionStorage.removeItem(BACKUP_KEY);
+      try {
+        localStorage.removeItem(ENDED_KEY);
+      } catch (e) {}
       return true;
     } catch (e) {
       return false;
@@ -79,10 +84,18 @@
         if (isAuthKey(k)) localStorage.removeItem(k);
       });
     } catch (e) {}
+    try {
+      Object.keys(sessionStorage).forEach(function (k) {
+        if (isAuthKey(k) && k !== BACKUP_KEY) sessionStorage.removeItem(k);
+      });
+    } catch (e2) {}
   }
 
   function signOutLocal() {
     clearAuthStorage();
+    try {
+      localStorage.setItem(ENDED_KEY, String(Date.now()));
+    } catch (e) {}
     try {
       if (window.__drSb && window.__drSb.auth) {
         window.__drSb.auth.signOut({ scope: 'local' }).catch(function () {});
@@ -96,8 +109,21 @@
     } catch (e2) {}
   }
 
+  (function bootGuard() {
+    var restored = restoreAuthFromSession();
+    if (restored) return;
+    try {
+      var ended = localStorage.getItem(ENDED_KEY);
+      if (ended) {
+        clearAuthStorage();
+        localStorage.removeItem(ENDED_KEY);
+        localStorage.removeItem(TAB_KEY);
+      }
+    } catch (e) {}
+  })();
+
   function beat() {
-    if (_unloading) return;
+    if (_done) return;
     var now = Date.now();
     var t = aliveTabs(getTabs(), now);
     t[tabId] = now;
@@ -105,7 +131,8 @@
   }
 
   function unregisterAndMaybeLogout() {
-    _unloading = true;
+    if (_done) return;
+    _done = true;
     var now = Date.now();
     var t = getTabs();
     delete t[tabId];
@@ -117,18 +144,16 @@
     }
   }
 
-  restoreAuthFromSession();
   beat();
-  setInterval(beat, 3000);
+  setInterval(beat, 2500);
 
   window.addEventListener('pagehide', unregisterAndMaybeLogout);
-  window.addEventListener('beforeunload', function () {
-    _unloading = true;
-  });
+  window.addEventListener('beforeunload', unregisterAndMaybeLogout);
+  window.addEventListener('unload', unregisterAndMaybeLogout);
 
   document.addEventListener('visibilitychange', function () {
     if (document.visibilityState === 'visible') {
-      _unloading = false;
+      _done = false;
       beat();
     }
   });
@@ -140,7 +165,7 @@
   function patchCreateClient() {
     try {
       if (!window.supabase || typeof window.supabase.createClient !== 'function') return false;
-      if (window.supabase.createClient.__drTabSessionV3) return true;
+      if (window.supabase.createClient.__drTabSessionV4) return true;
       var orig = window.supabase.createClient;
       window.supabase.createClient = function (url, key, opts) {
         opts = opts || {};
@@ -151,7 +176,7 @@
         opts.auth.detectSessionInUrl = opts.auth.detectSessionInUrl !== false;
         return orig.call(this, url, key, opts);
       };
-      window.supabase.createClient.__drTabSessionV3 = 1;
+      window.supabase.createClient.__drTabSessionV4 = 1;
       return true;
     } catch (e) {
       return false;
@@ -169,6 +194,6 @@
     tabId: tabId,
     beat: beat,
     logoutIfLast: unregisterAndMaybeLogout,
-    v: 3
+    v: 4
   };
 })();
