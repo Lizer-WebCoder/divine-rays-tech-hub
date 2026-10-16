@@ -1,40 +1,54 @@
 /**
- * Divine Rays — login-fast-fix v3
- * Owns first Sign in click. Ensures real app.js (__drDoAgentLogin) is present.
+ * Divine Rays — login-fast-fix v4
+ * Owns first Sign in click. Never targets password eye toggle.
  */
 (function () {
   'use strict';
-  if (window.__DR_LOGIN_FAST_FIX >= 3) return;
-  window.__DR_LOGIN_FAST_FIX = 3;
+  if (window.__DR_LOGIN_FAST_FIX >= 4) return;
+  window.__DR_LOGIN_FAST_FIX = 4;
 
   var APP_JS =
     'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@5e1107f239eb33e0c397f62839334c57b1d56edb/js/app.js';
   var _locking = false;
   var _loadingApp = false;
 
-  window.DRLoginFastFix = { v: 3 };
+  function isEyeBtn(btn) {
+    if (!btn) return false;
+    try {
+      if (btn.classList && btn.classList.contains('dr-pw-toggle')) return true;
+      if (btn.closest && btn.closest('.dr-pw-wrap')) return true;
+      var al = btn.getAttribute('aria-label') || '';
+      if (/show password|hide password/i.test(al)) return true;
+    } catch (e) {}
+    return false;
+  }
 
   function findBtn() {
-    var form = document.getElementById('login-agent');
+    var form = document.getElementById('login-agent') || document.getElementById('login-customer');
     if (!form) return null;
-    return form.querySelector('button[type="submit"], button.btn-primary, button');
+    var list = form.querySelectorAll('button[type="submit"], button.btn-primary, button.btn-full');
+    for (var i = 0; i < list.length; i++) {
+      if (!isEyeBtn(list[i])) return list[i];
+    }
+    return null;
   }
 
   function isSignInTarget(el) {
     if (!el || !el.closest) return null;
     var btn = el.closest('button, input[type="submit"], [role="button"]');
     if (!btn) return null;
-    if (!btn.closest('#login-agent, #login-screen, .login-card, form.login-form')) return null;
+    if (isEyeBtn(btn)) return null;
+    if (!btn.closest('#login-agent, #login-customer, #login-screen, .login-card, form.login-form')) return null;
     var tx = (btn.textContent || '').toLowerCase();
     if (tx.indexOf('sign') === -1 && btn.type !== 'submit') return null;
     return btn;
   }
 
   function setSigning(btn) {
-    if (!btn) return;
+    if (!btn || isEyeBtn(btn)) return;
     try {
       if (!btn.getAttribute('data-dr-prev-label')) {
-        btn.setAttribute('data-dr-prev-label', (btn.textContent || 'Sign in as Admin').trim());
+        btn.setAttribute('data-dr-prev-label', (btn.textContent || 'Sign in').trim());
       }
       btn.textContent = 'Signing in…';
       btn.disabled = true;
@@ -45,11 +59,11 @@
 
   function resetBtn(btn) {
     try {
-      if (!btn) return;
+      if (!btn || isEyeBtn(btn)) return;
       btn.disabled = false;
       btn.style.opacity = '';
       btn.style.pointerEvents = '';
-      btn.textContent = btn.getAttribute('data-dr-prev-label') || 'Sign in as Admin';
+      btn.textContent = btn.getAttribute('data-dr-prev-label') || 'Sign in';
     } catch (e) {}
   }
 
@@ -109,6 +123,7 @@
     }, 2000);
 
     btn = btn || findBtn();
+    if (isEyeBtn(btn)) btn = findBtn();
     clearStuck();
     setSigning(btn);
 
@@ -201,5 +216,5 @@
     ensureDoLogin(function () {});
   }, 800);
 
-  window.DRLoginFastFix = { doLogin: doLogin, v: 3 };
+  window.DRLoginFastFix = { doLogin: doLogin, v: 4 };
 })();
