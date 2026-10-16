@@ -8,7 +8,7 @@
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <style>
     html,body{margin:0;min-height:100vh;font-family:Inter,system-ui,sans-serif;
-      background:radial-gradient(ellipse 100% 70% at 50% 45%,rgba(124,58,237,0.35),transparent 55%),linear-gradient(180deg,#2a1058 0%,#120830 65%,#0a0518 100%);color:#eeeef6}
+      background:linear-gradient(180deg,#1a0c38 0%,#0c0618 60%,#06040e 100%);color:#eeeef6}
     #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:1.25rem;text-align:center;padding:1.5rem;
       transition:opacity .45s ease,visibility .45s ease}
     #boot.is-done{opacity:0;visibility:hidden;pointer-events:none;position:fixed;inset:0;z-index:99999}
@@ -61,8 +61,8 @@
     };
     var OVERLAYS = [
       CDN + '0091e77d27bbb73e655a498ddd1ebf944583e000/js/force-light-bg.js',
-      CDN + '870d7032b5d9b68caa130a4bb5ce5760e63eab1c/js/login-ambient-galaxy.js',
-      CDN + 'f210270def45e4a622835761da9804f4c3b13861/js/login-visual-restore.js',
+      CDN + 'b8ba2f91f31bc5c4f2ab5bfdeae5847757d6ec7e/js/login-ambient-galaxy.js',
+      CDN + 'c4c9680a872e4299ec4f862a1c0195969b599465/js/login-visual-restore.js',
       CDN + 'a9046e485443b24e800a4f4d10747c10146ca663/js/heartbeat-draw.js',
       CDN + '02c4304ef7da0ade6de510fe966920e31a836b4f/js/force-pending-block.js',
       CDN + '9312e4fb30b597fd025246825a25e0be8afc0a88/js/login-auth-v8.js',
@@ -119,7 +119,7 @@
     html = injectOverlays(html);
     var bootCss =
       '#dr-phase-boot{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1.25rem;text-align:center;' +
-      'background:radial-gradient(ellipse 100% 70% at 50% 45%,rgba(124,58,237,0.35),transparent 55%),linear-gradient(180deg,#2a1058 0%,#120830 100%);transition:opacity .45s ease,visibility .45s ease}' +
+      'background:linear-gradient(180deg,#1a0c38 0%,#0c0618 100%);transition:opacity .45s ease,visibility .45s ease}' +
       '#dr-phase-boot.is-done{opacity:0;visibility:hidden;pointer-events:none}' +
       '#dr-phase-boot .boot-logo{width:72px;height:72px;border-radius:16px;display:block;box-shadow:0 8px 32px rgba(109,90,154,.35)}' +
       '#dr-phase-boot .boot-gear-spin{transform-origin:32px 32px;transform-box:view-box;animation:drBootGearSpin 1.4s linear infinite}' +
