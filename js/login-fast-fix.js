@@ -1,11 +1,11 @@
 /**
- * Divine Rays — login-fast-fix v4
- * Owns first Sign in click. Never targets password eye toggle.
+ * Divine Rays — login-fast-fix v5
+ * Admin Sign in only. Never intercepts Employee form.
  */
 (function () {
   'use strict';
-  if (window.__DR_LOGIN_FAST_FIX >= 4) return;
-  window.__DR_LOGIN_FAST_FIX = 4;
+  if (window.__DR_LOGIN_FAST_FIX >= 5) return;
+  window.__DR_LOGIN_FAST_FIX = 5;
 
   var APP_JS =
     'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@5e1107f239eb33e0c397f62839334c57b1d56edb/js/app.js';
@@ -24,7 +24,7 @@
   }
 
   function findBtn() {
-    var form = document.getElementById('login-agent') || document.getElementById('login-customer');
+    var form = document.getElementById('login-agent');
     if (!form) return null;
     var list = form.querySelectorAll('button[type="submit"], button.btn-primary, button.btn-full');
     for (var i = 0; i < list.length; i++) {
@@ -38,7 +38,9 @@
     var btn = el.closest('button, input[type="submit"], [role="button"]');
     if (!btn) return null;
     if (isEyeBtn(btn)) return null;
-    if (!btn.closest('#login-agent, #login-customer, #login-screen, .login-card, form.login-form')) return null;
+    // ONLY Admin form — never Employee
+    if (btn.closest('#login-customer')) return null;
+    if (!btn.closest('#login-agent')) return null;
     var tx = (btn.textContent || '').toLowerCase();
     if (tx.indexOf('sign') === -1 && btn.type !== 'submit') return null;
     return btn;
@@ -48,7 +50,7 @@
     if (!btn || isEyeBtn(btn)) return;
     try {
       if (!btn.getAttribute('data-dr-prev-label')) {
-        btn.setAttribute('data-dr-prev-label', (btn.textContent || 'Sign in').trim());
+        btn.setAttribute('data-dr-prev-label', (btn.textContent || 'Sign in as Admin').trim());
       }
       btn.textContent = 'Signing in…';
       btn.disabled = true;
@@ -63,7 +65,7 @@
       btn.disabled = false;
       btn.style.opacity = '';
       btn.style.pointerEvents = '';
-      btn.textContent = btn.getAttribute('data-dr-prev-label') || 'Sign in';
+      btn.textContent = btn.getAttribute('data-dr-prev-label') || 'Sign in as Admin';
     } catch (e) {}
   }
 
@@ -117,6 +119,7 @@
   function doLogin(btn) {
     if (window.__drBooting) return;
     if (_locking) return;
+    if (window.__drEmployeeLoginClick) return;
     _locking = true;
     setTimeout(function () {
       _locking = false;
@@ -124,6 +127,7 @@
 
     btn = btn || findBtn();
     if (isEyeBtn(btn)) btn = findBtn();
+    if (btn && btn.closest && btn.closest('#login-customer')) return;
     clearStuck();
     setSigning(btn);
 
@@ -202,7 +206,8 @@
       if (ev.key !== 'Enter') return;
       var t = ev.target;
       if (!t || !t.closest) return;
-      if (!t.closest('#login-agent, form#login-agent, #login-screen form.login-form')) return;
+      if (t.closest('#login-customer')) return;
+      if (!t.closest('#login-agent, form#login-agent')) return;
       if (window.__drBooting) return;
       ev.preventDefault();
       ev.stopImmediatePropagation();
@@ -216,5 +221,5 @@
     ensureDoLogin(function () {});
   }, 800);
 
-  window.DRLoginFastFix = { doLogin: doLogin, v: 4 };
+  window.DRLoginFastFix = { doLogin: doLogin, v: 5 };
 })();
