@@ -24,12 +24,8 @@
   <div id="boot" role="status" aria-live="polite">
     <svg class="boot-logo" viewBox="0 0 64 64" width="72" height="72" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <linearGradient id="drBootBg" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#6d5a9a"/><stop offset="100%" stop-color="#2a1f3d"/>
-        </linearGradient>
-        <linearGradient id="drBootMetal" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stop-color="#f3e8ff"/><stop offset="100%" stop-color="#c4b5fd"/>
-        </linearGradient>
+        <linearGradient id="drBootBg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6d5a9a"/><stop offset="100%" stop-color="#2a1f3d"/></linearGradient>
+        <linearGradient id="drBootMetal" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#f3e8ff"/><stop offset="100%" stop-color="#c4b5fd"/></linearGradient>
       </defs>
       <rect width="64" height="64" rx="14" fill="url(#drBootBg)"/>
       <g class="boot-gear-spin" fill="url(#drBootMetal)">
@@ -41,10 +37,8 @@
         <rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="translate(32 32) rotate(225)"/>
         <rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="translate(32 32) rotate(270)"/>
         <rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="translate(32 32) rotate(315)"/>
-        <circle cx="32" cy="32" r="17" fill="url(#drBootMetal)"/>
-        <circle cx="32" cy="32" r="9" fill="#2a1f3d"/>
-        <circle cx="32" cy="32" r="5" fill="url(#drBootMetal)"/>
-        <circle cx="32" cy="32" r="2.2" fill="#1a1625"/>
+        <circle cx="32" cy="32" r="17" fill="url(#drBootMetal)"/><circle cx="32" cy="32" r="9" fill="#2a1f3d"/>
+        <circle cx="32" cy="32" r="5" fill="url(#drBootMetal)"/><circle cx="32" cy="32" r="2.2" fill="#1a1625"/>
       </g>
     </svg>
     <h1 class="boot-title">Divine Rays Tech Hub</h1>
@@ -65,17 +59,19 @@
       'team-board.js': BASE, 'saved-views.js': BASE, 'delete-ticket.js': BASE,
       'profile.js': BASE, 'kb.js': BASE
     };
+    /* Phase A/B/C/D — minimal essential overlays */
     var OVERLAYS = [
       CDN + '0091e77d27bbb73e655a498ddd1ebf944583e000/js/force-light-bg.js',
       CDN + 'f210270def45e4a622835761da9804f4c3b13861/js/login-visual-restore.js',
       CDN + 'a9046e485443b24e800a4f4d10747c10146ca663/js/heartbeat-draw.js',
       CDN + '02c4304ef7da0ade6de510fe966920e31a836b4f/js/force-pending-block.js',
       CDN + '9312e4fb30b597fd025246825a25e0be8afc0a88/js/login-auth-v8.js',
+      CDN + '3087a49f5649f410f3d96c1eacb00b155435b1ef/js/phase-bcd.js',
+      CDN + 'b19db6229e1db592722f55c0ea4e1a4e5eb61e0b/js/users-admin-approval-ui.js',
       CDN + '46f6a5a15fcce4e4f43cce945c3cd6c70cf3b26d/js/login-tab-labels.js',
       CDN + '090fd731d30cd3c91d50a33ac2c15874f096e50a/js/login-label-lock.js',
       CDN + '12e70dc322d8da99c5465720dbba8dadec51927a/js/login-fast-fix.js',
       CDN + '91d1f4b2eb42572a9a129b2a00dac825c23d94e8/js/login-perf.js',
-      CDN + '76637ece4b6d3f8f027dc4aa4b67670bb8589be9/js/login-no-freeze.js',
       CDN + '19bc1007aec81f9f0525fe7a3167b9ec84fa05b6/js/tab-session.js',
       CDN + '761f65a9a4148efcabd6a78afb7e13f144943fa6/js/agent-username-auth.js'
     ];
@@ -96,10 +92,7 @@
       }).join('');
       var bootFlags =
         '<script>(function(){try{' +
-        'window.__DR_ECG_OK=true;' +
-        'document.documentElement.setAttribute("data-ecg","on");' +
-        'window.__DR_BOOT_DONE=true;' +
-        'document.body&&document.body.classList.remove("dr-boot-holding");' +
+        'window.__DR_ECG_OK=true;document.documentElement.setAttribute("data-ecg","on");window.__DR_BOOT_DONE=true;' +
         'if(typeof window.switchLoginTab!=="function"){window.switchLoginTab=function(tab){try{if(typeof window.showForm==="function")window.showForm(tab==="agent"?"login-agent":"login-customer");}catch(e){}};}' +
         '}catch(e){}})();<\/script>';
       if (html.indexOf('</body>') !== -1) return html.replace('</body>', tags + bootFlags + '</body>');
