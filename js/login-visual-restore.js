@@ -1,17 +1,48 @@
 /**
- * Divine Rays — login visual restore
- * Classic honeycomb + network (Oct 13 look)
- * Login card purple glow; pending orange glow + shake + toast
+ * Divine Rays — login visual restore v2
+ * Glass login card (ECG visible through) + Oct13 honeycomb/network + purple glow
+ * Pending: orange glow + shake + toast
  */
 (function () {
   'use strict';
-  if (window.__DR_LOGIN_VISUAL >= 1) return;
-  window.__DR_LOGIN_VISUAL = 1;
+  if (window.__DR_LOGIN_VISUAL >= 2) return;
+  window.__DR_LOGIN_VISUAL = 2;
 
   var CSS = [
+    'html,body,#login-screen,.login-screen{',
+    'background-color:#120830!important;',
+    'background-image:',
+    'radial-gradient(ellipse 100% 70% at 50% 45%,rgba(124,58,237,0.38),transparent 55%),',
+    'radial-gradient(ellipse 70% 50% at 15% 20%,rgba(139,92,246,0.25),transparent 50%),',
+    'radial-gradient(ellipse 70% 50% at 85% 80%,rgba(91,33,182,0.3),transparent 50%),',
+    'linear-gradient(180deg,#2a1058 0%,#1a0a3e 35%,#120830 65%,#0a0518 100%)!important;',
+    'background-attachment:fixed!important',
+    '}',
+    '#dr-login-ambient{',
+    'opacity:1!important;visibility:visible!important;pointer-events:none!important;',
+    'z-index:0!important;position:fixed!important;inset:0!important',
+    '}',
+    '#dr-login-ambient .dr-honeycomb{opacity:0.22!important}',
+    '#dr-login-ambient .dr-network{opacity:0.6!important}',
+    '#dr-lifeline{',
+    'z-index:1!important;pointer-events:none!important;',
+    'opacity:1!important;visibility:visible!important',
+    '}',
     '#login-screen .login-card,.login-screen .login-card{',
-    'box-shadow:0 0 0 1px rgba(124,106,240,0.25),0 0 28px rgba(124,106,240,0.35),0 0 64px rgba(91,33,182,0.22)!important;',
-    'border-color:rgba(124,106,240,0.35)!important',
+    'background:rgba(22,20,36,0.55)!important;',
+    'background-color:rgba(22,20,36,0.55)!important;',
+    'backdrop-filter:blur(14px) saturate(1.2)!important;',
+    '-webkit-backdrop-filter:blur(14px) saturate(1.2)!important;',
+    'border:1px solid rgba(167,139,250,0.32)!important;',
+    'box-shadow:0 0 0 1px rgba(124,106,240,0.2),0 0 32px rgba(124,106,240,0.4),0 0 72px rgba(91,33,182,0.28)!important;',
+    'position:relative!important;z-index:2!important',
+    '}',
+    '#login-screen .login-card input,.login-screen .login-card input{',
+    'background:rgba(12,12,20,0.72)!important;',
+    'border-color:rgba(46,46,66,0.9)!important',
+    '}',
+    '#login-screen .login-card .ltab:not(.active),.login-screen .login-card .ltab:not(.active){',
+    'background:rgba(15,15,20,0.55)!important',
     '}',
     '.login-card.login-pending-glow{',
     'box-shadow:0 0 22px rgba(251,146,60,0.9),0 0 52px rgba(249,115,22,0.55)!important;',
@@ -37,18 +68,6 @@
     'border-left:3px solid #fb923c!important;border-radius:12px!important;',
     'color:#eeeef6!important;font-size:0.88rem!important;line-height:1.4!important;',
     'box-shadow:0 8px 28px rgba(0,0,0,0.35)!important',
-    '}',
-    '#dr-login-ambient{opacity:1!important;visibility:visible!important;pointer-events:none!important;z-index:0!important}',
-    '#dr-login-ambient .dr-honeycomb{opacity:0.2!important}',
-    '#dr-login-ambient .dr-network{opacity:0.55!important}',
-    'html,body,#login-screen,.login-screen{',
-    'background-color:#120830!important;',
-    'background-image:',
-    'radial-gradient(ellipse 100% 70% at 50% 45%,rgba(124,58,237,0.35),transparent 55%),',
-    'radial-gradient(ellipse 70% 50% at 15% 20%,rgba(139,92,246,0.22),transparent 50%),',
-    'radial-gradient(ellipse 70% 50% at 85% 80%,rgba(91,33,182,0.28),transparent 50%),',
-    'linear-gradient(180deg,#2a1058 0%,#1a0a3e 35%,#120830 65%,#0a0518 100%)!important;',
-    'background-attachment:fixed!important',
     '}'
   ].join('');
 
@@ -60,15 +79,22 @@
       (document.head || document.documentElement).appendChild(el);
     }
     el.textContent = CSS;
+    try {
+      document.querySelectorAll('#login-screen .login-card, .login-screen .login-card').forEach(function (c) {
+        c.style.setProperty('background', 'rgba(22,20,36,0.55)', 'important');
+        c.style.setProperty('background-color', 'rgba(22,20,36,0.55)', 'important');
+        c.style.setProperty('backdrop-filter', 'blur(14px) saturate(1.2)', 'important');
+      });
+    } catch (e) {}
+    try {
+      var bad = document.getElementById('dr-login-bg-830dac');
+      if (bad && bad.parentNode) bad.parentNode.removeChild(bad);
+    } catch (e2) {}
   }
   inject();
-  setTimeout(inject, 400);
-  setTimeout(inject, 1200);
+  setTimeout(inject, 200);
+  setTimeout(inject, 600);
+  setTimeout(inject, 1400);
 
-  try {
-    var bad = document.getElementById('dr-login-bg-830dac');
-    if (bad && bad.parentNode) bad.parentNode.removeChild(bad);
-  } catch (e) {}
-
-  window.DRLoginVisual = { v: 1, refresh: inject };
+  window.DRLoginVisual = { v: 2, refresh: inject };
 })();
