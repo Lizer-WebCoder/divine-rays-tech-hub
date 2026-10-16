@@ -1,20 +1,23 @@
 /**
- * Divine Rays — Users > Admin approval UI
- * - Exact Developer usernames only (kirzhian, jamesjerlow123)
+ * Divine Rays — Users > Admin approval UI v3
+ * - Developers: kirzhianquijano, iiyasora2002 (usernames + emails)
  * - New staff default Pending
  * - Actions: Pending badge + Approve / Denied (Developer only)
- * - Role column shows chosen staff_role
  * - Denied deletes profile row
- * Performance: debounced polish, no body-wide MutationObserver loop
- * Credit: Boyz at the Back
+ * - Writes profiles.approval_status on approve
  */
 (function () {
   'use strict';
-  if (window.__DR_USERS_ADMIN_APPROVAL_UI_V2) return;
-  window.__DR_USERS_ADMIN_APPROVAL_UI_V2 = 1;
-  window.__DR_USERS_ADMIN_APPROVAL_UI = 1;
+  if (window.__DR_USERS_ADMIN_APPROVAL_UI_V3) return;
+  window.__DR_USERS_ADMIN_APPROVAL_UI_V3 = 1;
+  window.__DR_USERS_ADMIN_APPROVAL_UI = 3;
 
-  var DEVS = { kirzhian: 1, jamesjerlow123: 1 };
+  var DEVS = {
+    kirzhianquijano: 1,
+    iiyasora2002: 1,
+    'kirzhianquijano@gmail.com': 1,
+    'iiyasora2002@gmail.com': 1
+  };
   var KEY = 'dr_staff_approval';
   var _polishing = false;
   var _polishTimer = null;
@@ -31,7 +34,9 @@
 
   function isDev(u) {
     if (!u) return false;
-    return !!DEVS[String(u.username || '').toLowerCase().trim()];
+    var un = String(u.username || '').toLowerCase().trim();
+    var em = String(u.email || '').toLowerCase().trim();
+    return !!(DEVS[un] || DEVS[em]);
   }
 
   function mapGet() {
@@ -82,6 +87,9 @@
 
   function getStatus(u) {
     if (isDev(u)) return 'approved';
+    var server = String((u && (u.approval_status || u.status)) || '').toLowerCase().trim();
+    if (server === 'approved' || server === 'active') return 'approved';
+    if (server === 'denied' || server === 'disapproved' || server === 'rejected') return 'denied';
     var m = mapGet();
     if (u && u.id && m[u.id]) return m[u.id];
     var un = String((u && u.username) || '').toLowerCase().trim();
@@ -90,7 +98,7 @@
     if (em && m['e:' + em] === 'approved') return 'approved';
     if (un && m['pending:' + un] === 'pending') return 'pending';
     if (em && m['pending:' + em] === 'pending') return 'pending';
-    if (u && (u.role === 'admin' || u.role === 'agent')) return 'pending';
+    if (u && (u.role === 'admin' || u.role === 'agent' || u.role === 'staff')) return 'pending';
     return 'pending';
   }
 
@@ -112,12 +120,13 @@
     try {
       return window.DR && window.DR.getProfile && window.DR.getProfile();
     } catch (e) {
-      return null;
+      return window.__drProfile || null;
     }
   }
 
   function sb() {
     try {
+      if (window.__drSb) return window.__drSb;
       if (window.DR && window.DR.sb) return window.DR.sb();
     } catch (e) {}
     return null;
@@ -327,6 +336,12 @@
         var em = btn.getAttribute('data-email') || '';
         if (!confirm('Approve this Admin account? They will be able to sign in.')) return;
         setStatus(id, 'approved', un, em);
+        try {
+          var client = sb();
+          if (client && id) {
+            client.from('profiles').update({ approval_status: 'approved' }).eq('id', id).then(function () {});
+          }
+        } catch (eUp) {}
         if (window.DR && window.DR.toast)
           window.DR.toast('Account approved — can sign in', 'success');
         schedulePolish(50);
