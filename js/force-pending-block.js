@@ -1,12 +1,12 @@
 /**
- * Divine Rays — force-pending-block v27
- * Form-only pending gate v27. Wire once — no perpetual interval (freeze fix).
+ * Divine Rays — force-pending-block v28
+ * Only block EXPLICITLY pending identities. Unknown is not pending.
  * Developers: kirzhianquijano@gmail.com, iiyasora2002@gmail.com
  */
 (function () {
   'use strict';
-  if (window.__DR_FORCE_PENDING_V27) return;
-  window.__DR_FORCE_PENDING_V27 = 1;
+  if (window.__DR_FORCE_PENDING_V28) return;
+  window.__DR_FORCE_PENDING_V28 = 1;
 
   var DEVS = {
     'kirzhianquijano@gmail.com': 1,
@@ -48,16 +48,21 @@
     } catch (e) {}
     try {
       var map = JSON.parse(localStorage.getItem('dr_approval_map') || '{}');
-      if (map[un]) return map[un];
-      if (map[em]) return map[em];
+      if (un && map[un]) return map[un];
+      if (em && map[em]) return map[em];
+      var m2 = JSON.parse(localStorage.getItem('dr_staff_approval') || '{}');
+      if (un && m2['pending:' + un] === 'pending') return 'pending';
+      if (em && m2['pending:' + em] === 'pending') return 'pending';
+      if (un && m2['u:' + un] === 'approved') return 'approved';
+      if (em && m2['e:' + em] === 'approved') return 'approved';
     } catch (e2) {}
-    return 'pending';
+    return 'unknown';
   }
   function markPending(un, em) {
     try {
       var map = JSON.parse(localStorage.getItem('dr_approval_map') || '{}');
-      if (un) map[un] = map[un] || 'pending';
-      if (em) map[em] = map[em] || 'pending';
+      if (un) map[un] = 'pending';
+      if (em) map[em] = 'pending';
       localStorage.setItem('dr_approval_map', JSON.stringify(map));
     } catch (e) {}
   }
@@ -65,7 +70,7 @@
     var u = readIdentity();
     if (!u.raw) return false;
     if (isDev(u.un) || isDev(u.em)) return false;
-    return getStatus(u.un, u.em) !== 'approved';
+    return getStatus(u.un, u.em) === 'pending';
   }
   function clearPendingUI() {
     try {
@@ -129,7 +134,7 @@
     if (key === _lastIdent) return;
     _lastIdent = key;
     if (!key) return;
-    if (isDev(u.un) || isDev(u.em) || getStatus(u.un, u.em) === 'approved') {
+    if (isDev(u.un) || isDev(u.em) || getStatus(u.un, u.em) !== 'pending') {
       if (_uiOn) clearPendingUI();
     }
   }
@@ -154,25 +159,25 @@
     if (window.__DR_PAUSE_LOGIN_SCRIPTS) return;
     var form = agentForm();
     if (!form) return;
-    if (!form.__drFpV27Submit) {
-      form.__drFpV27Submit = 1;
+    if (!form.__drFpV28Submit) {
+      form.__drFpV28Submit = 1;
       form.addEventListener('submit', function (ev) { onPendingAttempt(ev); }, true);
     }
     var btns = form.querySelectorAll('button, input[type="submit"]');
     for (var i = 0; i < btns.length; i++) {
       var b = btns[i];
-      if (b.__drFpV27Btn) continue;
-      b.__drFpV27Btn = 1;
+      if (b.__drFpV28Btn) continue;
+      b.__drFpV28Btn = 1;
       b.addEventListener('click', function (ev) { onPendingAttempt(ev); }, true);
     }
-    if (!form.__drFpV27Key) {
-      form.__drFpV27Key = 1;
+    if (!form.__drFpV28Key) {
+      form.__drFpV28Key = 1;
       form.addEventListener('keydown', function (ev) {
         if (ev.key === 'Enter') onPendingAttempt(ev);
       }, true);
     }
-    if (!form.__drFpV27Input) {
-      form.__drFpV27Input = 1;
+    if (!form.__drFpV28Input) {
+      form.__drFpV28Input = 1;
       var t = null;
       form.addEventListener('input', function (ev) {
         try {
@@ -191,11 +196,10 @@
     clearPendingUI: clearPendingUI,
     blockNow: blockNow,
     unlockPortal: unlockPortal,
-    v: 27
+    v: 28
   };
 
   wireForm();
   setTimeout(wireForm, 300);
   setTimeout(wireForm, 1200);
-  /* no perpetual interval — caused main-thread jank while typing */
 })();
