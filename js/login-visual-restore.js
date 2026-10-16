@@ -1,48 +1,50 @@
 /**
- * Divine Rays — login visual restore v2
- * Glass login card (ECG visible through) + Oct13 honeycomb/network + purple glow
- * Pending: orange glow + shake + toast
+ * Divine Rays — login visual restore v3
+ * Darker purple gradient + strong card glow + glass card
+ * Pending orange glow + shake + toast
  */
 (function () {
   'use strict';
-  if (window.__DR_LOGIN_VISUAL >= 2) return;
-  window.__DR_LOGIN_VISUAL = 2;
+  if (window.__DR_LOGIN_VISUAL >= 3) return;
+  window.__DR_LOGIN_VISUAL = 3;
 
   var CSS = [
     'html,body,#login-screen,.login-screen{',
-    'background-color:#120830!important;',
+    'background-color:#0a0614!important;',
     'background-image:',
-    'radial-gradient(ellipse 100% 70% at 50% 45%,rgba(124,58,237,0.38),transparent 55%),',
-    'radial-gradient(ellipse 70% 50% at 15% 20%,rgba(139,92,246,0.25),transparent 50%),',
-    'radial-gradient(ellipse 70% 50% at 85% 80%,rgba(91,33,182,0.3),transparent 50%),',
-    'linear-gradient(180deg,#2a1058 0%,#1a0a3e 35%,#120830 65%,#0a0518 100%)!important;',
+    'radial-gradient(ellipse 90% 60% at 50% 40%,rgba(88,40,180,0.28),transparent 55%),',
+    'radial-gradient(ellipse 60% 45% at 12% 18%,rgba(70,30,140,0.18),transparent 50%),',
+    'radial-gradient(ellipse 60% 45% at 88% 82%,rgba(55,20,110,0.2),transparent 50%),',
+    'linear-gradient(180deg,#1a0c38 0%,#120828 30%,#0c0618 60%,#06040e 100%)!important;',
     'background-attachment:fixed!important',
     '}',
     '#dr-login-ambient{',
     'opacity:1!important;visibility:visible!important;pointer-events:none!important;',
     'z-index:0!important;position:fixed!important;inset:0!important',
     '}',
-    '#dr-login-ambient .dr-honeycomb{opacity:0.22!important}',
-    '#dr-login-ambient .dr-network{opacity:0.6!important}',
     '#dr-lifeline{',
     'z-index:1!important;pointer-events:none!important;',
     'opacity:1!important;visibility:visible!important',
     '}',
     '#login-screen .login-card,.login-screen .login-card{',
-    'background:rgba(22,20,36,0.55)!important;',
-    'background-color:rgba(22,20,36,0.55)!important;',
-    'backdrop-filter:blur(14px) saturate(1.2)!important;',
-    '-webkit-backdrop-filter:blur(14px) saturate(1.2)!important;',
-    'border:1px solid rgba(167,139,250,0.32)!important;',
-    'box-shadow:0 0 0 1px rgba(124,106,240,0.2),0 0 32px rgba(124,106,240,0.4),0 0 72px rgba(91,33,182,0.28)!important;',
+    'background:rgba(18,16,30,0.58)!important;',
+    'background-color:rgba(18,16,30,0.58)!important;',
+    'backdrop-filter:blur(16px) saturate(1.25)!important;',
+    '-webkit-backdrop-filter:blur(16px) saturate(1.25)!important;',
+    'border:1px solid rgba(167,139,250,0.4)!important;',
+    'box-shadow:',
+    '0 0 0 1px rgba(124,106,240,0.3),',
+    '0 0 24px rgba(139,92,246,0.55),',
+    '0 0 56px rgba(109,40,217,0.45),',
+    '0 0 100px rgba(76,29,149,0.3)!important;',
     'position:relative!important;z-index:2!important',
     '}',
     '#login-screen .login-card input,.login-screen .login-card input{',
-    'background:rgba(12,12,20,0.72)!important;',
+    'background:rgba(10,10,18,0.75)!important;',
     'border-color:rgba(46,46,66,0.9)!important',
     '}',
     '#login-screen .login-card .ltab:not(.active),.login-screen .login-card .ltab:not(.active){',
-    'background:rgba(15,15,20,0.55)!important',
+    'background:rgba(12,12,18,0.55)!important',
     '}',
     '.login-card.login-pending-glow{',
     'box-shadow:0 0 22px rgba(251,146,60,0.9),0 0 52px rgba(249,115,22,0.55)!important;',
@@ -81,9 +83,12 @@
     el.textContent = CSS;
     try {
       document.querySelectorAll('#login-screen .login-card, .login-screen .login-card').forEach(function (c) {
-        c.style.setProperty('background', 'rgba(22,20,36,0.55)', 'important');
-        c.style.setProperty('background-color', 'rgba(22,20,36,0.55)', 'important');
-        c.style.setProperty('backdrop-filter', 'blur(14px) saturate(1.2)', 'important');
+        c.style.setProperty('background', 'rgba(18,16,30,0.58)', 'important');
+        c.style.setProperty('background-color', 'rgba(18,16,30,0.58)', 'important');
+        c.style.setProperty('backdrop-filter', 'blur(16px) saturate(1.25)', 'important');
+        c.style.setProperty('box-shadow',
+          '0 0 0 1px rgba(124,106,240,0.3),0 0 24px rgba(139,92,246,0.55),0 0 56px rgba(109,40,217,0.45),0 0 100px rgba(76,29,149,0.3)',
+          'important');
       });
     } catch (e) {}
     try {
@@ -95,6 +100,5 @@
   setTimeout(inject, 200);
   setTimeout(inject, 600);
   setTimeout(inject, 1400);
-
-  window.DRLoginVisual = { v: 2, refresh: inject };
+  window.DRLoginVisual = { v: 3, refresh: inject };
 })();
