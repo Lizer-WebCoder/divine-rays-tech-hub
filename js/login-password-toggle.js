@@ -1,11 +1,11 @@
 /**
- * Divine Rays — password show/hide eye toggles
- * Login + Employee/Admin registration Password & Confirm Password
+ * Divine Rays — password show/hide eye toggles v2
+ * Does not trigger form validation / submit (Admin tab fix)
  */
 (function () {
   'use strict';
-  if (window.__DR_PW_TOGGLE >= 1) return;
-  window.__DR_PW_TOGGLE = 1;
+  if (window.__DR_PW_TOGGLE >= 2) return;
+  window.__DR_PW_TOGGLE = 2;
 
   var CSS_ID = 'dr-pw-toggle-css';
   var EYE =
@@ -34,7 +34,7 @@
       '.dr-pw-toggle{position:absolute;right:0.55rem;top:50%;transform:translateY(-50%);',
       'display:inline-flex;align-items:center;justify-content:center;',
       'width:1.75rem;height:1.75rem;padding:0;margin:0;border:none;background:transparent;',
-      'color:#9898b0;cursor:pointer;border-radius:6px;line-height:0}',
+      'color:#9898b0;cursor:pointer;border-radius:6px;line-height:0;z-index:2}',
       '.dr-pw-toggle:hover{color:#c4b5fd;background:rgba(167,139,250,0.12)}',
       '.dr-pw-toggle:focus-visible{outline:2px solid rgba(167,139,250,0.5);outline-offset:1px}',
       '.dr-pw-toggle svg{display:block;pointer-events:none}'
@@ -63,6 +63,24 @@
     return false;
   }
 
+  function clearFormErrors(form) {
+    if (!form) return;
+    try {
+      form.querySelectorAll('.error, .form-error, .login-error, [data-error], .dr-error, .alert-error').forEach(function (el) {
+        var t = (el.textContent || '').toLowerCase();
+        if (/enter your email|email is required|please enter/i.test(t)) {
+          el.style.display = 'none';
+          el.textContent = '';
+          el.classList.remove('is-on', 'show', 'active');
+        }
+      });
+      ['login-agent-error', 'agent-error', 'error-login-agent'].forEach(function (id) {
+        var e = document.getElementById(id);
+        if (e) { e.style.display = 'none'; e.textContent = ''; }
+      });
+    } catch (e) {}
+  }
+
   function wrap(input) {
     if (!input || input.__drPwWrapped) return;
     if (!isPasswordField(input)) return;
@@ -83,32 +101,63 @@
     btn.className = 'dr-pw-toggle';
     btn.setAttribute('aria-label', 'Show password');
     btn.setAttribute('title', 'Show password');
+    btn.setAttribute('tabindex', '0');
+    btn.setAttribute('formnovalidate', 'formnovalidate');
     btn.innerHTML = EYE;
     wrapEl.appendChild(btn);
 
-    btn.addEventListener('click', function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      var showing = input.type === 'text';
-      if (showing) {
-        input.type = 'password';
-        input.removeAttribute('data-dr-was-password');
-        btn.innerHTML = EYE;
-        btn.setAttribute('aria-label', 'Show password');
-        btn.setAttribute('title', 'Show password');
-      } else {
-        input.type = 'text';
-        input.setAttribute('data-dr-was-password', '1');
-        btn.innerHTML = EYE_OFF;
-        btn.setAttribute('aria-label', 'Hide password');
-        btn.setAttribute('title', 'Hide password');
+    function toggle(e) {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.stopImmediatePropagation) e.stopImmediatePropagation();
       }
+      var form = input.form || (input.closest && input.closest('form'));
+      var prevNoValidate = form ? form.noValidate : false;
+      if (form) form.noValidate = true;
+
+      var showing = input.type === 'text';
+      try {
+        if (showing) {
+          input.type = 'password';
+          input.removeAttribute('data-dr-was-password');
+          btn.innerHTML = EYE;
+          btn.setAttribute('aria-label', 'Show password');
+          btn.setAttribute('title', 'Show password');
+        } else {
+          input.type = 'text';
+          input.setAttribute('data-dr-was-password', '1');
+          btn.innerHTML = EYE_OFF;
+          btn.setAttribute('aria-label', 'Hide password');
+          btn.setAttribute('title', 'Hide password');
+        }
+      } catch (err) {}
+
+      clearFormErrors(form);
+
+      setTimeout(function () {
+        try { if (form) form.noValidate = prevNoValidate; } catch (e2) {}
+      }, 0);
+
       try {
         input.focus({ preventScroll: true });
         var len = (input.value || '').length;
-        input.setSelectionRange(len, len);
-      } catch (err) {}
-    });
+        if (input.setSelectionRange) input.setSelectionRange(len, len);
+      } catch (err2) {}
+    }
+
+    btn.addEventListener('click', toggle, true);
+    btn.addEventListener('mousedown', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }, true);
+    btn.addEventListener('pointerdown', function (e) {
+      e.stopPropagation();
+    }, true);
+    btn.addEventListener('pointerup', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }, true);
   }
 
   function scan() {
@@ -130,12 +179,11 @@
       '#dr-emp-password',
       '#dr-emp-password2',
       '#dr-adm-password',
-      '#dr-adm-password2'
+      '#dr-adm-password2',
+      'input[data-dr-was-password="1"]'
     ];
     selectors.forEach(function (sel) {
-      try {
-        document.querySelectorAll(sel).forEach(wrap);
-      } catch (e) {}
+      try { document.querySelectorAll(sel).forEach(wrap); } catch (e) {}
     });
     try {
       document.querySelectorAll('input[type="password"]').forEach(function (inp) {
@@ -152,7 +200,14 @@
 
   document.addEventListener(
     'click',
-    function () {
+    function (e) {
+      var t = e.target && (e.target.closest ? e.target.closest('.dr-pw-toggle') : null);
+      if (t) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+        return;
+      }
       setTimeout(scan, 80);
       setTimeout(scan, 250);
     },
@@ -160,11 +215,16 @@
   );
 
   try {
-    var mo = new MutationObserver(function () {
-      setTimeout(scan, 60);
+    var mo = new MutationObserver(function (muts) {
+      for (var i = 0; i < muts.length; i++) {
+        var m = muts[i];
+        if (m.target && m.target.closest && m.target.closest('.dr-pw-toggle, .dr-pw-wrap')) continue;
+        setTimeout(scan, 80);
+        return;
+      }
     });
     mo.observe(document.body, { childList: true, subtree: true });
   } catch (e3) {}
 
-  window.DRPasswordToggle = { v: 1, refresh: scan };
+  window.DRPasswordToggle = { v: 2, refresh: scan };
 })();
