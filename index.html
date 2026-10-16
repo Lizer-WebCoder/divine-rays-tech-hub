@@ -53,6 +53,8 @@
     var FREEZE_KILL_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + FREEZE_KILL + '/js/freeze-kill.js';
     var ECG_BOOT_GUARD = '87747e7fbd899a5bc24a0b02425da2d8cd91d536';
     var ECG_BOOT_GUARD_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + ECG_BOOT_GUARD + '/js/ecg-boot-guard.js';
+    var LOGIN_PERF = '91a436deb0864e0cf7425c49684e42eb0bc79ef1';
+    var LOGIN_PERF_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + LOGIN_PERF + '/js/login-perf.js';
     var AMBIENT_STATIC = '007b099fe1f1d81e109cac4504c14fede51e6013';
     var AMBIENT_STATIC_SRC = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + AMBIENT_STATIC + '/js/ambient-static.js';
     var ADMIN_JS = 'c54201aa340f2f53d81f10aa0bb07680811f58c4';
@@ -94,12 +96,12 @@
     while (html.indexOf('94e50c1b33158e9209a9f551eae599753a3ce75f') !== -1) html = html.split('94e50c1b33158e9209a9f551eae599753a3ce75f').join(HB);
     html = html.replace(/HB_SHA\s*=\s*'94e50c1b33158e9209a9f551eae599753a3ce75f'/g, "HB_SHA = '" + HB + "'");
     html = html.replace(/var HB_SHA = '[^']+'/g, "var HB_SHA = '" + HB + "'");
-    while (html.indexOf('0962f5535b86b390f60be2a3435a2e0500a18cb7') !== -1) html = html.split('0962f5535b86b390f60be2a3435a2e0500a18cb7').join('0091e77d27bbb73e655a498ddd1ebf944583e000');
+    var FORCE_LIGHT = '0091e77d27bbb73e655a498ddd1ebf944583e000';
+    while (html.indexOf('0962f5535b86b390f60be2a3435a2e0500a18cb7') !== -1) html = html.split('0962f5535b86b390f60be2a3435a2e0500a18cb7').join(FORCE_LIGHT);
     for (var bj = 0; bj < BLOCKED_BG.length; bj++) {
       while (html.indexOf(BLOCKED_BG[bj]) !== -1) html = html.split(BLOCKED_BG[bj]).join(BG_PIN);
     }
     html = html.replace(/[a-f0-9]{40}\/js\/bg-anim-pin\.js/g, BG_PIN + '/js/bg-anim-pin.js');
-    var FORCE_LIGHT = '0091e77d27bbb73e655a498ddd1ebf944583e000';
     while (html.indexOf('ebcbb4637a65511602a399006a8ccc29f346ecfa') !== -1) html = html.split('ebcbb4637a65511602a399006a8ccc29f346ecfa').join(FORCE_LIGHT);
     html = html.replace(/[a-f0-9]{40}\/js\/force-light-bg\.js/g, FORCE_LIGHT + '/js/force-light-bg.js');
     while (html.indexOf(OLD_AGENT_AUTH) !== -1) html = html.split(OLD_AGENT_AUTH).join(AGENT_AUTH);
@@ -109,7 +111,7 @@
     html = html.replace(
       '<head>',
       '<head><style id="dr-boot-gear-spin">' + BOOT_CSS + '</style>' +
-      '<script src="' + ECG_BOOT_GUARD_SRC + '"><\/script>' +
+      '<script src="' + ECG_BOOT_GUARD_SRC + '"><\/script><script src="' + LOGIN_PERF_SRC + '"><\/script>' +
       '<script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@' + FADE + '/js/boot-fade-sync.js"><\/script>' +
       '<script src="' + LOGIN_SRC + '"><\/script><script src="' + LOCK_SRC + '"><\/script>' +
       '<script src="' + FORCE_PENDING_SRC + '"><\/script><script src="' + LOGIN_NO_FREEZE_SRC + '"><\/script><script src="' + LOGIN_FAST_FIX_SRC + '"><\/script><script src="' + TAB_SESSION_SRC + '"><\/script><script src="' + ECG_SINGLE_SRC + '"><\/script><script src="' + FREEZE_KILL_SRC + '"><\/script><script src="' + AMBIENT_STATIC_SRC + '"><\/script>'
@@ -152,7 +154,7 @@
       try {
         var st = document.createElement('style');
         st.id = 'dr-typing-css-early';
-        st.textContent = 'body.dr-typing #dr-login-ambient,body.dr-typing #dr-login-ambient *,body.dr-typing #dr-lifeline{animation-play-state:paused!important}';
+        st.textContent = 'body.dr-typing #dr-login-ambient{content-visibility:hidden!important}body.dr-typing #dr-login-ambient,body.dr-typing #dr-login-ambient *,body.dr-typing #dr-lifeline{animation-play-state:paused!important}';
         (document.head || document.documentElement).appendChild(st);
       } catch (e) {}
     })();
@@ -275,6 +277,7 @@
     }
     function postBoot() {
       inject(ECG_BOOT_GUARD_SRC);
+      inject(LOGIN_PERF_SRC);
       inject(LOGIN_SRC);
       inject(LOCK_SRC);
       inject(AGENT_SRC);
