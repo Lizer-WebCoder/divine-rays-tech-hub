@@ -84,6 +84,17 @@
       CDN + '19bc1007aec81f9f0525fe7a3167b9ec84fa05b6/js/tab-session.js',
       CDN + '761f65a9a4148efcabd6a78afb7e13f144943fa6/js/agent-username-auth.js'
     ];
+
+    setTimeout(function () {
+      try {
+        var boot = document.getElementById('boot');
+        if (boot && !boot.classList.contains('is-done')) {
+          var sub = boot.querySelector('.boot-sub');
+          if (sub) sub.textContent = 'Still loading… try hard refresh if this stays.';
+        }
+      } catch (e) {}
+    }, 8000);
+
     function pinFor(file) { return PIN[file] || BASE; }
     function rewriteAssets(html) {
       html = html.replace(/\b(href|src)="(css|js)\/([^"?]+)(\?[^"]*)?"/g, function (_, attr, dir, file) {
@@ -102,16 +113,26 @@
       var bootFlags =
         '<script>(function(){try{' +
         'window.__DR_ECG_OK=true;document.documentElement.setAttribute("data-ecg","on");window.__DR_BOOT_DONE=true;' +
+        'try{sessionStorage.removeItem("dr_post_login_boot");}catch(e0){}' +
         'if(typeof window.switchLoginTab!=="function"){window.switchLoginTab=function(tab){try{if(typeof window.showForm==="function")window.showForm(tab==="agent"?"login-agent":"login-customer");}catch(e){}};}' +
+        'function drKillBoot(){try{var el=document.getElementById("dr-phase-boot");if(el){el.classList.add("is-done");setTimeout(function(){try{if(el.parentNode)el.parentNode.removeChild(el);}catch(e2){}},500);}}catch(e3){}}' +
+        'setTimeout(drKillBoot,900);setTimeout(drKillBoot,2500);setTimeout(drKillBoot,5000);' +
         '}catch(e){}})();<\/script>';
       if (html.indexOf('</body>') !== -1) return html.replace('</body>', tags + bootFlags + '</body>');
       return html + tags + bootFlags;
     }
-    var urls = [RAW + BASE + '/index.html?b=' + B, CDN + BASE + '/index.html?b=' + B];
+
+    var urls = [
+      CDN + BASE + '/index.html?b=' + B,
+      RAW + BASE + '/index.html?b=' + B
+    ];
     var html = null, lastErr = '';
     for (var i = 0; i < urls.length; i++) {
       try {
-        var r = await fetch(urls[i], { cache: 'no-store', credentials: 'omit' });
+        var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+        var timer = ctrl ? setTimeout(function () { try { ctrl.abort(); } catch (e) {} }, 12000) : null;
+        var r = await fetch(urls[i], { cache: 'no-store', credentials: 'omit', signal: ctrl && ctrl.signal });
+        if (timer) clearTimeout(timer);
         if (r.ok) {
           html = await r.text();
           if (html && html.indexOf('login-screen') !== -1 && html.indexOf('SHELL_SHA') === -1) break;
@@ -140,28 +161,9 @@
     var bootHtml = '<style id="dr-phase-boot-css">' + bootCss + '</style><div id="dr-phase-boot" role="status">' + bootSvg + '</div>';
     if (html.indexOf('<body') !== -1) html = html.replace(/<body([^>]*)>/, '<body$1>' + bootHtml);
     else html = bootHtml + html;
-    document.open(); document.write(html); document.close();
-    setTimeout(function () {
-      try {
-        window.__DR_BOOT_DONE = true; window.__DR_ECG_OK = true;
-        document.documentElement.setAttribute('data-ecg', 'on');
-        if (typeof window.switchLoginTab !== 'function') {
-          window.switchLoginTab = function (tab) {
-            try { if (typeof window.showForm === 'function') window.showForm(tab === 'agent' ? 'login-agent' : 'login-customer'); } catch (e) {}
-          };
-        }
-        var el = document.getElementById('dr-phase-boot');
-        if (el) { el.classList.add('is-done'); setTimeout(function () { try { if (el.parentNode) el.parentNode.removeChild(el); } catch (e2) {} }, 600); }
-      } catch (e3) {}
-    }, 1000);
-    setTimeout(function () {
-      if (typeof window.__drDoAgentLogin === 'function') return;
-      try {
-        var s = document.createElement('script');
-        s.src = CDN + PIN['app.js'] + '/js/app.js?b=' + Date.now();
-        (document.head || document.documentElement).appendChild(s);
-      } catch (e) {}
-    }, 1200);
+    document.open();
+    document.write(html);
+    document.close();
   })();
   </script>
 </body>
