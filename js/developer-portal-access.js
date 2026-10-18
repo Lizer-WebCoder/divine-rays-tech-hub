@@ -1,11 +1,11 @@
 /**
- * Divine Rays — portal access v10
- * Wrong-tab: seal login UI (no portal peek, no freeze); card message only.
+ * Divine Rays — portal access v11
+ * Wrong-tab: seal login UI (no portal peek); clear sticky error on tab switch.
  */
 (function () {
   'use strict';
-  if (window.__DR_DEV_PORTAL >= 10) return;
-  window.__DR_DEV_PORTAL = 10;
+  if (window.__DR_DEV_PORTAL >= 11) return;
+  window.__DR_DEV_PORTAL = 11;
 
   var DEVS = {
     'kirzhianquijano@gmail.com': 1,
@@ -428,6 +428,33 @@
     } catch (e) {}
   }
 
+  function clearLoginCardError() {
+    try {
+      window.__DR_TAB_GATE_MSG = '';
+      window.__DR_TAB_GATE_LOCK = 0;
+      sessionStorage.removeItem('dr_tab_gate_err');
+      document.documentElement.classList.remove('dr-tab-blocked');
+      document.body.classList.remove('dr-tab-blocked');
+    } catch (e) {}
+    try {
+      document
+        .querySelectorAll(
+          '.login-error, .form-error, .error, [data-dr-login-err], .dr-tab-gate-err'
+        )
+        .forEach(function (b) {
+          b.textContent = '';
+          b.style.display = 'none';
+          b.classList.remove('is-on');
+        });
+    } catch (e2) {}
+    try {
+      document.querySelectorAll('.login-card').forEach(function (card) {
+        card.style.borderColor = '';
+        card.style.boxShadow = '';
+      });
+    } catch (e3) {}
+  }
+
   function showLoginCardError(msg) {
     sealLoginOnly();
     resetSignInButtons();
@@ -594,13 +621,23 @@
     try {
       var msg = sessionStorage.getItem('dr_tab_gate_err');
       if (!msg) return;
+      var tab = getLoginTab();
+      var empMsg = /employee accounts must sign in on the employee/i.test(msg);
+      var admMsg = /admin accounts must sign in on the admin/i.test(msg);
+      if (empMsg && tab !== 'agent') {
+        sessionStorage.removeItem('dr_tab_gate_err');
+        clearLoginCardError();
+        return;
+      }
+      if (admMsg && tab !== 'customer') {
+        sessionStorage.removeItem('dr_tab_gate_err');
+        clearLoginCardError();
+        return;
+      }
       sessionStorage.removeItem('dr_tab_gate_err');
       setTimeout(function () {
-        showLoginCardError(msg);
+        if (getLoginTab() === tab) showLoginCardError(msg);
       }, 200);
-      setTimeout(function () {
-        showLoginCardError(msg);
-      }, 800);
     } catch (e) {}
   }
 
@@ -643,7 +680,7 @@
       markHintsFromLogin();
       applyAccess(window.__drProfile || { role: role });
     };
-    window.applyPortalForRole.__drDevPatch10 = 1;
+    window.applyPortalForRole.__drDevPatch11 = 1;
 
     window.showApp = function (p) {
       markHintsFromLogin();
@@ -682,9 +719,14 @@
       if (t) {
         var tab = (t.getAttribute('data-ltab') || '').toLowerCase();
         if (tab === 'agent' || tab === 'customer') rememberLoginTab(tab);
-        else if (/admin|agent/i.test(t.textContent || '')) rememberLoginTab('agent');
-        else if (/employee|customer|end.?user/i.test(t.textContent || ''))
+        else if (/admin|agent/i.test(t.textContent || '')) {
+          rememberLoginTab('agent');
+          tab = 'agent';
+        } else if (/employee|customer|end.?user/i.test(t.textContent || '')) {
           rememberLoginTab('customer');
+          tab = 'customer';
+        }
+        clearLoginCardError();
       }
       var btn =
         e.target &&
@@ -742,7 +784,7 @@
   }
 
   window.DRDevPortal = {
-    v: 10,
+    v: 11,
     isDev: isDevSession,
     canSwitch: canSeeSwitcher,
     showEmployee: function () {
