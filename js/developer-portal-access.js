@@ -1,12 +1,29 @@
 /**
- * Divine Rays — portal access v4
- * RULE: Employee tab → Employee portal; Admin tab → Admin portal
- * Login TAB always wins over leftover preference from a previous login.
+ * Divine Rays — portal access v5
+ *
+ * ACCESS MATRIX
+ * ─────────────
+ * Developers (kirzhianquijano, iiyasora2002):
+ *   • Employee tab → Employee portal
+ *   • Admin tab    → Admin portal
+ *   • Switcher allowed (both portals)
+ *   • No approval gate
+ *
+ * Employee accounts:
+ *   • Employee tab only (no Admin tab login)
+ *   • No approval required (new or existing)
+ *   • Never Admin portal
+ *
+ * Admin / IT Tech Support:
+ *   • Admin tab only → Admin portal
+ *   • New accounts: pending until a Developer approves in Users Management
+ *   • Approved: Admin portal anytime
+ *   • Never Employee portal, no switcher
  */
 (function () {
   'use strict';
-  if (window.__DR_DEV_PORTAL >= 4) return;
-  window.__DR_DEV_PORTAL = 4;
+  if (window.__DR_DEV_PORTAL >= 5) return;
+  window.__DR_DEV_PORTAL = 5;
 
   var DEVS = {
     'kirzhianquijano@gmail.com': 1,
@@ -93,9 +110,7 @@
   }
 
   function canSeeSwitcher() {
-    if (isDevSession()) return true;
-    var r = roleOf();
-    return isStaffRole(r) && !isEmployeeRole(r);
+    return isDevSession();
   }
 
   function rememberLoginTab(tab) {
@@ -118,7 +133,9 @@
         if (agentVis && !custVis) return 'agent';
         if (custVis && !agentVis) return 'customer';
       }
-      var activeTab = document.querySelector('.ltab.active, button[data-ltab].active, .login-tabs .active');
+      var activeTab = document.querySelector(
+        '.ltab.active, button[data-ltab].active, .login-tabs .active'
+      );
       if (activeTab) {
         var d = (activeTab.getAttribute('data-ltab') || activeTab.textContent || '').toLowerCase();
         if (d.indexOf('agent') !== -1 || d.indexOf('admin') !== -1) return 'agent';
@@ -314,7 +331,6 @@
     }
 
     if (isDevSession()) {
-      // Login TAB always wins over leftover preference from a previous login
       if (tab === 'customer') return 'employee';
       if (tab === 'agent') return 'admin';
       if (pref === 'employee') return 'employee';
@@ -327,6 +343,11 @@
 
   function applyAccess(profile) {
     var which = resolvePortal(profile);
+    if (!isDevSession()) {
+      var r = roleOf(profile);
+      if (isStaffRole(r) && !isEmployeeRole(r)) which = 'admin';
+      if (isEmployeeRole(r) && !isStaffRole(r)) which = 'employee';
+    }
     if (which === 'employee') setPreferredPortal('employee');
     else setPreferredPortal('admin');
     showPortal(which);
@@ -337,7 +358,7 @@
       markHintsFromLogin();
       applyAccess(window.__drProfile || { role: role });
     };
-    window.applyPortalForRole.__drDevPatch4 = 1;
+    window.applyPortalForRole.__drDevPatch5 = 1;
 
     window.showApp = function (p) {
       if (p) window.__drProfile = p;
@@ -397,6 +418,11 @@
         return;
       }
       var want = resolvePortal(window.__drProfile);
+      if (!isDevSession()) {
+        var r = roleOf();
+        if (isStaffRole(r) && !isEmployeeRole(r)) want = 'admin';
+        if (isEmployeeRole(r) && !isStaffRole(r)) want = 'employee';
+      }
       var pc = document.getElementById('portal-customer');
       var pa = document.getElementById('portal-agent');
       var empOn = pc && pc.classList.contains('active');
@@ -408,7 +434,7 @@
   }
 
   window.DRDevPortal = {
-    v: 4,
+    v: 5,
     isDev: isDevSession,
     canSwitch: canSeeSwitcher,
     showEmployee: function () {
