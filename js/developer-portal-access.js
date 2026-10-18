@@ -1,12 +1,12 @@
 /**
- * Divine Rays — portal access v2
- * Login tab wins. Switcher for staff (no Developer label).
- * Employee tab: Employees + Developers only.
+ * Divine Rays — portal access v3
+ * RULE: Employee tab → Employee portal; Admin tab → Admin portal
+ * Developers may use both tabs; login tab always wins over role.
  */
 (function () {
   'use strict';
-  if (window.__DR_DEV_PORTAL >= 2) return;
-  window.__DR_DEV_PORTAL = 2;
+  if (window.__DR_DEV_PORTAL >= 3) return;
+  window.__DR_DEV_PORTAL = 3;
 
   var DEVS = {
     'kirzhianquijano@gmail.com': 1,
@@ -15,8 +15,12 @@
     'iiyasora2002': 1
   };
 
-  function norm(v) { return String(v || '').toLowerCase().trim(); }
-  function isDev(v) { return !!DEVS[norm(v)]; }
+  function norm(v) {
+    return String(v || '').toLowerCase().trim();
+  }
+  function isDev(v) {
+    return !!DEVS[norm(v)];
+  }
 
   function roleOf(p) {
     p = p || window.__drProfile || {};
@@ -25,13 +29,30 @@
 
   function isEmployeeRole(r) {
     r = String(r || '').toLowerCase();
-    return !r || r === 'customer' || r === 'user' || r === 'end-user' || r === 'enduser' || r === 'employee' || r === 'client';
+    return (
+      !r ||
+      r === 'customer' ||
+      r === 'user' ||
+      r === 'end-user' ||
+      r === 'enduser' ||
+      r === 'employee' ||
+      r === 'client'
+    );
   }
 
   function isStaffRole(r) {
     r = String(r || '').toLowerCase();
-    return r === 'agent' || r === 'admin' || r === 'developer' || r === 'owner' || r === 'staff' ||
-      r === 'it' || r.indexOf('admin') !== -1 || r.indexOf('support') !== -1 || r.indexOf('tech') !== -1;
+    return (
+      r === 'agent' ||
+      r === 'admin' ||
+      r === 'developer' ||
+      r === 'owner' ||
+      r === 'staff' ||
+      r === 'it' ||
+      r.indexOf('admin') !== -1 ||
+      r.indexOf('support') !== -1 ||
+      r.indexOf('tech') !== -1
+    );
   }
 
   function sessionEmail() {
@@ -40,8 +61,14 @@
       if (p.email) return norm(p.email);
       var u = window.__drUser;
       if (u && u.email) return norm(u.email);
-      return norm(sessionStorage.getItem('dr_session_email') || localStorage.getItem('dr_last_email') || '');
-    } catch (e) { return ''; }
+      return norm(
+        sessionStorage.getItem('dr_session_email') ||
+          localStorage.getItem('dr_last_email') ||
+          ''
+      );
+    } catch (e) {
+      return '';
+    }
   }
 
   function sessionUser() {
@@ -49,7 +76,9 @@
       var p = window.__drProfile || {};
       if (p.username) return norm(p.username);
       return norm(sessionStorage.getItem('dr_session_user') || '');
-    } catch (e) { return ''; }
+    } catch (e) {
+      return '';
+    }
   }
 
   function isDevSession() {
@@ -66,29 +95,36 @@
   function canSeeSwitcher() {
     if (isDevSession()) return true;
     var r = roleOf();
-    if (isStaffRole(r) && !isEmployeeRole(r)) return true;
-    return false;
+    return isStaffRole(r) && !isEmployeeRole(r);
   }
 
   function rememberLoginTab(tab) {
-    try { sessionStorage.setItem('dr_login_tab', tab === 'agent' ? 'agent' : 'customer'); } catch (e) {}
+    try {
+      sessionStorage.setItem('dr_login_tab', tab === 'agent' ? 'agent' : 'customer');
+    } catch (e) {}
   }
 
   function getLoginTab() {
-    try { return sessionStorage.getItem('dr_login_tab') || ''; } catch (e) { return ''; }
+    try {
+      return sessionStorage.getItem('dr_login_tab') || '';
+    } catch (e) {
+      return '';
+    }
   }
 
   function setPreferredPortal(which) {
-    try { sessionStorage.setItem('dr_dev_portal_pref', which); } catch (e) {}
+    try {
+      sessionStorage.setItem('dr_dev_portal_pref', which);
+    } catch (e) {}
   }
 
   function getPreferredPortal() {
     try {
-      var pref = sessionStorage.getItem('dr_dev_portal_pref');
-      if (pref === 'employee' || pref === 'admin') return pref;
       var tab = getLoginTab();
       if (tab === 'customer') return 'employee';
       if (tab === 'agent') return 'admin';
+      var pref = sessionStorage.getItem('dr_dev_portal_pref');
+      if (pref === 'employee' || pref === 'admin') return pref;
     } catch (e) {}
     if (isDevSession()) return 'admin';
     var r = roleOf();
@@ -105,12 +141,17 @@
       document.body.classList.remove('dr-pending-blocked', 'is-login');
     } catch (e) {}
     if (ls) {
-      try { ls.hidden = true; ls.style.cssText = 'display:none!important'; } catch (e2) {}
+      try {
+        ls.hidden = true;
+        ls.style.cssText = 'display:none!important';
+      } catch (e2) {}
     }
     if (which === 'employee') {
       if (pa) {
         pa.classList.remove('active');
-        try { pa.style.setProperty('display', 'none', 'important'); } catch (e3) {}
+        try {
+          pa.style.setProperty('display', 'none', 'important');
+        } catch (e3) {}
       }
       if (pc) {
         pc.classList.add('active');
@@ -123,7 +164,9 @@
     } else {
       if (pc) {
         pc.classList.remove('active');
-        try { pc.style.setProperty('display', 'none', 'important'); } catch (e5) {}
+        try {
+          pc.style.setProperty('display', 'none', 'important');
+        } catch (e5) {}
       }
       if (pa) {
         pa.classList.add('active');
@@ -150,7 +193,8 @@
       '#dr-dev-portal-switch button{border:0;border-radius:9px;padding:0.45rem 0.75rem;',
       'font-size:0.78rem;font-weight:600;cursor:pointer;background:transparent;color:#b4b4c8}',
       '#dr-dev-portal-switch button.is-active{background:#8b5cf6;color:#fff}',
-      '#dr-dev-portal-switch button:hover:not(.is-active){color:#e9d5ff;background:rgba(139,92,246,0.15)}'
+      '#dr-dev-portal-switch button:hover:not(.is-active){color:#e9d5ff;background:rgba(139,92,246,0.15)}',
+      'body:not(.dr-portal-ok):not(.is-portal) #dr-dev-portal-switch{display:none!important}'
     ].join('');
     (document.head || document.documentElement).appendChild(st);
   }
@@ -159,9 +203,10 @@
     injectSwitcherCss();
     var el = document.getElementById('dr-dev-portal-switch');
     if (el) {
-      // strip old Developer label if present
       try {
-        el.querySelectorAll('.dr-dev-label').forEach(function (n) { n.remove(); });
+        el.querySelectorAll('.dr-dev-label').forEach(function (n) {
+          n.remove();
+        });
       } catch (e) {}
       return el;
     }
@@ -176,6 +221,7 @@
       if (!b || !canSeeSwitcher()) return;
       var which = b.getAttribute('data-portal');
       setPreferredPortal(which);
+      rememberLoginTab(which === 'employee' ? 'customer' : 'agent');
       showPortal(which);
     });
     return el;
@@ -184,10 +230,25 @@
   function updateSwitcher(active) {
     if (!canSeeSwitcher()) {
       var off = document.getElementById('dr-dev-portal-switch');
-      if (off) off.classList.remove('is-on');
+      if (off) {
+        off.classList.remove('is-on');
+        off.style.display = 'none';
+      }
+      return;
+    }
+    var onPortal =
+      document.body.classList.contains('dr-portal-ok') ||
+      document.body.classList.contains('is-portal');
+    if (!onPortal) {
+      var sw0 = document.getElementById('dr-dev-portal-switch');
+      if (sw0) {
+        sw0.classList.remove('is-on');
+        sw0.style.display = 'none';
+      }
       return;
     }
     var el = ensureSwitcher();
+    el.style.display = 'flex';
     el.classList.add('is-on');
     el.querySelectorAll('button[data-portal]').forEach(function (b) {
       b.classList.toggle('is-active', b.getAttribute('data-portal') === active);
@@ -196,7 +257,9 @@
 
   function markHintsFromLogin() {
     try {
-      var au = document.getElementById('agent-username') || document.getElementById('agent-user');
+      var au =
+        document.getElementById('agent-username') ||
+        document.getElementById('agent-user');
       var ce = document.getElementById('cust-email');
       var raw = norm((au && au.value) || (ce && ce.value) || '');
       if (!raw) return;
@@ -210,7 +273,7 @@
     } catch (e) {}
   }
 
-  function applyAccess(profile) {
+  function resolvePortal(profile) {
     markHintsFromLogin();
     var p = profile || window.__drProfile || {};
     var em = norm(p.email || sessionEmail());
@@ -218,65 +281,84 @@
     if (isDev(em) || isDev(un)) window.__drIsDeveloper = true;
 
     var tab = getLoginTab();
+    var pref = '';
+    try {
+      pref = sessionStorage.getItem('dr_dev_portal_pref') || '';
+    } catch (e) {}
     var r = roleOf(p);
 
-    // Real employees only
     if (!isDevSession() && isEmployeeRole(r) && !isStaffRole(r)) {
-      setPreferredPortal('employee');
-      showPortal('employee');
-      return;
+      return 'employee';
     }
 
-    // Admin / IT (non-developer): Admin portal only
     if (!isDevSession() && isStaffRole(r)) {
-      setPreferredPortal('admin');
-      showPortal('admin');
-      return;
+      return 'admin';
     }
 
-    // Developers: LOGIN TAB WINS
     if (isDevSession()) {
-      if (tab === 'customer') {
-        setPreferredPortal('employee');
-        showPortal('employee');
-        return;
-      }
-      if (tab === 'agent') {
-        setPreferredPortal('admin');
-        showPortal('admin');
-        return;
-      }
-      showPortal(getPreferredPortal());
-      return;
+      if (tab === 'customer' || pref === 'employee') return 'employee';
+      if (tab === 'agent' || pref === 'admin') return 'admin';
+      return getPreferredPortal();
     }
 
-    showPortal(getPreferredPortal());
+    return getPreferredPortal();
+  }
+
+  function applyAccess(profile) {
+    var which = resolvePortal(profile);
+    if (which === 'employee') setPreferredPortal('employee');
+    else setPreferredPortal('admin');
+    showPortal(which);
   }
 
   function patchApply() {
-    if (typeof window.applyPortalForRole === 'function' && !window.applyPortalForRole.__drDevPatch2) {
-      window.applyPortalForRole = function (role) {
-        markHintsFromLogin();
-        applyAccess(window.__drProfile || { role: role });
-      };
-      window.applyPortalForRole.__drDevPatch2 = 1;
+    window.applyPortalForRole = function (role) {
+      markHintsFromLogin();
+      applyAccess(window.__drProfile || { role: role });
+    };
+    window.applyPortalForRole.__drDevPatch3 = 1;
+
+    window.showApp = function (p) {
+      if (p) window.__drProfile = p;
+      markHintsFromLogin();
+      applyAccess(p || window.__drProfile);
+    };
+    window.showApp.__drWrapped = 1;
+
+    if (window.DR) {
+      window.DR.showApp = window.showApp;
     }
   }
 
   document.addEventListener(
     'click',
     function (e) {
-      var t = e.target && (e.target.closest ? e.target.closest('.ltab, button[data-ltab]') : null);
+      var t =
+        e.target &&
+        (e.target.closest
+          ? e.target.closest('.ltab, button[data-ltab], .login-tabs button')
+          : null);
       if (t) {
         var tab = (t.getAttribute('data-ltab') || '').toLowerCase();
         if (tab === 'agent' || tab === 'customer') rememberLoginTab(tab);
         else if (/admin|agent/i.test(t.textContent || '')) rememberLoginTab('agent');
-        else if (/employee|customer/i.test(t.textContent || '')) rememberLoginTab('customer');
+        else if (/employee|customer|end.?user/i.test(t.textContent || ''))
+          rememberLoginTab('customer');
       }
-      var btn = e.target && (e.target.closest ? e.target.closest('button[type="submit"]') : null);
+      var btn =
+        e.target &&
+        (e.target.closest
+          ? e.target.closest('button[type="submit"], button.btn-primary')
+          : null);
       if (btn) {
-        if (btn.closest('#login-agent')) rememberLoginTab('agent');
-        if (btn.closest('#login-customer')) rememberLoginTab('customer');
+        if (btn.closest('#login-agent')) {
+          rememberLoginTab('agent');
+          setPreferredPortal('admin');
+        }
+        if (btn.closest('#login-customer')) {
+          rememberLoginTab('customer');
+          setPreferredPortal('employee');
+        }
         markHintsFromLogin();
       }
     },
@@ -286,49 +368,58 @@
   function watch() {
     patchApply();
     try {
-      if (!document.body.classList.contains('dr-portal-ok') && !document.body.classList.contains('is-portal')) return;
-      if (!canSeeSwitcher()) {
-        var sw = document.getElementById('dr-dev-portal-switch');
-        if (sw) sw.classList.remove('is-on');
+      if (
+        !document.body.classList.contains('dr-portal-ok') &&
+        !document.body.classList.contains('is-portal')
+      ) {
+        updateSwitcher('');
         return;
       }
-      var pa = document.getElementById('portal-agent');
+      var want = resolvePortal(window.__drProfile);
       var pc = document.getElementById('portal-customer');
-      var adminOn = pa && pa.classList.contains('active');
+      var pa = document.getElementById('portal-agent');
       var empOn = pc && pc.classList.contains('active');
-      if (getLoginTab() === 'customer' && sessionStorage.getItem('dr_force_emp_once') !== '1') {
-        try { sessionStorage.setItem('dr_force_emp_once', '1'); } catch (e) {}
-        setPreferredPortal('employee');
-        showPortal('employee');
-        return;
-      }
-      if (!adminOn && !empOn) showPortal(getPreferredPortal());
-      else updateSwitcher(empOn ? 'employee' : 'admin');
+      var admOn = pa && pa.classList.contains('active');
+      if (want === 'employee' && !empOn) showPortal('employee');
+      else if (want === 'admin' && !admOn) showPortal('admin');
+      else updateSwitcher(want);
     } catch (e) {}
   }
 
   window.DRDevPortal = {
-    v: 2,
+    v: 3,
     isDev: isDevSession,
     canSwitch: canSeeSwitcher,
     showEmployee: function () {
       if (!canSeeSwitcher()) return;
       setPreferredPortal('employee');
+      rememberLoginTab('customer');
       showPortal('employee');
     },
     showAdmin: function () {
       if (!canSeeSwitcher()) return;
       setPreferredPortal('admin');
+      rememberLoginTab('agent');
       showPortal('admin');
     },
-    apply: applyAccess
+    apply: applyAccess,
+    resolve: resolvePortal
   };
 
   window.__drApplyDevPortal = applyAccess;
+
   patchApply();
-  setTimeout(patchApply, 500);
-  setTimeout(patchApply, 1500);
-  setInterval(watch, 2000);
-  setTimeout(watch, 600);
-  setTimeout(watch, 1600);
+  setTimeout(patchApply, 200);
+  setTimeout(patchApply, 800);
+  setTimeout(patchApply, 2000);
+  setTimeout(watch, 400);
+  setTimeout(watch, 1200);
+  setTimeout(watch, 2500);
+  var n = 0;
+  var iv = setInterval(function () {
+    n++;
+    watch();
+    if (n > 15) clearInterval(iv);
+  }, 500);
+  setInterval(watch, 3000);
 })();
