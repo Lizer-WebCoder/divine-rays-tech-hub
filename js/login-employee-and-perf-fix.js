@@ -1,11 +1,11 @@
 /**
- * Divine Rays — Employee login + single post-login transition v4
- * One loading UI only (rings) → portal; never flash boot gear after sign-in
+ * Divine Rays — Employee login + single post-login transition v5
+ * One loading UI only (rings) → portal; gear nodes removed from DOM (not just hidden)
  */
 (function () {
   'use strict';
-  if (window.__DR_EMP_PERF_FIX >= 4) return;
-  window.__DR_EMP_PERF_FIX = 4;
+  if (window.__DR_EMP_PERF_FIX >= 5) return;
+  window.__DR_EMP_PERF_FIX = 5;
 
   var DEVS = {
     'kirzhianquijano@gmail.com': 1,
@@ -68,15 +68,24 @@
     return btn;
   }
 
-  function showPortalLoader(msg) {
-    try {
-      ['dr-phase-boot', 'boot'].forEach(function (id) {
+  function removeGearNodes() {
+    ['dr-phase-boot', 'boot'].forEach(function (id) {
+      try {
         var b = document.getElementById(id);
-        if (b) {
-          b.classList.add('is-done');
+        if (!b) return;
+        b.classList.add('is-done');
+        try {
+          if (b.parentNode) b.parentNode.removeChild(b);
+        } catch (e) {
           b.style.cssText = 'display:none!important;opacity:0;pointer-events:none';
         }
-      });
+      } catch (e2) {}
+    });
+  }
+
+  function showPortalLoader(msg) {
+    try {
+      removeGearNodes();
     } catch (e0) {}
 
     var existing = document.getElementById('dr-post-login-boot');
@@ -265,7 +274,7 @@
       await bootWorkspace('customer');
     } catch (err) {
       resetSubmit(form);
-      var msg = (err && err.message) || 'Login failed';
+      var msg = (err && err.message || 'Login failed');
       if (window.showError) window.showError('login-customer', msg);
       else if (window.DR && window.DR.toast) window.DR.toast(msg, 'error');
     }
@@ -308,13 +317,7 @@
       var t = setInterval(function () {
         n++;
         try {
-          ['dr-phase-boot', 'boot', 'dr-post-login-boot'].forEach(function (id) {
-            var b = document.getElementById(id);
-            if (b && id !== 'dr-post-login-boot') {
-              b.classList.add('is-done');
-              b.style.cssText = 'display:none!important;opacity:0;pointer-events:none';
-            }
-          });
+          removeGearNodes();
           if (window.DRDevPortal && window.DRDevPortal.apply) {
             window.DRDevPortal.apply(window.__drProfile);
           }
@@ -333,13 +336,7 @@
   try {
     if (sessionStorage.getItem('dr_skip_boot_gear') === '1') {
       var kill = function () {
-        ['dr-phase-boot', 'boot'].forEach(function (id) {
-          var b = document.getElementById(id);
-          if (b) {
-            b.classList.add('is-done');
-            b.style.cssText = 'display:none!important;opacity:0;pointer-events:none';
-          }
-        });
+        removeGearNodes();
       };
       kill();
       setTimeout(kill, 50);
@@ -377,5 +374,5 @@
   setTimeout(boot, 1200);
   setTimeout(boot, 2500);
 
-  window.DREmpPerfFix = { v: 4, login: doEmployeeLogin, bootWorkspace: bootWorkspace };
+  window.DREmpPerfFix = { v: 5, login: doEmployeeLogin, bootWorkspace: bootWorkspace };
 })();
