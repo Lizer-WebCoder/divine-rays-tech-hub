@@ -18,7 +18,6 @@
     #boot .boot-sub{font-size:.85rem;color:#9494ae;margin:0}
     #boot .err{color:#fca5a5;font-size:.9rem;max-width:28rem}
     @keyframes drBootGearSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-    /* Post-login only loader (rings) — same design as portal transition */
     #dr-post-login-boot{position:fixed;inset:0;z-index:100000;display:none;align-items:center;justify-content:center;
       flex-direction:column;gap:1.35rem;background:radial-gradient(ellipse at 50% 40%,#1e1240 0%,#0c0618 70%)}
     #dr-post-login-boot.is-on{display:flex}
@@ -40,7 +39,6 @@
     @keyframes drPlBar{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}
   </style>
   <script>
-  /* Hide gear before paint when returning from sign-in */
   (function () {
     try {
       if (sessionStorage.getItem('dr_skip_boot_gear') === '1') {
@@ -128,7 +126,7 @@
       CDN + '3caae1bfbccf559f87bdc8706c3974e1e4a1c38e/js/login-password-toggle.js',
       CDN + '3e530f6467d5f31c255cd5dd8a5b0d5f7b54499d/js/developer-portal-access.js',
       CDN + '52dcc738386608a65c21c13db5d6d5218bf53201/js/login-pending-and-busy-fix.js',
-      CDN + '73656fbeba429f41e3748ab46a683515e8192afa/js/login-employee-and-perf-fix.js',
+      CDN + 'a677195d22c7749180179287ea5925bc6eb6a54b/js/login-employee-and-perf-fix.js',
       CDN + 'b86ab93803d3c46de71450abbd388e12b3d42aab/js/portal-shell-fix.js',
       CDN + '43a636a83b7e0f0a674a8f1204f5b3a18fbecbae/js/boot-freeze-guard.js',
       CDN + '090fd731d30cd3c91d50a33ac2c15874f096e50a/js/login-label-lock.js',
@@ -228,7 +226,6 @@
     html = rewriteAssets(html);
     html = injectOverlays(html);
 
-    // Cold boot: gear. Post-login: do NOT inject gear — only rings stay from outer page until overlays take over
     if (!skipGear) {
       var bootCss =
         '#dr-phase-boot{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1.25rem;text-align:center;' +
@@ -247,7 +244,6 @@
       if (html.indexOf('<body') !== -1) html = html.replace(/<body([^>]*)>/, '<body$1>' + bootHtml);
       else html = bootHtml + html;
     } else {
-      // Keep continuous rings: inject same post-login overlay into written page so gear never appears
       var rings =
         '<style>#dr-post-login-boot{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1.35rem;background:radial-gradient(ellipse at 50% 40%,#1e1240 0%,#0c0618 70%)}' +
         '#dr-post-login-boot .pl-rings{position:relative;width:72px;height:72px}' +
