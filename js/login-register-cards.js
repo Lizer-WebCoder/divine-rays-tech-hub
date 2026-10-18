@@ -4,8 +4,8 @@
  */
 (function () {
   'use strict';
-  if (window.__DR_REG_CARDS >= 1) return;
-  window.__DR_REG_CARDS = 1;
+  if (window.__DR_REG_CARDS >= 3) return;
+  window.__DR_REG_CARDS = 3;
 
   var CSS_ID = 'dr-reg-cards-css';
   var EMP_ID = 'dr-reg-card-employee';
@@ -147,20 +147,33 @@
       '<div class="form-group"><label for="dr-emp-branch">Branch</label>' +
       '<select id="dr-emp-branch" required>' +
       '<option value="">Select branch</option>' +
-      '<option value="Main Office">Main Office</option>' +
-      '<option value="North Branch">North Branch</option>' +
-      '<option value="South Branch">South Branch</option>' +
-      '<option value="East Branch">East Branch</option>' +
-      '<option value="West Branch">West Branch</option>' +
-      '<option value="Remote">Remote</option>' +
+      '<option value="Abucay">Abucay</option>' +
+      '<option value="Abuyog">Abuyog</option>' +
+      '<option value="Avenida">Avenida</option>' +
+      '<option value="Baybay">Baybay</option>' +
+      '<option value="Burauen">Burauen</option>' +
+      '<option value="Calbayog">Calbayog</option>' +
+      '<option value="Carigara">Carigara</option>' +
+      '<option value="Catbalogan">Catbalogan</option>' +
+      '<option value="Catarman">Catarman</option>' +
+      '<option value="Kananga">Kananga</option>' +
+      '<option value="Maasin">Maasin</option>' +
+      '<option value="Ormoc">Ormoc</option>' +
+      '<option value="Palo-Naga">Palo-Naga</option>' +
+      '<option value="Palo-Pawing">Palo-Pawing</option>' +
+      '<option value="Palo-Schisto">Palo-Schisto</option>' +
+      '<option value="Sogod">Sogod</option>' +
       '</select></div>' +
       '<div class="form-group"><label for="dr-emp-role">Role</label>' +
       '<select id="dr-emp-role" required>' +
       '<option value="">Select role</option>' +
+      '<option value="Cashier">Cashier</option>' +
+      '<option value="Doctor">Doctor</option>' +
+      '<option value="HR">HR</option>' +
+      '<option value="MedTech">MedTech</option>' +
+      '<option value="RadTech">RadTech</option>' +
       '<option value="Staff">Staff</option>' +
-      '<option value="Supervisor">Supervisor</option>' +
-      '<option value="Manager">Manager</option>' +
-      '<option value="Intern">Intern</option>' +
+      '<option value="Utility">Utility</option>' +
       '</select></div>' +
       '</div>' +
       '<div class="form-group"><label for="dr-emp-password">Password</label>' +
@@ -434,10 +447,51 @@
     window.showForm.__drRegPatch = 1;
   }
 
+  function refreshEmpOptions() {
+    var br = document.getElementById('dr-emp-branch');
+    var rl = document.getElementById('dr-emp-role');
+    if (br) {
+      var bv = br.value;
+      br.innerHTML =
+        '<option value="">Select branch</option>' +
+        '<option value="Abucay">Abucay</option>' +
+        '<option value="Abuyog">Abuyog</option>' +
+        '<option value="Avenida">Avenida</option>' +
+        '<option value="Baybay">Baybay</option>' +
+        '<option value="Burauen">Burauen</option>' +
+        '<option value="Calbayog">Calbayog</option>' +
+        '<option value="Carigara">Carigara</option>' +
+        '<option value="Catbalogan">Catbalogan</option>' +
+        '<option value="Catarman">Catarman</option>' +
+        '<option value="Kananga">Kananga</option>' +
+        '<option value="Maasin">Maasin</option>' +
+        '<option value="Ormoc">Ormoc</option>' +
+        '<option value="Palo-Naga">Palo-Naga</option>' +
+        '<option value="Palo-Pawing">Palo-Pawing</option>' +
+        '<option value="Palo-Schisto">Palo-Schisto</option>' +
+        '<option value="Sogod">Sogod</option>';
+      try { br.value = bv; } catch (e) {}
+    }
+    if (rl) {
+      var rv = rl.value;
+      rl.innerHTML =
+        '<option value="">Select role</option>' +
+        '<option value="Cashier">Cashier</option>' +
+        '<option value="Doctor">Doctor</option>' +
+        '<option value="HR">HR</option>' +
+        '<option value="MedTech">MedTech</option>' +
+        '<option value="RadTech">RadTech</option>' +
+        '<option value="Staff">Staff</option>' +
+        '<option value="Utility">Utility</option>';
+      try { rl.value = rv; } catch (e2) {}
+    }
+  }
+
   function boot() {
     injectCss();
     buildEmployeeCard();
     buildAdminCard();
+    refreshEmpOptions();
     wireCreateLinks();
     patchShowForm();
   }
@@ -448,7 +502,7 @@
   setTimeout(patchShowForm, 2500);
 
   window.DRRegCards = {
-    v: 1,
+    v: 3,
     showEmployee: function () { showReg('employee'); },
     showAdmin: function () { showReg('admin'); },
     showLogin: showLogin
