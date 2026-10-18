@@ -1,11 +1,11 @@
 /**
- * Divine Rays — Employee login + single post-login transition v3
- * One loading UI only (not the boot gear) → portal
+ * Divine Rays — Employee login + single post-login transition v4
+ * One loading UI only (rings) → portal; never flash boot gear after sign-in
  */
 (function () {
   'use strict';
-  if (window.__DR_EMP_PERF_FIX >= 3) return;
-  window.__DR_EMP_PERF_FIX = 3;
+  if (window.__DR_EMP_PERF_FIX >= 4) return;
+  window.__DR_EMP_PERF_FIX = 4;
 
   var DEVS = {
     'kirzhianquijano@gmail.com': 1,
@@ -79,6 +79,20 @@
       });
     } catch (e0) {}
 
+    var existing = document.getElementById('dr-post-login-boot');
+    if (existing) {
+      existing.classList.add('is-on');
+      existing.style.display = 'flex';
+      existing.style.opacity = '1';
+      var sub0 = existing.querySelector('.pl-sub');
+      if (sub0) sub0.textContent = msg || 'Preparing your workspace';
+      try {
+        var ls0 = document.getElementById('login-screen');
+        if (ls0) ls0.style.cssText = 'display:none!important';
+      } catch (e1) {}
+      return;
+    }
+
     var el = document.getElementById('dr-portal-loader');
     if (!el) {
       el = document.createElement('div');
@@ -126,14 +140,21 @@
   }
 
   function hidePortalLoader() {
-    var el = document.getElementById('dr-portal-loader');
-    if (!el) return;
-    el.classList.add('is-done');
-    setTimeout(function () {
+    ['dr-portal-loader', 'dr-post-login-boot'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (!el) return;
       try {
-        if (el.parentNode) el.parentNode.removeChild(el);
-      } catch (e) {}
-    }, 450);
+        el.classList.add('is-done');
+        el.classList.remove('is-on');
+        el.style.opacity = '0';
+        el.style.pointerEvents = 'none';
+        setTimeout(function () {
+          try {
+            if (el.parentNode) el.parentNode.removeChild(el);
+          } catch (e) {}
+        }, 400);
+      } catch (e2) {}
+    });
   }
 
   function portalLooksReady() {
@@ -287,9 +308,9 @@
       var t = setInterval(function () {
         n++;
         try {
-          ['dr-phase-boot', 'boot'].forEach(function (id) {
+          ['dr-phase-boot', 'boot', 'dr-post-login-boot'].forEach(function (id) {
             var b = document.getElementById(id);
-            if (b) {
+            if (b && id !== 'dr-post-login-boot') {
               b.classList.add('is-done');
               b.style.cssText = 'display:none!important;opacity:0;pointer-events:none';
             }
@@ -356,5 +377,5 @@
   setTimeout(boot, 1200);
   setTimeout(boot, 2500);
 
-  window.DREmpPerfFix = { v: 3, login: doEmployeeLogin, bootWorkspace: bootWorkspace };
+  window.DREmpPerfFix = { v: 4, login: doEmployeeLogin, bootWorkspace: bootWorkspace };
 })();
