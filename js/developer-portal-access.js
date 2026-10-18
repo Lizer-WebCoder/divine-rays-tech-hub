@@ -1,5 +1,5 @@
 /**
- * Divine Rays — portal access v6
+ * Divine Rays — portal access v7
  *
  * ACCESS MATRIX
  * ─────────────
@@ -12,7 +12,7 @@
  * Employee accounts (Cashier, Doctor, HR, MedTech, RadTech, Staff, Utility):
  *   • Employee tab only
  *   • No approval required
- *   • Never Admin portal / Admin tab login
+ *   • Never Admin portal / Admin tab login (no portal peek)
  *
  * Admin / IT Tech Support:
  *   • Admin tab only → Admin portal
@@ -21,8 +21,8 @@
  */
 (function () {
   'use strict';
-  if (window.__DR_DEV_PORTAL >= 6) return;
-  window.__DR_DEV_PORTAL = 6;
+  if (window.__DR_DEV_PORTAL >= 7) return;
+  window.__DR_DEV_PORTAL = 7;
 
   var DEVS = {
     'kirzhianquijano@gmail.com': 1,
@@ -199,13 +199,67 @@
     return 'employee';
   }
 
+  function injectBlockCss() {
+    if (document.getElementById('dr-tab-gate-css')) return;
+    var st = document.createElement('style');
+    st.id = 'dr-tab-gate-css';
+    st.textContent =
+      'html.dr-tab-blocked #portal-customer,html.dr-tab-blocked #portal-agent,' +
+      'body.dr-tab-blocked #portal-customer,body.dr-tab-blocked #portal-agent,' +
+      'html.dr-tab-blocked #dr-post-login-boot,html.dr-tab-blocked #dr-portal-loader,' +
+      'body.dr-tab-blocked #dr-post-login-boot,body.dr-tab-blocked #dr-portal-loader{' +
+      'display:none!important;visibility:hidden!important;pointer-events:none!important;opacity:0!important}' +
+      'html.dr-tab-blocked #login-screen,body.dr-tab-blocked #login-screen{' +
+      'display:flex!important;visibility:visible!important;opacity:1!important}';
+    (document.head || document.documentElement).appendChild(st);
+  }
+
+  function hideAllPortalsAndLoaders() {
+    try {
+      document.body.classList.remove('dr-portal-ok', 'is-portal');
+      document.body.classList.add('is-login', 'dr-tab-blocked');
+      document.documentElement.classList.add('dr-tab-blocked');
+    } catch (e) {}
+    ['portal-customer', 'portal-agent', 'dr-post-login-boot', 'dr-portal-loader', 'dr-phase-boot'].forEach(
+      function (id) {
+        try {
+          var el = document.getElementById(id);
+          if (!el) return;
+          el.classList.remove('active', 'is-on');
+          el.style.setProperty('display', 'none', 'important');
+          el.hidden = true;
+        } catch (e2) {}
+      }
+    );
+    try {
+      var ls = document.getElementById('login-screen');
+      if (ls) {
+        ls.hidden = false;
+        ls.removeAttribute('hidden');
+        ls.style.cssText = '';
+      }
+    } catch (e3) {}
+    try {
+      var sw = document.getElementById('dr-dev-portal-switch');
+      if (sw) {
+        sw.classList.remove('is-on');
+        sw.style.display = 'none';
+      }
+    } catch (e4) {}
+  }
+
   function showPortal(which) {
+    if (window.__DR_TAB_GATE_LOCK || document.body.classList.contains('dr-tab-blocked')) {
+      hideAllPortalsAndLoaders();
+      return;
+    }
     var pc = document.getElementById('portal-customer');
     var pa = document.getElementById('portal-agent');
     var ls = document.getElementById('login-screen');
     try {
       document.body.classList.add('dr-portal-ok', 'is-portal');
-      document.body.classList.remove('dr-pending-blocked', 'is-login');
+      document.body.classList.remove('dr-pending-blocked', 'is-login', 'dr-tab-blocked');
+      document.documentElement.classList.remove('dr-tab-blocked');
     } catch (e) {}
     if (ls) {
       try {
@@ -358,58 +412,100 @@
     return getPreferredPortal();
   }
 
-  function showTabError(msg) {
+  function showLoginCardError(msg) {
+    injectBlockCss();
+    hideAllPortalsAndLoaders();
+    var tab = getLoginTab();
+    var formId = tab === 'agent' ? 'login-agent' : 'login-customer';
     try {
-      if (window.DR && typeof window.DR.toast === 'function') {
-        window.DR.toast(msg, 'error');
-        return;
-      }
+      if (typeof window.showForm === 'function') window.showForm(formId);
+      if (typeof window.switchLoginTab === 'function')
+        window.switchLoginTab(tab === 'agent' ? 'agent' : 'customer');
     } catch (e) {}
+    var form =
+      document.getElementById(formId) ||
+      document.querySelector('#login-agent, #login-customer, .login-card form');
+    var card =
+      (form && form.closest && form.closest('.login-card')) || document.querySelector('.login-card');
+    var box = null;
+    if (form) box = form.querySelector('.form-error, .error, .login-error, [data-dr-login-err]');
+    if (!box && card) box = card.querySelector('.form-error, .error, .login-error, [data-dr-login-err]');
+    if (!box) {
+      box = document.createElement('div');
+      box.className = 'form-error dr-tab-gate-err';
+      box.setAttribute('data-dr-login-err', '1');
+      box.setAttribute('role', 'alert');
+      box.style.cssText =
+        'display:block;margin:0 0 0.85rem;padding:0.65rem 0.85rem;border-radius:10px;' +
+        'background:rgba(127,29,29,.35);border:1px solid rgba(248,113,113,.45);' +
+        'color:#fecaca;font-size:0.84rem;line-height:1.4;text-align:center;font-weight:500';
+      if (form) form.insertBefore(box, form.firstChild);
+      else if (card) card.insertBefore(box, card.firstChild);
+      else document.body.appendChild(box);
+    }
+    box.textContent = msg || '';
+    box.style.display = 'block';
+    box.classList.add('is-on');
     try {
-      alert(msg);
+      if (card) {
+        card.style.borderColor = 'rgba(248,113,113,.7)';
+        card.style.boxShadow =
+          '0 0 0 1px rgba(239,68,68,.45),0 0 24px rgba(239,68,68,.5),0 0 56px rgba(185,28,28,.35)';
+      }
     } catch (e2) {}
   }
 
-  async function kickToLogin(msg) {
-    showTabError(msg);
-    try {
-      document.body.classList.remove('dr-portal-ok', 'is-portal');
-      document.body.classList.add('is-login');
-      var ls = document.getElementById('login-screen');
-      if (ls) {
-        ls.hidden = false;
-        ls.style.cssText = '';
-      }
-      var pc = document.getElementById('portal-customer');
-      var pa = document.getElementById('portal-agent');
-      if (pc) {
-        pc.classList.remove('active');
-        pc.style.setProperty('display', 'none', 'important');
-      }
-      if (pa) {
-        pa.classList.remove('active');
-        pa.style.setProperty('display', 'none', 'important');
-      }
-    } catch (e) {}
+  async function softSignOut() {
     try {
       if (window.__drSb && window.__drSb.auth) await window.__drSb.auth.signOut({ scope: 'local' });
-    } catch (e2) {}
+      else if (window.DR && typeof window.DR.sb === 'function') {
+        var c = window.DR.sb();
+        if (c && c.auth) await c.auth.signOut({ scope: 'local' });
+      }
+    } catch (e) {}
     try {
       Object.keys(localStorage).forEach(function (k) {
         if (k.indexOf('supabase') !== -1 || k.indexOf('sb-') === 0) localStorage.removeItem(k);
       });
-    } catch (e3) {}
+    } catch (e2) {}
     try {
       sessionStorage.removeItem('dr_skip_boot_gear');
       sessionStorage.removeItem('dr_post_login_boot');
-    } catch (e4) {}
+    } catch (e3) {}
     window.__drFullLoaded = false;
     window.__drBooting = false;
+    window.__drProfile = null;
+    window.__drUser = null;
+  }
+
+  function blockWrongTab(msg) {
+    if (window.__DR_TAB_GATE_LOCK) return true;
+    window.__DR_TAB_GATE_LOCK = 1;
+    injectBlockCss();
+    hideAllPortalsAndLoaders();
+    try {
+      sessionStorage.setItem('dr_tab_gate_err', msg);
+    } catch (e) {}
+    showLoginCardError(msg);
+    softSignOut();
     setTimeout(function () {
-      try {
-        location.reload();
-      } catch (e5) {}
-    }, 600);
+      window.__DR_TAB_GATE_LOCK = 0;
+    }, 1500);
+    return true;
+  }
+
+  function consumeStoredTabError() {
+    try {
+      var msg = sessionStorage.getItem('dr_tab_gate_err');
+      if (!msg) return;
+      sessionStorage.removeItem('dr_tab_gate_err');
+      setTimeout(function () {
+        showLoginCardError(msg);
+      }, 200);
+      setTimeout(function () {
+        showLoginCardError(msg);
+      }, 800);
+    } catch (e) {}
   }
 
   function applyAccess(profile) {
@@ -418,13 +514,19 @@
     var tab = getLoginTab();
 
     if (kind === 'employee' && tab === 'agent') {
-      kickToLogin('Employee accounts must sign in on the Employee tab.');
+      blockWrongTab('Employee accounts must sign in on the Employee tab.');
       return;
     }
     if (kind === 'staff' && tab === 'customer') {
-      kickToLogin('Admin accounts must sign in on the Admin tab.');
+      blockWrongTab('Admin accounts must sign in on the Admin tab.');
       return;
     }
+
+    try {
+      document.body.classList.remove('dr-tab-blocked');
+      document.documentElement.classList.remove('dr-tab-blocked');
+      sessionStorage.removeItem('dr_tab_gate_err');
+    } catch (e) {}
 
     var which = resolvePortal(p);
     if (kind === 'employee') which = 'employee';
@@ -444,7 +546,7 @@
       markHintsFromLogin();
       applyAccess(window.__drProfile || { role: role });
     };
-    window.applyPortalForRole.__drDevPatch6 = 1;
+    window.applyPortalForRole.__drDevPatch7 = 1;
 
     window.showApp = function (p) {
       if (p) window.__drProfile = p;
@@ -507,11 +609,11 @@
       var kind = profileKind(p);
       var tab = getLoginTab();
       if (kind === 'employee' && tab === 'agent') {
-        kickToLogin('Employee accounts must sign in on the Employee tab.');
+        blockWrongTab('Employee accounts must sign in on the Employee tab.');
         return;
       }
       if (kind === 'staff' && tab === 'customer') {
-        kickToLogin('Admin accounts must sign in on the Admin tab.');
+        blockWrongTab('Admin accounts must sign in on the Admin tab.');
         return;
       }
       var want = resolvePortal(p);
@@ -528,7 +630,7 @@
   }
 
   window.DRDevPortal = {
-    v: 6,
+    v: 7,
     isDev: isDevSession,
     canSwitch: canSeeSwitcher,
     showEmployee: function () {
@@ -549,6 +651,8 @@
 
   window.__drApplyDevPortal = applyAccess;
 
+  injectBlockCss();
+  consumeStoredTabError();
   patchApply();
   setTimeout(patchApply, 200);
   setTimeout(patchApply, 800);
