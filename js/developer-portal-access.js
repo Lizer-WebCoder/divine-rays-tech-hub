@@ -1,12 +1,12 @@
 /**
- * Divine Rays — portal access v3
+ * Divine Rays — portal access v4
  * RULE: Employee tab → Employee portal; Admin tab → Admin portal
- * Developers may use both tabs; login tab always wins over role.
+ * Login TAB always wins over leftover preference from a previous login.
  */
 (function () {
   'use strict';
-  if (window.__DR_DEV_PORTAL >= 3) return;
-  window.__DR_DEV_PORTAL = 3;
+  if (window.__DR_DEV_PORTAL >= 4) return;
+  window.__DR_DEV_PORTAL = 4;
 
   var DEVS = {
     'kirzhianquijano@gmail.com': 1,
@@ -106,7 +106,25 @@
 
   function getLoginTab() {
     try {
-      return sessionStorage.getItem('dr_login_tab') || '';
+      var t = sessionStorage.getItem('dr_login_tab') || '';
+      if (t === 'agent' || t === 'customer') return t;
+      var agent = document.getElementById('login-agent');
+      var cust = document.getElementById('login-customer');
+      if (agent && cust) {
+        var as = window.getComputedStyle ? getComputedStyle(agent) : null;
+        var cs = window.getComputedStyle ? getComputedStyle(cust) : null;
+        var agentVis = agent.offsetParent !== null || (as && as.display !== 'none');
+        var custVis = cust.offsetParent !== null || (cs && cs.display !== 'none');
+        if (agentVis && !custVis) return 'agent';
+        if (custVis && !agentVis) return 'customer';
+      }
+      var activeTab = document.querySelector('.ltab.active, button[data-ltab].active, .login-tabs .active');
+      if (activeTab) {
+        var d = (activeTab.getAttribute('data-ltab') || activeTab.textContent || '').toLowerCase();
+        if (d.indexOf('agent') !== -1 || d.indexOf('admin') !== -1) return 'agent';
+        if (d.indexOf('customer') !== -1 || d.indexOf('employee') !== -1) return 'customer';
+      }
+      return '';
     } catch (e) {
       return '';
     }
@@ -296,8 +314,11 @@
     }
 
     if (isDevSession()) {
-      if (tab === 'customer' || pref === 'employee') return 'employee';
-      if (tab === 'agent' || pref === 'admin') return 'admin';
+      // Login TAB always wins over leftover preference from a previous login
+      if (tab === 'customer') return 'employee';
+      if (tab === 'agent') return 'admin';
+      if (pref === 'employee') return 'employee';
+      if (pref === 'admin') return 'admin';
       return getPreferredPortal();
     }
 
@@ -316,7 +337,7 @@
       markHintsFromLogin();
       applyAccess(window.__drProfile || { role: role });
     };
-    window.applyPortalForRole.__drDevPatch3 = 1;
+    window.applyPortalForRole.__drDevPatch4 = 1;
 
     window.showApp = function (p) {
       if (p) window.__drProfile = p;
@@ -387,7 +408,7 @@
   }
 
   window.DRDevPortal = {
-    v: 3,
+    v: 4,
     isDev: isDevSession,
     canSwitch: canSeeSwitcher,
     showEmployee: function () {
