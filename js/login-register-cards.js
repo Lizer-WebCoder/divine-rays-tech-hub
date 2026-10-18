@@ -4,8 +4,8 @@
  */
 (function () {
   'use strict';
-  if (window.__DR_REG_CARDS >= 3) return;
-  window.__DR_REG_CARDS = 3;
+  if (window.__DR_REG_CARDS >= 4) return;
+  window.__DR_REG_CARDS = 4;
 
   var CSS_ID = 'dr-reg-cards-css';
   var EMP_ID = 'dr-reg-card-employee';
@@ -50,6 +50,10 @@
     '.dr-reg-card .dr-reg-err.is-on{display:block}',
     '.dr-reg-card .dr-reg-logo{width:40px;height:40px;border-radius:10px;margin:0 auto 0.75rem;display:block;',
     'background:linear-gradient(135deg,#6d5a9a,#2a1f3d);box-shadow:0 4px 16px rgba(109,90,154,0.35)}',
+    '.dr-reg-card select:required:invalid{color:#9494ae}',
+    '.dr-reg-card select:required:valid{color:#eeeef6}',
+    '.dr-reg-card select option{color:#eeeef6}',
+    '.dr-reg-card select option[disabled]{color:#9494ae}',
     '#login-screen #register-customer,#login-screen #register-agent{display:none!important}'
   ].join('');
 
@@ -146,7 +150,7 @@
       '<div class="form-row">' +
       '<div class="form-group"><label for="dr-emp-branch">Branch</label>' +
       '<select id="dr-emp-branch" required>' +
-      '<option value="">Select branch</option>' +
+      '<option value="" disabled selected hidden>Select branch</option>' +
       '<option value="Abucay">Abucay</option>' +
       '<option value="Abuyog">Abuyog</option>' +
       '<option value="Avenida">Avenida</option>' +
@@ -166,7 +170,7 @@
       '</select></div>' +
       '<div class="form-group"><label for="dr-emp-role">Role</label>' +
       '<select id="dr-emp-role" required>' +
-      '<option value="">Select role</option>' +
+      '<option value="" disabled selected hidden>Select role</option>' +
       '<option value="Cashier">Cashier</option>' +
       '<option value="Doctor">Doctor</option>' +
       '<option value="HR">HR</option>' +
@@ -453,7 +457,7 @@
     if (br) {
       var bv = br.value;
       br.innerHTML =
-        '<option value="">Select branch</option>' +
+        '<option value="" disabled selected hidden>Select branch</option>' +
         '<option value="Abucay">Abucay</option>' +
         '<option value="Abuyog">Abuyog</option>' +
         '<option value="Avenida">Avenida</option>' +
@@ -470,12 +474,12 @@
         '<option value="Palo-Pawing">Palo-Pawing</option>' +
         '<option value="Palo-Schisto">Palo-Schisto</option>' +
         '<option value="Sogod">Sogod</option>';
-      try { br.value = bv; } catch (e) {}
+      try { if (bv) br.value = bv; } catch (e) {}
     }
     if (rl) {
       var rv = rl.value;
       rl.innerHTML =
-        '<option value="">Select role</option>' +
+        '<option value="" disabled selected hidden>Select role</option>' +
         '<option value="Cashier">Cashier</option>' +
         '<option value="Doctor">Doctor</option>' +
         '<option value="HR">HR</option>' +
@@ -483,7 +487,7 @@
         '<option value="RadTech">RadTech</option>' +
         '<option value="Staff">Staff</option>' +
         '<option value="Utility">Utility</option>';
-      try { rl.value = rv; } catch (e2) {}
+      try { if (rv) rl.value = rv; } catch (e2) {}
     }
   }
 
@@ -502,7 +506,7 @@
   setTimeout(patchShowForm, 2500);
 
   window.DRRegCards = {
-    v: 3,
+    v: 4,
     showEmployee: function () { showReg('employee'); },
     showAdmin: function () { showReg('admin'); },
     showLogin: showLogin
