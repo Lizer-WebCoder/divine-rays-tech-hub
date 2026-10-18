@@ -1,5 +1,5 @@
 /**
- * Divine Rays — portal access v5
+ * Divine Rays — portal access v6
  *
  * ACCESS MATRIX
  * ─────────────
@@ -9,27 +9,37 @@
  *   • Switcher allowed (both portals)
  *   • No approval gate
  *
- * Employee accounts:
- *   • Employee tab only (no Admin tab login)
- *   • No approval required (new or existing)
- *   • Never Admin portal
+ * Employee accounts (Cashier, Doctor, HR, MedTech, RadTech, Staff, Utility):
+ *   • Employee tab only
+ *   • No approval required
+ *   • Never Admin portal / Admin tab login
  *
  * Admin / IT Tech Support:
  *   • Admin tab only → Admin portal
- *   • New accounts: pending until a Developer approves in Users Management
- *   • Approved: Admin portal anytime
- *   • Never Employee portal, no switcher
+ *   • New accounts: pending until Developer approves
+ *   • Never Employee portal / Employee tab login
  */
 (function () {
   'use strict';
-  if (window.__DR_DEV_PORTAL >= 5) return;
-  window.__DR_DEV_PORTAL = 5;
+  if (window.__DR_DEV_PORTAL >= 6) return;
+  window.__DR_DEV_PORTAL = 6;
 
   var DEVS = {
     'kirzhianquijano@gmail.com': 1,
     'iiyasora2002@gmail.com': 1,
     'kirzhianquijano': 1,
     'iiyasora2002': 1
+  };
+
+  var EMP_JOBS = {
+    cashier: 1,
+    doctor: 1,
+    hr: 1,
+    medtech: 1,
+    radtech: 1,
+    staff: 1,
+    utility: 1,
+    employee: 1
   };
 
   function norm(v) {
@@ -45,31 +55,53 @@
   }
 
   function isEmployeeRole(r) {
-    r = String(r || '').toLowerCase();
-    return (
-      !r ||
+    r = String(r || '').toLowerCase().trim();
+    if (!r) return false;
+    if (
       r === 'customer' ||
       r === 'user' ||
       r === 'end-user' ||
       r === 'enduser' ||
       r === 'employee' ||
       r === 'client'
-    );
+    )
+      return true;
+    if (EMP_JOBS[r]) return true;
+    return false;
   }
 
   function isStaffRole(r) {
-    r = String(r || '').toLowerCase();
+    r = String(r || '').toLowerCase().trim();
+    if (!r) return false;
+    if (EMP_JOBS[r]) return false;
     return (
       r === 'agent' ||
       r === 'admin' ||
       r === 'developer' ||
       r === 'owner' ||
-      r === 'staff' ||
       r === 'it' ||
+      r === 'it tech support' ||
+      r === 'tech support' ||
       r.indexOf('admin') !== -1 ||
-      r.indexOf('support') !== -1 ||
-      r.indexOf('tech') !== -1
+      (r.indexOf('support') !== -1 && r.indexOf('employee') === -1)
     );
+  }
+
+  function profileKind(p) {
+    p = p || window.__drProfile || {};
+    if (isDev(p.email) || isDev(p.username)) return 'dev';
+    try {
+      if (window.__drIsDeveloper) return 'dev';
+    } catch (e) {}
+    var role = String(p.role || '').toLowerCase().trim();
+    var staff = String(p.staff_role || p.job_title || p.title || '').toLowerCase().trim();
+    if (role === 'customer' || role === 'employee' || role === 'user' || role === 'client')
+      return 'employee';
+    if (EMP_JOBS[staff] || EMP_JOBS[role]) return 'employee';
+    if (role === 'agent' || role === 'admin' || role === 'owner') return 'staff';
+    if (isStaffRole(role) || isStaffRole(staff)) return 'staff';
+    if (isEmployeeRole(role) || isEmployeeRole(staff)) return 'employee';
+    return 'employee';
   }
 
   function sessionEmail() {
@@ -162,8 +194,8 @@
       if (pref === 'employee' || pref === 'admin') return pref;
     } catch (e) {}
     if (isDevSession()) return 'admin';
-    var r = roleOf();
-    if (isStaffRole(r) && !isEmployeeRole(r)) return 'admin';
+    var kind = profileKind();
+    if (kind === 'staff') return 'admin';
     return 'employee';
   }
 
@@ -237,66 +269,60 @@
   function ensureSwitcher() {
     injectSwitcherCss();
     var el = document.getElementById('dr-dev-portal-switch');
-    if (el) {
-      try {
-        el.querySelectorAll('.dr-dev-label').forEach(function (n) {
-          n.remove();
-        });
-      } catch (e) {}
-      return el;
-    }
+    if (el) return el;
     el = document.createElement('div');
     el.id = 'dr-dev-portal-switch';
     el.innerHTML =
-      '<button type="button" data-portal="employee">Employee</button>' +
-      '<button type="button" data-portal="admin">Admin</button>';
+      '<button type="button" data-dr-portal="employee">Employee</button>' +
+      '<button type="button" data-dr-portal="admin">Admin</button>';
     document.body.appendChild(el);
     el.addEventListener('click', function (e) {
-      var b = e.target && (e.target.closest ? e.target.closest('button[data-portal]') : null);
+      var b = e.target && (e.target.closest ? e.target.closest('[data-dr-portal]') : null);
       if (!b || !canSeeSwitcher()) return;
-      var which = b.getAttribute('data-portal');
-      setPreferredPortal(which);
-      rememberLoginTab(which === 'employee' ? 'customer' : 'agent');
-      showPortal(which);
+      var w = b.getAttribute('data-dr-portal');
+      if (w === 'employee') {
+        setPreferredPortal('employee');
+        rememberLoginTab('customer');
+        showPortal('employee');
+      } else if (w === 'admin') {
+        setPreferredPortal('admin');
+        rememberLoginTab('agent');
+        showPortal('admin');
+      }
     });
     return el;
   }
 
-  function updateSwitcher(active) {
-    if (!canSeeSwitcher()) {
-      var off = document.getElementById('dr-dev-portal-switch');
-      if (off) {
-        off.classList.remove('is-on');
-        off.style.display = 'none';
-      }
-      return;
-    }
-    var onPortal =
-      document.body.classList.contains('dr-portal-ok') ||
-      document.body.classList.contains('is-portal');
-    if (!onPortal) {
-      var sw0 = document.getElementById('dr-dev-portal-switch');
-      if (sw0) {
-        sw0.classList.remove('is-on');
-        sw0.style.display = 'none';
-      }
-      return;
-    }
+  function updateSwitcher(which) {
     var el = ensureSwitcher();
-    el.style.display = 'flex';
+    if (!canSeeSwitcher()) {
+      el.classList.remove('is-on');
+      el.style.display = 'none';
+      return;
+    }
+    if (!document.body.classList.contains('dr-portal-ok') && !document.body.classList.contains('is-portal')) {
+      el.classList.remove('is-on');
+      el.style.display = 'none';
+      return;
+    }
     el.classList.add('is-on');
-    el.querySelectorAll('button[data-portal]').forEach(function (b) {
-      b.classList.toggle('is-active', b.getAttribute('data-portal') === active);
+    el.style.display = 'flex';
+    el.querySelectorAll('[data-dr-portal]').forEach(function (b) {
+      b.classList.toggle('is-active', b.getAttribute('data-dr-portal') === which);
     });
   }
 
   function markHintsFromLogin() {
     try {
-      var au =
-        document.getElementById('agent-username') ||
-        document.getElementById('agent-user');
-      var ce = document.getElementById('cust-email');
-      var raw = norm((au && au.value) || (ce && ce.value) || '');
+      var form =
+        document.querySelector('#login-agent:not([hidden])') ||
+        document.querySelector('#login-customer:not([hidden])') ||
+        document.querySelector('#login-agent, #login-customer');
+      if (!form) return;
+      var input =
+        form.querySelector('input[type="email"], input[name="email"], #agent-username, #agent-user, #cust-email') ||
+        form.querySelector('input');
+      var raw = input && input.value ? String(input.value).trim() : '';
       if (!raw) return;
       if (raw.indexOf('@') !== -1) {
         sessionStorage.setItem('dr_session_email', raw);
@@ -320,34 +346,94 @@
     try {
       pref = sessionStorage.getItem('dr_dev_portal_pref') || '';
     } catch (e) {}
-    var r = roleOf(p);
+    var kind = profileKind(p);
 
-    if (!isDevSession() && isEmployeeRole(r) && !isStaffRole(r)) {
-      return 'employee';
-    }
+    if (kind === 'employee') return 'employee';
+    if (kind === 'staff') return 'admin';
 
-    if (!isDevSession() && isStaffRole(r)) {
-      return 'admin';
-    }
-
-    if (isDevSession()) {
-      if (tab === 'customer') return 'employee';
-      if (tab === 'agent') return 'admin';
-      if (pref === 'employee') return 'employee';
-      if (pref === 'admin') return 'admin';
-      return getPreferredPortal();
-    }
-
+    if (tab === 'customer') return 'employee';
+    if (tab === 'agent') return 'admin';
+    if (pref === 'employee') return 'employee';
+    if (pref === 'admin') return 'admin';
     return getPreferredPortal();
   }
 
+  function showTabError(msg) {
+    try {
+      if (window.DR && typeof window.DR.toast === 'function') {
+        window.DR.toast(msg, 'error');
+        return;
+      }
+    } catch (e) {}
+    try {
+      alert(msg);
+    } catch (e2) {}
+  }
+
+  async function kickToLogin(msg) {
+    showTabError(msg);
+    try {
+      document.body.classList.remove('dr-portal-ok', 'is-portal');
+      document.body.classList.add('is-login');
+      var ls = document.getElementById('login-screen');
+      if (ls) {
+        ls.hidden = false;
+        ls.style.cssText = '';
+      }
+      var pc = document.getElementById('portal-customer');
+      var pa = document.getElementById('portal-agent');
+      if (pc) {
+        pc.classList.remove('active');
+        pc.style.setProperty('display', 'none', 'important');
+      }
+      if (pa) {
+        pa.classList.remove('active');
+        pa.style.setProperty('display', 'none', 'important');
+      }
+    } catch (e) {}
+    try {
+      if (window.__drSb && window.__drSb.auth) await window.__drSb.auth.signOut({ scope: 'local' });
+    } catch (e2) {}
+    try {
+      Object.keys(localStorage).forEach(function (k) {
+        if (k.indexOf('supabase') !== -1 || k.indexOf('sb-') === 0) localStorage.removeItem(k);
+      });
+    } catch (e3) {}
+    try {
+      sessionStorage.removeItem('dr_skip_boot_gear');
+      sessionStorage.removeItem('dr_post_login_boot');
+    } catch (e4) {}
+    window.__drFullLoaded = false;
+    window.__drBooting = false;
+    setTimeout(function () {
+      try {
+        location.reload();
+      } catch (e5) {}
+    }, 600);
+  }
+
   function applyAccess(profile) {
-    var which = resolvePortal(profile);
-    if (!isDevSession()) {
-      var r = roleOf(profile);
-      if (isStaffRole(r) && !isEmployeeRole(r)) which = 'admin';
-      if (isEmployeeRole(r) && !isStaffRole(r)) which = 'employee';
+    var p = profile || window.__drProfile || {};
+    var kind = profileKind(p);
+    var tab = getLoginTab();
+
+    if (kind === 'employee' && tab === 'agent') {
+      kickToLogin('Employee accounts must sign in on the Employee tab.');
+      return;
     }
+    if (kind === 'staff' && tab === 'customer') {
+      kickToLogin('Admin accounts must sign in on the Admin tab.');
+      return;
+    }
+
+    var which = resolvePortal(p);
+    if (kind === 'employee') which = 'employee';
+    if (kind === 'staff') which = 'admin';
+    if (kind === 'dev') {
+      if (tab === 'customer') which = 'employee';
+      else if (tab === 'agent') which = 'admin';
+    }
+
     if (which === 'employee') setPreferredPortal('employee');
     else setPreferredPortal('admin');
     showPortal(which);
@@ -358,7 +444,7 @@
       markHintsFromLogin();
       applyAccess(window.__drProfile || { role: role });
     };
-    window.applyPortalForRole.__drDevPatch5 = 1;
+    window.applyPortalForRole.__drDevPatch6 = 1;
 
     window.showApp = function (p) {
       if (p) window.__drProfile = p;
@@ -417,12 +503,20 @@
         updateSwitcher('');
         return;
       }
-      var want = resolvePortal(window.__drProfile);
-      if (!isDevSession()) {
-        var r = roleOf();
-        if (isStaffRole(r) && !isEmployeeRole(r)) want = 'admin';
-        if (isEmployeeRole(r) && !isStaffRole(r)) want = 'employee';
+      var p = window.__drProfile || {};
+      var kind = profileKind(p);
+      var tab = getLoginTab();
+      if (kind === 'employee' && tab === 'agent') {
+        kickToLogin('Employee accounts must sign in on the Employee tab.');
+        return;
       }
+      if (kind === 'staff' && tab === 'customer') {
+        kickToLogin('Admin accounts must sign in on the Admin tab.');
+        return;
+      }
+      var want = resolvePortal(p);
+      if (kind === 'employee') want = 'employee';
+      if (kind === 'staff') want = 'admin';
       var pc = document.getElementById('portal-customer');
       var pa = document.getElementById('portal-agent');
       var empOn = pc && pc.classList.contains('active');
@@ -434,7 +528,7 @@
   }
 
   window.DRDevPortal = {
-    v: 5,
+    v: 6,
     isDev: isDevSession,
     canSwitch: canSeeSwitcher,
     showEmployee: function () {
