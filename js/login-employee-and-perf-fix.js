@@ -1,12 +1,12 @@
 /**
- * Divine Rays — login-employee-and-perf-fix v7
- * Clears residual pending/tab-gate seals so Employee login after a pending Admin
- * attempt does not open an empty shell portal.
+ * Divine Rays — login-employee-and-perf-fix v8
+ * After reload: open correct portal (Employee tab → Employee) and dismiss loader.
+ * Prevents infinite "Opening portal…" hang for Developer/Employee logins.
  */
 (function () {
   'use strict';
-  if (window.__DR_EMP_PERF_FIX >= 7) return;
-  window.__DR_EMP_PERF_FIX = 7;
+  if (window.__DR_EMP_PERF_FIX >= 8) return;
+  window.__DR_EMP_PERF_FIX = 8;
 
   function getSb() {
     try {
@@ -151,6 +151,7 @@
       if (!el) return;
       el.classList.add('is-done');
       el.style.display = 'none';
+      el.classList.remove('is-on');
     });
   }
 
@@ -203,8 +204,10 @@
       }
       if (roleHint === 'customer' || roleHint === 'employee') {
         sessionStorage.setItem('dr_dev_portal_pref', 'employee');
+        sessionStorage.setItem('dr_login_tab', 'customer');
       } else {
         sessionStorage.setItem('dr_dev_portal_pref', 'admin');
+        sessionStorage.setItem('dr_login_tab', 'agent');
       }
       sessionStorage.removeItem('dr_force_emp_once');
       sessionStorage.setItem('dr_post_login_boot', '1');
@@ -262,6 +265,101 @@
     }
   }
 
+  function finishPostLoginBoot() {
+    var skip = false;
+    try {
+      skip =
+        sessionStorage.getItem('dr_skip_boot_gear') === '1' ||
+        sessionStorage.getItem('dr_post_login_boot') === '1';
+    } catch (e) {}
+    if (!skip) return;
+
+    clearResidualGates();
+
+    var tab = '';
+    try { tab = sessionStorage.getItem('dr_login_tab') || ''; } catch (e2) {}
+    var pref = '';
+    try { pref = sessionStorage.getItem('dr_dev_portal_pref') || ''; } catch (e3) {}
+
+    var which = 'employee';
+    if (tab === 'agent' || pref === 'admin') which = 'admin';
+    if (tab === 'customer' || pref === 'employee') which = 'employee';
+
+    try {
+      document.body.classList.add('dr-portal-ok', 'is-portal');
+      document.body.classList.remove('is-login', 'dr-tab-blocked', 'dr-pending-blocked');
+      document.documentElement.classList.remove('dr-tab-blocked');
+      var ls = document.getElementById('login-screen');
+      if (ls) {
+        ls.hidden = true;
+        ls.style.cssText = 'display:none!important';
+      }
+    } catch (e4) {}
+
+    try {
+      if (window.DRDevPortal && typeof window.DRDevPortal.apply === 'function') {
+        window.DRDevPortal.apply(window.__drProfile || { role: which === 'admin' ? 'agent' : 'customer' });
+      } else if (typeof window.showApp === 'function') {
+        window.showApp(window.__drProfile || { role: which === 'admin' ? 'agent' : 'customer' });
+      }
+    } catch (e5) {}
+
+    try {
+      var pc = document.getElementById('portal-customer');
+      var pa = document.getElementById('portal-agent');
+      if (which === 'employee') {
+        if (pa) {
+          pa.classList.remove('active');
+          pa.style.setProperty('display', 'none', 'important');
+        }
+        if (pc) {
+          pc.hidden = false;
+          pc.removeAttribute('hidden');
+          pc.classList.add('active');
+          pc.style.removeProperty('display');
+          pc.style.setProperty('display', 'block', 'important');
+          pc.style.visibility = 'visible';
+          pc.style.opacity = '1';
+        }
+      } else {
+        if (pc) {
+          pc.classList.remove('active');
+          pc.style.setProperty('display', 'none', 'important');
+        }
+        if (pa) {
+          pa.hidden = false;
+          pa.removeAttribute('hidden');
+          pa.classList.add('active');
+          pa.style.removeProperty('display');
+          pa.style.setProperty('display', 'flex', 'important');
+          pa.style.visibility = 'visible';
+          pa.style.opacity = '1';
+        }
+      }
+    } catch (e6) {}
+
+    hidePortalLoader();
+    try {
+      var pl = document.getElementById('dr-post-login-boot');
+      if (pl) {
+        pl.classList.remove('is-on');
+        pl.style.display = 'none';
+      }
+      var boot = document.getElementById('boot');
+      if (boot) {
+        boot.classList.add('is-done', 'dr-skip');
+        boot.style.display = 'none';
+      }
+    } catch (e7) {}
+
+    try {
+      sessionStorage.removeItem('dr_post_login_boot');
+      setTimeout(function () {
+        try { sessionStorage.removeItem('dr_skip_boot_gear'); } catch (e8) {}
+      }, 2500);
+    } catch (e9) {}
+  }
+
   function wire() {
     document.addEventListener(
       'submit',
@@ -277,8 +375,22 @@
     );
   }
 
+  setTimeout(finishPostLoginBoot, 600);
+  setTimeout(finishPostLoginBoot, 1400);
+  setTimeout(finishPostLoginBoot, 2800);
+  setTimeout(function () {
+    try {
+      hidePortalLoader();
+      var pl = document.getElementById('dr-post-login-boot');
+      if (pl) {
+        pl.classList.remove('is-on');
+        pl.style.display = 'none';
+      }
+    } catch (e) {}
+  }, 5000);
+
   wire();
-  window.DREmpPerfFix = { v: 7, login: doEmployeeLogin, bootWorkspace: bootWorkspace };
+  window.DREmpPerfFix = { v: 8, login: doEmployeeLogin, bootWorkspace: bootWorkspace };
   window.showPortalLoader = showPortalLoader;
   window.hidePortalLoader = hidePortalLoader;
   window.bootWorkspace = bootWorkspace;
