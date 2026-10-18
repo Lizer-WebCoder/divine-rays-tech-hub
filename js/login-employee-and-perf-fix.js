@@ -1,11 +1,11 @@
 /**
- * Divine Rays — Employee login + single post-login transition v5
- * One loading UI only (rings) → portal; gear nodes removed from DOM (not just hidden)
+ * Divine Rays — Employee login + single post-login transition v6
+ * One loading UI only (rings) → portal; preserves the tab the user signed in on
  */
 (function () {
   'use strict';
-  if (window.__DR_EMP_PERF_FIX >= 5) return;
-  window.__DR_EMP_PERF_FIX = 5;
+  if (window.__DR_EMP_PERF_FIX >= 6) return;
+  window.__DR_EMP_PERF_FIX = 6;
 
   var DEVS = {
     'kirzhianquijano@gmail.com': 1,
@@ -83,25 +83,16 @@
     });
   }
 
-  function showPortalLoader(msg) {
-    try {
-      removeGearNodes();
-    } catch (e0) {}
-
+  function showPortalLoader(subText) {
+    if (window.__DR_TAB_GATE_LOCK || window.__DR_TAB_GATE_MSG) return;
+    removeGearNodes();
     var existing = document.getElementById('dr-post-login-boot');
     if (existing) {
-      existing.classList.add('is-on');
-      existing.style.display = 'flex';
-      existing.style.opacity = '1';
-      var sub0 = existing.querySelector('.pl-sub');
-      if (sub0) sub0.textContent = msg || 'Preparing your workspace';
       try {
-        var ls0 = document.getElementById('login-screen');
-        if (ls0) ls0.style.cssText = 'display:none!important';
-      } catch (e1) {}
-      return;
+        existing.classList.add('is-on');
+        existing.style.display = 'flex';
+      } catch (e) {}
     }
-
     var el = document.getElementById('dr-portal-loader');
     if (!el) {
       el = document.createElement('div');
@@ -126,8 +117,7 @@
         '#dr-portal-loader .pl-sub{color:#9494ae;font-size:.82rem;margin:0}' +
         '#dr-portal-loader .pl-bar{width:160px;height:4px;border-radius:99px;background:rgba(139,92,246,.2);overflow:hidden}' +
         '#dr-portal-loader .pl-bar>i{display:block;height:100%;width:40%;border-radius:99px;' +
-        'background:linear-gradient(90deg,#7c6af0,#c4b5fd,#7c6af0);background-size:200% 100%;' +
-        'animation:drPlBar 1.1s ease-in-out infinite}' +
+        'background:linear-gradient(90deg,#7c6af0,#c4b5fd,#7c6af0);animation:drPlBar 1.1s ease-in-out infinite}' +
         '@keyframes drPlBar{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}' +
         '</style>' +
         '<div class="pl-rings" aria-hidden="true">' +
@@ -138,45 +128,29 @@
         '<div class="pl-bar"><i></i></div>';
       document.body.appendChild(el);
     }
+    var sub = document.getElementById('dr-portal-loader-sub');
+    if (sub && subText) sub.textContent = subText;
     el.classList.remove('is-done');
     el.style.display = 'flex';
-    var sub = document.getElementById('dr-portal-loader-sub');
-    if (sub) sub.textContent = msg || 'Preparing your workspace';
-    try {
-      var ls = document.getElementById('login-screen');
-      if (ls) ls.style.cssText = 'display:none!important';
-    } catch (e) {}
   }
 
   function hidePortalLoader() {
     ['dr-portal-loader', 'dr-post-login-boot'].forEach(function (id) {
       var el = document.getElementById(id);
       if (!el) return;
-      try {
-        el.classList.add('is-done');
-        el.classList.remove('is-on');
-        el.style.opacity = '0';
-        el.style.pointerEvents = 'none';
-        setTimeout(function () {
-          try {
-            if (el.parentNode) el.parentNode.removeChild(el);
-          } catch (e) {}
-        }, 400);
-      } catch (e2) {}
+      el.classList.add('is-done');
+      el.style.display = 'none';
     });
   }
 
   function portalLooksReady() {
     try {
-      if (window.__drFullLoaded) return true;
       var pc = document.getElementById('portal-customer');
       var pa = document.getElementById('portal-agent');
       if (pc && pc.classList.contains('active')) {
-        if ((pc.innerHTML || '').length > 800) return true;
-        if (pc.querySelector('.mode-brand, .topbar, nav, .sidebar, header, main')) return true;
+        if (pc.querySelector('.mode-brand, .topbar, nav, .sidebar, header, main, .view')) return true;
       }
       if (pa && pa.classList.contains('active')) {
-        if ((pa.innerHTML || '').length > 800) return true;
         if (pa.querySelector('.mode-brand, .topbar, nav, .sidebar, header, main, .view')) return true;
       }
     } catch (e) {}
@@ -184,12 +158,38 @@
   }
 
   async function bootWorkspace(roleHint) {
+    var existingTab = '';
+    try {
+      existingTab = sessionStorage.getItem('dr_login_tab') || '';
+    } catch (e0) {}
+    if (
+      (roleHint === 'customer' || roleHint === 'employee') &&
+      existingTab === 'agent'
+    ) {
+      try {
+        sessionStorage.setItem(
+          'dr_tab_gate_err',
+          'Employee accounts must sign in on the Employee tab.'
+        );
+        sessionStorage.removeItem('dr_skip_boot_gear');
+        sessionStorage.removeItem('dr_post_login_boot');
+      } catch (e1) {}
+      if (window.DRDevPortal && typeof window.DRDevPortal.apply === 'function') {
+        try {
+          window.__drProfile = window.__drProfile || { role: 'customer' };
+          window.DRDevPortal.apply(window.__drProfile);
+        } catch (e2) {}
+      }
+      return;
+    }
     showPortalLoader('Opening portal…');
     try {
-      sessionStorage.setItem(
-        'dr_login_tab',
-        roleHint === 'agent' || roleHint === 'admin' ? 'agent' : 'customer'
-      );
+      if (existingTab !== 'agent' && existingTab !== 'customer') {
+        sessionStorage.setItem(
+          'dr_login_tab',
+          roleHint === 'agent' || roleHint === 'admin' ? 'agent' : 'customer'
+        );
+      }
       if (roleHint === 'customer' || roleHint === 'employee') {
         sessionStorage.setItem('dr_dev_portal_pref', 'employee');
       } else {
@@ -218,89 +218,44 @@
         window.showError('login-customer', !email ? 'Enter your email' : 'Enter your password');
       return;
     }
-
     setSubmitSigning(form);
+    try {
+      sessionStorage.setItem('dr_login_tab', 'customer');
+    } catch (e) {}
     var client = getSb();
     if (!client) {
       resetSubmit(form);
-      if (window.DR && window.DR.toast) window.DR.toast('Connection not ready — try again', 'error');
+      if (window.showError) window.showError('login-customer', 'Connection not ready');
       return;
     }
-
     try {
       var r = await client.auth.signInWithPassword({ email: email, password: password });
       if (r.error) throw r.error;
       var user = r.data && r.data.user;
       window.__drUser = user;
-      var em = norm(email);
-      if (isDev(em)) window.__drIsDeveloper = true;
+      var profile = { email: email, role: 'customer' };
       try {
-        sessionStorage.setItem('dr_session_email', em);
-        sessionStorage.setItem('dr_login_tab', 'customer');
-        sessionStorage.setItem('dr_dev_portal_pref', 'employee');
-        sessionStorage.removeItem('dr_force_emp_once');
-      } catch (e0) {}
-
-      try {
-        var pr = await client.from('profiles').select('*').eq('id', user.id).maybeSingle();
-        if (pr && pr.data) window.__drProfile = pr.data;
-        else
-          window.__drProfile = {
-            id: user.id,
-            email: email,
-            role: isDev(em) ? 'developer' : 'customer'
-          };
-      } catch (e1) {
-        window.__drProfile = {
-          id: user.id,
-          email: email,
-          role: isDev(em) ? 'developer' : 'customer'
-        };
-      }
-
-      var role = String((window.__drProfile && window.__drProfile.role) || '').toLowerCase();
-      if (!isDev(em) && (role === 'agent' || role === 'admin' || role === 'staff')) {
-        if (window.DR && window.DR.toast) {
-          window.DR.toast('Admin accounts must sign in from the Admin tab', 'error');
+        if (user && user.id) {
+          var pr = await client.from('profiles').select('*').eq('id', user.id).maybeSingle();
+          if (pr && pr.data) profile = pr.data;
         }
-        try {
-          await client.auth.signOut({ scope: 'local' });
-        } catch (e2) {}
-        resetSubmit(form);
-        return;
-      }
-
-      if (window.DR && window.DR.toast) window.DR.toast('Successfully logged in', 'success');
+      } catch (e3) {}
+      window.__drProfile = profile;
       await bootWorkspace('customer');
     } catch (err) {
       resetSubmit(form);
-      var msg = (err && err.message || 'Login failed');
-      if (window.showError) window.showError('login-customer', msg);
-      else if (window.DR && window.DR.toast) window.DR.toast(msg, 'error');
+      if (window.showError)
+        window.showError('login-customer', (err && err.message) || 'Login failed');
     }
   }
 
-  function wireEmployeeForm() {
-    var form = document.getElementById('login-customer');
-    if (!form || form.__drEmpFixBound3) return;
-    form.__drEmpFixBound3 = 1;
-    form.addEventListener(
+  function wire() {
+    document.addEventListener(
       'submit',
       function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        doEmployeeLogin(form);
-      },
-      true
-    );
-    form.addEventListener(
-      'click',
-      function (e) {
-        var btn =
-          e.target &&
-          (e.target.closest ? e.target.closest('button[type="submit"], button.btn-primary') : null);
-        if (!btn || isEye(btn)) return;
-        if (!form.contains(btn)) return;
+        var form = e.target;
+        if (!form || !form.closest) return;
+        if (!form.closest('#login-customer')) return;
         e.preventDefault();
         e.stopPropagation();
         doEmployeeLogin(form);
@@ -309,70 +264,9 @@
     );
   }
 
-  try {
-    if (sessionStorage.getItem('dr_post_login_boot') === '1') {
-      sessionStorage.removeItem('dr_post_login_boot');
-      showPortalLoader('Opening portal…');
-      var n = 0;
-      var t = setInterval(function () {
-        n++;
-        try {
-          removeGearNodes();
-          if (window.DRDevPortal && window.DRDevPortal.apply) {
-            window.DRDevPortal.apply(window.__drProfile);
-          }
-        } catch (e) {}
-        if (portalLooksReady() || n > 25) {
-          clearInterval(t);
-          hidePortalLoader();
-          try {
-            sessionStorage.removeItem('dr_skip_boot_gear');
-          } catch (e2) {}
-        }
-      }, 200);
-    }
-  } catch (e) {}
-
-  try {
-    if (sessionStorage.getItem('dr_skip_boot_gear') === '1') {
-      var kill = function () {
-        removeGearNodes();
-      };
-      kill();
-      setTimeout(kill, 50);
-      setTimeout(kill, 300);
-      setTimeout(kill, 900);
-    }
-  } catch (e) {}
-
-  document.addEventListener(
-    'focusin',
-    function (ev) {
-      var t = ev.target;
-      if (!t || !t.closest) return;
-      if (!t.closest('#login-screen, .login-card')) return;
-      if (t.tagName !== 'INPUT' && t.tagName !== 'TEXTAREA') return;
-      window.__DR_PAUSE_LOGIN_SCRIPTS = 1;
-    },
-    true
-  );
-  document.addEventListener(
-    'focusout',
-    function () {
-      setTimeout(function () {
-        window.__DR_PAUSE_LOGIN_SCRIPTS = 0;
-      }, 200);
-    },
-    true
-  );
-
-  function boot() {
-    wireEmployeeForm();
-  }
-  boot();
-  setTimeout(boot, 400);
-  setTimeout(boot, 1200);
-  setTimeout(boot, 2500);
-
-  window.DREmpPerfFix = { v: 5, login: doEmployeeLogin, bootWorkspace: bootWorkspace };
+  wire();
+  window.DREmpPerfFix = { v: 6, login: doEmployeeLogin, bootWorkspace: bootWorkspace };
+  window.showPortalLoader = showPortalLoader;
+  window.hidePortalLoader = hidePortalLoader;
+  window.bootWorkspace = bootWorkspace;
 })();
