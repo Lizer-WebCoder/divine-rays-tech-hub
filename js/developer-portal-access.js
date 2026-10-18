@@ -1,11 +1,11 @@
 /**
- * Divine Rays — portal access v11
- * Wrong-tab: seal login UI (no portal peek); clear sticky error on tab switch.
+ * Divine Rays — portal access v12
+ * Clear residual pending/tab gates on Developer login so portal is not empty.
  */
 (function () {
   'use strict';
-  if (window.__DR_DEV_PORTAL >= 11) return;
-  window.__DR_DEV_PORTAL = 11;
+  if (window.__DR_DEV_PORTAL >= 12) return;
+  window.__DR_DEV_PORTAL = 12;
 
   var DEVS = {
     'kirzhianquijano@gmail.com': 1,
@@ -15,40 +15,16 @@
   };
 
   var EMP_JOBS = {
-    cashier: 1,
-    doctor: 1,
-    hr: 1,
-    medtech: 1,
-    radtech: 1,
-    staff: 1,
-    utility: 1,
-    employee: 1
+    cashier: 1, doctor: 1, hr: 1, medtech: 1, radtech: 1, staff: 1, utility: 1, employee: 1
   };
 
-  function norm(v) {
-    return String(v || '').toLowerCase().trim();
-  }
-  function isDev(v) {
-    return !!DEVS[norm(v)];
-  }
-
-  function roleOf(p) {
-    p = p || window.__drProfile || {};
-    return String(p.role || p.staff_role || p.title || '').toLowerCase().trim();
-  }
+  function norm(v) { return String(v || '').toLowerCase().trim(); }
+  function isDev(v) { return !!DEVS[norm(v)]; }
 
   function isEmployeeRole(r) {
     r = String(r || '').toLowerCase().trim();
     if (!r) return false;
-    if (
-      r === 'customer' ||
-      r === 'user' ||
-      r === 'end-user' ||
-      r === 'enduser' ||
-      r === 'employee' ||
-      r === 'client'
-    )
-      return true;
+    if (r === 'customer' || r === 'user' || r === 'end-user' || r === 'enduser' || r === 'employee' || r === 'client') return true;
     if (EMP_JOBS[r]) return true;
     return false;
   }
@@ -58,13 +34,8 @@
     if (!r) return false;
     if (EMP_JOBS[r]) return false;
     return (
-      r === 'agent' ||
-      r === 'admin' ||
-      r === 'developer' ||
-      r === 'owner' ||
-      r === 'it' ||
-      r === 'it tech support' ||
-      r === 'tech support' ||
+      r === 'agent' || r === 'admin' || r === 'developer' || r === 'owner' || r === 'it' ||
+      r === 'it tech support' || r === 'tech support' ||
       r.indexOf('admin') !== -1 ||
       (r.indexOf('support') !== -1 && r.indexOf('employee') === -1)
     );
@@ -73,13 +44,10 @@
   function profileKind(p) {
     p = p || window.__drProfile || {};
     if (isDev(p.email) || isDev(p.username)) return 'dev';
-    try {
-      if (window.__drIsDeveloper) return 'dev';
-    } catch (e) {}
+    try { if (window.__drIsDeveloper) return 'dev'; } catch (e) {}
     var role = String(p.role || '').toLowerCase().trim();
     var staff = String(p.staff_role || p.job_title || p.title || '').toLowerCase().trim();
-    if (role === 'customer' || role === 'employee' || role === 'user' || role === 'client')
-      return 'employee';
+    if (role === 'customer' || role === 'employee' || role === 'user' || role === 'client') return 'employee';
     if (EMP_JOBS[staff] || EMP_JOBS[role]) return 'employee';
     if (role === 'agent' || role === 'admin' || role === 'owner') return 'staff';
     if (isStaffRole(role) || isStaffRole(staff)) return 'staff';
@@ -93,14 +61,8 @@
       if (p.email) return norm(p.email);
       var u = window.__drUser;
       if (u && u.email) return norm(u.email);
-      return norm(
-        sessionStorage.getItem('dr_session_email') ||
-          localStorage.getItem('dr_last_email') ||
-          ''
-      );
-    } catch (e) {
-      return '';
-    }
+      return norm(sessionStorage.getItem('dr_session_email') || localStorage.getItem('dr_last_email') || '');
+    } catch (e) { return ''; }
   }
 
   function sessionUser() {
@@ -108,9 +70,7 @@
       var p = window.__drProfile || {};
       if (p.username) return norm(p.username);
       return norm(sessionStorage.getItem('dr_session_user') || '');
-    } catch (e) {
-      return '';
-    }
+    } catch (e) { return ''; }
   }
 
   function isDevSession() {
@@ -124,14 +84,10 @@
     return false;
   }
 
-  function canSeeSwitcher() {
-    return isDevSession();
-  }
+  function canSeeSwitcher() { return isDevSession(); }
 
   function rememberLoginTab(tab) {
-    try {
-      sessionStorage.setItem('dr_login_tab', tab === 'agent' ? 'agent' : 'customer');
-    } catch (e) {}
+    try { sessionStorage.setItem('dr_login_tab', tab === 'agent' ? 'agent' : 'customer'); } catch (e) {}
   }
 
   function getLoginTab() {
@@ -148,24 +104,18 @@
         if (agentVis && !custVis) return 'agent';
         if (custVis && !agentVis) return 'customer';
       }
-      var activeTab = document.querySelector(
-        '.ltab.active, button[data-ltab].active, .login-tabs .active'
-      );
+      var activeTab = document.querySelector('.ltab.active, button[data-ltab].active, .login-tabs .active');
       if (activeTab) {
         var d = (activeTab.getAttribute('data-ltab') || activeTab.textContent || '').toLowerCase();
         if (d.indexOf('agent') !== -1 || d.indexOf('admin') !== -1) return 'agent';
         if (d.indexOf('customer') !== -1 || d.indexOf('employee') !== -1) return 'customer';
       }
       return '';
-    } catch (e) {
-      return '';
-    }
+    } catch (e) { return ''; }
   }
 
   function setPreferredPortal(which) {
-    try {
-      sessionStorage.setItem('dr_dev_portal_pref', which);
-    } catch (e) {}
+    try { sessionStorage.setItem('dr_dev_portal_pref', which); } catch (e) {}
   }
 
   function getPreferredPortal() {
@@ -195,8 +145,7 @@
       'html.dr-tab-blocked #dr-post-login-boot,html.dr-tab-blocked #dr-portal-loader,' +
       'body.dr-tab-blocked #dr-post-login-boot,body.dr-tab-blocked #dr-portal-loader,' +
       'html.dr-tab-blocked #dr-phase-boot,body.dr-tab-blocked #dr-phase-boot{' +
-      'display:none!important;visibility:hidden!important;pointer-events:none!important;opacity:0!important;' +
-      'z-index:-1!important}' +
+      'display:none!important;visibility:hidden!important;pointer-events:none!important;opacity:0!important;z-index:-1!important}' +
       'html.dr-tab-blocked #login-screen,body.dr-tab-blocked #login-screen{' +
       'display:flex!important;visibility:visible!important;opacity:1!important;z-index:100001!important}' +
       'html.dr-tab-blocked body,body.dr-tab-blocked{overflow:auto!important}';
@@ -208,31 +157,22 @@
       document.body.classList.add('is-login', 'dr-tab-blocked');
       document.documentElement.classList.add('dr-tab-blocked');
     } catch (e) {}
-    ['portal-customer', 'portal-agent', 'dr-post-login-boot', 'dr-portal-loader', 'dr-phase-boot'].forEach(
-      function (id) {
-        try {
-          var el = document.getElementById(id);
-          if (!el) return;
-          el.classList.remove('active', 'is-on');
-          el.style.setProperty('display', 'none', 'important');
-          el.hidden = true;
-        } catch (e2) {}
-      }
-    );
+    ['portal-customer', 'portal-agent', 'dr-post-login-boot', 'dr-portal-loader', 'dr-phase-boot'].forEach(function (id) {
+      try {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.classList.remove('active', 'is-on');
+        el.style.setProperty('display', 'none', 'important');
+        el.hidden = true;
+      } catch (e2) {}
+    });
     try {
       var ls = document.getElementById('login-screen');
-      if (ls) {
-        ls.hidden = false;
-        ls.removeAttribute('hidden');
-        ls.style.cssText = '';
-      }
+      if (ls) { ls.hidden = false; ls.removeAttribute('hidden'); ls.style.cssText = ''; }
     } catch (e3) {}
     try {
       var sw = document.getElementById('dr-dev-portal-switch');
-      if (sw) {
-        sw.classList.remove('is-on');
-        sw.style.display = 'none';
-      }
+      if (sw) { sw.classList.remove('is-on'); sw.style.display = 'none'; }
     } catch (e4) {}
   }
 
@@ -246,11 +186,22 @@
     hideAllPortalsAndLoaders();
   }
 
+  function clearAllGates() {
+    try {
+      window.__DR_TAB_GATE_LOCK = 0;
+      window.__DR_TAB_GATE_MSG = '';
+      sessionStorage.removeItem('dr_tab_gate_err');
+      document.body.classList.remove('dr-tab-blocked', 'dr-pending-blocked', 'is-login');
+      document.documentElement.classList.remove('dr-tab-blocked');
+    } catch (e) {}
+  }
+
   function showPortal(which) {
-    if (window.__DR_TAB_GATE_LOCK || document.body.classList.contains('dr-tab-blocked')) {
+    if ((window.__DR_TAB_GATE_LOCK || document.body.classList.contains('dr-tab-blocked')) && !isDevSession()) {
       sealLoginOnly();
       return;
     }
+    clearAllGates();
     var pc = document.getElementById('portal-customer');
     var pa = document.getElementById('portal-agent');
     var ls = document.getElementById('login-screen');
@@ -260,38 +211,39 @@
       document.documentElement.classList.remove('dr-tab-blocked');
     } catch (e) {}
     if (ls) {
-      try {
-        ls.hidden = true;
-        ls.style.cssText = 'display:none!important';
-      } catch (e2) {}
+      try { ls.hidden = true; ls.style.cssText = 'display:none!important'; } catch (e2) {}
     }
     if (which === 'employee') {
       if (pa) {
         pa.classList.remove('active');
-        try {
-          pa.style.setProperty('display', 'none', 'important');
-        } catch (e3) {}
+        try { pa.style.setProperty('display', 'none', 'important'); } catch (e3) {}
       }
       if (pc) {
+        pc.hidden = false;
+        pc.removeAttribute('hidden');
         pc.classList.add('active');
         try {
           pc.style.removeProperty('display');
           pc.style.setProperty('display', 'block', 'important');
           pc.style.minHeight = '100vh';
+          pc.style.visibility = 'visible';
+          pc.style.opacity = '1';
         } catch (e4) {}
       }
     } else {
       if (pc) {
         pc.classList.remove('active');
-        try {
-          pc.style.setProperty('display', 'none', 'important');
-        } catch (e5) {}
+        try { pc.style.setProperty('display', 'none', 'important'); } catch (e5) {}
       }
       if (pa) {
+        pa.hidden = false;
+        pa.removeAttribute('hidden');
         pa.classList.add('active');
         try {
           pa.style.removeProperty('display');
           pa.style.setProperty('display', 'flex', 'important');
+          pa.style.visibility = 'visible';
+          pa.style.opacity = '1';
         } catch (e6) {}
       }
     }
@@ -392,17 +344,12 @@
     var em = norm(p.email || sessionEmail());
     var un = norm(p.username || sessionUser());
     if (isDev(em) || isDev(un)) window.__drIsDeveloper = true;
-
     var tab = getLoginTab();
     var pref = '';
-    try {
-      pref = sessionStorage.getItem('dr_dev_portal_pref') || '';
-    } catch (e) {}
+    try { pref = sessionStorage.getItem('dr_dev_portal_pref') || ''; } catch (e) {}
     var kind = profileKind(p);
-
     if (kind === 'employee') return 'employee';
     if (kind === 'staff') return 'admin';
-
     if (tab === 'customer') return 'employee';
     if (tab === 'agent') return 'admin';
     if (pref === 'employee') return 'employee';
@@ -412,19 +359,16 @@
 
   function resetSignInButtons() {
     try {
-      document
-        .querySelectorAll(
-          '#login-agent button[type="submit"], #login-customer button[type="submit"], ' +
-            '.login-card button[type="submit"], button.btn-primary'
-        )
-        .forEach(function (btn) {
-          if (!btn) return;
-          var t = (btn.textContent || '').toLowerCase();
-          if (t.indexOf('signing') !== -1 || t.indexOf('loading') !== -1 || btn.disabled) {
-            btn.disabled = false;
-            btn.textContent = 'Sign in';
-          }
-        });
+      document.querySelectorAll(
+        '#login-agent button[type="submit"], #login-customer button[type="submit"], .login-card button[type="submit"], button.btn-primary'
+      ).forEach(function (btn) {
+        if (!btn) return;
+        var t = (btn.textContent || '').toLowerCase();
+        if (t.indexOf('signing') !== -1 || t.indexOf('loading') !== -1 || btn.disabled) {
+          btn.disabled = false;
+          btn.textContent = 'Sign in';
+        }
+      });
     } catch (e) {}
   }
 
@@ -437,15 +381,11 @@
       document.body.classList.remove('dr-tab-blocked');
     } catch (e) {}
     try {
-      document
-        .querySelectorAll(
-          '.login-error, .form-error, .error, [data-dr-login-err], .dr-tab-gate-err'
-        )
-        .forEach(function (b) {
-          b.textContent = '';
-          b.style.display = 'none';
-          b.classList.remove('is-on');
-        });
+      document.querySelectorAll('.login-error, .form-error, .error, [data-dr-login-err], .dr-tab-gate-err').forEach(function (b) {
+        b.textContent = '';
+        b.style.display = 'none';
+        b.classList.remove('is-on');
+      });
     } catch (e2) {}
     try {
       document.querySelectorAll('.login-card').forEach(function (card) {
@@ -463,25 +403,15 @@
     var formId = tab === 'agent' ? 'login-agent' : 'login-customer';
     try {
       if (typeof window.showForm === 'function') window.showForm(formId);
-      if (typeof window.switchLoginTab === 'function')
-        window.switchLoginTab(tab === 'agent' ? 'agent' : 'customer');
+      if (typeof window.switchLoginTab === 'function') window.switchLoginTab(tab === 'agent' ? 'agent' : 'customer');
     } catch (e) {}
-    var form =
-      document.getElementById(formId) ||
-      document.querySelector('#login-agent, #login-customer, .login-card form');
-    var card =
-      (form && form.closest && form.closest('.login-card')) || document.querySelector('.login-card');
+    var form = document.getElementById(formId) || document.querySelector('#login-agent, #login-customer, .login-card form');
+    var card = (form && form.closest && form.closest('.login-card')) || document.querySelector('.login-card');
     var boxes = [];
-    if (form) {
-      form.querySelectorAll('.form-error, .error, .login-error, [data-dr-login-err]').forEach(function (b) {
-        boxes.push(b);
-      });
-    }
-    if (card) {
-      card.querySelectorAll('.form-error, .error, .login-error, [data-dr-login-err]').forEach(function (b) {
-        if (boxes.indexOf(b) === -1) boxes.push(b);
-      });
-    }
+    if (form) form.querySelectorAll('.form-error, .error, .login-error, [data-dr-login-err]').forEach(function (b) { boxes.push(b); });
+    if (card) card.querySelectorAll('.form-error, .error, .login-error, [data-dr-login-err]').forEach(function (b) {
+      if (boxes.indexOf(b) === -1) boxes.push(b);
+    });
     if (!boxes.length) {
       var box = document.createElement('div');
       box.className = 'login-error form-error dr-tab-gate-err';
@@ -504,8 +434,7 @@
     try {
       if (card) {
         card.style.borderColor = 'rgba(248,113,113,.7)';
-        card.style.boxShadow =
-          '0 0 0 1px rgba(239,68,68,.45),0 0 24px rgba(239,68,68,.5),0 0 56px rgba(185,28,28,.35)';
+        card.style.boxShadow = '0 0 0 1px rgba(239,68,68,.45),0 0 24px rgba(239,68,68,.5),0 0 56px rgba(185,28,28,.35)';
       }
     } catch (e2) {}
   }
@@ -546,15 +475,8 @@
     showLoginCardError(msg);
     resetSignInButtons();
     softSignOut();
-    setTimeout(function () {
-      showLoginCardError(msg);
-      resetSignInButtons();
-    }, 300);
-    setTimeout(function () {
-      showLoginCardError(msg);
-      resetSignInButtons();
-      window.__DR_TAB_GATE_LOCK = 0;
-    }, 1200);
+    setTimeout(function () { showLoginCardError(msg); resetSignInButtons(); }, 300);
+    setTimeout(function () { showLoginCardError(msg); resetSignInButtons(); window.__DR_TAB_GATE_LOCK = 0; }, 1200);
     return true;
   }
 
@@ -563,10 +485,11 @@
       if (typeof window.showPortalLoader === 'function' && !window.showPortalLoader.__drGate) {
         var _spl = window.showPortalLoader;
         window.showPortalLoader = function () {
-          if (window.__DR_TAB_GATE_LOCK || window.__DR_TAB_GATE_MSG) {
+          if ((window.__DR_TAB_GATE_LOCK || window.__DR_TAB_GATE_MSG) && !isDevSession()) {
             sealLoginOnly();
             return;
           }
+          clearAllGates();
           return _spl.apply(this, arguments);
         };
         window.showPortalLoader.__drGate = 1;
@@ -577,17 +500,11 @@
         var _bw = window.bootWorkspace;
         window.bootWorkspace = async function (roleHint) {
           var tab = '';
-          try {
-            tab = sessionStorage.getItem('dr_login_tab') || '';
-          } catch (e0) {}
+          try { tab = sessionStorage.getItem('dr_login_tab') || ''; } catch (e0) {}
           if (!tab) tab = getLoginTab();
-
           var p = window.__drProfile || {};
           var kind = profileKind(p);
-          if (
-            (kind === 'employee' || roleHint === 'customer' || roleHint === 'employee') &&
-            tab === 'agent'
-          ) {
+          if ((kind === 'employee' || roleHint === 'customer' || roleHint === 'employee') && tab === 'agent') {
             blockWrongTab('Employee accounts must sign in on the Employee tab.');
             return;
           }
@@ -595,20 +512,17 @@
             blockWrongTab('Admin accounts must sign in on the Admin tab.');
             return;
           }
-          if (window.__DR_TAB_GATE_LOCK || window.__DR_TAB_GATE_MSG) {
+          if ((window.__DR_TAB_GATE_LOCK || window.__DR_TAB_GATE_MSG) && !isDevSession()) {
             sealLoginOnly();
             return;
           }
+          clearAllGates();
           try {
-            if (tab === 'agent' || tab === 'customer') {
-              sessionStorage.setItem('dr_login_tab', tab);
-            }
+            if (tab === 'agent' || tab === 'customer') sessionStorage.setItem('dr_login_tab', tab);
           } catch (e1) {}
           var result = await _bw.apply(this, arguments);
           try {
-            if (tab === 'agent' || tab === 'customer') {
-              sessionStorage.setItem('dr_login_tab', tab);
-            }
+            if (tab === 'agent' || tab === 'customer') sessionStorage.setItem('dr_login_tab', tab);
           } catch (e2) {}
           return result;
         };
@@ -646,6 +560,14 @@
     var kind = profileKind(p);
     var tab = getLoginTab();
 
+    if (kind === 'dev' || isDevSession()) {
+      clearAllGates();
+      try {
+        if (window.DRForcePending && window.DRForcePending.clearPendingUI) window.DRForcePending.clearPendingUI(true);
+        if (window.DRForcePending && window.DRForcePending.unlockPortal) window.DRForcePending.unlockPortal();
+      } catch (eD) {}
+    }
+
     if (kind === 'employee' && tab === 'agent') {
       blockWrongTab('Employee accounts must sign in on the Employee tab.');
       return;
@@ -656,10 +578,12 @@
     }
 
     try {
-      document.body.classList.remove('dr-tab-blocked');
+      clearAllGates();
+      document.body.classList.remove('dr-tab-blocked', 'dr-pending-blocked');
       document.documentElement.classList.remove('dr-tab-blocked');
       sessionStorage.removeItem('dr_tab_gate_err');
       window.__DR_TAB_GATE_MSG = '';
+      window.__DR_TAB_GATE_LOCK = 0;
     } catch (e) {}
 
     var which = resolvePortal(p);
@@ -680,7 +604,7 @@
       markHintsFromLogin();
       applyAccess(window.__drProfile || { role: role });
     };
-    window.applyPortalForRole.__drDevPatch11 = 1;
+    window.applyPortalForRole.__drDevPatch12 = 1;
 
     window.showApp = function (p) {
       markHintsFromLogin();
@@ -703,59 +627,31 @@
     };
     window.showApp.__drWrapped = 1;
 
-    if (window.DR) {
-      window.DR.showApp = window.showApp;
-    }
+    if (window.DR) window.DR.showApp = window.showApp;
   }
 
-  document.addEventListener(
-    'click',
-    function (e) {
-      var t =
-        e.target &&
-        (e.target.closest
-          ? e.target.closest('.ltab, button[data-ltab], .login-tabs button')
-          : null);
-      if (t) {
-        var tab = (t.getAttribute('data-ltab') || '').toLowerCase();
-        if (tab === 'agent' || tab === 'customer') rememberLoginTab(tab);
-        else if (/admin|agent/i.test(t.textContent || '')) {
-          rememberLoginTab('agent');
-          tab = 'agent';
-        } else if (/employee|customer|end.?user/i.test(t.textContent || '')) {
-          rememberLoginTab('customer');
-          tab = 'customer';
-        }
-        clearLoginCardError();
-      }
-      var btn =
-        e.target &&
-        (e.target.closest
-          ? e.target.closest('button[type="submit"], button.btn-primary')
-          : null);
-      if (btn) {
-        if (btn.closest('#login-agent')) {
-          rememberLoginTab('agent');
-          setPreferredPortal('admin');
-        }
-        if (btn.closest('#login-customer')) {
-          rememberLoginTab('customer');
-          setPreferredPortal('employee');
-        }
-        markHintsFromLogin();
-      }
-    },
-    true
-  );
+  document.addEventListener('click', function (e) {
+    var t = e.target && (e.target.closest ? e.target.closest('.ltab, button[data-ltab], .login-tabs button') : null);
+    if (t) {
+      var tab = (t.getAttribute('data-ltab') || '').toLowerCase();
+      if (tab === 'agent' || tab === 'customer') rememberLoginTab(tab);
+      else if (/admin|agent/i.test(t.textContent || '')) { rememberLoginTab('agent'); tab = 'agent'; }
+      else if (/employee|customer|end.?user/i.test(t.textContent || '')) { rememberLoginTab('customer'); tab = 'customer'; }
+      clearLoginCardError();
+    }
+    var btn = e.target && (e.target.closest ? e.target.closest('button[type="submit"], button.btn-primary') : null);
+    if (btn) {
+      if (btn.closest('#login-agent')) { rememberLoginTab('agent'); setPreferredPortal('admin'); }
+      if (btn.closest('#login-customer')) { rememberLoginTab('customer'); setPreferredPortal('employee'); }
+      markHintsFromLogin();
+    }
+  }, true);
 
   function watch() {
     patchApply();
     patchPortalTransitions();
     try {
-      if (
-        !document.body.classList.contains('dr-portal-ok') &&
-        !document.body.classList.contains('is-portal')
-      ) {
+      if (!document.body.classList.contains('dr-portal-ok') && !document.body.classList.contains('is-portal')) {
         updateSwitcher('');
         return;
       }
@@ -784,7 +680,7 @@
   }
 
   window.DRDevPortal = {
-    v: 11,
+    v: 12,
     isDev: isDevSession,
     canSwitch: canSeeSwitcher,
     showEmployee: function () {
