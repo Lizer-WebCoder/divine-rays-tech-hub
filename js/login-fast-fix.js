@@ -1,11 +1,12 @@
 /**
- * Divine Rays — login-fast-fix v5
+ * Divine Rays — login-fast-fix v6
  * Admin Sign in only. Never intercepts Employee form.
+ * Pending: call blockNow (orange glow + shake + toast) instead of silent return.
  */
 (function () {
   'use strict';
-  if (window.__DR_LOGIN_FAST_FIX >= 5) return;
-  window.__DR_LOGIN_FAST_FIX = 5;
+  if (window.__DR_LOGIN_FAST_FIX >= 6) return;
+  window.__DR_LOGIN_FAST_FIX = 6;
 
   var APP_JS =
     'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@5e1107f239eb33e0c397f62839334c57b1d56edb/js/app.js';
@@ -38,7 +39,6 @@
     var btn = el.closest('button, input[type="submit"], [role="button"]');
     if (!btn) return null;
     if (isEyeBtn(btn)) return null;
-    // ONLY Admin form — never Employee
     if (btn.closest('#login-customer')) return null;
     if (!btn.closest('#login-agent')) return null;
     var tx = (btn.textContent || '').toLowerCase();
@@ -90,7 +90,7 @@
         if (typeof window.__drDoAgentLogin === 'function') {
           clearInterval(t);
           cb();
-        } else if (n > 100) {
+        } else if (n > 60) {
           clearInterval(t);
           cb();
         }
@@ -98,28 +98,23 @@
       return;
     }
     _loadingApp = true;
-    try {
-      var s = document.createElement('script');
-      s.src = APP_JS + (APP_JS.indexOf('?') === -1 ? '?' : '&') + 'b=' + Date.now();
-      s.onload = function () {
-        _loadingApp = false;
-        cb();
-      };
-      s.onerror = function () {
-        _loadingApp = false;
-        cb();
-      };
-      (document.head || document.documentElement).appendChild(s);
-    } catch (e) {
+    var s = document.createElement('script');
+    s.src = APP_JS + '?b=' + Date.now();
+    s.onload = function () {
       _loadingApp = false;
       cb();
-    }
+    };
+    s.onerror = function () {
+      _loadingApp = false;
+      cb();
+    };
+    document.head.appendChild(s);
   }
 
   function doLogin(btn) {
     if (window.__drBooting) return;
-    if (_locking) return;
     if (window.__drEmployeeLoginClick) return;
+    if (_locking) return;
     _locking = true;
     setTimeout(function () {
       _locking = false;
@@ -137,6 +132,9 @@
         window.DRForcePending.isPendingIdentity &&
         window.DRForcePending.isPendingIdentity()
       ) {
+        try {
+          if (window.DRForcePending.blockNow) window.DRForcePending.blockNow();
+        } catch (eB) {}
         clearStuck();
         resetBtn(btn);
         return;
@@ -221,5 +219,5 @@
     ensureDoLogin(function () {});
   }, 800);
 
-  window.DRLoginFastFix = { doLogin: doLogin, v: 5 };
+  window.DRLoginFastFix = { doLogin: doLogin, v: 6 };
 })();
