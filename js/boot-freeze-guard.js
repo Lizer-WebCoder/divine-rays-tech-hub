@@ -1,33 +1,58 @@
 /**
- * Divine Rays — boot freeze guard
- * Clear stuck loaders; never leave user on infinite Loading screen
+ * Divine Rays — boot freeze guard v2
+ * Remove stuck boot/loader nodes from the DOM (does not touch features).
+ * Does NOT clear post-login session flags (those are owned by login flow).
  */
 (function () {
   'use strict';
-  if (window.__DR_BOOT_FREEZE_GUARD) return;
-  window.__DR_BOOT_FREEZE_GUARD = 1;
+  if (window.__DR_BOOT_FREEZE_GUARD >= 2) return;
+  window.__DR_BOOT_FREEZE_GUARD = 2;
 
-  try {
-    sessionStorage.removeItem('dr_post_login_boot');
-  } catch (e) {}
-
-  function clearLoaders() {
+  function isPostLogin() {
     try {
-      ['dr-portal-loader', 'dr-phase-boot'].forEach(function (id) {
-        var el = document.getElementById(id);
-        if (el) {
-          el.classList.add('is-done');
-          el.style.display = 'none';
-          try {
-            if (el.parentNode) el.parentNode.removeChild(el);
-          } catch (e2) {}
-        }
-      });
-    } catch (e3) {}
+      return (
+        sessionStorage.getItem('dr_skip_boot_gear') === '1' ||
+        sessionStorage.getItem('dr_post_login_boot') === '1'
+      );
+    } catch (e) {
+      return false;
+    }
   }
 
-  setTimeout(clearLoaders, 2500);
-  setTimeout(clearLoaders, 5000);
+  function removeNode(id) {
+    try {
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.classList.add('is-done');
+      try {
+        if (el.parentNode) el.parentNode.removeChild(el);
+      } catch (e) {
+        el.style.cssText = 'display:none!important';
+      }
+    } catch (e2) {}
+  }
+
+  function clearStuckGearOnly() {
+    // Only remove boot gear shells — never touch login UI / portals / features
+    removeNode('dr-phase-boot');
+    try {
+      var boot = document.getElementById('boot');
+      if (boot && boot.classList.contains('is-done')) removeNode('boot');
+    } catch (e) {}
+  }
+
+  // Late safety: if still stuck on gear after long wait (and not post-login rings)
+  setTimeout(function () {
+    try {
+      if (isPostLogin()) return;
+      var phase = document.getElementById('dr-phase-boot');
+      if (phase && !phase.classList.contains('is-done')) {
+        // login should have appeared by now
+        if (document.getElementById('login-screen')) clearStuckGearOnly();
+      }
+    } catch (e) {}
+  }, 6000);
+
   setTimeout(function () {
     try {
       window.__DR_PAUSE_LOGIN_SCRIPTS = 0;
