@@ -1,12 +1,13 @@
 /**
- * Divine Rays — force-pending-block v28
+ * Divine Rays — force-pending-block v29
  * Only block EXPLICITLY pending identities. Unknown is not pending.
  * Developers: kirzhianquijano@gmail.com, iiyasora2002@gmail.com
+ * Shake once per attempt; again on each new Sign in click.
  */
 (function () {
   'use strict';
-  if (window.__DR_FORCE_PENDING_V28) return;
-  window.__DR_FORCE_PENDING_V28 = 1;
+  if (window.__DR_FORCE_PENDING_V29) return;
+  window.__DR_FORCE_PENDING_V29 = 1;
 
   var DEVS = {
     'kirzhianquijano@gmail.com': 1,
@@ -64,6 +65,10 @@
       if (un) map[un] = 'pending';
       if (em) map[em] = 'pending';
       localStorage.setItem('dr_approval_map', JSON.stringify(map));
+      var m2 = JSON.parse(localStorage.getItem('dr_staff_approval') || '{}');
+      if (un) m2['pending:' + un] = 'pending';
+      if (em) m2['pending:' + em] = 'pending';
+      localStorage.setItem('dr_staff_approval', JSON.stringify(m2));
     } catch (e) {}
   }
   function isPendingIdentity() {
@@ -127,6 +132,10 @@
     if (u.raw) markPending(u.un, u.em);
     showPendingUI();
     hidePortalIfOpen();
+    try {
+      document.body.classList.add('dr-pending-blocked');
+      document.body.classList.remove('dr-portal-ok', 'is-portal');
+    } catch (e) {}
   }
   function syncIdentityUI() {
     var u = readIdentity();
@@ -146,9 +155,8 @@
     } catch (e) {}
   }
   function onPendingAttempt(ev) {
-    if (window.__drAgentLoginBusy || window.__drBooting) return true;
+    if (window.__drBooting) return true;
     if (!isPendingIdentity()) {
-      clearPendingUI();
       return false;
     }
     stop(ev);
@@ -159,25 +167,30 @@
     if (window.__DR_PAUSE_LOGIN_SCRIPTS) return;
     var form = agentForm();
     if (!form) return;
-    if (!form.__drFpV28Submit) {
-      form.__drFpV28Submit = 1;
-      form.addEventListener('submit', function (ev) { onPendingAttempt(ev); }, true);
+    if (!form.__drFpV29Submit) {
+      form.__drFpV29Submit = 1;
+      form.addEventListener('submit', function (ev) {
+        if (onPendingAttempt(ev)) return;
+      }, true);
     }
-    var btns = form.querySelectorAll('button, input[type="submit"]');
-    for (var i = 0; i < btns.length; i++) {
-      var b = btns[i];
-      if (b.__drFpV28Btn) continue;
-      b.__drFpV28Btn = 1;
-      b.addEventListener('click', function (ev) { onPendingAttempt(ev); }, true);
+    if (!form.__drFpV29Click) {
+      form.__drFpV29Click = 1;
+      form.addEventListener('click', function (ev) {
+        var t = ev.target;
+        if (!t) return;
+        var btn = t.closest ? t.closest('button[type="submit"], button.btn-primary, button.btn') : null;
+        if (!btn) return;
+        if (onPendingAttempt(ev)) return;
+      }, true);
     }
-    if (!form.__drFpV28Key) {
-      form.__drFpV28Key = 1;
+    if (!form.__drFpV29Key) {
+      form.__drFpV29Key = 1;
       form.addEventListener('keydown', function (ev) {
         if (ev.key === 'Enter') onPendingAttempt(ev);
       }, true);
     }
-    if (!form.__drFpV28Input) {
-      form.__drFpV28Input = 1;
+    if (!form.__drFpV29Input) {
+      form.__drFpV29Input = 1;
       var t = null;
       form.addEventListener('input', function (ev) {
         try {
@@ -196,7 +209,7 @@
     clearPendingUI: clearPendingUI,
     blockNow: blockNow,
     unlockPortal: unlockPortal,
-    v: 28
+    v: 29
   };
 
   wireForm();
