@@ -1,13 +1,12 @@
 /**
- * Divine Rays — force-pending-block v29
+ * Divine Rays — force-pending-block v30
  * Only block EXPLICITLY pending identities. Unknown is not pending.
- * Developers: kirzhianquijano@gmail.com, iiyasora2002@gmail.com
- * Shake once per attempt; again on each new Sign in click.
+ * One shake per attempt; orange glow + toast fade back after ~3s.
  */
 (function () {
   'use strict';
-  if (window.__DR_FORCE_PENDING_V29) return;
-  window.__DR_FORCE_PENDING_V29 = 1;
+  if (window.__DR_FORCE_PENDING_V30) return;
+  window.__DR_FORCE_PENDING_V30 = 1;
 
   var DEVS = {
     'kirzhianquijano@gmail.com': 1,
@@ -17,6 +16,8 @@
   var _toastEl = null;
   var _uiOn = false;
   var _lastIdent = '';
+  var _fadeTimer = null;
+  var _shakeTimer = null;
 
   function norm(s) { return String(s || '').trim().toLowerCase(); }
   function isDev(v) { return !!DEVS[norm(v)]; }
@@ -77,26 +78,82 @@
     if (isDev(u.un) || isDev(u.em)) return false;
     return getStatus(u.un, u.em) === 'pending';
   }
-  function clearPendingUI() {
+  function clearPendingUI(instant) {
     try {
-      document.querySelectorAll('.login-card.login-pending-glow').forEach(function (c) {
-        c.classList.remove('login-pending-glow', 'dr-shake');
+      if (_fadeTimer) { clearTimeout(_fadeTimer); _fadeTimer = null; }
+      if (_shakeTimer) { clearTimeout(_shakeTimer); _shakeTimer = null; }
+    } catch (e0) {}
+    try {
+      document.querySelectorAll('.login-card.login-pending-glow, .login-card.dr-shake').forEach(function (c) {
+        c.classList.remove('login-pending-glow', 'dr-shake', 'login-pending-fade');
+        c.style.boxShadow = '';
+        c.style.borderColor = '';
+        c.style.transition = '';
       });
       document.querySelectorAll('.toast[data-dr-force-pending]').forEach(function (t) {
         try { t.remove(); } catch (e) { t.style.display = 'none'; }
       });
+      _toastEl = null;
       document.body.classList.remove('dr-pending-blocked');
       _uiOn = false;
     } catch (e) {}
   }
+  function schedulePendingFade() {
+    try {
+      if (_fadeTimer) clearTimeout(_fadeTimer);
+    } catch (e) {}
+    _fadeTimer = setTimeout(function () {
+      try {
+        var card = document.querySelector('.login-card.login-pending-glow');
+        if (card) {
+          card.classList.remove('dr-shake');
+          card.style.transition = 'box-shadow 0.9s ease, border-color 0.9s ease';
+          card.classList.add('login-pending-fade');
+          card.classList.remove('login-pending-glow');
+          setTimeout(function () {
+            try {
+              card.style.boxShadow = '';
+              card.style.borderColor = '';
+              card.style.transition = '';
+              card.classList.remove('login-pending-fade');
+            } catch (e2) {}
+          }, 950);
+        }
+        if (_toastEl && _toastEl.parentNode) {
+          _toastEl.style.transition = 'opacity 0.9s ease';
+          _toastEl.style.opacity = '0';
+          var toastRef = _toastEl;
+          setTimeout(function () {
+            try {
+              if (toastRef && toastRef.parentNode) toastRef.parentNode.removeChild(toastRef);
+            } catch (e3) {}
+            if (_toastEl === toastRef) _toastEl = null;
+          }, 950);
+        }
+        document.body.classList.remove('dr-pending-blocked');
+        _uiOn = false;
+      } catch (e4) {}
+      _fadeTimer = null;
+    }, 3200);
+  }
   function showPendingUI() {
     try {
+      if (_fadeTimer) { clearTimeout(_fadeTimer); _fadeTimer = null; }
+      if (_shakeTimer) { clearTimeout(_shakeTimer); _shakeTimer = null; }
+
       var card = document.querySelector('#login-agent .login-card, #login-screen .login-card, .login-card');
       if (card) {
+        card.classList.remove('login-pending-fade');
+        card.style.transition = '';
+        card.style.boxShadow = '';
+        card.style.borderColor = '';
         card.classList.add('login-pending-glow');
         card.classList.remove('dr-shake');
         void card.offsetWidth;
         card.classList.add('dr-shake');
+        _shakeTimer = setTimeout(function () {
+          try { card.classList.remove('dr-shake'); } catch (e) {}
+        }, 500);
       }
       var box = document.getElementById('login-screen') || document.body;
       if (!_toastEl || !_toastEl.parentNode) {
@@ -107,9 +164,11 @@
       }
       _toastEl.textContent = MSG;
       _toastEl.style.display = 'block';
+      _toastEl.style.transition = 'opacity 0.25s ease';
       _toastEl.style.opacity = '1';
     } catch (e5) {}
     _uiOn = true;
+    schedulePendingFade();
   }
   function hidePortalIfOpen() {
     try {
@@ -167,14 +226,14 @@
     if (window.__DR_PAUSE_LOGIN_SCRIPTS) return;
     var form = agentForm();
     if (!form) return;
-    if (!form.__drFpV29Submit) {
-      form.__drFpV29Submit = 1;
+    if (!form.__drFpV30Submit) {
+      form.__drFpV30Submit = 1;
       form.addEventListener('submit', function (ev) {
         if (onPendingAttempt(ev)) return;
       }, true);
     }
-    if (!form.__drFpV29Click) {
-      form.__drFpV29Click = 1;
+    if (!form.__drFpV30Click) {
+      form.__drFpV30Click = 1;
       form.addEventListener('click', function (ev) {
         var t = ev.target;
         if (!t) return;
@@ -183,14 +242,14 @@
         if (onPendingAttempt(ev)) return;
       }, true);
     }
-    if (!form.__drFpV29Key) {
-      form.__drFpV29Key = 1;
+    if (!form.__drFpV30Key) {
+      form.__drFpV30Key = 1;
       form.addEventListener('keydown', function (ev) {
         if (ev.key === 'Enter') onPendingAttempt(ev);
       }, true);
     }
-    if (!form.__drFpV29Input) {
-      form.__drFpV29Input = 1;
+    if (!form.__drFpV30Input) {
+      form.__drFpV30Input = 1;
       var t = null;
       form.addEventListener('input', function (ev) {
         try {
@@ -209,8 +268,24 @@
     clearPendingUI: clearPendingUI,
     blockNow: blockNow,
     unlockPortal: unlockPortal,
-    v: 29
+    v: 30
   };
+
+  try {
+    var st = document.getElementById('dr-pending-fade-css');
+    if (!st) {
+      st = document.createElement('style');
+      st.id = 'dr-pending-fade-css';
+      st.textContent = [
+        '.login-card.login-pending-glow{',
+        'animation:drPendingPulse 1.2s ease-in-out 2!important;',
+        'transition:box-shadow .9s ease,border-color .9s ease}',
+        '.login-card.dr-shake{animation:drCardShake .45s ease-in-out 1!important}',
+        '.toast[data-dr-force-pending]{transition:opacity .9s ease}'
+      ].join('');
+      (document.head || document.documentElement).appendChild(st);
+    }
+  } catch (eCss) {}
 
   wireForm();
   setTimeout(wireForm, 300);
