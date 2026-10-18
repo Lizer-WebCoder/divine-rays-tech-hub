@@ -1,11 +1,11 @@
 /**
- * Divine Rays — Employee login + post-login portal loader v2
- * After sign-in: loading UI → soft reload with session (loads full portal)
+ * Divine Rays — Employee login + single post-login transition v3
+ * One loading UI only (not the boot gear) → portal
  */
 (function () {
   'use strict';
-  if (window.__DR_EMP_PERF_FIX >= 2) return;
-  window.__DR_EMP_PERF_FIX = 2;
+  if (window.__DR_EMP_PERF_FIX >= 3) return;
+  window.__DR_EMP_PERF_FIX = 3;
 
   var DEVS = {
     'kirzhianquijano@gmail.com': 1,
@@ -13,8 +13,12 @@
     'kirzhianquijano': 1,
     'iiyasora2002': 1
   };
-  function norm(v) { return String(v || '').toLowerCase().trim(); }
-  function isDev(v) { return !!DEVS[norm(v)]; }
+  function norm(v) {
+    return String(v || '').toLowerCase().trim();
+  }
+  function isDev(v) {
+    return !!DEVS[norm(v)];
+  }
 
   function isEye(btn) {
     if (!btn) return false;
@@ -65,6 +69,16 @@
   }
 
   function showPortalLoader(msg) {
+    try {
+      ['dr-phase-boot', 'boot'].forEach(function (id) {
+        var b = document.getElementById(id);
+        if (b) {
+          b.classList.add('is-done');
+          b.style.cssText = 'display:none!important;opacity:0;pointer-events:none';
+        }
+      });
+    } catch (e0) {}
+
     var el = document.getElementById('dr-portal-loader');
     if (!el) {
       el = document.createElement('div');
@@ -72,41 +86,39 @@
       el.innerHTML =
         '<style id="dr-portal-loader-css">' +
         '#dr-portal-loader{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;' +
-        'flex-direction:column;gap:1.1rem;background:linear-gradient(180deg,#1a0c38 0%,#0c0618 100%);' +
+        'flex-direction:column;gap:1.35rem;background:radial-gradient(ellipse at 50% 40%,#1e1240 0%,#0c0618 70%);' +
         'transition:opacity .4s ease}' +
         '#dr-portal-loader.is-done{opacity:0;pointer-events:none}' +
-        '#dr-portal-loader .pl-gear{width:64px;height:64px;border-radius:14px;box-shadow:0 8px 28px rgba(109,90,154,.4)}' +
-        '#dr-portal-loader .pl-spin{transform-origin:32px 32px;animation:drPLSpin 1.35s linear infinite}' +
-        '@keyframes drPLSpin{from{transform:rotate(0)}to{transform:rotate(360deg)}}' +
-        '#dr-portal-loader .pl-title{color:#eeeef6;font-weight:650;font-size:1.15rem;margin:0}' +
-        '#dr-portal-loader .pl-sub{color:#9494ae;font-size:.85rem;margin:0}' +
+        '#dr-portal-loader .pl-rings{position:relative;width:72px;height:72px}' +
+        '#dr-portal-loader .pl-ring{position:absolute;inset:0;border-radius:50%;border:2px solid transparent;' +
+        'border-top-color:#a78bfa;border-right-color:rgba(167,139,250,.35);animation:drPlSpin 1s linear infinite}' +
+        '#dr-portal-loader .pl-ring:nth-child(2){inset:10px;border-top-color:#c4b5fd;animation-duration:1.4s;animation-direction:reverse}' +
+        '#dr-portal-loader .pl-ring:nth-child(3){inset:20px;border-top-color:#8b5cf6;animation-duration:.85s}' +
+        '#dr-portal-loader .pl-core{position:absolute;inset:26px;border-radius:50%;' +
+        'background:radial-gradient(circle,#c4b5fd 0%,#7c6af0 70%);box-shadow:0 0 20px rgba(139,92,246,.55);' +
+        'animation:drPlPulse 1.2s ease-in-out infinite}' +
+        '@keyframes drPlSpin{to{transform:rotate(360deg)}}' +
+        '@keyframes drPlPulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(.85);opacity:.7}}' +
+        '#dr-portal-loader .pl-title{color:#eeeef6;font-weight:650;font-size:1.1rem;margin:0;letter-spacing:.02em}' +
+        '#dr-portal-loader .pl-sub{color:#9494ae;font-size:.82rem;margin:0}' +
+        '#dr-portal-loader .pl-bar{width:160px;height:4px;border-radius:99px;background:rgba(139,92,246,.2);overflow:hidden}' +
+        '#dr-portal-loader .pl-bar>i{display:block;height:100%;width:40%;border-radius:99px;' +
+        'background:linear-gradient(90deg,#7c6af0,#c4b5fd,#7c6af0);background-size:200% 100%;' +
+        'animation:drPlBar 1.1s ease-in-out infinite}' +
+        '@keyframes drPlBar{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}' +
         '</style>' +
-        '<svg class="pl-gear" viewBox="0 0 64 64" width="64" height="64" aria-hidden="true">' +
-        '<defs><linearGradient id="drPlBg" x1="0" y1="0" x2="1" y2="1">' +
-        '<stop offset="0%" stop-color="#6d5a9a"/><stop offset="100%" stop-color="#2a1f3d"/></linearGradient>' +
-        '<linearGradient id="drPlMetal" x1="0" y1="0" x2="1" y2="1">' +
-        '<stop offset="0%" stop-color="#f3e8ff"/><stop offset="100%" stop-color="#c4b5fd"/></linearGradient></defs>' +
-        '<rect width="64" height="64" rx="14" fill="url(#drPlBg)"/>' +
-        '<g class="pl-spin" fill="url(#drPlMetal)">' +
-        '<rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="translate(32 32)"/>' +
-        '<rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="translate(32 32) rotate(45)"/>' +
-        '<rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="translate(32 32) rotate(90)"/>' +
-        '<rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="translate(32 32) rotate(135)"/>' +
-        '<rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="translate(32 32) rotate(180)"/>' +
-        '<rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="translate(32 32) rotate(225)"/>' +
-        '<rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="translate(32 32) rotate(270)"/>' +
-        '<rect x="-3.2" y="-26" width="6.4" height="10" rx="1.2" transform="translate(32 32) rotate(315)"/>' +
-        '<circle cx="32" cy="32" r="17"/><circle cx="32" cy="32" r="9" fill="#2a1f3d"/>' +
-        '<circle cx="32" cy="32" r="5"/><circle cx="32" cy="32" r="2.2" fill="#1a1625"/>' +
-        '</g></svg>' +
-        '<p class="pl-title">Loading portal…</p>' +
-        '<p class="pl-sub" id="dr-portal-loader-sub">Preparing workspace</p>';
+        '<div class="pl-rings" aria-hidden="true">' +
+        '<div class="pl-ring"></div><div class="pl-ring"></div><div class="pl-ring"></div>' +
+        '<div class="pl-core"></div></div>' +
+        '<p class="pl-title">Opening portal…</p>' +
+        '<p class="pl-sub" id="dr-portal-loader-sub">Preparing your workspace</p>' +
+        '<div class="pl-bar"><i></i></div>';
       document.body.appendChild(el);
     }
     el.classList.remove('is-done');
     el.style.display = 'flex';
     var sub = document.getElementById('dr-portal-loader-sub');
-    if (sub) sub.textContent = msg || 'Preparing workspace';
+    if (sub) sub.textContent = msg || 'Preparing your workspace';
     try {
       var ls = document.getElementById('login-screen');
       if (ls) ls.style.cssText = 'display:none!important';
@@ -118,8 +130,10 @@
     if (!el) return;
     el.classList.add('is-done');
     setTimeout(function () {
-      try { if (el.parentNode) el.parentNode.removeChild(el); } catch (e) {}
-    }, 500);
+      try {
+        if (el.parentNode) el.parentNode.removeChild(el);
+      } catch (e) {}
+    }, 450);
   }
 
   function portalLooksReady() {
@@ -140,9 +154,12 @@
   }
 
   async function bootWorkspace(roleHint) {
-    showPortalLoader('Loading portal…');
+    showPortalLoader('Opening portal…');
     try {
-      sessionStorage.setItem('dr_login_tab', roleHint === 'agent' || roleHint === 'admin' ? 'agent' : 'customer');
+      sessionStorage.setItem(
+        'dr_login_tab',
+        roleHint === 'agent' || roleHint === 'admin' ? 'agent' : 'customer'
+      );
       if (roleHint === 'customer' || roleHint === 'employee') {
         sessionStorage.setItem('dr_dev_portal_pref', 'employee');
       } else {
@@ -150,18 +167,25 @@
       }
       sessionStorage.removeItem('dr_force_emp_once');
       sessionStorage.setItem('dr_post_login_boot', '1');
+      sessionStorage.setItem('dr_skip_boot_gear', '1');
     } catch (e) {}
-    await new Promise(function (r) { setTimeout(r, 450); });
+    await new Promise(function (r) {
+      setTimeout(r, 400);
+    });
     location.reload();
   }
 
   async function doEmployeeLogin(form) {
-    var emailEl = document.getElementById('cust-email') || (form && form.querySelector('input[type="email"]'));
-    var passEl = document.getElementById('cust-password') || (form && form.querySelector('input[type="password"]'));
+    var emailEl =
+      document.getElementById('cust-email') || (form && form.querySelector('input[type="email"]'));
+    var passEl =
+      document.getElementById('cust-password') ||
+      (form && form.querySelector('input[type="password"]'));
     var email = emailEl ? String(emailEl.value || '').trim() : '';
     var password = passEl ? passEl.value : '';
     if (!email || !password) {
-      if (window.showError) window.showError('login-customer', !email ? 'Enter your email' : 'Enter your password');
+      if (window.showError)
+        window.showError('login-customer', !email ? 'Enter your email' : 'Enter your password');
       return;
     }
 
@@ -190,9 +214,18 @@
       try {
         var pr = await client.from('profiles').select('*').eq('id', user.id).maybeSingle();
         if (pr && pr.data) window.__drProfile = pr.data;
-        else window.__drProfile = { id: user.id, email: email, role: isDev(em) ? 'developer' : 'customer' };
+        else
+          window.__drProfile = {
+            id: user.id,
+            email: email,
+            role: isDev(em) ? 'developer' : 'customer'
+          };
       } catch (e1) {
-        window.__drProfile = { id: user.id, email: email, role: isDev(em) ? 'developer' : 'customer' };
+        window.__drProfile = {
+          id: user.id,
+          email: email,
+          role: isDev(em) ? 'developer' : 'customer'
+        };
       }
 
       var role = String((window.__drProfile && window.__drProfile.role) || '').toLowerCase();
@@ -200,7 +233,9 @@
         if (window.DR && window.DR.toast) {
           window.DR.toast('Admin accounts must sign in from the Admin tab', 'error');
         }
-        try { await client.auth.signOut({ scope: 'local' }); } catch (e2) {}
+        try {
+          await client.auth.signOut({ scope: 'local' });
+        } catch (e2) {}
         resetSubmit(form);
         return;
       }
@@ -217,24 +252,33 @@
 
   function wireEmployeeForm() {
     var form = document.getElementById('login-customer');
-    if (!form || form.__drEmpFixBound2) return;
-    form.__drEmpFixBound2 = 1;
-    form.addEventListener('submit', function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      doEmployeeLogin(form);
-    }, true);
-    form.addEventListener('click', function (e) {
-      var btn = e.target && (e.target.closest ? e.target.closest('button[type="submit"], button.btn-primary') : null);
-      if (!btn || isEye(btn)) return;
-      if (!form.contains(btn)) return;
-      e.preventDefault();
-      e.stopPropagation();
-      doEmployeeLogin(form);
-    }, true);
+    if (!form || form.__drEmpFixBound3) return;
+    form.__drEmpFixBound3 = 1;
+    form.addEventListener(
+      'submit',
+      function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        doEmployeeLogin(form);
+      },
+      true
+    );
+    form.addEventListener(
+      'click',
+      function (e) {
+        var btn =
+          e.target &&
+          (e.target.closest ? e.target.closest('button[type="submit"], button.btn-primary') : null);
+        if (!btn || isEye(btn)) return;
+        if (!form.contains(btn)) return;
+        e.preventDefault();
+        e.stopPropagation();
+        doEmployeeLogin(form);
+      },
+      true
+    );
   }
 
-  // After reload from post-login boot: apply preferred portal + dismiss loader
   try {
     if (sessionStorage.getItem('dr_post_login_boot') === '1') {
       sessionStorage.removeItem('dr_post_login_boot');
@@ -243,34 +287,74 @@
       var t = setInterval(function () {
         n++;
         try {
+          ['dr-phase-boot', 'boot'].forEach(function (id) {
+            var b = document.getElementById(id);
+            if (b) {
+              b.classList.add('is-done');
+              b.style.cssText = 'display:none!important;opacity:0;pointer-events:none';
+            }
+          });
           if (window.DRDevPortal && window.DRDevPortal.apply) {
             window.DRDevPortal.apply(window.__drProfile);
           }
         } catch (e) {}
-        if (portalLooksReady() || n > 30) {
+        if (portalLooksReady() || n > 25) {
           clearInterval(t);
           hidePortalLoader();
+          try {
+            sessionStorage.removeItem('dr_skip_boot_gear');
+          } catch (e2) {}
         }
       }, 200);
     }
   } catch (e) {}
 
-  document.addEventListener('focusin', function (ev) {
-    var t = ev.target;
-    if (!t || !t.closest) return;
-    if (!t.closest('#login-screen, .login-card')) return;
-    if (t.tagName !== 'INPUT' && t.tagName !== 'TEXTAREA') return;
-    window.__DR_PAUSE_LOGIN_SCRIPTS = 1;
-  }, true);
-  document.addEventListener('focusout', function () {
-    setTimeout(function () { window.__DR_PAUSE_LOGIN_SCRIPTS = 0; }, 200);
-  }, true);
+  try {
+    if (sessionStorage.getItem('dr_skip_boot_gear') === '1') {
+      var kill = function () {
+        ['dr-phase-boot', 'boot'].forEach(function (id) {
+          var b = document.getElementById(id);
+          if (b) {
+            b.classList.add('is-done');
+            b.style.cssText = 'display:none!important;opacity:0;pointer-events:none';
+          }
+        });
+      };
+      kill();
+      setTimeout(kill, 50);
+      setTimeout(kill, 300);
+      setTimeout(kill, 900);
+    }
+  } catch (e) {}
 
-  function boot() { wireEmployeeForm(); }
+  document.addEventListener(
+    'focusin',
+    function (ev) {
+      var t = ev.target;
+      if (!t || !t.closest) return;
+      if (!t.closest('#login-screen, .login-card')) return;
+      if (t.tagName !== 'INPUT' && t.tagName !== 'TEXTAREA') return;
+      window.__DR_PAUSE_LOGIN_SCRIPTS = 1;
+    },
+    true
+  );
+  document.addEventListener(
+    'focusout',
+    function () {
+      setTimeout(function () {
+        window.__DR_PAUSE_LOGIN_SCRIPTS = 0;
+      }, 200);
+    },
+    true
+  );
+
+  function boot() {
+    wireEmployeeForm();
+  }
   boot();
   setTimeout(boot, 400);
   setTimeout(boot, 1200);
   setTimeout(boot, 2500);
 
-  window.DREmpPerfFix = { v: 2, login: doEmployeeLogin, bootWorkspace: bootWorkspace };
+  window.DREmpPerfFix = { v: 3, login: doEmployeeLogin, bootWorkspace: bootWorkspace };
 })();
