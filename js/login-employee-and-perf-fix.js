@@ -1,23 +1,27 @@
 /**
- * Divine Rays — Employee login + single post-login transition v6
- * One loading UI only (rings) → portal; preserves the tab the user signed in on
+ * Divine Rays — login-employee-and-perf-fix v7
+ * Clears residual pending/tab-gate seals so Employee login after a pending Admin
+ * attempt does not open an empty shell portal.
  */
 (function () {
   'use strict';
-  if (window.__DR_EMP_PERF_FIX >= 6) return;
-  window.__DR_EMP_PERF_FIX = 6;
+  if (window.__DR_EMP_PERF_FIX >= 7) return;
+  window.__DR_EMP_PERF_FIX = 7;
 
-  var DEVS = {
-    'kirzhianquijano@gmail.com': 1,
-    'iiyasora2002@gmail.com': 1,
-    'kirzhianquijano': 1,
-    'iiyasora2002': 1
-  };
-  function norm(v) {
-    return String(v || '').toLowerCase().trim();
-  }
-  function isDev(v) {
-    return !!DEVS[norm(v)];
+  function getSb() {
+    try {
+      if (window.__drSb) return window.__drSb;
+      if (window.DR && typeof window.DR.sb === 'function') return window.DR.sb();
+      if (window.supabaseClient) return window.supabaseClient;
+      var cfg = window.DR_CONFIG || {};
+      if (cfg.SUPABASE_URL && cfg.SUPABASE_ANON_KEY && window.supabase) {
+        window.__drSb = window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY, {
+          auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+        });
+        return window.__drSb;
+      }
+    } catch (e) {}
+    return null;
   }
 
   function isEye(btn) {
@@ -29,43 +33,34 @@
     return false;
   }
 
-  function getSb() {
+  function setSubmitSigning(form) {
     try {
-      if (window.__drSb) return window.__drSb;
-      if (window.DR && typeof window.DR.sb === 'function') return window.DR.sb();
-      if (window.supabaseClient) return window.supabaseClient;
+      var btn = null;
+      (form || document).querySelectorAll('button[type="submit"], button.btn-primary, button.btn-full').forEach(function (b) {
+        if (!isEye(b) && !btn) btn = b;
+      });
+      if (!btn) return;
+      if (!btn.getAttribute('data-dr-prev-label')) {
+        btn.setAttribute('data-dr-prev-label', (btn.textContent || 'Sign in').trim());
+      }
+      btn.disabled = true;
+      btn.textContent = 'Signing in…';
+      btn.style.opacity = '0.85';
     } catch (e) {}
-    return null;
   }
 
   function resetSubmit(form) {
-    if (!form) return;
-    form.querySelectorAll('button[type="submit"], button.btn-primary, button.btn-full').forEach(function (b) {
-      if (isEye(b)) return;
-      try {
+    try {
+      (form || document).querySelectorAll('button[type="submit"], button.btn-primary, button.btn-full').forEach(function (b) {
+        if (isEye(b)) return;
         b.disabled = false;
         b.style.opacity = '';
         b.style.pointerEvents = '';
         var prev = b.getAttribute('data-dr-prev-label');
         if (prev) b.textContent = prev;
-        else if (/signing/i.test(b.textContent || '')) b.textContent = 'Sign In';
-      } catch (e) {}
-    });
-  }
-
-  function setSubmitSigning(form) {
-    var btn = null;
-    form.querySelectorAll('button[type="submit"], button.btn-primary, button.btn-full').forEach(function (b) {
-      if (!isEye(b) && !btn) btn = b;
-    });
-    if (!btn) return null;
-    if (!btn.getAttribute('data-dr-prev-label')) {
-      btn.setAttribute('data-dr-prev-label', (btn.textContent || 'Sign In').trim());
-    }
-    btn.textContent = 'Signing in…';
-    btn.disabled = true;
-    btn.style.opacity = '0.85';
-    return btn;
+        else if (/signing/i.test(b.textContent || '')) b.textContent = 'Sign in';
+      });
+    } catch (e) {}
   }
 
   function removeGearNodes() {
@@ -83,8 +78,24 @@
     });
   }
 
+  function clearResidualGates() {
+    try {
+      window.__DR_TAB_GATE_LOCK = 0;
+      window.__DR_TAB_GATE_MSG = '';
+      sessionStorage.removeItem('dr_tab_gate_err');
+      document.body.classList.remove('dr-tab-blocked', 'dr-pending-blocked', 'is-login');
+      document.documentElement.classList.remove('dr-tab-blocked');
+    } catch (e) {}
+    try {
+      if (window.DRForcePending && window.DRForcePending.clearPendingUI)
+        window.DRForcePending.clearPendingUI(true);
+      if (window.DRForcePending && window.DRForcePending.unlockPortal)
+        window.DRForcePending.unlockPortal();
+    } catch (e2) {}
+  }
+
   function showPortalLoader(subText) {
-    if (window.__DR_TAB_GATE_LOCK || window.__DR_TAB_GATE_MSG) return;
+    clearResidualGates();
     removeGearNodes();
     var existing = document.getElementById('dr-post-login-boot');
     if (existing) {
@@ -162,10 +173,10 @@
     try {
       existingTab = sessionStorage.getItem('dr_login_tab') || '';
     } catch (e0) {}
-    if (
-      (roleHint === 'customer' || roleHint === 'employee') &&
-      existingTab === 'agent'
-    ) {
+    if ((roleHint === 'customer' || roleHint === 'employee') && existingTab !== 'agent') {
+      clearResidualGates();
+    }
+    if ((roleHint === 'customer' || roleHint === 'employee') && existingTab === 'agent') {
       try {
         sessionStorage.setItem(
           'dr_tab_gate_err',
@@ -218,9 +229,11 @@
         window.showError('login-customer', !email ? 'Enter your email' : 'Enter your password');
       return;
     }
+    clearResidualGates();
     setSubmitSigning(form);
     try {
       sessionStorage.setItem('dr_login_tab', 'customer');
+      sessionStorage.setItem('dr_dev_portal_pref', 'employee');
     } catch (e) {}
     var client = getSb();
     if (!client) {
@@ -265,7 +278,7 @@
   }
 
   wire();
-  window.DREmpPerfFix = { v: 6, login: doEmployeeLogin, bootWorkspace: bootWorkspace };
+  window.DREmpPerfFix = { v: 7, login: doEmployeeLogin, bootWorkspace: bootWorkspace };
   window.showPortalLoader = showPortalLoader;
   window.hidePortalLoader = hidePortalLoader;
   window.bootWorkspace = bootWorkspace;
