@@ -1,11 +1,11 @@
 /**
- * Divine Rays — portal access v9
- * Wrong-tab: seal login UI immediately (no portal/loader peek); card message only.
+ * Divine Rays — portal access v10
+ * Wrong-tab: seal login UI (no portal peek, no freeze); card message only.
  */
 (function () {
   'use strict';
-  if (window.__DR_DEV_PORTAL >= 9) return;
-  window.__DR_DEV_PORTAL = 9;
+  if (window.__DR_DEV_PORTAL >= 10) return;
+  window.__DR_DEV_PORTAL = 10;
 
   var DEVS = {
     'kirzhianquijano@gmail.com': 1,
@@ -519,17 +519,15 @@
     showLoginCardError(msg);
     resetSignInButtons();
     softSignOut();
-    var hold = 0;
-    var iv = setInterval(function () {
-      hold++;
-      sealLoginOnly();
+    setTimeout(function () {
       showLoginCardError(msg);
       resetSignInButtons();
-      if (hold >= 12) {
-        clearInterval(iv);
-        window.__DR_TAB_GATE_LOCK = 0;
-      }
-    }, 200);
+    }, 300);
+    setTimeout(function () {
+      showLoginCardError(msg);
+      resetSignInButtons();
+      window.__DR_TAB_GATE_LOCK = 0;
+    }, 1200);
     return true;
   }
 
@@ -550,31 +548,46 @@
     try {
       if (typeof window.bootWorkspace === 'function' && !window.bootWorkspace.__drGate) {
         var _bw = window.bootWorkspace;
-        window.bootWorkspace = function () {
+        window.bootWorkspace = async function (roleHint) {
+          var tab = '';
+          try {
+            tab = sessionStorage.getItem('dr_login_tab') || '';
+          } catch (e0) {}
+          if (!tab) tab = getLoginTab();
+
+          var p = window.__drProfile || {};
+          var kind = profileKind(p);
+          if (
+            (kind === 'employee' || roleHint === 'customer' || roleHint === 'employee') &&
+            tab === 'agent'
+          ) {
+            blockWrongTab('Employee accounts must sign in on the Employee tab.');
+            return;
+          }
+          if (kind === 'staff' && tab === 'customer') {
+            blockWrongTab('Admin accounts must sign in on the Admin tab.');
+            return;
+          }
           if (window.__DR_TAB_GATE_LOCK || window.__DR_TAB_GATE_MSG) {
             sealLoginOnly();
-            return Promise.resolve();
+            return;
           }
-          return _bw.apply(this, arguments);
+          try {
+            if (tab === 'agent' || tab === 'customer') {
+              sessionStorage.setItem('dr_login_tab', tab);
+            }
+          } catch (e1) {}
+          var result = await _bw.apply(this, arguments);
+          try {
+            if (tab === 'agent' || tab === 'customer') {
+              sessionStorage.setItem('dr_login_tab', tab);
+            }
+          } catch (e2) {}
+          return result;
         };
         window.bootWorkspace.__drGate = 1;
       }
     } catch (e2) {}
-    try {
-      if (!window.__DR_TAB_GATE_OBS) {
-        window.__DR_TAB_GATE_OBS = 1;
-        var obs = new MutationObserver(function () {
-          if (!window.__DR_TAB_GATE_LOCK && !document.body.classList.contains('dr-tab-blocked')) return;
-          hideAllPortalsAndLoaders();
-        });
-        obs.observe(document.documentElement, {
-          childList: true,
-          subtree: true,
-          attributes: true,
-          attributeFilter: ['class', 'style', 'hidden']
-        });
-      }
-    } catch (e3) {}
   }
 
   function consumeStoredTabError() {
@@ -630,7 +643,7 @@
       markHintsFromLogin();
       applyAccess(window.__drProfile || { role: role });
     };
-    window.applyPortalForRole.__drDevPatch9 = 1;
+    window.applyPortalForRole.__drDevPatch10 = 1;
 
     window.showApp = function (p) {
       markHintsFromLogin();
@@ -729,7 +742,7 @@
   }
 
   window.DRDevPortal = {
-    v: 9,
+    v: 10,
     isDev: isDevSession,
     canSwitch: canSeeSwitcher,
     showEmployee: function () {
@@ -766,7 +779,7 @@
   var iv = setInterval(function () {
     n++;
     watch();
-    if (n > 15) clearInterval(iv);
-  }, 500);
-  setInterval(watch, 3000);
+    if (n > 6) clearInterval(iv);
+  }, 1000);
+  setInterval(watch, 5000);
 })();
