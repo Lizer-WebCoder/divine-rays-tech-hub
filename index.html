@@ -8,17 +8,50 @@
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <style>
     html,body{margin:0;min-height:100vh;font-family:Inter,system-ui,sans-serif;
-      background:linear-gradient(180deg,#1a0c38 0%,#0c0618 60%,#06040e 100%);color:#eeeef6}
+      background:radial-gradient(ellipse at 50% 40%,#1e1240 0%,#0c0618 70%);color:#eeeef6}
     #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:1.25rem;text-align:center;padding:1.5rem;
       transition:opacity 1s ease,visibility 1s ease}
-    #boot.is-done{opacity:0;visibility:hidden;pointer-events:none;position:fixed;inset:0;z-index:99999}
+    #boot.is-done,#boot.dr-skip{opacity:0!important;visibility:hidden!important;pointer-events:none!important;display:none!important}
     #boot .boot-logo{width:72px;height:72px;border-radius:16px;display:block;box-shadow:0 8px 32px rgba(109,90,154,.35)}
     #boot .boot-gear-spin{transform-origin:32px 32px;transform-box:view-box;animation:drBootGearSpin 1.4s linear infinite}
     #boot .boot-title{font-size:1.35rem;font-weight:650;margin:0;color:#eeeef6}
     #boot .boot-sub{font-size:.85rem;color:#9494ae;margin:0}
     #boot .err{color:#fca5a5;font-size:.9rem;max-width:28rem}
     @keyframes drBootGearSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+    /* Post-login only loader (rings) — same design as portal transition */
+    #dr-post-login-boot{position:fixed;inset:0;z-index:100000;display:none;align-items:center;justify-content:center;
+      flex-direction:column;gap:1.35rem;background:radial-gradient(ellipse at 50% 40%,#1e1240 0%,#0c0618 70%)}
+    #dr-post-login-boot.is-on{display:flex}
+    #dr-post-login-boot .pl-rings{position:relative;width:72px;height:72px}
+    #dr-post-login-boot .pl-ring{position:absolute;inset:0;border-radius:50%;border:2px solid transparent;
+      border-top-color:#a78bfa;border-right-color:rgba(167,139,250,.35);animation:drPlSpin 1s linear infinite}
+    #dr-post-login-boot .pl-ring:nth-child(2){inset:10px;border-top-color:#c4b5fd;animation-duration:1.4s;animation-direction:reverse}
+    #dr-post-login-boot .pl-ring:nth-child(3){inset:20px;border-top-color:#8b5cf6;animation-duration:.85s}
+    #dr-post-login-boot .pl-core{position:absolute;inset:26px;border-radius:50%;
+      background:radial-gradient(circle,#c4b5fd 0%,#7c6af0 70%);box-shadow:0 0 20px rgba(139,92,246,.55);
+      animation:drPlPulse 1.2s ease-in-out infinite}
+    @keyframes drPlSpin{to{transform:rotate(360deg)}}
+    @keyframes drPlPulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(.85);opacity:.7}}
+    #dr-post-login-boot .pl-title{color:#eeeef6;font-weight:650;font-size:1.1rem;margin:0}
+    #dr-post-login-boot .pl-sub{color:#9494ae;font-size:.82rem;margin:0}
+    #dr-post-login-boot .pl-bar{width:160px;height:4px;border-radius:99px;background:rgba(139,92,246,.2);overflow:hidden}
+    #dr-post-login-boot .pl-bar>i{display:block;height:100%;width:40%;border-radius:99px;
+      background:linear-gradient(90deg,#7c6af0,#c4b5fd,#7c6af0);animation:drPlBar 1.1s ease-in-out infinite}
+    @keyframes drPlBar{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}
   </style>
+  <script>
+  /* Hide gear before paint when returning from sign-in */
+  (function () {
+    try {
+      if (sessionStorage.getItem('dr_skip_boot_gear') === '1') {
+        document.documentElement.classList.add('dr-post-login');
+        var s = document.createElement('style');
+        s.textContent = '#boot{display:none!important}#dr-post-login-boot{display:flex!important}';
+        document.head.appendChild(s);
+      }
+    } catch (e) {}
+  })();
+  </script>
 </head>
 <body>
   <div id="boot" role="status" aria-live="polite">
@@ -44,10 +77,30 @@
     <h1 class="boot-title">Divine Rays Tech Hub</h1>
     <p class="boot-sub">Loading…</p>
   </div>
+  <div id="dr-post-login-boot" aria-live="polite">
+    <div class="pl-rings" aria-hidden="true">
+      <div class="pl-ring"></div><div class="pl-ring"></div><div class="pl-ring"></div>
+      <div class="pl-core"></div>
+    </div>
+    <p class="pl-title">Opening portal…</p>
+    <p class="pl-sub">Preparing your workspace</p>
+    <div class="pl-bar"><i></i></div>
+  </div>
   <script>
   (async function () {
     'use strict';
     var B = Date.now();
+    var skipGear = false;
+    try { skipGear = sessionStorage.getItem('dr_skip_boot_gear') === '1'; } catch (e) {}
+    if (skipGear) {
+      try {
+        var boot0 = document.getElementById('boot');
+        if (boot0) { boot0.classList.add('dr-skip'); boot0.style.display = 'none'; }
+        var pl0 = document.getElementById('dr-post-login-boot');
+        if (pl0) pl0.classList.add('is-on');
+      } catch (e2) {}
+    }
+
     var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
     var RAW = 'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/';
     var BASE = '830dac02096eb08be1b2dc22bdc191a14df91a04';
@@ -89,7 +142,7 @@
     setTimeout(function () {
       try {
         var boot = document.getElementById('boot');
-        if (boot && !boot.classList.contains('is-done')) {
+        if (boot && !boot.classList.contains('is-done') && !skipGear) {
           var sub = boot.querySelector('.boot-sub');
           if (sub) sub.textContent = 'Still loading… try hard refresh if this stays.';
         }
@@ -111,7 +164,6 @@
       var tags = OVERLAYS.map(function (src) {
         return '<script src="' + src + (src.indexOf('?') === -1 ? '?' : '&') + 'b=' + B + '"><\/script>';
       }).join('');
-      // Slow fade when login is ready; instant hide only on post-login skip
       var bootFlags =
         '<script>(function(){try{' +
         'window.__DR_ECG_OK=true;document.documentElement.setAttribute("data-ecg","on");window.__DR_BOOT_DONE=true;' +
@@ -120,7 +172,7 @@
         'function drRemoveBoot(el){try{if(el&&el.parentNode)el.parentNode.removeChild(el);}catch(e){}}' +
         'function drFadeBoot(instant){' +
         'try{var el=document.getElementById("dr-phase-boot");if(!el||el.classList.contains("is-done"))return;' +
-        'if(instant){el.style.transition="none";el.classList.add("is-done");el.style.opacity="0";el.style.visibility="hidden";el.style.pointerEvents="none";setTimeout(function(){drRemoveBoot(el);},50);return;}' +
+        'if(instant){el.style.transition="none";el.classList.add("is-done");el.style.opacity="0";el.style.visibility="hidden";el.style.pointerEvents="none";el.style.display="none";setTimeout(function(){drRemoveBoot(el);},30);return;}' +
         'if(__drBootFading)return;__drBootFading=true;' +
         'el.style.transition="opacity 1.1s ease, visibility 1.1s ease";' +
         'void el.offsetWidth;' +
@@ -135,8 +187,10 @@
         'if(st&&(st.display==="none"||st.visibility==="hidden"))return false;' +
         'return true;}catch(e3){return!!document.getElementById("login-screen");}}' +
         'var skipGear=false;try{skipGear=sessionStorage.getItem("dr_skip_boot_gear")==="1";}catch(e4){}' +
-        'if(skipGear){drFadeBoot(true);setTimeout(function(){drFadeBoot(true);},80);}' +
-        'else{' +
+        'if(skipGear){' +
+        'drFadeBoot(true);' +
+        'try{var pb=document.getElementById("dr-phase-boot");if(pb){pb.style.display="none";pb.remove();}}catch(e5){}' +
+        '}else{' +
         'var n=0;var iv=setInterval(function(){n++;' +
         'if(drLoginReady()||n>40){clearInterval(iv);' +
         'setTimeout(function(){drFadeBoot(false);},180);' +
@@ -173,22 +227,46 @@
     }
     html = rewriteAssets(html);
     html = injectOverlays(html);
-    var bootCss =
-      '#dr-phase-boot{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1.25rem;text-align:center;' +
-      'background:linear-gradient(180deg,#1a0c38 0%,#0c0618 100%);' +
-      'opacity:1;visibility:visible;' +
-      'transition:opacity 1.1s ease,visibility 1.1s ease}' +
-      '#dr-phase-boot.is-done{opacity:0;visibility:hidden;pointer-events:none}' +
-      '#dr-phase-boot .boot-logo{width:72px;height:72px;border-radius:16px;display:block;box-shadow:0 8px 32px rgba(109,90,154,.35)}' +
-      '#dr-phase-boot .boot-gear-spin{transform-origin:32px 32px;transform-box:view-box;animation:drBootGearSpin 1.4s linear infinite}' +
-      '@keyframes drBootGearSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}' +
-      '#dr-phase-boot .boot-title{font-size:1.35rem;font-weight:650;margin:0;color:#eeeef6}' +
-      '#dr-phase-boot .boot-sub{font-size:.85rem;color:#9494ae;margin:0}';
-    var bootSvg = document.getElementById('boot') && document.getElementById('boot').innerHTML;
-    if (!bootSvg) bootSvg = '<p class="boot-sub">Loading…</p>';
-    var bootHtml = '<style id="dr-phase-boot-css">' + bootCss + '</style><div id="dr-phase-boot" role="status">' + bootSvg + '</div>';
-    if (html.indexOf('<body') !== -1) html = html.replace(/<body([^>]*)>/, '<body$1>' + bootHtml);
-    else html = bootHtml + html;
+
+    // Cold boot: gear. Post-login: do NOT inject gear — only rings stay from outer page until overlays take over
+    if (!skipGear) {
+      var bootCss =
+        '#dr-phase-boot{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1.25rem;text-align:center;' +
+        'background:linear-gradient(180deg,#1a0c38 0%,#0c0618 100%);' +
+        'opacity:1;visibility:visible;' +
+        'transition:opacity 1.1s ease,visibility 1.1s ease}' +
+        '#dr-phase-boot.is-done{opacity:0;visibility:hidden;pointer-events:none}' +
+        '#dr-phase-boot .boot-logo{width:72px;height:72px;border-radius:16px;display:block;box-shadow:0 8px 32px rgba(109,90,154,.35)}' +
+        '#dr-phase-boot .boot-gear-spin{transform-origin:32px 32px;transform-box:view-box;animation:drBootGearSpin 1.4s linear infinite}' +
+        '@keyframes drBootGearSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}' +
+        '#dr-phase-boot .boot-title{font-size:1.35rem;font-weight:650;margin:0;color:#eeeef6}' +
+        '#dr-phase-boot .boot-sub{font-size:.85rem;color:#9494ae;margin:0}';
+      var bootSvg = document.getElementById('boot') && document.getElementById('boot').innerHTML;
+      if (!bootSvg) bootSvg = '<p class="boot-sub">Loading…</p>';
+      var bootHtml = '<style id="dr-phase-boot-css">' + bootCss + '</style><div id="dr-phase-boot" role="status">' + bootSvg + '</div>';
+      if (html.indexOf('<body') !== -1) html = html.replace(/<body([^>]*)>/, '<body$1>' + bootHtml);
+      else html = bootHtml + html;
+    } else {
+      // Keep continuous rings: inject same post-login overlay into written page so gear never appears
+      var rings =
+        '<style>#dr-post-login-boot{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1.35rem;background:radial-gradient(ellipse at 50% 40%,#1e1240 0%,#0c0618 70%)}' +
+        '#dr-post-login-boot .pl-rings{position:relative;width:72px;height:72px}' +
+        '#dr-post-login-boot .pl-ring{position:absolute;inset:0;border-radius:50%;border:2px solid transparent;border-top-color:#a78bfa;border-right-color:rgba(167,139,250,.35);animation:drPlSpin 1s linear infinite}' +
+        '#dr-post-login-boot .pl-ring:nth-child(2){inset:10px;border-top-color:#c4b5fd;animation-duration:1.4s;animation-direction:reverse}' +
+        '#dr-post-login-boot .pl-ring:nth-child(3){inset:20px;border-top-color:#8b5cf6;animation-duration:.85s}' +
+        '#dr-post-login-boot .pl-core{position:absolute;inset:26px;border-radius:50%;background:radial-gradient(circle,#c4b5fd 0%,#7c6af0 70%);box-shadow:0 0 20px rgba(139,92,246,.55);animation:drPlPulse 1.2s ease-in-out infinite}' +
+        '@keyframes drPlSpin{to{transform:rotate(360deg)}}@keyframes drPlPulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(.85);opacity:.7}}' +
+        '#dr-post-login-boot .pl-title{color:#eeeef6;font-weight:650;font-size:1.1rem;margin:0}' +
+        '#dr-post-login-boot .pl-sub{color:#9494ae;font-size:.82rem;margin:0}' +
+        '#dr-post-login-boot .pl-bar{width:160px;height:4px;border-radius:99px;background:rgba(139,92,246,.2);overflow:hidden}' +
+        '#dr-post-login-boot .pl-bar>i{display:block;height:100%;width:40%;border-radius:99px;background:linear-gradient(90deg,#7c6af0,#c4b5fd,#7c6af0);animation:drPlBar 1.1s ease-in-out infinite}' +
+        '@keyframes drPlBar{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}</style>' +
+        '<div id="dr-post-login-boot" class="is-on"><div class="pl-rings"><div class="pl-ring"></div><div class="pl-ring"></div><div class="pl-ring"></div><div class="pl-core"></div></div>' +
+        '<p class="pl-title">Opening portal…</p><p class="pl-sub">Preparing your workspace</p><div class="pl-bar"><i></i></div></div>';
+      if (html.indexOf('<body') !== -1) html = html.replace(/<body([^>]*)>/, '<body$1>' + rings);
+      else html = rings + html;
+    }
+
     document.open();
     document.write(html);
     document.close();
