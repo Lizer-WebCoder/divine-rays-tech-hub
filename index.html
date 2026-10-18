@@ -75,7 +75,7 @@
       CDN + '3caae1bfbccf559f87bdc8706c3974e1e4a1c38e/js/login-password-toggle.js',
       CDN + '3e530f6467d5f31c255cd5dd8a5b0d5f7b54499d/js/developer-portal-access.js',
       CDN + '52dcc738386608a65c21c13db5d6d5218bf53201/js/login-pending-and-busy-fix.js',
-      CDN + '33f86dac1f7bc857ff3e6413c83637df6ad0411f/js/login-employee-and-perf-fix.js',
+      CDN + '73656fbeba429f41e3748ab46a683515e8192afa/js/login-employee-and-perf-fix.js',
       CDN + 'b86ab93803d3c46de71450abbd388e12b3d42aab/js/portal-shell-fix.js',
       CDN + '43a636a83b7e0f0a674a8f1204f5b3a18fbecbae/js/boot-freeze-guard.js',
       CDN + '090fd731d30cd3c91d50a33ac2c15874f096e50a/js/login-label-lock.js',
@@ -114,10 +114,11 @@
       var bootFlags =
         '<script>(function(){try{' +
         'window.__DR_ECG_OK=true;document.documentElement.setAttribute("data-ecg","on");window.__DR_BOOT_DONE=true;' +
-        'try{sessionStorage.removeItem("dr_post_login_boot");}catch(e0){}' +
         'if(typeof window.switchLoginTab!=="function"){window.switchLoginTab=function(tab){try{if(typeof window.showForm==="function")window.showForm(tab==="agent"?"login-agent":"login-customer");}catch(e){}};}' +
-        'function drKillBoot(){try{var el=document.getElementById("dr-phase-boot");if(el){el.classList.add("is-done");setTimeout(function(){try{if(el.parentNode)el.parentNode.removeChild(el);}catch(e2){}},500);}}catch(e3){}}' +
-        'setTimeout(drKillBoot,900);setTimeout(drKillBoot,2500);setTimeout(drKillBoot,5000);' +
+        'function drKillBoot(){try{var el=document.getElementById("dr-phase-boot");if(el){el.classList.add("is-done");el.style.cssText="display:none!important;opacity:0;pointer-events:none";setTimeout(function(){try{if(el.parentNode)el.parentNode.removeChild(el);}catch(e2){}},400);}}catch(e3){}}' +
+        'var skipGear=false;try{skipGear=sessionStorage.getItem("dr_skip_boot_gear")==="1";}catch(e4){}' +
+        'if(skipGear){drKillBoot();setTimeout(drKillBoot,50);setTimeout(drKillBoot,300);}' +
+        'else{setTimeout(drKillBoot,900);setTimeout(drKillBoot,2500);setTimeout(drKillBoot,5000);}' +
         '}catch(e){}})();<\/script>';
       if (html.indexOf('</body>') !== -1) return html.replace('</body>', tags + bootFlags + '</body>');
       return html + tags + bootFlags;
