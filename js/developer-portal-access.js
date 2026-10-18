@@ -1,28 +1,16 @@
 /**
- * Divine Rays — portal access v7
+ * Divine Rays — portal access v8
  *
  * ACCESS MATRIX
  * ─────────────
- * Developers (kirzhianquijano, iiyasora2002):
- *   • Employee tab → Employee portal
- *   • Admin tab    → Admin portal
- *   • Switcher allowed (both portals)
- *   • No approval gate
- *
- * Employee accounts (Cashier, Doctor, HR, MedTech, RadTech, Staff, Utility):
- *   • Employee tab only
- *   • No approval required
- *   • Never Admin portal / Admin tab login (no portal peek)
- *
- * Admin / IT Tech Support:
- *   • Admin tab only → Admin portal
- *   • New accounts: pending until Developer approves
- *   • Never Employee portal / Employee tab login
+ * Developers: both tabs
+ * Employees: Employee tab only (wrong tab → login-card message, no portal peek)
+ * Admin/IT: Admin tab only
  */
 (function () {
   'use strict';
-  if (window.__DR_DEV_PORTAL >= 7) return;
-  window.__DR_DEV_PORTAL = 7;
+  if (window.__DR_DEV_PORTAL >= 8) return;
+  window.__DR_DEV_PORTAL = 8;
 
   var DEVS = {
     'kirzhianquijano@gmail.com': 1,
@@ -412,9 +400,29 @@
     return getPreferredPortal();
   }
 
+  function resetSignInButtons() {
+    try {
+      document
+        .querySelectorAll(
+          '#login-agent button[type="submit"], #login-customer button[type="submit"], ' +
+            '.login-card button[type="submit"], button.btn-primary'
+        )
+        .forEach(function (btn) {
+          if (!btn) return;
+          var t = (btn.textContent || '').toLowerCase();
+          if (t.indexOf('signing') !== -1 || t.indexOf('loading') !== -1 || btn.disabled) {
+            btn.disabled = false;
+            btn.textContent = 'Sign in';
+          }
+        });
+    } catch (e) {}
+  }
+
   function showLoginCardError(msg) {
     injectBlockCss();
     hideAllPortalsAndLoaders();
+    resetSignInButtons();
+    window.__DR_TAB_GATE_MSG = msg || '';
     var tab = getLoginTab();
     var formId = tab === 'agent' ? 'login-agent' : 'login-customer';
     try {
@@ -427,12 +435,20 @@
       document.querySelector('#login-agent, #login-customer, .login-card form');
     var card =
       (form && form.closest && form.closest('.login-card')) || document.querySelector('.login-card');
-    var box = null;
-    if (form) box = form.querySelector('.form-error, .error, .login-error, [data-dr-login-err]');
-    if (!box && card) box = card.querySelector('.form-error, .error, .login-error, [data-dr-login-err]');
-    if (!box) {
-      box = document.createElement('div');
-      box.className = 'form-error dr-tab-gate-err';
+    var boxes = [];
+    if (form) {
+      form.querySelectorAll('.form-error, .error, .login-error, [data-dr-login-err]').forEach(function (b) {
+        boxes.push(b);
+      });
+    }
+    if (card) {
+      card.querySelectorAll('.form-error, .error, .login-error, [data-dr-login-err]').forEach(function (b) {
+        if (boxes.indexOf(b) === -1) boxes.push(b);
+      });
+    }
+    if (!boxes.length) {
+      var box = document.createElement('div');
+      box.className = 'login-error form-error dr-tab-gate-err';
       box.setAttribute('data-dr-login-err', '1');
       box.setAttribute('role', 'alert');
       box.style.cssText =
@@ -441,11 +457,14 @@
         'color:#fecaca;font-size:0.84rem;line-height:1.4;text-align:center;font-weight:500';
       if (form) form.insertBefore(box, form.firstChild);
       else if (card) card.insertBefore(box, card.firstChild);
-      else document.body.appendChild(box);
+      boxes.push(box);
     }
-    box.textContent = msg || '';
-    box.style.display = 'block';
-    box.classList.add('is-on');
+    boxes.forEach(function (b) {
+      b.textContent = msg || '';
+      b.style.display = 'block';
+      b.classList.add('is-on', 'dr-tab-gate-err');
+      b.setAttribute('data-dr-login-err', '1');
+    });
     try {
       if (card) {
         card.style.borderColor = 'rgba(248,113,113,.7)';
@@ -479,8 +498,13 @@
   }
 
   function blockWrongTab(msg) {
-    if (window.__DR_TAB_GATE_LOCK) return true;
+    if (window.__DR_TAB_GATE_LOCK) {
+      showLoginCardError(msg);
+      resetSignInButtons();
+      return true;
+    }
     window.__DR_TAB_GATE_LOCK = 1;
+    window.__DR_TAB_GATE_MSG = msg;
     injectBlockCss();
     hideAllPortalsAndLoaders();
     try {
@@ -488,9 +512,16 @@
     } catch (e) {}
     showLoginCardError(msg);
     softSignOut();
-    setTimeout(function () {
-      window.__DR_TAB_GATE_LOCK = 0;
-    }, 1500);
+    var hold = 0;
+    var iv = setInterval(function () {
+      hold++;
+      showLoginCardError(msg);
+      resetSignInButtons();
+      if (hold >= 10) {
+        clearInterval(iv);
+        window.__DR_TAB_GATE_LOCK = 0;
+      }
+    }, 250);
     return true;
   }
 
@@ -526,6 +557,7 @@
       document.body.classList.remove('dr-tab-blocked');
       document.documentElement.classList.remove('dr-tab-blocked');
       sessionStorage.removeItem('dr_tab_gate_err');
+      window.__DR_TAB_GATE_MSG = '';
     } catch (e) {}
 
     var which = resolvePortal(p);
@@ -546,7 +578,7 @@
       markHintsFromLogin();
       applyAccess(window.__drProfile || { role: role });
     };
-    window.applyPortalForRole.__drDevPatch7 = 1;
+    window.applyPortalForRole.__drDevPatch8 = 1;
 
     window.showApp = function (p) {
       if (p) window.__drProfile = p;
@@ -630,7 +662,7 @@
   }
 
   window.DRDevPortal = {
-    v: 7,
+    v: 8,
     isDev: isDevSession,
     canSwitch: canSeeSwitcher,
     showEmployee: function () {
