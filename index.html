@@ -129,7 +129,7 @@
     };
     var OVERLAYS = [
       CDN + '6f36ad029df2c2fc849caf60c0d362cf59771774/js/portal-ready-gate.js',
-      CDN + '1018ff0f89089092fd169bde14df90476ff30642/js/portal-shell-fix.js',
+      CDN + 'ebd7a2d601084d1c9844f911a5d9530357df7569/js/portal-shell-fix.js',
       CDN + '0091e77d27bbb73e655a498ddd1ebf944583e000/js/force-light-bg.js',
       CDN + '63199d78495d2c10382c7706d12701f7ccf7d167/js/login-ambient-galaxy.js',
       CDN + '285ddef480fb50d86b24e35a398cde22fb0979e8/js/login-bg-single.js',
@@ -217,7 +217,7 @@
         'try{var pb=document.getElementById("dr-phase-boot");if(pb){pb.style.display="none";pb.remove();}}catch(e5){}' +
         '}else{' +
         'var portalPref=false;try{portalPref=!!document.documentElement.getAttribute("data-dr-portal-pref")||sessionStorage.getItem("dr_login_tab")==="customer"||sessionStorage.getItem("dr_login_tab")==="agent";}catch(eP){}' +
-        'function drAmbientOk(){try{try{if(window.DRHeartbeatDraw&&window.DRHeartbeatDraw.ensureGears)window.DRHeartbeatDraw.ensureGears(true);}catch(eG){}if(window.DRHeartbeatDraw&&window.DRHeartbeatDraw.isGearsReady&&window.DRHeartbeatDraw.isGearsReady())return true;var L=document.getElementById("dr-lifeline");return!!(L&&L.querySelector&&L.querySelector(".dr-spin-cw"));}catch(eA){return false;}}' +
+        'function drAmbientOk(){try{try{if(window.DRHeartbeatDraw&&window.DRHeartbeatDraw.ensureGears)window.DRHeartbeatDraw.ensureGears(true);}catch(eG){}if(window.DRHeartbeatDraw&&window.DRHeartbeatDraw.isGearsReady&&window.DRHeartbeatDraw.isGearsReady())return true;var L=document.getElementById("dr-lifeline");if(L&&L.querySelector&&L.querySelector(".dr-spin-cw"))return true;var A=document.getElementById("dr-portal-ambient");return!!(A&&A.querySelector&&A.querySelector(".dr-spin-cw"));}catch(eA){return false;}}' +
         'var n=0;var iv=setInterval(function(){n++;' +
         'try{if(window.DRPortalShell&&window.DRPortalShell.ensureAmbient)window.DRPortalShell.ensureAmbient(true);}catch(eW){}' +
         'try{if(window.DRHeartbeatDraw&&window.DRHeartbeatDraw.ensureGears)window.DRHeartbeatDraw.ensureGears(true);}catch(eWG){}' +
