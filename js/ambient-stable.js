@@ -1,109 +1,96 @@
 /**
- * Divine Rays — ambient-stable v3
- * Never rebuild ambient on password/input typing (freeze fix).
- * Snapshot once; restore only if layer was emptied, not on every click.
+ * Divine Rays — ambient-stable v1
+ * 1) Kill #boot / #dr-phase-boot the moment login is visible (stops login twitch overlay)
+ * 2) Lock login ambient to one paint (stops double honeycomb)
+ * 3) Never rebuild portal ambient gears after first paint
  */
 (function () {
   'use strict';
-  if (window.__DR_AMBIENT_STABLE >= 3) return;
-  window.__DR_AMBIENT_STABLE = 3;
+  if (window.__DR_AMBIENT_STABLE >= 1) return;
+  window.__DR_AMBIENT_STABLE = 1;
 
-  var LAYER = 'dr-login-ambient';
-  var snapshot = null;
-  var restoring = false;
-  var lastRestore = 0;
-
-  function grab() {
+  function loginVisible() {
     try {
-      var el = document.getElementById(LAYER);
-      if (el && el.childNodes && el.childNodes.length > 1) {
-        snapshot = el.innerHTML;
-        return true;
-      }
-    } catch (e) {}
-    return false;
-  }
-
-  function restore() {
-    if (!snapshot || restoring) return;
-    if (window.__DR_PAUSE_LOGIN_SCRIPTS) return;
-    var now = Date.now();
-    if (now - lastRestore < 2000) return;
-    var el = document.getElementById(LAYER);
-    if (!el) return;
-    if (el.childNodes && el.childNodes.length > 1) return;
-    restoring = true;
-    lastRestore = now;
-    try {
-      el.innerHTML = snapshot;
-    } catch (e) {}
-    restoring = false;
-  }
-
-  function isTypingTarget(t) {
-    if (!t) return false;
-    var tag = (t.tagName || '').toUpperCase();
-    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return true;
-    if (t.isContentEditable) return true;
-    return false;
-  }
-
-  function patch() {
-    if (!window.DRForceLightBg || window.DRForceLightBg.__stable3) return !!window.DRForceLightBg;
-    window.DRForceLightBg.refresh = function () {
-      if (window.__DR_PAUSE_LOGIN_SCRIPTS) return;
-      grab();
-    };
-    window.DRForceLightBg.__stable3 = 1;
-    return true;
-  }
-
-  document.addEventListener(
-    'click',
-    function (e) {
-      var t = e.target;
-      if (!t || !t.closest) return;
-      if (isTypingTarget(t)) return;
-      if (window.__DR_PAUSE_LOGIN_SCRIPTS) return;
-      if (!t.closest('#login-screen')) return;
-      setTimeout(restore, 100);
-    },
-    true
-  );
-
-  document.addEventListener(
-    'focusin',
-    function (e) {
-      if (isTypingTarget(e.target)) {
-        window.__DR_PAUSE_LOGIN_SCRIPTS = 1;
-      }
-    },
-    true
-  );
-  document.addEventListener(
-    'focusout',
-    function (e) {
-      if (isTypingTarget(e.target)) {
-        setTimeout(function () {
-          var a = document.activeElement;
-          if (!isTypingTarget(a)) window.__DR_PAUSE_LOGIN_SCRIPTS = 0;
-        }, 50);
-      }
-    },
-    true
-  );
-
-  var n = 0;
-  var t = setInterval(function () {
-    patch();
-    grab();
-    if ((window.DRForceLightBg && window.DRForceLightBg.__stable3 && snapshot) || ++n > 60) {
-      clearInterval(t);
+      var ls = document.getElementById('login-screen') || document.querySelector('.login-screen');
+      if (!ls || ls.hidden) return false;
+      var st = window.getComputedStyle ? getComputedStyle(ls) : null;
+      if (st && (st.display === 'none' || st.visibility === 'hidden')) return false;
+      return true;
+    } catch (e) {
+      return false;
     }
-  }, 200);
+  }
 
-  setTimeout(function () {
-    patch();
-    grab();
-  }, 100);
+  function killBoot() {
+    try {
+      ['boot', 'dr-phase-boot'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        try {
+          el.classList.add('is-done', 'dr-skip');
+          el.style.cssText =
+            'display:none!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important';
+          if (el.parentNode) el.parentNode.removeChild(el);
+        } catch (e) {}
+      });
+      var st = document.getElementById('dr-boot-dead-css');
+      if (!st) {
+        st = document.createElement('style');
+        st.id = 'dr-boot-dead-css';
+        (document.head || document.documentElement).appendChild(st);
+      }
+      st.textContent =
+        '#boot,#dr-phase-boot{display:none!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important}';
+    } catch (e2) {}
+  }
+
+  function lockLoginAmbient() {
+    try {
+      window.__DR_AMBIENT_LOCKED = true;
+      if (window.DRAmbientGalaxy) {
+        window.DRAmbientGalaxy.refresh = function () {};
+      }
+      var layers = document.querySelectorAll('#dr-login-ambient');
+      for (var i = 1; i < layers.length; i++) {
+        try {
+          layers[i].parentNode.removeChild(layers[i]);
+        } catch (e) {}
+      }
+      var amb = document.getElementById('dr-login-ambient');
+      if (amb) {
+        var hcs = amb.querySelectorAll('.dr-honeycomb');
+        for (var h = 1; h < hcs.length; h++) {
+          try {
+            hcs[h].parentNode.removeChild(hcs[h]);
+          } catch (eH) {}
+        }
+      }
+      var pa = document.getElementById('dr-portal-ambient');
+      if (pa && loginVisible()) {
+        pa.style.display = 'none';
+        pa.style.visibility = 'hidden';
+        pa.style.opacity = '0';
+      }
+    } catch (e3) {}
+  }
+
+  function tick() {
+    if (loginVisible()) {
+      killBoot();
+      lockLoginAmbient();
+    }
+  }
+
+  tick();
+  setTimeout(tick, 50);
+  setTimeout(tick, 150);
+  setTimeout(tick, 400);
+  setTimeout(tick, 800);
+  setTimeout(tick, 1500);
+  setTimeout(tick, 2500);
+  setInterval(function () {
+    if (loginVisible()) killBoot();
+  }, 3000);
+
+  window.DRAmbientStable = { v: 1, refresh: tick };
 })();
