@@ -49,10 +49,11 @@
         document.documentElement.setAttribute('data-dr-portal-pref', want);
         var s0 = document.createElement('style');
         s0.id = 'dr-early-portal-pref';
+        var hideLogin = '#login-screen,.login-screen{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}';
         if (want === 'employee') {
-          s0.textContent = '#portal-agent,.mode-bar-admin,#mode-bar-admin,#mode-bar-admin *{display:none!important;visibility:hidden!important;opacity:0!important}#portal-customer{visibility:visible!important}';
+          s0.textContent = hideLogin + '#portal-agent,.mode-bar-admin,#mode-bar-admin,#mode-bar-admin *{display:none!important;visibility:hidden!important;opacity:0!important}#portal-customer{visibility:visible!important}';
         } else {
-          s0.textContent = '#portal-customer,.mode-bar-employee,#mode-bar-employee,#mode-bar-employee *{display:none!important;visibility:hidden!important;opacity:0!important}#portal-agent{visibility:visible!important}';
+          s0.textContent = hideLogin + '#portal-customer,.mode-bar-employee,#mode-bar-employee,#mode-bar-employee *{display:none!important;visibility:hidden!important;opacity:0!important}#portal-agent{visibility:visible!important}';
         }
         document.head.appendChild(s0);
       }
@@ -134,7 +135,7 @@
       CDN + '63199d78495d2c10382c7706d12701f7ccf7d167/js/login-ambient-galaxy.js',
       CDN + '285ddef480fb50d86b24e35a398cde22fb0979e8/js/login-bg-single.js',
       CDN + 'c4c9680a872e4299ec4f862a1c0195969b599465/js/login-visual-restore.js',
-      CDN + '503e2f006ff0c4bda5b75fa37384aacc84f1e46f/js/heartbeat-draw.js',
+      CDN + '88ac3eb41279925ac6c3104eca06289f44a2273b/js/heartbeat-draw.js',
       CDN + '1bdb127bcd22c1b27717c422fb415b2ec4a3af8f/js/gears-stable.js',
       CDN + '285ddef480fb50d86b24e35a398cde22fb0979e8/js/portal-gears-keep.js',
       CDN + '25af070717de0697a7841c1667e3ad827dd3a3c0/js/force-pending-block.js',
@@ -151,7 +152,7 @@
       CDN + '73566a7bb55045f4d0d34900a92e4560f1595067/js/logout-confirm.js',
       CDN + '52dcc738386608a65c21c13db5d6d5218bf53201/js/login-pending-and-busy-fix.js',
       CDN + '1117b22e6ee1b209de55f904c2e8b273c0badd5b/js/login-employee-and-perf-fix.js',
-      CDN + '857d8d502e24f0f4dcc4a12f5dbfaac6da791bef/js/post-login-transition.js',
+      CDN + '88ac3eb41279925ac6c3104eca06289f44a2273b/js/post-login-transition.js',
       CDN + '4f433dbeb2f5663f82903f3a4326f218b2aa6159/js/topbar-layout.js',
       CDN + 'f84cd956faf474658036d7891ac940adc4290b3f/js/boot-freeze-guard.js',
       CDN + '090fd731d30cd3c91d50a33ac2c15874f096e50a/js/login-label-lock.js',
