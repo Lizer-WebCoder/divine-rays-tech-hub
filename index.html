@@ -20,9 +20,9 @@
     @keyframes drBootGearSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
     #dr-post-login-boot{position:fixed;inset:0;z-index:100000;display:none;align-items:center;justify-content:center;
       flex-direction:column;gap:1.35rem;background:radial-gradient(ellipse at 50% 40%,#1e1240 0%,#0c0618 70%);opacity:1;
-      transition:opacity 0.55s ease,visibility 0.55s ease}
+      transition:opacity 0.65s ease,visibility 0.65s ease}
     #dr-post-login-boot.is-on{display:flex}
-    #dr-post-login-boot.is-done{display:none!important}
+    #dr-post-login-boot.is-done{opacity:0!important;visibility:hidden!important;pointer-events:none!important}
     #dr-post-login-boot .pl-rings{position:relative;width:72px;height:72px}
     #dr-post-login-boot .pl-ring{position:absolute;inset:0;border-radius:50%;border:2px solid transparent;
       border-top-color:#a78bfa;border-right-color:rgba(167,139,250,.35);animation:drPlSpin 1s linear infinite}
@@ -62,7 +62,7 @@
       if (sessionStorage.getItem('dr_skip_boot_gear') === '1') {
         document.documentElement.classList.add('dr-post-login');
         var s = document.createElement('style');
-        s.textContent = '#boot,#dr-phase-boot{display:none!important}#dr-post-login-boot{display:flex!important;z-index:100000!important}#portal-customer,#portal-agent,.mode-bar,#mode-bar-employee,#mode-bar-admin{opacity:0!important;pointer-events:none!important}';
+        s.textContent = '#boot,#dr-phase-boot{display:none!important}#dr-post-login-boot{display:flex!important;z-index:100000!important;opacity:1}#portal-customer,#portal-agent,.mode-bar,#mode-bar-employee,#mode-bar-admin{opacity:0!important;pointer-events:none!important}';
         document.head.appendChild(s);
       }
     } catch (e) {}
@@ -138,7 +138,7 @@
       CDN + '21bf6a506590b16ec37c5250ff9acaa31d1bd121/js/login-bg-single.js',
       CDN + 'c4c9680a872e4299ec4f862a1c0195969b599465/js/login-visual-restore.js',
       CDN + '1f8a5267142986025eb7b7df96e9f6f19e2dcbcd/js/heartbeat-draw.js',
-      CDN + '4adbf95d9bbb6a5e82dcda9ab351d52af89bfa4b/js/gears-stable.js',
+      CDN + 'dc54072e3ef4359855e770b66822e4ca4cdffb04/js/gears-stable.js',
       CDN + '25af070717de0697a7841c1667e3ad827dd3a3c0/js/force-pending-block.js',
       CDN + '405cd6094feb38cb6a757663c0853114d60cecad/js/login-auth-v11.js',
       CDN + '3087a49f5649f410f3d96c1eacb00b155435b1ef/js/phase-bcd.js',
@@ -152,7 +152,7 @@
       CDN + 'b9b80a796683682c88f1f989c97eaf15c380a015/js/developer-portal-access.js',
       CDN + '73566a7bb55045f4d0d34900a92e4560f1595067/js/logout-confirm.js',
       CDN + '52dcc738386608a65c21c13db5d6d5218bf53201/js/login-pending-and-busy-fix.js',
-      CDN + 'baa573b98e6ae48b6082d9a08e135d4ca56aeab6/js/login-employee-and-perf-fix.js',
+      CDN + '3bc7d704f34245176e9eacf2aef84df0d92ef888/js/login-employee-and-perf-fix.js',
       CDN + '4f433dbeb2f5663f82903f3a4326f218b2aa6159/js/topbar-layout.js',
       CDN + 'f84cd956faf474658036d7891ac940adc4290b3f/js/boot-freeze-guard.js',
       CDN + '090fd731d30cd3c91d50a33ac2c15874f096e50a/js/login-label-lock.js',
@@ -279,7 +279,8 @@
       else html = bootHtml + html;
     } else {
       var rings =
-        '<style>#dr-post-login-boot{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1.35rem;background:radial-gradient(ellipse at 50% 40%,#1e1240 0%,#0c0618 70%);opacity:1;transition:opacity 0.55s ease,visibility 0.55s ease}' +
+        '<style>#dr-post-login-boot{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1.35rem;background:radial-gradient(ellipse at 50% 40%,#1e1240 0%,#0c0618 70%);opacity:1;transition:opacity 0.65s ease,visibility 0.65s ease}' +
+        '#dr-post-login-boot.is-done{opacity:0!important;visibility:hidden!important;pointer-events:none!important}' +
         '#dr-post-login-boot .pl-rings{position:relative;width:72px;height:72px}' +
         '#dr-post-login-boot .pl-ring{position:absolute;inset:0;border-radius:50%;border:2px solid transparent;border-top-color:#a78bfa;border-right-color:rgba(167,139,250,.35);animation:drPlSpin 1s linear infinite}' +
         '#dr-post-login-boot .pl-ring:nth-child(2){inset:10px;border-top-color:#c4b5fd;animation-duration:1.4s;animation-direction:reverse}' +
