@@ -1,15 +1,14 @@
 /**
- * Divine Rays — gears-stable v2
- * Portal gears paint once and never rebuild (stops twitch).
- * Login ECG stays independent on same #dr-lifeline when on login.
+ * Divine Rays — gears-stable v3
+ * Paint portal gears once. Never rebuild on alt-tab / focus / visibility.
  */
 (function () {
   'use strict';
-  if (window.__DR_GEARS_STABLE >= 2) return;
-  window.__DR_GEARS_STABLE = 2;
+  if (window.__DR_GEARS_STABLE >= 3) return;
+  window.__DR_GEARS_STABLE = 3;
 
-  var painted = false;
   var CSS_ID = 'dr-gears-stable-css';
+  var locked = false;
 
   function injectCss() {
     var el = document.getElementById(CSS_ID);
@@ -19,18 +18,14 @@
       (document.head || document.documentElement).appendChild(el);
     }
     el.textContent = [
-      'body.dr-portal-ok #dr-lifeline,body.is-portal #dr-lifeline,',
-      'html[data-dr-portal-pref] #dr-lifeline{',
-      '  display:block!important;visibility:visible!important;opacity:1!important;',
-      '  filter:none!important;-webkit-filter:none!important;',
-      '  transition:none!important}',
-      'body.dr-portal-ok #dr-lifeline .dr-spin-cw,body.is-portal #dr-lifeline .dr-spin-cw,',
-      'body.dr-portal-ok #dr-lifeline .dr-spin-ccw,body.is-portal #dr-lifeline .dr-spin-ccw,',
-      'body.dr-portal-ok #dr-lifeline .dr-spin-cw-fast,body.is-portal #dr-lifeline .dr-spin-cw-fast,',
-      'body.dr-portal-ok #dr-lifeline .dr-spin-ccw-slow,body.is-portal #dr-lifeline .dr-spin-ccw-slow{',
-      '  animation-play-state:running!important;filter:none!important}',
+      'body.dr-portal-ok #dr-lifeline,body.is-portal #dr-lifeline,html[data-dr-portal-pref] #dr-lifeline{',
+      'display:block!important;visibility:visible!important;opacity:1!important;',
+      'filter:none!important;-webkit-filter:none!important;transition:none!important}',
+      '#dr-lifeline .dr-spin-cw,#dr-lifeline .dr-spin-ccw,#dr-lifeline .dr-spin-cw-fast,#dr-lifeline .dr-spin-ccw-slow{',
+      'animation-play-state:running!important;filter:none!important}',
       '#dr-portal-ambient,#dr-portal-ambient *{filter:none!important;transition:none!important}',
-      '#dr-portal-ambient .dr-hc{opacity:1!important}'
+      '#dr-post-login-boot,#dr-portal-loader{transition:opacity 0.65s ease,visibility 0.65s ease}',
+      '#dr-post-login-boot.is-done,#dr-portal-loader.is-done{opacity:0!important;visibility:hidden!important;pointer-events:none!important}'
     ].join('');
   }
 
@@ -74,22 +69,23 @@
       if (!window.DRHeartbeatDraw) return false;
       var orig = window.DRHeartbeatDraw.ensureGears;
       if (typeof orig !== 'function') return false;
-      if (orig.__drStable2) return true;
+      if (orig.__drStable3) return true;
 
-      window.DRHeartbeatDraw.ensureGears = function (force) {
+      window.DRHeartbeatDraw.ensureGears = function () {
         if (onLogin() && !onPortal()) return;
-        if (hasGears()) {
-          painted = true;
+        if (hasGears() || locked) {
+          locked = true;
           try {
             document.documentElement.setAttribute('data-dr-gears-ready', '1');
           } catch (e) {}
           return;
         }
         try {
-          return orig.call(window.DRHeartbeatDraw, false);
+          orig.call(window.DRHeartbeatDraw, false);
         } catch (e2) {}
+        if (hasGears()) locked = true;
       };
-      window.DRHeartbeatDraw.ensureGears.__drStable2 = 1;
+      window.DRHeartbeatDraw.ensureGears.__drStable3 = 1;
 
       try {
         if (window.__DR_ECG_INTERVAL) {
@@ -99,11 +95,11 @@
               if (onLogin() && window.__DR_ECG_OK && !document.querySelector('#dr-lifeline .dr-ecg-core')) {
                 if (window.DRHeartbeatDraw.force) window.DRHeartbeatDraw.force();
               }
-              if (onPortal() && !hasGears()) {
+              if (onPortal() && !hasGears() && !locked) {
                 window.DRHeartbeatDraw.ensureGears(false);
               }
             } catch (eI) {}
-          }, 5000);
+          }, 6000);
         }
       } catch (e3) {}
       return true;
@@ -112,24 +108,45 @@
     }
   }
 
+  function onVis() {
+    if (hasGears()) {
+      locked = true;
+      try {
+        var box = document.getElementById('dr-lifeline');
+        if (box) {
+          box
+            .querySelectorAll('.dr-spin-cw, .dr-spin-ccw, .dr-spin-cw-fast, .dr-spin-ccw-slow')
+            .forEach(function (g) {
+              try {
+                g.style.animationPlayState = 'running';
+              } catch (e) {}
+            });
+        }
+      } catch (e2) {}
+    }
+  }
+
   function tick() {
     injectCss();
     patchHeartbeat();
-    if (onPortal() && !hasGears()) {
+    if (onPortal() && !hasGears() && !locked) {
       try {
         if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.ensureGears)
           window.DRHeartbeatDraw.ensureGears(false);
       } catch (e) {}
     }
-    if (hasGears()) painted = true;
+    if (hasGears()) locked = true;
   }
 
   tick();
   setTimeout(tick, 50);
-  setTimeout(tick, 200);
-  setTimeout(tick, 600);
-  setTimeout(tick, 1500);
-  setInterval(tick, 6000);
+  setTimeout(tick, 300);
+  setTimeout(tick, 1000);
+  setInterval(tick, 8000);
 
-  window.DRGearsStable = { v: 2, refresh: tick };
+  document.addEventListener('visibilitychange', onVis);
+  window.addEventListener('pageshow', onVis);
+  window.addEventListener('focus', onVis);
+
+  window.DRGearsStable = { v: 3, refresh: tick };
 })();
