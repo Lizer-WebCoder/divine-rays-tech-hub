@@ -1,11 +1,12 @@
 /**
- * Divine Rays — portal-shell-fix v6
- * Full-screen zoomed-out honeycomb, lighter visibility, smooth fade-in.
+ * Divine Rays — portal-shell-fix v7
+ * Honeycomb pre-painted under boot (no pop after fade). Full-screen, lighter.
+ * Soft fade only if ambient appears after boot already gone.
  */
 (function () {
   'use strict';
-  if (window.__DR_PORTAL_SHELL >= 6) return;
-  window.__DR_PORTAL_SHELL = 6;
+  if (window.__DR_PORTAL_SHELL >= 7) return;
+  window.__DR_PORTAL_SHELL = 7;
 
   var CSS_ID = 'dr-portal-shell-css';
   var BG_ID = 'dr-portal-ambient';
@@ -73,13 +74,32 @@
       'background:radial-gradient(ellipse at top,#1a1530 0%,#0c0618 55%,#06040e 100%)!important;',
       'background-attachment:fixed!important}',
       '#' + BG_ID + '{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;overflow:hidden;',
-      'opacity:0;transition:opacity 0.9s ease}',
-      'body:not(.dr-portal-ok):not(.is-portal) #' + BG_ID + '{display:none!important;opacity:0}',
+      'opacity:0.38;transition:none}',
+      'body:not(.dr-portal-ok):not(.is-portal) #' + BG_ID + '{display:none!important}',
       '#' + BG_ID + ' .dr-hc{position:absolute;inset:0;width:100%;height:100%}',
       '#' + BG_ID + ' .dr-hc svg{width:100%;height:100%;display:block}',
+      '#' + BG_ID + '.dr-late-in{opacity:0;transition:opacity 0.85s ease}',
+      '#' + BG_ID + '.dr-late-in.dr-late-visible{opacity:0.38}',
       '#portal-customer.active,#portal-agent.active,.mode-bar{position:relative;z-index:1}',
       '#dr-dev-portal-switch{z-index:9000!important}'
     ].join('');
+  }
+
+  function bootStillVisible() {
+    try {
+      var b =
+        document.getElementById('dr-phase-boot') ||
+        document.getElementById('boot') ||
+        document.getElementById('dr-post-login-boot');
+      if (!b) return false;
+      if (b.classList.contains('is-done') || b.classList.contains('dr-skip')) return false;
+      var st = window.getComputedStyle ? getComputedStyle(b) : null;
+      if (st && (st.display === 'none' || st.visibility === 'hidden')) return false;
+      if (st && parseFloat(st.opacity || '1') < 0.05) return false;
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 
   function ensureAmbient(forceShow) {
@@ -93,11 +113,11 @@
       document.documentElement.getAttribute('data-dr-portal-pref') === 'admin';
 
     var el = document.getElementById(BG_ID);
+    var isNew = !el;
     if (!el) {
       el = document.createElement('div');
       el.id = BG_ID;
       el.setAttribute('aria-hidden', 'true');
-      el.style.opacity = '0';
       el.innerHTML =
         '<div class="dr-hc">' + honeycombSvg('rgba(196,181,253,0.48)') + '</div>';
       document.body.insertBefore(el, document.body.firstChild);
@@ -105,12 +125,17 @@
     if (on) {
       el.style.display = 'block';
       el.style.visibility = 'visible';
-      if (el.getAttribute('data-dr-faded') !== '1') {
+      if (bootStillVisible() || el.getAttribute('data-dr-ready') === '1') {
+        el.classList.remove('dr-late-in', 'dr-late-visible');
+        el.style.opacity = '0.38';
+        el.setAttribute('data-dr-ready', '1');
+      } else if (isNew || el.getAttribute('data-dr-ready') !== '1') {
+        el.classList.add('dr-late-in');
         el.style.opacity = '0';
-        el.setAttribute('data-dr-faded', '1');
+        el.setAttribute('data-dr-ready', '1');
         requestAnimationFrame(function () {
           requestAnimationFrame(function () {
-            el.style.transition = 'opacity 0.9s ease';
+            el.classList.add('dr-late-visible');
             el.style.opacity = '0.38';
           });
         });
@@ -120,8 +145,6 @@
       return true;
     }
     el.style.display = 'none';
-    el.style.opacity = '0';
-    el.removeAttribute('data-dr-faded');
     return false;
   }
 
@@ -216,5 +239,5 @@
     true
   );
 
-  window.DRPortalShell = { v: 6, refresh: tick, ensureAmbient: ensureAmbient };
+  window.DRPortalShell = { v: 7, refresh: tick, ensureAmbient: ensureAmbient };
 })();
