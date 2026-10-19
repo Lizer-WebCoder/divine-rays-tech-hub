@@ -1,12 +1,12 @@
 /**
- * Divine Rays — topbar-layout v3
- * Separate sticky top bars for Employee + Admin portals.
- * Username opens Profile via DR_PROFILE; Employee brand ends with Employees Portal.
+ * Divine Rays — topbar-layout v4
+ * Prefer session login tab so Employee hard refresh does not flash Admin brand.
+ * Early portal ambient refresh to reduce gears/honeycomb delay.
  */
 (function () {
   'use strict';
-  if (window.__DR_TOPBAR_LAYOUT >= 3) return;
-  window.__DR_TOPBAR_LAYOUT = 3;
+  if (window.__DR_TOPBAR_LAYOUT >= 4) return;
+  window.__DR_TOPBAR_LAYOUT = 4;
 
   var CSS_ID = 'dr-topbar-layout-css';
   var EMP_BAR_ID = 'mode-bar-employee';
@@ -262,24 +262,32 @@
     return bar;
   }
 
+  function preferredFromSession() {
+    try {
+      var tab = sessionStorage.getItem('dr_login_tab') || '';
+      var pref = sessionStorage.getItem('dr_dev_portal_pref') || '';
+      if (tab === 'customer') return 'employee';
+      if (tab === 'agent') return 'admin';
+      if (pref === 'employee') return 'employee';
+      if (pref === 'admin') return 'admin';
+    } catch (e) {}
+    return '';
+  }
+
   function activePortal() {
+    var fromSession = preferredFromSession();
     var pa = document.getElementById('portal-agent');
     var pc = document.getElementById('portal-customer');
-    var emp =
-      pc &&
-      (pc.classList.contains('active') ||
-        (pc.offsetParent !== null && (!pa || !pa.classList.contains('active'))));
-    var adm = pa && pa.classList.contains('active');
-    if (adm && !emp) return 'admin';
-    if (emp) return 'employee';
-    if (document.body.classList.contains('dr-portal-ok')) {
-      try {
-        var tab = sessionStorage.getItem('dr_login_tab') || '';
-        var pref = sessionStorage.getItem('dr_dev_portal_pref') || '';
-        if (tab === 'agent' || pref === 'admin') return 'admin';
-        if (tab === 'customer' || pref === 'employee') return 'employee';
-      } catch (e) {}
-    }
+    var empOn = !!(pc && pc.classList.contains('active'));
+    var admOn = !!(pa && pa.classList.contains('active'));
+
+    if (fromSession === 'employee') return 'employee';
+    if (fromSession === 'admin') return 'admin';
+
+    if (empOn && !admOn) return 'employee';
+    if (admOn && !empOn) return 'admin';
+    if (empOn) return 'employee';
+    if (admOn) return 'admin';
     return '';
   }
 
@@ -294,6 +302,32 @@
       document.body.classList.add('is-portal', 'is-portal-admin', 'dr-portal-ok');
       document.body.classList.remove('is-login');
     }
+    var empBar = document.getElementById(EMP_BAR_ID);
+    var admBar = document.getElementById(ADM_BAR_ID);
+    if (empBar) {
+      empBar.style.setProperty('display', which === 'employee' ? 'flex' : 'none', 'important');
+    }
+    if (admBar) {
+      admBar.style.setProperty('display', which === 'admin' ? 'flex' : 'none', 'important');
+    }
+  }
+
+  function ensurePortalAmbientEarly() {
+    try {
+      if (
+        !document.body.classList.contains('dr-portal-ok') &&
+        !document.body.classList.contains('is-portal')
+      )
+        return;
+      if (window.DRPortalShell && typeof window.DRPortalShell.refresh === 'function') {
+        window.DRPortalShell.refresh();
+      }
+      var bg = document.getElementById('dr-portal-ambient');
+      if (bg) {
+        bg.style.display = 'block';
+        bg.style.opacity = '0.2';
+      }
+    } catch (e) {}
   }
 
   function hideUnwanted() {
@@ -307,6 +341,7 @@
 
   function tick() {
     injectCss();
+    markBody();
     ensureBar({
       which: 'employee',
       portalId: 'portal-customer',
@@ -327,15 +362,20 @@
     });
     markBody();
     hideUnwanted();
+    ensurePortalAmbientEarly();
   }
 
   tick();
+  setTimeout(tick, 0);
+  setTimeout(tick, 50);
+  setTimeout(tick, 150);
+  setTimeout(tick, 400);
   var n = 0;
   var fast = setInterval(function () {
     tick();
     n += 1;
-    if (n > 80) clearInterval(fast);
-  }, 120);
+    if (n > 40) clearInterval(fast);
+  }, 100);
   setInterval(tick, 3000);
 
   document.addEventListener(
@@ -353,7 +393,7 @@
   );
 
   window.DRTopbarLayout = {
-    v: 3,
+    v: 4,
     refresh: tick,
     openProfile: openProfile,
     employeeBarId: EMP_BAR_ID,
