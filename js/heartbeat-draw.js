@@ -1,16 +1,16 @@
 /**
- * Divine Rays — ECG + gears v36
- * Login: full ECG lifeline in #dr-lifeline (restored).
+ * Divine Rays — ECG + gears v37
+ * Login: full ECG lifeline centered in #dr-lifeline.
  * Portal: #dr-lifeline cleared — spinning gears live in portal-shell ambient only.
  */
 (function () {
   'use strict';
-  if (window.__DR_HEARTBEAT_DRAW >= 36) return;
+  if (window.__DR_HEARTBEAT_DRAW >= 37) return;
   try {
     if (window.__DR_ECG_TIMER) clearTimeout(window.__DR_ECG_TIMER);
     if (window.__DR_ECG_INTERVAL) clearInterval(window.__DR_ECG_INTERVAL);
   } catch (e0) {}
-  window.__DR_HEARTBEAT_DRAW = 36;
+  window.__DR_HEARTBEAT_DRAW = 37;
 
   var BOX_ID = 'dr-lifeline';
   var CSS_ID = 'dr-heartbeat-css';
@@ -224,7 +224,8 @@
     if (box.parentNode !== document.body) document.body.insertBefore(box, document.body.firstChild);
 
     box.style.cssText =
-      'position:fixed!important;left:0!important;right:0!important;bottom:18%!important;height:14%!important;' +
+      'position:fixed!important;left:0!important;right:0!important;width:100%!important;' +
+      'top:50%!important;height:180px!important;margin-top:-90px!important;' +
       'z-index:1!important;pointer-events:none!important;opacity:0!important;visibility:visible!important;' +
       'background:transparent!important;overflow:visible!important;transition:opacity 0.35s ease-out!important;display:block!important';
 
@@ -371,7 +372,7 @@
     ensureGears: ensureGears,
     isGearsReady: isGearsReady,
     refresh: tick,
-    v: 36
+    v: 37
   };
   window.DRGearsBg = window.DRHeartbeatDraw;
 })();
