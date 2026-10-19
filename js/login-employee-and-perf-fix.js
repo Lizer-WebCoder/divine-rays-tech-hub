@@ -1,12 +1,11 @@
 /**
- * Divine Rays — login-employee-and-perf-fix v8
- * After reload: open correct portal (Employee tab → Employee) and dismiss loader.
- * Prevents infinite "Opening portal…" hang for Developer/Employee logins.
+ * Divine Rays — login-employee-and-perf-fix v9
+ * After reload: release data-dr-hold-portal BEFORE hiding loader (fixes empty shell).
  */
 (function () {
   'use strict';
-  if (window.__DR_EMP_PERF_FIX >= 8) return;
-  window.__DR_EMP_PERF_FIX = 8;
+  if (window.__DR_EMP_PERF_FIX >= 9) return;
+  window.__DR_EMP_PERF_FIX = 9;
 
   function getSb() {
     try {
@@ -155,20 +154,6 @@
     });
   }
 
-  function portalLooksReady() {
-    try {
-      var pc = document.getElementById('portal-customer');
-      var pa = document.getElementById('portal-agent');
-      if (pc && pc.classList.contains('active')) {
-        if (pc.querySelector('.mode-brand, .topbar, nav, .sidebar, header, main, .view')) return true;
-      }
-      if (pa && pa.classList.contains('active')) {
-        if (pa.querySelector('.mode-brand, .topbar, nav, .sidebar, header, main, .view')) return true;
-      }
-    } catch (e) {}
-    return false;
-  }
-
   async function bootWorkspace(roleHint) {
     var existingTab = '';
     try {
@@ -277,18 +262,41 @@
     clearResidualGates();
 
     var tab = '';
-    try { tab = sessionStorage.getItem('dr_login_tab') || ''; } catch (e2) {}
+    try {
+      tab = sessionStorage.getItem('dr_login_tab') || '';
+    } catch (e2) {}
     var pref = '';
-    try { pref = sessionStorage.getItem('dr_dev_portal_pref') || ''; } catch (e3) {}
+    try {
+      pref = sessionStorage.getItem('dr_dev_portal_pref') || '';
+    } catch (e3) {}
 
     var which = 'employee';
     if (tab === 'agent' || pref === 'admin') which = 'admin';
     if (tab === 'customer' || pref === 'employee') which = 'employee';
 
+    // CRITICAL: release hold so portals are not stuck at opacity:0 (empty shell)
+    try {
+      document.documentElement.removeAttribute('data-dr-hold-portal');
+      if (window.DRPortalReadyGate && typeof window.DRPortalReadyGate.release === 'function') {
+        window.DRPortalReadyGate.release();
+      }
+      if (window.DRPortalReadyGate && typeof window.DRPortalReadyGate.setPref === 'function') {
+        window.DRPortalReadyGate.setPref(which);
+      }
+    } catch (eHold) {}
+
     try {
       document.body.classList.add('dr-portal-ok', 'is-portal');
       document.body.classList.remove('is-login', 'dr-tab-blocked', 'dr-pending-blocked');
       document.documentElement.classList.remove('dr-tab-blocked');
+      document.documentElement.setAttribute('data-dr-portal-pref', which);
+      if (which === 'employee') {
+        document.body.classList.add('is-portal-employee');
+        document.body.classList.remove('is-portal-admin');
+      } else {
+        document.body.classList.add('is-portal-admin');
+        document.body.classList.remove('is-portal-employee');
+      }
       var ls = document.getElementById('login-screen');
       if (ls) {
         ls.hidden = true;
@@ -297,8 +305,12 @@
     } catch (e4) {}
 
     try {
-      if (window.DRDevPortal && typeof window.DRDevPortal.apply === 'function') {
-        window.DRDevPortal.apply(window.__drProfile || { role: which === 'admin' ? 'agent' : 'customer' });
+      if (window.DRDevPortal && typeof window.DRDevPortal.showPortal === 'function') {
+        window.DRDevPortal.showPortal(which);
+      } else if (window.DRDevPortal && typeof window.DRDevPortal.apply === 'function') {
+        window.DRDevPortal.apply(
+          window.__drProfile || { role: which === 'admin' ? 'agent' : 'customer' }
+        );
       } else if (typeof window.showApp === 'function') {
         window.showApp(window.__drProfile || { role: which === 'admin' ? 'agent' : 'customer' });
       }
@@ -316,10 +328,9 @@
           pc.hidden = false;
           pc.removeAttribute('hidden');
           pc.classList.add('active');
-          pc.style.removeProperty('display');
           pc.style.setProperty('display', 'block', 'important');
-          pc.style.visibility = 'visible';
-          pc.style.opacity = '1';
+          pc.style.setProperty('visibility', 'visible', 'important');
+          pc.style.setProperty('opacity', '1', 'important');
         }
       } else {
         if (pc) {
@@ -330,13 +341,20 @@
           pa.hidden = false;
           pa.removeAttribute('hidden');
           pa.classList.add('active');
-          pa.style.removeProperty('display');
           pa.style.setProperty('display', 'flex', 'important');
-          pa.style.visibility = 'visible';
-          pa.style.opacity = '1';
+          pa.style.setProperty('visibility', 'visible', 'important');
+          pa.style.setProperty('opacity', '1', 'important');
         }
       }
     } catch (e6) {}
+
+    try {
+      if (window.DRPortalShell && window.DRPortalShell.ensureAmbient)
+        window.DRPortalShell.ensureAmbient(true);
+      if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.ensureGears)
+        window.DRHeartbeatDraw.ensureGears(true);
+      if (window.DRTopbarLayout && window.DRTopbarLayout.refresh) window.DRTopbarLayout.refresh();
+    } catch (eAmb) {}
 
     hidePortalLoader();
     try {
@@ -350,12 +368,19 @@
         boot.classList.add('is-done', 'dr-skip');
         boot.style.display = 'none';
       }
+      var phase = document.getElementById('dr-phase-boot');
+      if (phase) {
+        phase.classList.add('is-done');
+        phase.style.display = 'none';
+      }
     } catch (e7) {}
 
     try {
       sessionStorage.removeItem('dr_post_login_boot');
       setTimeout(function () {
-        try { sessionStorage.removeItem('dr_skip_boot_gear'); } catch (e8) {}
+        try {
+          sessionStorage.removeItem('dr_skip_boot_gear');
+        } catch (e8) {}
       }, 2500);
     } catch (e9) {}
   }
@@ -375,11 +400,13 @@
     );
   }
 
-  setTimeout(finishPostLoginBoot, 600);
-  setTimeout(finishPostLoginBoot, 1400);
+  setTimeout(finishPostLoginBoot, 700);
+  setTimeout(finishPostLoginBoot, 1500);
   setTimeout(finishPostLoginBoot, 2800);
   setTimeout(function () {
     try {
+      document.documentElement.removeAttribute('data-dr-hold-portal');
+      finishPostLoginBoot();
       hidePortalLoader();
       var pl = document.getElementById('dr-post-login-boot');
       if (pl) {
@@ -387,10 +414,10 @@
         pl.style.display = 'none';
       }
     } catch (e) {}
-  }, 5000);
+  }, 7000);
 
   wire();
-  window.DREmpPerfFix = { v: 8, login: doEmployeeLogin, bootWorkspace: bootWorkspace };
+  window.DREmpPerfFix = { v: 9, login: doEmployeeLogin, bootWorkspace: bootWorkspace };
   window.showPortalLoader = showPortalLoader;
   window.hidePortalLoader = hidePortalLoader;
   window.bootWorkspace = bootWorkspace;
