@@ -1,12 +1,12 @@
 /**
- * Divine Rays — portal-shell-fix v7
- * Honeycomb pre-painted under boot (no pop after fade). Full-screen, lighter.
- * Soft fade only if ambient appears after boot already gone.
+ * Divine Rays — portal-shell-fix v8
+ * Static honeycomb (no glow/reaction on click).
+ * Pre-paint under boot; exposes isReady for boot wait.
  */
 (function () {
   'use strict';
-  if (window.__DR_PORTAL_SHELL >= 7) return;
-  window.__DR_PORTAL_SHELL = 7;
+  if (window.__DR_PORTAL_SHELL >= 8) return;
+  window.__DR_PORTAL_SHELL = 8;
 
   var CSS_ID = 'dr-portal-shell-css';
   var BG_ID = 'dr-portal-ambient';
@@ -41,7 +41,7 @@
       vbH +
       '" preserveAspectRatio="xMidYMid slice" width="100%" height="100%">' +
       '<g fill="none" stroke="' +
-      (stroke || 'rgba(196,181,253,0.48)') +
+      (stroke || 'rgba(196,181,253,0.50)') +
       '" stroke-width="1.15">' +
       '<path d="' +
       paths.join(' ') +
@@ -73,33 +73,19 @@
       'body.dr-portal-ok,body.is-portal{',
       'background:radial-gradient(ellipse at top,#1a1530 0%,#0c0618 55%,#06040e 100%)!important;',
       'background-attachment:fixed!important}',
-      '#' + BG_ID + '{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;overflow:hidden;',
-      'opacity:0.38;transition:none}',
+      '#' + BG_ID + '{position:fixed;inset:0;width:100%;height:100%;z-index:0;',
+      'pointer-events:none!important;overflow:hidden;opacity:0.40;',
+      'transition:none!important;animation:none!important;filter:none!important;',
+      'box-shadow:none!important;outline:none!important;user-select:none;',
+      'contain:strict;-webkit-tap-highlight-color:transparent}',
+      '#' + BG_ID + ' *{pointer-events:none!important;animation:none!important;',
+      'transition:none!important;filter:none!important;box-shadow:none!important}',
       'body:not(.dr-portal-ok):not(.is-portal) #' + BG_ID + '{display:none!important}',
       '#' + BG_ID + ' .dr-hc{position:absolute;inset:0;width:100%;height:100%}',
       '#' + BG_ID + ' .dr-hc svg{width:100%;height:100%;display:block}',
-      '#' + BG_ID + '.dr-late-in{opacity:0;transition:opacity 0.85s ease}',
-      '#' + BG_ID + '.dr-late-in.dr-late-visible{opacity:0.38}',
       '#portal-customer.active,#portal-agent.active,.mode-bar{position:relative;z-index:1}',
       '#dr-dev-portal-switch{z-index:9000!important}'
     ].join('');
-  }
-
-  function bootStillVisible() {
-    try {
-      var b =
-        document.getElementById('dr-phase-boot') ||
-        document.getElementById('boot') ||
-        document.getElementById('dr-post-login-boot');
-      if (!b) return false;
-      if (b.classList.contains('is-done') || b.classList.contains('dr-skip')) return false;
-      var st = window.getComputedStyle ? getComputedStyle(b) : null;
-      if (st && (st.display === 'none' || st.visibility === 'hidden')) return false;
-      if (st && parseFloat(st.opacity || '1') < 0.05) return false;
-      return true;
-    } catch (e) {
-      return false;
-    }
   }
 
   function ensureAmbient(forceShow) {
@@ -113,38 +99,26 @@
       document.documentElement.getAttribute('data-dr-portal-pref') === 'admin';
 
     var el = document.getElementById(BG_ID);
-    var isNew = !el;
     if (!el) {
       el = document.createElement('div');
       el.id = BG_ID;
       el.setAttribute('aria-hidden', 'true');
       el.innerHTML =
-        '<div class="dr-hc">' + honeycombSvg('rgba(196,181,253,0.48)') + '</div>';
+        '<div class="dr-hc">' + honeycombSvg('rgba(196,181,253,0.50)') + '</div>';
       document.body.insertBefore(el, document.body.firstChild);
     }
     if (on) {
       el.style.display = 'block';
       el.style.visibility = 'visible';
-      if (bootStillVisible() || el.getAttribute('data-dr-ready') === '1') {
-        el.classList.remove('dr-late-in', 'dr-late-visible');
-        el.style.opacity = '0.38';
-        el.setAttribute('data-dr-ready', '1');
-      } else if (isNew || el.getAttribute('data-dr-ready') !== '1') {
-        el.classList.add('dr-late-in');
-        el.style.opacity = '0';
-        el.setAttribute('data-dr-ready', '1');
-        requestAnimationFrame(function () {
-          requestAnimationFrame(function () {
-            el.classList.add('dr-late-visible');
-            el.style.opacity = '0.38';
-          });
-        });
-      } else {
-        el.style.opacity = '0.38';
-      }
+      el.style.opacity = '0.40';
+      el.style.pointerEvents = 'none';
+      el.style.filter = 'none';
+      el.setAttribute('data-dr-ready', '1');
+      document.documentElement.setAttribute('data-dr-ambient-ready', '1');
       return true;
     }
     el.style.display = 'none';
+    document.documentElement.removeAttribute('data-dr-ambient-ready');
     return false;
   }
 
@@ -223,21 +197,14 @@
   setTimeout(tick, 400);
   setTimeout(tick, 900);
   setTimeout(tick, 1800);
-  setInterval(tick, 5000);
 
-  document.addEventListener(
-    'click',
-    function (e) {
-      if (
-        e.target &&
-        e.target.closest &&
-        e.target.closest('#dr-dev-portal-switch, .mode-bar, .nav-btn')
-      ) {
-        setTimeout(tick, 40);
-      }
-    },
-    true
-  );
-
-  window.DRPortalShell = { v: 7, refresh: tick, ensureAmbient: ensureAmbient };
+  window.DRPortalShell = {
+    v: 8,
+    refresh: tick,
+    ensureAmbient: ensureAmbient,
+    isReady: function () {
+      var el = document.getElementById(BG_ID);
+      return !!(el && el.getAttribute('data-dr-ready') === '1' && el.style.display !== 'none');
+    }
+  };
 })();
