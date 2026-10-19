@@ -1,12 +1,12 @@
 /**
- * Divine Rays — portal-ready-gate v2
- * Portal hard-refresh: loading UI only (no gear boot).
- * After release, does not re-lock so Developer switcher works.
+ * Divine Rays — portal-ready-gate v3
+ * Loading UI only after successful Sign in (dr_skip_boot_gear).
+ * Portal hard refresh uses Booting UI (spinning gear).
  */
 (function () {
   'use strict';
-  if (window.__DR_PORTAL_READY_GATE >= 2) return;
-  window.__DR_PORTAL_READY_GATE = 2;
+  if (window.__DR_PORTAL_READY_GATE >= 3) return;
+  window.__DR_PORTAL_READY_GATE = 3;
 
   var CSS_ID = 'dr-portal-ready-gate-css';
   var LOADER_ID = 'dr-post-login-boot';
@@ -71,11 +71,7 @@
       'display:none!important;visibility:hidden!important;pointer-events:none!important}' +
       'html[data-dr-portal-pref="admin"] #portal-agent{display:flex!important;visibility:visible!important}' +
       'html[data-dr-portal-pref="admin"] #mode-bar-admin,' +
-      'html[data-dr-portal-pref="admin"] .mode-bar-admin{display:flex!important}' +
-      'html.dr-portal-session #boot,html.dr-portal-session #dr-phase-boot{' +
-      'display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}' +
-      'html.dr-portal-session #dr-post-login-boot.is-on,html.dr-portal-session #dr-post-login-boot:not(.is-done){' +
-      'display:flex!important}';
+      'html[data-dr-portal-pref="admin"] .mode-bar-admin{display:flex!important}';
     if (want) document.documentElement.setAttribute('data-dr-portal-pref', want);
   }
 
@@ -124,19 +120,6 @@
     el.classList.remove('is-done');
     el.style.display = 'flex';
     document.documentElement.setAttribute('data-dr-hold-portal', '1');
-    try {
-      var boot = document.getElementById('boot');
-      if (boot) {
-        boot.classList.add('is-done', 'dr-skip');
-        boot.style.display = 'none';
-      }
-      var phase = document.getElementById('dr-phase-boot');
-      if (phase) {
-        phase.classList.add('is-done');
-        phase.style.display = 'none';
-        if (phase.parentNode) phase.parentNode.removeChild(phase);
-      }
-    } catch (e) {}
   }
 
   function hideLoader() {
@@ -256,6 +239,9 @@
         try {
           if (window.DRTopbarLayout && window.DRTopbarLayout.refresh) window.DRTopbarLayout.refresh();
         } catch (e2) {}
+        try {
+          sessionStorage.removeItem('dr_skip_boot_gear');
+        } catch (e3) {}
         return;
       }
     }
@@ -263,20 +249,25 @@
       released = true;
       hideLoader();
       forcePortal(want);
+      try {
+        sessionStorage.removeItem('dr_skip_boot_gear');
+      } catch (e4) {}
     }
   }
 
   var want0 = preferred();
   var auth = hasAuthHint();
-  if (want0 && auth) {
-    document.documentElement.classList.add('dr-portal-session');
-    try {
-      sessionStorage.setItem('dr_portal_session', '1');
-    } catch (e) {}
-  }
-  injectCss(want0);
+  var postLogin = false;
+  try {
+    postLogin = sessionStorage.getItem('dr_skip_boot_gear') === '1';
+  } catch (e0) {}
 
-  if (auth && want0) {
+  injectCss(want0);
+  if (want0) {
+    document.documentElement.setAttribute('data-dr-portal-pref', want0);
+  }
+
+  if (postLogin && auth && want0) {
     armed = true;
     document.documentElement.setAttribute('data-dr-hold-portal', '1');
     function arm() {
@@ -301,10 +292,27 @@
   } else {
     released = true;
     document.documentElement.removeAttribute('data-dr-hold-portal');
+    function softForce() {
+      var w = preferred();
+      if (!w) return;
+      injectCss(w);
+      try {
+        if (
+          document.body &&
+          (document.body.classList.contains('dr-portal-ok') ||
+            document.body.classList.contains('is-portal'))
+        ) {
+          forcePortal(w);
+        }
+      } catch (e) {}
+    }
+    setTimeout(softForce, 300);
+    setTimeout(softForce, 900);
+    setTimeout(softForce, 1800);
   }
 
   window.DRPortalReadyGate = {
-    v: 2,
+    v: 3,
     preferred: preferred,
     release: function () {
       released = true;
