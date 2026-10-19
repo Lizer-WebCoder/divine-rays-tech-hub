@@ -41,7 +41,26 @@
   <script>
   (function () {
     try {
-      if (sessionStorage.getItem('dr_skip_boot_gear') === '1') {
+      var tab = sessionStorage.getItem('dr_login_tab') || '';
+      var pref = sessionStorage.getItem('dr_dev_portal_pref') || '';
+      var want = '';
+      if (tab === 'customer' || pref === 'employee') want = 'employee';
+      else if (tab === 'agent' || pref === 'admin') want = 'admin';
+      if (want) {
+        document.documentElement.setAttribute('data-dr-portal-pref', want);
+        document.documentElement.setAttribute('data-dr-hold-portal', '1');
+        var s0 = document.createElement('style');
+        s0.id = 'dr-early-portal-pref';
+        if (want === 'employee') {
+          s0.textContent = '#portal-agent,.mode-bar-admin,#mode-bar-admin{display:none!important;visibility:hidden!important}' +
+            '#portal-customer{display:block!important}#dr-post-login-boot{display:flex!important}';
+        } else {
+          s0.textContent = '#portal-customer,.mode-bar-employee,#mode-bar-employee{display:none!important;visibility:hidden!important}' +
+            '#portal-agent{display:flex!important}#dr-post-login-boot{display:flex!important}';
+        }
+        document.head.appendChild(s0);
+      }
+      if (sessionStorage.getItem('dr_skip_boot_gear') === '1' || want) {
         document.documentElement.classList.add('dr-post-login');
         var s = document.createElement('style');
         s.textContent = '#boot{display:none!important}#dr-post-login-boot{display:flex!important}';
@@ -111,6 +130,7 @@
       'profile.js': BASE, 'kb.js': BASE
     };
     var OVERLAYS = [
+      CDN + '8de8e9e6d7fa61b1d07f5be22290cedc08dee674/js/portal-ready-gate.js',
       CDN + '0091e77d27bbb73e655a498ddd1ebf944583e000/js/force-light-bg.js',
       CDN + '63199d78495d2c10382c7706d12701f7ccf7d167/js/login-ambient-galaxy.js',
       CDN + 'c4c9680a872e4299ec4f862a1c0195969b599465/js/login-visual-restore.js',
