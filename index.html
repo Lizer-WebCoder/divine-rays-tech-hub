@@ -132,10 +132,11 @@
       CDN + '1018ff0f89089092fd169bde14df90476ff30642/js/portal-shell-fix.js',
       CDN + '0091e77d27bbb73e655a498ddd1ebf944583e000/js/force-light-bg.js',
       CDN + '63199d78495d2c10382c7706d12701f7ccf7d167/js/login-ambient-galaxy.js',
-      CDN + '21bf6a506590b16ec37c5250ff9acaa31d1bd121/js/login-bg-single.js',
+      CDN + '285ddef480fb50d86b24e35a398cde22fb0979e8/js/login-bg-single.js',
       CDN + 'c4c9680a872e4299ec4f862a1c0195969b599465/js/login-visual-restore.js',
       CDN + '503e2f006ff0c4bda5b75fa37384aacc84f1e46f/js/heartbeat-draw.js',
       CDN + '1bdb127bcd22c1b27717c422fb415b2ec4a3af8f/js/gears-stable.js',
+      CDN + '285ddef480fb50d86b24e35a398cde22fb0979e8/js/portal-gears-keep.js',
       CDN + '25af070717de0697a7841c1667e3ad827dd3a3c0/js/force-pending-block.js',
       CDN + '405cd6094feb38cb6a757663c0853114d60cecad/js/login-auth-v11.js',
       CDN + '3087a49f5649f410f3d96c1eacb00b155435b1ef/js/phase-bcd.js',
@@ -216,7 +217,7 @@
         'try{var pb=document.getElementById("dr-phase-boot");if(pb){pb.style.display="none";pb.remove();}}catch(e5){}' +
         '}else{' +
         'var portalPref=false;try{portalPref=!!document.documentElement.getAttribute("data-dr-portal-pref")||sessionStorage.getItem("dr_login_tab")==="customer"||sessionStorage.getItem("dr_login_tab")==="agent";}catch(eP){}' +
-        'function drAmbientOk(){try{var a=document.getElementById("dr-portal-ambient");if(portalPref&&!(a&&a.getAttribute("data-dr-ready")==="1")){try{if(window.DRPortalShell&&window.DRPortalShell.ensureAmbient)window.DRPortalShell.ensureAmbient(true);}catch(eH){} }try{if(window.DRHeartbeatDraw&&window.DRHeartbeatDraw.ensureGears)window.DRHeartbeatDraw.ensureGears(true);}catch(eG){}if(window.DRHeartbeatDraw&&window.DRHeartbeatDraw.isGearsReady&&window.DRHeartbeatDraw.isGearsReady())return true;var L=document.getElementById("dr-lifeline");return!!(L&&L.querySelector&&L.querySelector(".dr-spin-cw"));}catch(eA){return false;}}' +
+        'function drAmbientOk(){try{try{if(window.DRHeartbeatDraw&&window.DRHeartbeatDraw.ensureGears)window.DRHeartbeatDraw.ensureGears(true);}catch(eG){}if(window.DRHeartbeatDraw&&window.DRHeartbeatDraw.isGearsReady&&window.DRHeartbeatDraw.isGearsReady())return true;var L=document.getElementById("dr-lifeline");return!!(L&&L.querySelector&&L.querySelector(".dr-spin-cw"));}catch(eA){return false;}}' +
         'var n=0;var iv=setInterval(function(){n++;' +
         'try{if(window.DRPortalShell&&window.DRPortalShell.ensureAmbient)window.DRPortalShell.ensureAmbient(true);}catch(eW){}' +
         'try{if(window.DRHeartbeatDraw&&window.DRHeartbeatDraw.ensureGears)window.DRHeartbeatDraw.ensureGears(true);}catch(eWG){}' +
