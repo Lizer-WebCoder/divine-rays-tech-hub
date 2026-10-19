@@ -53,9 +53,9 @@
         var s0 = document.createElement('style');
         s0.id = 'dr-early-portal-pref';
         if (want === 'employee') {
-          s0.textContent = '#portal-agent,.mode-bar-admin,#mode-bar-admin{display:none!important;visibility:hidden!important}';
+          s0.textContent = '#portal-agent,.mode-bar-admin,#mode-bar-admin,#mode-bar-admin *{display:none!important;visibility:hidden!important;opacity:0!important}#portal-customer{visibility:visible!important}';
         } else {
-          s0.textContent = '#portal-customer,.mode-bar-employee,#mode-bar-employee{display:none!important;visibility:hidden!important}';
+          s0.textContent = '#portal-customer,.mode-bar-employee,#mode-bar-employee,#mode-bar-employee *{display:none!important;visibility:hidden!important;opacity:0!important}#portal-agent{visibility:visible!important}';
         }
         document.head.appendChild(s0);
       }
@@ -136,7 +136,7 @@
       CDN + '0091e77d27bbb73e655a498ddd1ebf944583e000/js/force-light-bg.js',
       CDN + '63199d78495d2c10382c7706d12701f7ccf7d167/js/login-ambient-galaxy.js',
       CDN + 'c4c9680a872e4299ec4f862a1c0195969b599465/js/login-visual-restore.js',
-      CDN + 'a9046e485443b24e800a4f4d10747c10146ca663/js/heartbeat-draw.js',
+      CDN + '2daf7eb6cef6fca9df6cd70a7aece9d8915b4fb9/js/heartbeat-draw.js',
       CDN + '25af070717de0697a7841c1667e3ad827dd3a3c0/js/force-pending-block.js',
       CDN + '5cced6605c4e1071a1e6717c9da6d0e5dcfee1ea/js/login-auth-v11.js',
       CDN + '3087a49f5649f410f3d96c1eacb00b155435b1ef/js/phase-bcd.js',
@@ -197,6 +197,7 @@
         'if(instant){el.style.transition="none";el.classList.add("is-done");el.style.opacity="0";el.style.visibility="hidden";el.style.pointerEvents="none";el.style.display="none";setTimeout(function(){drRemoveBoot(el);},30);return;}' +
         'if(__drBootFading)return;__drBootFading=true;' +
         'try{if(window.DRPortalShell&&window.DRPortalShell.ensureAmbient)window.DRPortalShell.ensureAmbient(true);}catch(eAmb){}' +
+        'try{if(window.DRHeartbeatDraw&&window.DRHeartbeatDraw.ensureGears)window.DRHeartbeatDraw.ensureGears(true);}catch(eG2){}' +
         'el.style.transition="opacity 0.75s ease, visibility 0.75s ease";' +
         'void el.offsetWidth;' +
         'el.classList.add("is-done");' +
@@ -215,15 +216,16 @@
         'try{var pb=document.getElementById("dr-phase-boot");if(pb){pb.style.display="none";pb.remove();}}catch(e5){}' +
         '}else{' +
         'var portalPref=false;try{portalPref=!!document.documentElement.getAttribute("data-dr-portal-pref")||sessionStorage.getItem("dr_login_tab")==="customer"||sessionStorage.getItem("dr_login_tab")==="agent";}catch(eP){}' +
-        'function drAmbientOk(){try{if(window.DRPortalShell&&window.DRPortalShell.isReady&&window.DRPortalShell.isReady())return true;var a=document.getElementById("dr-portal-ambient");return!!(a&&a.getAttribute("data-dr-ready")==="1");}catch(eA){return false;}}' +
+        'function drAmbientOk(){try{if(window.DRPortalShell&&window.DRPortalShell.isReady&&window.DRPortalShell.isReady()){/*honey*/}else{var a=document.getElementById("dr-portal-ambient");if(!(a&&a.getAttribute("data-dr-ready")==="1"))return false;}try{if(window.DRHeartbeatDraw&&window.DRHeartbeatDraw.ensureGears)window.DRHeartbeatDraw.ensureGears(true);}catch(eG){}if(window.DRHeartbeatDraw&&window.DRHeartbeatDraw.isGearsReady&&window.DRHeartbeatDraw.isGearsReady())return true;var L=document.getElementById("dr-lifeline");return!!(L&&L.querySelector&&L.querySelector(".dr-spin-cw"));}catch(eA){return false;}}' +
         'var n=0;var iv=setInterval(function(){n++;' +
         'try{if(window.DRPortalShell&&window.DRPortalShell.ensureAmbient)window.DRPortalShell.ensureAmbient(true);}catch(eW){}' +
+        'try{if(window.DRHeartbeatDraw&&window.DRHeartbeatDraw.ensureGears)window.DRHeartbeatDraw.ensureGears(true);}catch(eWG){}' +
         'var loginOk=drLoginReady();' +
         'var ambOk=!portalPref||drAmbientOk();' +
-        'if((loginOk&&ambOk)||n>55){clearInterval(iv);' +
-        'setTimeout(function(){drFadeBoot(false);},portalPref?200:350);' +
+        'if((loginOk&&ambOk)||n>60){clearInterval(iv);' +
+        'setTimeout(function(){drFadeBoot(false);},portalPref?150:350);' +
         '}},90);' +
-        'setTimeout(function(){drFadeBoot(false);},5500);' +
+        'setTimeout(function(){drFadeBoot(false);},6000);' +
         '}' +
         '}catch(e){}})();<\/script>';
       if (html.indexOf('</body>') !== -1) return html.replace('</body>', tags + bootFlags + '</body>');
