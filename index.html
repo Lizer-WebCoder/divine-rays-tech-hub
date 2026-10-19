@@ -105,9 +105,7 @@
     'use strict';
     var B = Date.now();
     var skipGear = false;
-    try {
-      skipGear = sessionStorage.getItem('dr_skip_boot_gear') === '1';
-    } catch (e) {}
+    try { skipGear = sessionStorage.getItem('dr_skip_boot_gear') === '1'; } catch (e) {}
     if (skipGear) {
       try {
         var boot0 = document.getElementById('boot');
@@ -116,7 +114,6 @@
         if (pl0) pl0.classList.add('is-on');
       } catch (e2) {}
     }
-
     var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
     var RAW = 'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/';
     var BASE = '830dac02096eb08be1b2dc22bdc191a14df91a04';
@@ -145,7 +142,8 @@
       CDN + '25af070717de0697a7841c1667e3ad827dd3a3c0/js/force-pending-block.js',
       CDN + '7d382fcc8ac7dbdbd7c83490d9b044b17d23a3fc/js/login-auth-v11.js',
       CDN + '042f9445771a542db7bf8cc38e74b2f0a90dab5c/js/login-auth-fields-fix.js',
-      CDN + 'a2f8aa59755b19fdae8c65dfc71d57c82f2b626e/js/overlay-pin-v1.js',
+      CDN + '676849e0fae18dd50d6432f0553130d12abd8b29/js/overlay-pin-v1.js',
+      CDN + '85f1defcdbc2e1e627865313a5c505bb007b9ee0/js/emp-login-fix.js',
       CDN + '3087a49f5649f410f3d96c1eacb00b155435b1ef/js/phase-bcd.js',
       CDN + 'b19db6229e1db592722f55c0ea4e1a4e5eb61e0b/js/users-admin-approval-ui.js',
       CDN + '46f6a5a15fcce4e4f43cce945c3cd6c70cf3b26d/js/login-tab-labels.js',
@@ -168,7 +166,6 @@
       CDN + '19bc1007aec81f9f0525fe7a3167b9ec84fa05b6/js/tab-session.js',
       CDN + '761f65a9a4148efcabd6a78afb7e13f144943fa6/js/agent-username-auth.js'
     ];
-
     setTimeout(function () {
       try {
         var boot = document.getElementById('boot');
@@ -178,7 +175,6 @@
         }
       } catch (e) {}
     }, 8000);
-
     function pinFor(file) { return PIN[file] || BASE; }
     function rewriteAssets(html) {
       html = html.replace(/\b(href|src)="(css|js)\/([^"?]+)(\?[^"]*)?"/g, function (_, attr, dir, file) {
@@ -239,11 +235,7 @@
       if (html.indexOf('</body>') !== -1) return html.replace('</body>', tags + bootFlags + '</body>');
       return html + tags + bootFlags;
     }
-
-    var urls = [
-      CDN + BASE + '/index.html?b=' + B,
-      RAW + BASE + '/index.html?b=' + B
-    ];
+    var urls = [CDN + BASE + '/index.html?b=' + B, RAW + BASE + '/index.html?b=' + B];
     var html = null, lastErr = '';
     for (var i = 0; i < urls.length; i++) {
       try {
@@ -265,12 +257,10 @@
     }
     html = rewriteAssets(html);
     html = injectOverlays(html);
-
     if (!skipGear) {
       var bootCss =
         '#dr-phase-boot{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1.25rem;text-align:center;' +
-        'background:linear-gradient(180deg,#1a0c38 0%,#0c0618 100%);' +
-        'opacity:1;visibility:visible;' +
+        'background:linear-gradient(180deg,#1a0c38 0%,#0c0618 100%);opacity:1;visibility:visible;' +
         'transition:opacity 0.75s ease,visibility 0.75s ease}' +
         '#dr-phase-boot.is-done{opacity:0;visibility:hidden;pointer-events:none}' +
         '#dr-phase-boot .boot-logo{width:72px;height:72px;border-radius:16px;display:block;box-shadow:0 8px 32px rgba(109,90,154,.35)}' +
@@ -283,26 +273,7 @@
       var bootHtml = '<style id="dr-phase-boot-css">' + bootCss + '</style><div id="dr-phase-boot" role="status">' + bootSvg + '</div>';
       if (html.indexOf('<body') !== -1) html = html.replace(/<body([^>]*)>/, '<body$1>' + bootHtml);
       else html = bootHtml + html;
-    } else {
-      var rings =
-        '<style>#dr-post-login-boot{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1.35rem;background:radial-gradient(ellipse at 50% 40%,#1e1240 0%,#0c0618 70%);opacity:1;transition:opacity 0.85s ease,visibility 0.85s ease}' +
-        '#dr-post-login-boot.is-done,#dr-post-login-boot.is-fading{opacity:0!important;visibility:hidden!important;pointer-events:none!important}' +
-        '#dr-post-login-boot .pl-rings{position:relative;width:76px;height:76px}' +
-        '#dr-post-login-boot .pl-ring{position:absolute;inset:0;border-radius:50%;border:2.5px solid rgba(167,139,250,0.15);border-top-color:#c4b5fd;animation:drPlSpin 1.25s linear infinite}' +
-        '#dr-post-login-boot .pl-ring:nth-child(2),#dr-post-login-boot .pl-ring:nth-child(3){display:none}' +
-        '#dr-post-login-boot .pl-core{position:absolute;inset:18px;border-radius:50%;background:radial-gradient(circle,#ddd6fe 0%,#7c6af0 70%);box-shadow:0 0 28px rgba(139,92,246,.55)}' +
-        '@keyframes drPlSpin{to{transform:rotate(360deg)}}' +
-        '#dr-post-login-boot .pl-title{color:#eeeef6;font-weight:650;font-size:1.1rem;margin:0}' +
-        '#dr-post-login-boot .pl-sub{color:#9494ae;font-size:.82rem;margin:0}' +
-        '#dr-post-login-boot .pl-bar{width:160px;height:4px;border-radius:99px;background:rgba(139,92,246,.2);overflow:hidden}' +
-        '#dr-post-login-boot .pl-bar>i{display:block;height:100%;width:40%;border-radius:99px;background:linear-gradient(90deg,#7c6af0,#c4b5fd,#7c6af0);animation:drPlBar 1.4s ease-in-out infinite}' +
-        '@keyframes drPlBar{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}</style>' +
-        '<div id="dr-post-login-boot" class="is-on"><div class="pl-rings"><div class="pl-ring"></div><div class="pl-ring"></div><div class="pl-ring"></div><div class="pl-core"></div></div>' +
-        '<p class="pl-title">Opening portal...</p><p class="pl-sub">Preparing your workspace</p><div class="pl-bar"><i></i></div></div>';
-      if (html.indexOf('<body') !== -1) html = html.replace(/<body([^>]*)>/, '<body$1>' + rings);
-      else html = rings + html;
     }
-
     document.open();
     document.write(html);
     document.close();
