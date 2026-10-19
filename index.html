@@ -62,7 +62,7 @@
       if (sessionStorage.getItem('dr_skip_boot_gear') === '1') {
         document.documentElement.classList.add('dr-post-login');
         var s = document.createElement('style');
-        s.textContent = '#boot,#dr-phase-boot{display:none!important}#dr-post-login-boot{display:flex!important}';
+        s.textContent = '#boot,#dr-phase-boot{display:none!important}#dr-post-login-boot{display:flex!important;z-index:100000!important}#portal-customer,#portal-agent,.mode-bar,#mode-bar-employee,#mode-bar-admin{opacity:0!important;pointer-events:none!important}';
         document.head.appendChild(s);
       }
     } catch (e) {}
@@ -135,8 +135,10 @@
       CDN + '1018ff0f89089092fd169bde14df90476ff30642/js/portal-shell-fix.js',
       CDN + '0091e77d27bbb73e655a498ddd1ebf944583e000/js/force-light-bg.js',
       CDN + '63199d78495d2c10382c7706d12701f7ccf7d167/js/login-ambient-galaxy.js',
+      CDN + 'b7f97944c3a41c3daf690c150ad199d5e8a9f7ca/js/login-bg-single.js',
       CDN + 'c4c9680a872e4299ec4f862a1c0195969b599465/js/login-visual-restore.js',
       CDN + '2daf7eb6cef6fca9df6cd70a7aece9d8915b4fb9/js/heartbeat-draw.js',
+      CDN + 'bd2b5cbcf10b36809984ffdb8fb793a084df4546/js/gears-stable.js',
       CDN + '25af070717de0697a7841c1667e3ad827dd3a3c0/js/force-pending-block.js',
       CDN + '405cd6094feb38cb6a757663c0853114d60cecad/js/login-auth-v11.js',
       CDN + '3087a49f5649f410f3d96c1eacb00b155435b1ef/js/phase-bcd.js',
