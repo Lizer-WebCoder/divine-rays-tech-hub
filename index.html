@@ -49,21 +49,24 @@
       if (want) {
         document.documentElement.setAttribute('data-dr-portal-pref', want);
         document.documentElement.setAttribute('data-dr-hold-portal', '1');
+        document.documentElement.classList.add('dr-portal-session');
         var s0 = document.createElement('style');
         s0.id = 'dr-early-portal-pref';
         if (want === 'employee') {
           s0.textContent = '#portal-agent,.mode-bar-admin,#mode-bar-admin{display:none!important;visibility:hidden!important}' +
-            '#portal-customer{display:block!important}#dr-post-login-boot{display:flex!important}';
+            '#portal-customer{display:block!important}#dr-post-login-boot{display:flex!important}' +
+            '#boot,#dr-phase-boot{display:none!important}';
         } else {
           s0.textContent = '#portal-customer,.mode-bar-employee,#mode-bar-employee{display:none!important;visibility:hidden!important}' +
-            '#portal-agent{display:flex!important}#dr-post-login-boot{display:flex!important}';
+            '#portal-agent{display:flex!important}#dr-post-login-boot{display:flex!important}' +
+            '#boot,#dr-phase-boot{display:none!important}';
         }
         document.head.appendChild(s0);
       }
-      if (sessionStorage.getItem('dr_skip_boot_gear') === '1' || want) {
+      if (sessionStorage.getItem('dr_skip_boot_gear') === '1' || want || sessionStorage.getItem('dr_portal_session') === '1') {
         document.documentElement.classList.add('dr-post-login');
         var s = document.createElement('style');
-        s.textContent = '#boot{display:none!important}#dr-post-login-boot{display:flex!important}';
+        s.textContent = '#boot,#dr-phase-boot{display:none!important}#dr-post-login-boot{display:flex!important}';
         document.head.appendChild(s);
       }
     } catch (e) {}
@@ -108,7 +111,16 @@
     'use strict';
     var B = Date.now();
     var skipGear = false;
-    try { skipGear = sessionStorage.getItem('dr_skip_boot_gear') === '1'; } catch (e) {}
+    try {
+      skipGear = sessionStorage.getItem('dr_skip_boot_gear') === '1';
+      var tab = sessionStorage.getItem('dr_login_tab') || '';
+      var pref = sessionStorage.getItem('dr_dev_portal_pref') || '';
+      var portalSession = sessionStorage.getItem('dr_portal_session') === '1';
+      if (portalSession || tab === 'customer' || tab === 'agent' || pref === 'employee' || pref === 'admin') {
+        skipGear = true;
+        document.documentElement.classList.add('dr-portal-session');
+      }
+    } catch (e) {}
     if (skipGear) {
       try {
         var boot0 = document.getElementById('boot');
@@ -130,7 +142,7 @@
       'profile.js': BASE, 'kb.js': BASE
     };
     var OVERLAYS = [
-      CDN + '8de8e9e6d7fa61b1d07f5be22290cedc08dee674/js/portal-ready-gate.js',
+      CDN + '87d9b855e20f98aec0e0c0fb57490e991c777e54/js/portal-ready-gate.js',
       CDN + '0091e77d27bbb73e655a498ddd1ebf944583e000/js/force-light-bg.js',
       CDN + '63199d78495d2c10382c7706d12701f7ccf7d167/js/login-ambient-galaxy.js',
       CDN + 'c4c9680a872e4299ec4f862a1c0195969b599465/js/login-visual-restore.js',
@@ -145,7 +157,7 @@
       CDN + '053a6c0f983a40d19b6be2b86bc8063b66c60575/js/login-reg-polish.js',
       CDN + '5f7baca7cc23a283b6ddd0d5682fe11425f87e56/js/login-reg-validate.js',
       CDN + '3caae1bfbccf559f87bdc8706c3974e1e4a1c38e/js/login-password-toggle.js',
-      CDN + 'dcbfb694166b146c25c8d95b591d4671d8e203af/js/developer-portal-access.js',
+      CDN + 'b9b80a796683682c88f1f989c97eaf15c380a015/js/developer-portal-access.js',
       CDN + '73566a7bb55045f4d0d34900a92e4560f1595067/js/logout-confirm.js',
       CDN + '52dcc738386608a65c21c13db5d6d5218bf53201/js/login-pending-and-busy-fix.js',
       CDN + '9509d4224125ae3a85c75733d529f69cae3153dc/js/login-employee-and-perf-fix.js',
@@ -207,7 +219,7 @@
         'var st=window.getComputedStyle?getComputedStyle(ls):null;' +
         'if(st&&(st.display==="none"||st.visibility==="hidden"))return false;' +
         'return true;}catch(e3){return!!document.getElementById("login-screen");}}' +
-        'var skipGear=false;try{skipGear=sessionStorage.getItem("dr_skip_boot_gear")==="1";}catch(e4){}' +
+        'var skipGear=false;try{skipGear=sessionStorage.getItem("dr_skip_boot_gear")==="1"||sessionStorage.getItem("dr_portal_session")==="1"||!!sessionStorage.getItem("dr_login_tab");}catch(e4){}' +
         'if(skipGear){' +
         'drFadeBoot(true);' +
         'try{var pb=document.getElementById("dr-phase-boot");if(pb){pb.style.display="none";pb.remove();}}catch(e5){}' +
