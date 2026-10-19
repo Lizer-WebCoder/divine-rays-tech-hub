@@ -10,7 +10,7 @@
     html,body{margin:0;min-height:100vh;font-family:Inter,system-ui,sans-serif;
       background:radial-gradient(ellipse at 50% 40%,#1e1240 0%,#0c0618 70%);color:#eeeef6}
     #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:1.25rem;text-align:center;padding:1.5rem;
-      transition:opacity 1s ease,visibility 1s ease}
+      transition:opacity 0.75s ease,visibility 0.75s ease}
     #boot.is-done,#boot.dr-skip{opacity:0!important;visibility:hidden!important;pointer-events:none!important;display:none!important}
     #boot .boot-logo{width:72px;height:72px;border-radius:16px;display:block;box-shadow:0 8px 32px rgba(109,90,154,.35)}
     #boot .boot-gear-spin{transform-origin:32px 32px;transform-box:view-box;animation:drBootGearSpin 1.4s linear infinite}
@@ -19,8 +19,10 @@
     #boot .err{color:#fca5a5;font-size:.9rem;max-width:28rem}
     @keyframes drBootGearSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
     #dr-post-login-boot{position:fixed;inset:0;z-index:100000;display:none;align-items:center;justify-content:center;
-      flex-direction:column;gap:1.35rem;background:radial-gradient(ellipse at 50% 40%,#1e1240 0%,#0c0618 70%)}
+      flex-direction:column;gap:1.35rem;background:radial-gradient(ellipse at 50% 40%,#1e1240 0%,#0c0618 70%);opacity:1;
+      transition:opacity 0.55s ease,visibility 0.55s ease}
     #dr-post-login-boot.is-on{display:flex}
+    #dr-post-login-boot.is-done{display:none!important}
     #dr-post-login-boot .pl-rings{position:relative;width:72px;height:72px}
     #dr-post-login-boot .pl-ring{position:absolute;inset:0;border-radius:50%;border:2px solid transparent;
       border-top-color:#a78bfa;border-right-color:rgba(167,139,250,.35);animation:drPlSpin 1s linear infinite}
@@ -129,7 +131,7 @@
       'profile.js': BASE, 'kb.js': BASE
     };
     var OVERLAYS = [
-      CDN + '447f3c374d527ec804ba22b2398f102fbd90fe7c/js/portal-ready-gate.js',
+      CDN + '2b4cddf330c85982c85315f23fc3ac6fc353945f/js/portal-ready-gate.js',
       CDN + '0091e77d27bbb73e655a498ddd1ebf944583e000/js/force-light-bg.js',
       CDN + '63199d78495d2c10382c7706d12701f7ccf7d167/js/login-ambient-galaxy.js',
       CDN + 'c4c9680a872e4299ec4f862a1c0195969b599465/js/login-visual-restore.js',
@@ -148,7 +150,7 @@
       CDN + '73566a7bb55045f4d0d34900a92e4560f1595067/js/logout-confirm.js',
       CDN + '52dcc738386608a65c21c13db5d6d5218bf53201/js/login-pending-and-busy-fix.js',
       CDN + '9509d4224125ae3a85c75733d529f69cae3153dc/js/login-employee-and-perf-fix.js',
-      CDN + 'b86ab93803d3c46de71450abbd388e12b3d42aab/js/portal-shell-fix.js',
+      CDN + 'c086a8fa18a31302e088d1f36f317bb6b32eb3ff/js/portal-shell-fix.js',
       CDN + '4f433dbeb2f5663f82903f3a4326f218b2aa6159/js/topbar-layout.js',
       CDN + 'f84cd956faf474658036d7891ac940adc4290b3f/js/boot-freeze-guard.js',
       CDN + '090fd731d30cd3c91d50a33ac2c15874f096e50a/js/login-label-lock.js',
@@ -194,10 +196,10 @@
         'try{var el=document.getElementById("dr-phase-boot");if(!el||el.classList.contains("is-done"))return;' +
         'if(instant){el.style.transition="none";el.classList.add("is-done");el.style.opacity="0";el.style.visibility="hidden";el.style.pointerEvents="none";el.style.display="none";setTimeout(function(){drRemoveBoot(el);},30);return;}' +
         'if(__drBootFading)return;__drBootFading=true;' +
-        'el.style.transition="opacity 1.1s ease, visibility 1.1s ease";' +
+        'el.style.transition="opacity 0.75s ease, visibility 0.75s ease";' +
         'void el.offsetWidth;' +
         'el.classList.add("is-done");' +
-        'setTimeout(function(){drRemoveBoot(el);},1200);' +
+        'setTimeout(function(){drRemoveBoot(el);},800);' +
         '}catch(e2){}}' +
         'function drLoginReady(){' +
         'try{var ls=document.getElementById("login-screen");' +
@@ -212,10 +214,10 @@
         'try{var pb=document.getElementById("dr-phase-boot");if(pb){pb.style.display="none";pb.remove();}}catch(e5){}' +
         '}else{' +
         'var n=0;var iv=setInterval(function(){n++;' +
-        'if(drLoginReady()||n>40){clearInterval(iv);' +
-        'setTimeout(function(){drFadeBoot(false);},180);' +
+        'if(drLoginReady()||n>50){clearInterval(iv);' +
+        'setTimeout(function(){drFadeBoot(false);},450);' +
         '}},100);' +
-        'setTimeout(function(){drFadeBoot(false);},4500);' +
+        'setTimeout(function(){drFadeBoot(false);},5000);' +
         '}' +
         '}catch(e){}})();<\/script>';
       if (html.indexOf('</body>') !== -1) return html.replace('</body>', tags + bootFlags + '</body>');
@@ -253,7 +255,7 @@
         '#dr-phase-boot{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1.25rem;text-align:center;' +
         'background:linear-gradient(180deg,#1a0c38 0%,#0c0618 100%);' +
         'opacity:1;visibility:visible;' +
-        'transition:opacity 1.1s ease,visibility 1.1s ease}' +
+        'transition:opacity 0.75s ease,visibility 0.75s ease}' +
         '#dr-phase-boot.is-done{opacity:0;visibility:hidden;pointer-events:none}' +
         '#dr-phase-boot .boot-logo{width:72px;height:72px;border-radius:16px;display:block;box-shadow:0 8px 32px rgba(109,90,154,.35)}' +
         '#dr-phase-boot .boot-gear-spin{transform-origin:32px 32px;transform-box:view-box;animation:drBootGearSpin 1.4s linear infinite}' +
@@ -267,7 +269,7 @@
       else html = bootHtml + html;
     } else {
       var rings =
-        '<style>#dr-post-login-boot{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1.35rem;background:radial-gradient(ellipse at 50% 40%,#1e1240 0%,#0c0618 70%)}' +
+        '<style>#dr-post-login-boot{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1.35rem;background:radial-gradient(ellipse at 50% 40%,#1e1240 0%,#0c0618 70%);opacity:1;transition:opacity 0.55s ease,visibility 0.55s ease}' +
         '#dr-post-login-boot .pl-rings{position:relative;width:72px;height:72px}' +
         '#dr-post-login-boot .pl-ring{position:absolute;inset:0;border-radius:50%;border:2px solid transparent;border-top-color:#a78bfa;border-right-color:rgba(167,139,250,.35);animation:drPlSpin 1s linear infinite}' +
         '#dr-post-login-boot .pl-ring:nth-child(2){inset:10px;border-top-color:#c4b5fd;animation-duration:1.4s;animation-direction:reverse}' +
