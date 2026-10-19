@@ -132,6 +132,7 @@
     };
     var OVERLAYS = [
       CDN + '2b4cddf330c85982c85315f23fc3ac6fc353945f/js/portal-ready-gate.js',
+      CDN + '41ac044092678b8a0b75712fdc38b7c2e44c1518/js/portal-shell-fix.js',
       CDN + '0091e77d27bbb73e655a498ddd1ebf944583e000/js/force-light-bg.js',
       CDN + '63199d78495d2c10382c7706d12701f7ccf7d167/js/login-ambient-galaxy.js',
       CDN + 'c4c9680a872e4299ec4f862a1c0195969b599465/js/login-visual-restore.js',
@@ -150,7 +151,6 @@
       CDN + '73566a7bb55045f4d0d34900a92e4560f1595067/js/logout-confirm.js',
       CDN + '52dcc738386608a65c21c13db5d6d5218bf53201/js/login-pending-and-busy-fix.js',
       CDN + '9509d4224125ae3a85c75733d529f69cae3153dc/js/login-employee-and-perf-fix.js',
-      CDN + 'c086a8fa18a31302e088d1f36f317bb6b32eb3ff/js/portal-shell-fix.js',
       CDN + '4f433dbeb2f5663f82903f3a4326f218b2aa6159/js/topbar-layout.js',
       CDN + 'f84cd956faf474658036d7891ac940adc4290b3f/js/boot-freeze-guard.js',
       CDN + '090fd731d30cd3c91d50a33ac2c15874f096e50a/js/login-label-lock.js',
@@ -196,6 +196,7 @@
         'try{var el=document.getElementById("dr-phase-boot");if(!el||el.classList.contains("is-done"))return;' +
         'if(instant){el.style.transition="none";el.classList.add("is-done");el.style.opacity="0";el.style.visibility="hidden";el.style.pointerEvents="none";el.style.display="none";setTimeout(function(){drRemoveBoot(el);},30);return;}' +
         'if(__drBootFading)return;__drBootFading=true;' +
+        'try{if(window.DRPortalShell&&window.DRPortalShell.ensureAmbient)window.DRPortalShell.ensureAmbient(true);}catch(eAmb){}' +
         'el.style.transition="opacity 0.75s ease, visibility 0.75s ease";' +
         'void el.offsetWidth;' +
         'el.classList.add("is-done");' +
@@ -214,6 +215,7 @@
         'try{var pb=document.getElementById("dr-phase-boot");if(pb){pb.style.display="none";pb.remove();}}catch(e5){}' +
         '}else{' +
         'var n=0;var iv=setInterval(function(){n++;' +
+        'try{if(window.DRPortalShell&&window.DRPortalShell.ensureAmbient)window.DRPortalShell.ensureAmbient(true);}catch(eW){}' +
         'if(drLoginReady()||n>50){clearInterval(iv);' +
         'setTimeout(function(){drFadeBoot(false);},450);' +
         '}},100);' +
