@@ -1,12 +1,11 @@
 /**
- * Divine Rays — portal-ready-gate v3
- * Loading UI only after successful Sign in (dr_skip_boot_gear).
- * Portal hard refresh uses Booting UI (spinning gear).
+ * Divine Rays — portal-ready-gate v4
+ * Loading UI fades only after portal + ambient are ready; smooth opacity fade.
  */
 (function () {
   'use strict';
-  if (window.__DR_PORTAL_READY_GATE >= 3) return;
-  window.__DR_PORTAL_READY_GATE = 3;
+  if (window.__DR_PORTAL_READY_GATE >= 4) return;
+  window.__DR_PORTAL_READY_GATE = 4;
 
   var CSS_ID = 'dr-portal-ready-gate-css';
   var LOADER_ID = 'dr-post-login-boot';
@@ -94,8 +93,8 @@
         st.textContent =
           '#' + LOADER_ID + '{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;' +
           'justify-content:center;flex-direction:column;gap:1.35rem;' +
-          'background:radial-gradient(ellipse at 50% 40%,#1e1240 0%,#0c0618 70%)}' +
-          '#' + LOADER_ID + '.is-done{display:none!important;opacity:0;pointer-events:none}' +
+          'background:radial-gradient(ellipse at 50% 40%,#1e1240 0%,#0c0618 70%);opacity:1}' +
+          '#' + LOADER_ID + '.is-done{display:none!important;pointer-events:none}' +
           '#' + LOADER_ID + ' .pl-rings{position:relative;width:72px;height:72px}' +
           '#' + LOADER_ID + ' .pl-ring{position:absolute;inset:0;border-radius:50%;border:2px solid transparent;' +
           'border-top-color:#a78bfa;border-right-color:rgba(167,139,250,.35);animation:drPlSpin 1s linear infinite}' +
@@ -119,20 +118,31 @@
     el.classList.add('is-on');
     el.classList.remove('is-done');
     el.style.display = 'flex';
+    el.style.opacity = '1';
+    el.style.visibility = 'visible';
     document.documentElement.setAttribute('data-dr-hold-portal', '1');
   }
 
   function hideLoader() {
     var el = document.getElementById(LOADER_ID);
     if (el) {
+      el.style.transition = 'opacity 0.55s ease, visibility 0.55s ease';
+      el.style.opacity = '0';
+      el.style.visibility = 'hidden';
       el.classList.remove('is-on');
-      el.classList.add('is-done');
-      el.style.display = 'none';
+      setTimeout(function () {
+        el.classList.add('is-done');
+        el.style.display = 'none';
+      }, 560);
     }
     var extra = document.getElementById('dr-portal-loader');
     if (extra) {
-      extra.classList.add('is-done');
-      extra.style.display = 'none';
+      extra.style.transition = 'opacity 0.45s ease';
+      extra.style.opacity = '0';
+      setTimeout(function () {
+        extra.classList.add('is-done');
+        extra.style.display = 'none';
+      }, 460);
     }
     document.documentElement.removeAttribute('data-dr-hold-portal');
   }
@@ -184,8 +194,9 @@
       }
     }
     try {
-      if (window.DRPortalShell && typeof window.DRPortalShell.refresh === 'function') {
-        window.DRPortalShell.refresh();
+      if (window.DRPortalShell) {
+        if (window.DRPortalShell.ensureAmbient) window.DRPortalShell.ensureAmbient();
+        if (window.DRPortalShell.refresh) window.DRPortalShell.refresh();
       }
     } catch (e4) {}
   }
@@ -227,31 +238,50 @@
     forcePortal(want);
     injectCss(want);
     var elapsed = Date.now() - started;
-    var ready = portalReady(want);
     try {
-      if (window.DRPortalShell && window.DRPortalShell.refresh) window.DRPortalShell.refresh();
-    } catch (e) {}
-    if (ready && elapsed >= 900) {
-      if (ambientReady() || elapsed >= 1600) {
-        released = true;
-        hideLoader();
-        forcePortal(want);
-        try {
-          if (window.DRTopbarLayout && window.DRTopbarLayout.refresh) window.DRTopbarLayout.refresh();
-        } catch (e2) {}
-        try {
-          sessionStorage.removeItem('dr_skip_boot_gear');
-        } catch (e3) {}
-        return;
+      if (window.DRPortalShell) {
+        if (window.DRPortalShell.ensureAmbient) window.DRPortalShell.ensureAmbient();
+        if (window.DRPortalShell.refresh) window.DRPortalShell.refresh();
       }
-    }
-    if (elapsed >= 4500) {
+    } catch (e) {}
+    try {
+      if (window.DRTopbarLayout && window.DRTopbarLayout.refresh) window.DRTopbarLayout.refresh();
+    } catch (e1) {}
+
+    var ready = portalReady(want);
+    var amb = ambientReady();
+    var minMs = 1100;
+    var softMax = 2200;
+    var hardMax = 5000;
+
+    if (ready && amb && elapsed >= minMs) {
       released = true;
-      hideLoader();
       forcePortal(want);
+      hideLoader();
+      try {
+        sessionStorage.removeItem('dr_skip_boot_gear');
+      } catch (e2) {}
+      return;
+    }
+    if (ready && elapsed >= softMax) {
+      released = true;
+      forcePortal(want);
+      try {
+        if (window.DRPortalShell && window.DRPortalShell.ensureAmbient) window.DRPortalShell.ensureAmbient();
+      } catch (e3) {}
+      hideLoader();
       try {
         sessionStorage.removeItem('dr_skip_boot_gear');
       } catch (e4) {}
+      return;
+    }
+    if (elapsed >= hardMax) {
+      released = true;
+      forcePortal(want);
+      hideLoader();
+      try {
+        sessionStorage.removeItem('dr_skip_boot_gear');
+      } catch (e5) {}
     }
   }
 
@@ -282,8 +312,8 @@
     var iv = setInterval(function () {
       n++;
       tryRelease();
-      if (released || n > 60) clearInterval(iv);
-    }, 80);
+      if (released || n > 70) clearInterval(iv);
+    }, 70);
     setTimeout(tryRelease, 200);
     setTimeout(tryRelease, 500);
     setTimeout(tryRelease, 1000);
@@ -312,7 +342,7 @@
   }
 
   window.DRPortalReadyGate = {
-    v: 3,
+    v: 4,
     preferred: preferred,
     release: function () {
       released = true;
