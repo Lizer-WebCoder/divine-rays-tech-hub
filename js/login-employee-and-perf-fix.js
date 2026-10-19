@@ -1,11 +1,11 @@
 /**
- * Divine Rays — login-employee-and-perf-fix v10
- * Post-login loader fades out smoothly before portal is shown.
+ * Divine Rays — login-employee-and-perf-fix v11
+ * Post-login loader fades; kick gear spin after fade (unfreeze).
  */
 (function () {
   'use strict';
-  if (window.__DR_EMP_PERF_FIX >= 10) return;
-  window.__DR_EMP_PERF_FIX = 10;
+  if (window.__DR_EMP_PERF_FIX >= 11) return;
+  window.__DR_EMP_PERF_FIX = 11;
 
   function getSb() {
     try {
@@ -401,6 +401,16 @@
 
     setTimeout(function () {
       hidePortalLoader();
+      function kick() {
+        try {
+          if (window.DRGearsStable && window.DRGearsStable.kick) window.DRGearsStable.kick();
+          else if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.kickGears)
+            window.DRHeartbeatDraw.kickGears();
+        } catch (eK) {}
+      }
+      setTimeout(kick, 100);
+      setTimeout(kick, 400);
+      setTimeout(kick, 800);
     }, 120);
 
     try {
@@ -439,7 +449,7 @@
   }, 7000);
 
   wire();
-  window.DREmpPerfFix = { v: 10, login: doEmployeeLogin, bootWorkspace: bootWorkspace };
+  window.DREmpPerfFix = { v: 11, login: doEmployeeLogin, bootWorkspace: bootWorkspace };
   window.showPortalLoader = showPortalLoader;
   window.hidePortalLoader = hidePortalLoader;
   window.bootWorkspace = bootWorkspace;
