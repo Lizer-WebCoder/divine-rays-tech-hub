@@ -1,23 +1,23 @@
 /**
- * Divine Rays — portal-shell-fix v5
- * Honeycomb ambient fades in smoothly (no hard pop).
+ * Divine Rays — portal-shell-fix v6
+ * Full-screen zoomed-out honeycomb, lighter visibility, smooth fade-in.
  */
 (function () {
   'use strict';
-  if (window.__DR_PORTAL_SHELL >= 5) return;
-  window.__DR_PORTAL_SHELL = 5;
+  if (window.__DR_PORTAL_SHELL >= 6) return;
+  window.__DR_PORTAL_SHELL = 6;
 
   var CSS_ID = 'dr-portal-shell-css';
   var BG_ID = 'dr-portal-ambient';
   var _busy = false;
 
   function honeycombSvg(stroke) {
-    var R = 48,
+    var R = 28,
       SQ3 = Math.sqrt(3),
       horiz = SQ3 * R,
       vert = 1.5 * R;
-    var cols = 14,
-      rows = 10,
+    var cols = 28,
+      rows = 18,
       paths = [];
     for (var r = 0; r < rows; r++) {
       for (var c = 0; c < cols; c++) {
@@ -40,8 +40,8 @@
       vbH +
       '" preserveAspectRatio="xMidYMid slice" width="100%" height="100%">' +
       '<g fill="none" stroke="' +
-      (stroke || 'rgba(167,139,250,0.34)') +
-      '" stroke-width="1.4">' +
+      (stroke || 'rgba(196,181,253,0.48)') +
+      '" stroke-width="1.15">' +
       '<path d="' +
       paths.join(' ') +
       '"/>' +
@@ -72,11 +72,11 @@
       'body.dr-portal-ok,body.is-portal{',
       'background:radial-gradient(ellipse at top,#1a1530 0%,#0c0618 55%,#06040e 100%)!important;',
       'background-attachment:fixed!important}',
-      '#' + BG_ID + '{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;',
-      'opacity:0;transition:opacity 0.85s ease}',
+      '#' + BG_ID + '{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;overflow:hidden;',
+      'opacity:0;transition:opacity 0.9s ease}',
       'body:not(.dr-portal-ok):not(.is-portal) #' + BG_ID + '{display:none!important;opacity:0}',
-      '#' + BG_ID + ' .dr-hc{position:absolute;inset:0}',
-      '#' + BG_ID + ' .dr-hc svg{width:100%;height:100%}',
+      '#' + BG_ID + ' .dr-hc{position:absolute;inset:0;width:100%;height:100%}',
+      '#' + BG_ID + ' .dr-hc svg{width:100%;height:100%;display:block}',
       '#portal-customer.active,#portal-agent.active,.mode-bar{position:relative;z-index:1}',
       '#dr-dev-portal-switch{z-index:9000!important}'
     ].join('');
@@ -99,7 +99,7 @@
       el.setAttribute('aria-hidden', 'true');
       el.style.opacity = '0';
       el.innerHTML =
-        '<div class="dr-hc">' + honeycombSvg('rgba(167,139,250,0.34)') + '</div>';
+        '<div class="dr-hc">' + honeycombSvg('rgba(196,181,253,0.48)') + '</div>';
       document.body.insertBefore(el, document.body.firstChild);
     }
     if (on) {
@@ -110,12 +110,12 @@
         el.setAttribute('data-dr-faded', '1');
         requestAnimationFrame(function () {
           requestAnimationFrame(function () {
-            el.style.transition = 'opacity 0.85s ease';
-            el.style.opacity = '0.22';
+            el.style.transition = 'opacity 0.9s ease';
+            el.style.opacity = '0.38';
           });
         });
       } else {
-        el.style.opacity = '0.22';
+        el.style.opacity = '0.38';
       }
       return true;
     }
@@ -216,5 +216,5 @@
     true
   );
 
-  window.DRPortalShell = { v: 5, refresh: tick, ensureAmbient: ensureAmbient };
+  window.DRPortalShell = { v: 6, refresh: tick, ensureAmbient: ensureAmbient };
 })();
