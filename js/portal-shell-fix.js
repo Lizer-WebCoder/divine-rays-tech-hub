@@ -1,11 +1,11 @@
 /**
- * Divine Rays — portal shell fix v2 (no freeze)
- * Hide inactive portal; light honeycomb bg. No subtree MutationObserver.
+ * Divine Rays — portal-shell-fix v3
+ * Early honeycomb ambient; no delay after boot fade.
  */
 (function () {
   'use strict';
-  if (window.__DR_PORTAL_SHELL >= 2) return;
-  window.__DR_PORTAL_SHELL = 2;
+  if (window.__DR_PORTAL_SHELL >= 3) return;
+  window.__DR_PORTAL_SHELL = 3;
 
   var CSS_ID = 'dr-portal-shell-css';
   var BG_ID = 'dr-portal-ambient';
@@ -29,18 +29,28 @@
     var vbW = Math.ceil(cols * horiz + horiz);
     var vbH = Math.ceil(rows * vert + 2 * R);
     return (
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + vbW + ' ' + vbH + '" ' +
-      'preserveAspectRatio="xMidYMid slice" width="100%" height="100%">' +
-      '<g fill="none" stroke="' + stroke + '" stroke-width="1.4">' +
-      '<path d="' + paths.join(' ') + '"/>' +
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' +
+      vbW +
+      ' ' +
+      vbH +
+      '" preserveAspectRatio="xMidYMid slice" width="100%" height="100%">' +
+      '<g fill="none" stroke="' +
+      (stroke || 'rgba(167,139,250,0.34)') +
+      '" stroke-width="1.4">' +
+      '<path d="' +
+      paths.join(' ') +
+      '"/>' +
       '</g></svg>'
     );
   }
 
   function injectCss() {
-    if (document.getElementById(CSS_ID)) return;
-    var el = document.createElement('style');
-    el.id = CSS_ID;
+    var el = document.getElementById(CSS_ID);
+    if (!el) {
+      el = document.createElement('style');
+      el.id = CSS_ID;
+      (document.head || document.documentElement).appendChild(el);
+    }
     el.textContent = [
       '#portal-customer:not(.active),#portal-agent:not(.active),.portal:not(.active){',
       'display:none!important;visibility:hidden!important;pointer-events:none!important;',
@@ -57,17 +67,20 @@
       'body.dr-portal-ok,body.is-portal{',
       'background:radial-gradient(ellipse at top,#1a1530 0%,#0c0618 55%,#06040e 100%)!important;',
       'background-attachment:fixed!important}',
-      '#dr-portal-ambient{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;opacity:0.2}',
-      'body:not(.dr-portal-ok):not(.is-portal) #dr-portal-ambient{display:none!important}',
-      '#dr-portal-ambient .dr-hc{position:absolute;inset:0}',
-      '#dr-portal-ambient .dr-hc svg{width:100%;height:100%}',
+      '#' +
+        BG_ID +
+        '{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;',
+      'opacity:0.22;transition:opacity .45s ease}',
+      'body:not(.dr-portal-ok):not(.is-portal) #' + BG_ID + '{display:none!important;opacity:0}',
+      '#' + BG_ID + ' .dr-hc{position:absolute;inset:0}',
+      '#' + BG_ID + ' .dr-hc svg{width:100%;height:100%}',
       '#portal-customer.active,#portal-agent.active,.mode-bar{position:relative;z-index:1}',
       '#dr-dev-portal-switch{z-index:9000!important}'
     ].join('');
-    (document.head || document.documentElement).appendChild(el);
   }
 
   function ensureAmbient() {
+    injectCss();
     var on =
       document.body &&
       (document.body.classList.contains('dr-portal-ok') ||
@@ -75,15 +88,19 @@
     var el = document.getElementById(BG_ID);
     if (!on) {
       if (el) el.style.display = 'none';
-      return;
+      return false;
     }
     if (!el) {
       el = document.createElement('div');
       el.id = BG_ID;
-      el.innerHTML = '<div class="dr-hc">' + honeycombSvg('rgba(167,139,250,0.32)') + '</div>';
+      el.setAttribute('aria-hidden', 'true');
+      el.innerHTML =
+        '<div class="dr-hc">' + honeycombSvg('rgba(167,139,250,0.34)') + '</div>';
       document.body.insertBefore(el, document.body.firstChild);
     }
     el.style.display = 'block';
+    el.style.opacity = '0.22';
+    return true;
   }
 
   function enforce() {
@@ -98,7 +115,10 @@
       if (emp && adm) {
         var pref = '';
         try {
-          pref = sessionStorage.getItem('dr_dev_portal_pref') || sessionStorage.getItem('dr_login_tab') || '';
+          pref =
+            sessionStorage.getItem('dr_dev_portal_pref') ||
+            sessionStorage.getItem('dr_login_tab') ||
+            '';
         } catch (e) {}
         if (pref === 'employee' || pref === 'customer') {
           pa.classList.remove('active');
@@ -135,23 +155,36 @@
     } catch (e) {}
   }
 
+  tick();
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function () { setTimeout(tick, 0); });
+    document.addEventListener('DOMContentLoaded', function () {
+      tick();
+      setTimeout(tick, 0);
+      setTimeout(tick, 80);
+    });
   } else {
     setTimeout(tick, 0);
+    setTimeout(tick, 50);
   }
-  setTimeout(tick, 800);
-  setTimeout(tick, 2000);
-  setInterval(tick, 4000);
+  setTimeout(tick, 200);
+  setTimeout(tick, 500);
+  setTimeout(tick, 1200);
+  setTimeout(tick, 2500);
+  setInterval(tick, 5000);
 
   document.addEventListener(
     'click',
     function (e) {
-      var b = e.target && e.target.closest && e.target.closest('#dr-dev-portal-switch button');
-      if (b) setTimeout(tick, 50);
+      if (
+        e.target &&
+        e.target.closest &&
+        e.target.closest('#dr-dev-portal-switch, .mode-bar, .nav-btn')
+      ) {
+        setTimeout(tick, 40);
+      }
     },
     true
   );
 
-  window.DRPortalShell = { v: 2, refresh: tick };
+  window.DRPortalShell = { v: 3, refresh: tick, ensureAmbient: ensureAmbient };
 })();
