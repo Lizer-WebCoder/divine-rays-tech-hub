@@ -1,11 +1,11 @@
 /**
- * Divine Rays — login-employee-and-perf-fix v11
- * Post-login loader fades; kick gear spin after fade (unfreeze).
+ * Divine Rays — login-employee-and-perf-fix v12
+ * Once-only portal open; fade/gear spin owned by post-login-transition.
  */
 (function () {
   'use strict';
-  if (window.__DR_EMP_PERF_FIX >= 11) return;
-  window.__DR_EMP_PERF_FIX = 11;
+  if (window.__DR_EMP_PERF_FIX >= 12) return;
+  window.__DR_EMP_PERF_FIX = 12;
 
   function getSb() {
     try {
@@ -104,6 +104,7 @@
     if (existing) {
       try {
         existing.classList.add('is-on');
+        existing.classList.remove('is-done', 'is-fading', 'is-gone');
         existing.style.display = 'flex';
         existing.style.opacity = '1';
         existing.style.visibility = 'visible';
@@ -117,23 +118,20 @@
         '<style id="dr-portal-loader-css">' +
         '#dr-portal-loader{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;' +
         'flex-direction:column;gap:1.35rem;background:radial-gradient(ellipse at 50% 40%,#1e1240 0%,#0c0618 70%);' +
-        'transition:opacity 0.65s ease,visibility 0.65s ease;opacity:1}' +
-        '#dr-portal-loader.is-done{opacity:0;visibility:hidden;pointer-events:none}' +
-        '#dr-portal-loader .pl-rings{position:relative;width:72px;height:72px}' +
-        '#dr-portal-loader .pl-ring{position:absolute;inset:0;border-radius:50%;border:2px solid transparent;' +
-        'border-top-color:#a78bfa;border-right-color:rgba(167,139,250,.35);animation:drPlSpin 1s linear infinite}' +
-        '#dr-portal-loader .pl-ring:nth-child(2){inset:10px;border-top-color:#c4b5fd;animation-duration:1.4s;animation-direction:reverse}' +
-        '#dr-portal-loader .pl-ring:nth-child(3){inset:20px;border-top-color:#8b5cf6;animation-duration:.85s}' +
-        '#dr-portal-loader .pl-core{position:absolute;inset:26px;border-radius:50%;' +
-        'background:radial-gradient(circle,#c4b5fd 0%,#7c6af0 70%);box-shadow:0 0 20px rgba(139,92,246,.55);' +
-        'animation:drPlPulse 1.2s ease-in-out infinite}' +
+        'transition:opacity 0.85s ease,visibility 0.85s ease;opacity:1}' +
+        '#dr-portal-loader.is-done,#dr-portal-loader.is-fading{opacity:0;visibility:hidden;pointer-events:none}' +
+        '#dr-portal-loader .pl-rings{position:relative;width:76px;height:76px}' +
+        '#dr-portal-loader .pl-ring{position:absolute;inset:0;border-radius:50%;border:2.5px solid rgba(167,139,250,0.15);' +
+        'border-top-color:#c4b5fd;animation:drPlSpin 1.25s linear infinite}' +
+        '#dr-portal-loader .pl-ring:nth-child(2),#dr-portal-loader .pl-ring:nth-child(3){display:none}' +
+        '#dr-portal-loader .pl-core{position:absolute;inset:18px;border-radius:50%;' +
+        'background:radial-gradient(circle,#ddd6fe 0%,#7c6af0 70%);box-shadow:0 0 28px rgba(139,92,246,.55)}' +
         '@keyframes drPlSpin{to{transform:rotate(360deg)}}' +
-        '@keyframes drPlPulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(.85);opacity:.7}}' +
-        '#dr-portal-loader .pl-title{color:#eeeef6;font-weight:650;font-size:1.1rem;margin:0;letter-spacing:.02em}' +
+        '#dr-portal-loader .pl-title{color:#eeeef6;font-weight:650;font-size:1.1rem;margin:0}' +
         '#dr-portal-loader .pl-sub{color:#9494ae;font-size:.82rem;margin:0}' +
         '#dr-portal-loader .pl-bar{width:160px;height:4px;border-radius:99px;background:rgba(139,92,246,.2);overflow:hidden}' +
         '#dr-portal-loader .pl-bar>i{display:block;height:100%;width:40%;border-radius:99px;' +
-        'background:linear-gradient(90deg,#7c6af0,#c4b5fd,#7c6af0);animation:drPlBar 1.1s ease-in-out infinite}' +
+        'background:linear-gradient(90deg,#7c6af0,#c4b5fd,#7c6af0);animation:drPlBar 1.4s ease-in-out infinite}' +
         '@keyframes drPlBar{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}' +
         '</style>' +
         '<div class="pl-rings" aria-hidden="true">' +
@@ -146,23 +144,28 @@
     }
     var sub = document.getElementById('dr-portal-loader-sub');
     if (sub && subText) sub.textContent = subText;
-    el.classList.remove('is-done');
+    el.classList.remove('is-done', 'is-fading', 'is-gone');
     el.style.display = 'flex';
     el.style.opacity = '1';
     el.style.visibility = 'visible';
   }
 
   function hidePortalLoader() {
+    try {
+      if (window.DRPostLoginTx && window.DRPostLoginTx.run) {
+        window.DRPostLoginTx.run();
+        return;
+      }
+    } catch (e0) {}
     ['dr-portal-loader', 'dr-post-login-boot'].forEach(function (id) {
       var el = document.getElementById(id);
       if (!el) return;
       try {
-        el.style.transition = 'opacity 0.65s ease, visibility 0.65s ease';
+        el.style.transition = 'opacity 0.85s ease, visibility 0.85s ease';
+        el.style.display = 'flex';
         el.style.opacity = '1';
-        el.style.visibility = 'visible';
-        el.style.display = el.style.display === 'none' ? 'flex' : el.style.display || 'flex';
         void el.offsetWidth;
-        el.classList.add('is-done');
+        el.classList.add('is-done', 'is-fading');
         el.classList.remove('is-on');
         el.style.opacity = '0';
         el.style.visibility = 'hidden';
@@ -170,17 +173,10 @@
         setTimeout(function () {
           try {
             el.style.display = 'none';
-            if (el.parentNode && id === 'dr-portal-loader') {
-              try {
-                el.parentNode.removeChild(el);
-              } catch (eR) {}
-            }
           } catch (e2) {}
-        }, 700);
+        }, 900);
       } catch (e) {
-        el.classList.add('is-done');
         el.style.display = 'none';
-        el.classList.remove('is-on');
       }
     });
   }
@@ -281,7 +277,9 @@
     }
   }
 
+  var __drFinishOnce = false;
   function finishPostLoginBoot() {
+    if (__drFinishOnce) return;
     var skip = false;
     try {
       skip =
@@ -289,6 +287,7 @@
         sessionStorage.getItem('dr_post_login_boot') === '1';
     } catch (e) {}
     if (!skip) return;
+    __drFinishOnce = true;
 
     clearResidualGates();
 
@@ -400,27 +399,21 @@
     } catch (e7) {}
 
     setTimeout(function () {
-      hidePortalLoader();
+      try {
+        if (window.DRPostLoginTx && window.DRPostLoginTx.run) window.DRPostLoginTx.run();
+      } catch (eTx) {}
       function kick() {
         try {
-          if (window.DRGearsStable && window.DRGearsStable.kick) window.DRGearsStable.kick();
+          if (window.DRPostLoginTx && window.DRPostLoginTx.kick) window.DRPostLoginTx.kick();
+          else if (window.DRGearsStable && window.DRGearsStable.kick) window.DRGearsStable.kick();
           else if (window.DRHeartbeatDraw && window.DRHeartbeatDraw.kickGears)
             window.DRHeartbeatDraw.kickGears();
         } catch (eK) {}
       }
-      setTimeout(kick, 100);
-      setTimeout(kick, 400);
-      setTimeout(kick, 800);
-    }, 120);
-
-    try {
-      sessionStorage.removeItem('dr_post_login_boot');
-      setTimeout(function () {
-        try {
-          sessionStorage.removeItem('dr_skip_boot_gear');
-        } catch (e8) {}
-      }, 2500);
-    } catch (e9) {}
+      setTimeout(kick, 200);
+      setTimeout(kick, 600);
+      setTimeout(kick, 1200);
+    }, 80);
   }
 
   function wire() {
@@ -446,10 +439,10 @@
       document.documentElement.removeAttribute('data-dr-hold-portal');
       finishPostLoginBoot();
     } catch (e) {}
-  }, 7000);
+  }, 3500);
 
   wire();
-  window.DREmpPerfFix = { v: 11, login: doEmployeeLogin, bootWorkspace: bootWorkspace };
+  window.DREmpPerfFix = { v: 12, login: doEmployeeLogin, bootWorkspace: bootWorkspace };
   window.showPortalLoader = showPortalLoader;
   window.hidePortalLoader = hidePortalLoader;
   window.bootWorkspace = bootWorkspace;
