@@ -1,11 +1,11 @@
 /**
- * Divine Rays — portal-ready-gate v4
- * Loading UI fades only after portal + ambient are ready; smooth opacity fade.
+ * Divine Rays — portal-ready-gate v5
+ * Hold Opening portal… until portal content + honeycomb are ready.
  */
 (function () {
   'use strict';
-  if (window.__DR_PORTAL_READY_GATE >= 4) return;
-  window.__DR_PORTAL_READY_GATE = 4;
+  if (window.__DR_PORTAL_READY_GATE >= 5) return;
+  window.__DR_PORTAL_READY_GATE = 5;
 
   var CSS_ID = 'dr-portal-ready-gate-css';
   var LOADER_ID = 'dr-post-login-boot';
@@ -195,7 +195,7 @@
     }
     try {
       if (window.DRPortalShell) {
-        if (window.DRPortalShell.ensureAmbient) window.DRPortalShell.ensureAmbient();
+        if (window.DRPortalShell.ensureAmbient) window.DRPortalShell.ensureAmbient(true);
         if (window.DRPortalShell.refresh) window.DRPortalShell.refresh();
       }
     } catch (e4) {}
@@ -222,8 +222,18 @@
   }
 
   function ambientReady() {
+    try {
+      if (window.DRPortalShell && typeof window.DRPortalShell.isReady === 'function') {
+        if (window.DRPortalShell.isReady()) return true;
+      }
+    } catch (e) {}
     var bg = document.getElementById('dr-portal-ambient');
-    return !!(bg && bg.style.display !== 'none');
+    if (!bg) return false;
+    if (bg.style.display === 'none') return false;
+    return (
+      bg.getAttribute('data-dr-ready') === '1' ||
+      document.documentElement.getAttribute('data-dr-ambient-ready') === '1'
+    );
   }
 
   function tryRelease() {
@@ -240,7 +250,7 @@
     var elapsed = Date.now() - started;
     try {
       if (window.DRPortalShell) {
-        if (window.DRPortalShell.ensureAmbient) window.DRPortalShell.ensureAmbient();
+        if (window.DRPortalShell.ensureAmbient) window.DRPortalShell.ensureAmbient(true);
         if (window.DRPortalShell.refresh) window.DRPortalShell.refresh();
       }
     } catch (e) {}
@@ -250,9 +260,9 @@
 
     var ready = portalReady(want);
     var amb = ambientReady();
-    var minMs = 1100;
-    var softMax = 2200;
-    var hardMax = 5000;
+    var minMs = 900;
+    var softMax = 2800;
+    var hardMax = 5500;
 
     if (ready && amb && elapsed >= minMs) {
       released = true;
@@ -264,24 +274,31 @@
       return;
     }
     if (ready && elapsed >= softMax) {
-      released = true;
-      forcePortal(want);
       try {
-        if (window.DRPortalShell && window.DRPortalShell.ensureAmbient) window.DRPortalShell.ensureAmbient();
+        if (window.DRPortalShell && window.DRPortalShell.ensureAmbient)
+          window.DRPortalShell.ensureAmbient(true);
       } catch (e3) {}
-      hideLoader();
-      try {
-        sessionStorage.removeItem('dr_skip_boot_gear');
-      } catch (e4) {}
+      if (ambientReady() || elapsed >= softMax + 400) {
+        released = true;
+        forcePortal(want);
+        hideLoader();
+        try {
+          sessionStorage.removeItem('dr_skip_boot_gear');
+        } catch (e4) {}
+      }
       return;
     }
     if (elapsed >= hardMax) {
+      try {
+        if (window.DRPortalShell && window.DRPortalShell.ensureAmbient)
+          window.DRPortalShell.ensureAmbient(true);
+      } catch (e5) {}
       released = true;
       forcePortal(want);
       hideLoader();
       try {
         sessionStorage.removeItem('dr_skip_boot_gear');
-      } catch (e5) {}
+      } catch (e6) {}
     }
   }
 
@@ -312,7 +329,7 @@
     var iv = setInterval(function () {
       n++;
       tryRelease();
-      if (released || n > 70) clearInterval(iv);
+      if (released || n > 80) clearInterval(iv);
     }, 70);
     setTimeout(tryRelease, 200);
     setTimeout(tryRelease, 500);
@@ -342,7 +359,7 @@
   }
 
   window.DRPortalReadyGate = {
-    v: 4,
+    v: 5,
     preferred: preferred,
     release: function () {
       released = true;
