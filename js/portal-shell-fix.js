@@ -1,19 +1,24 @@
 /**
- * Divine Rays — portal-shell-fix v3
- * Early honeycomb ambient; no delay after boot fade.
+ * Divine Rays — portal-shell-fix v4
+ * Pre-build honeycomb ambient under boot so pattern is ready before fade.
  */
 (function () {
   'use strict';
-  if (window.__DR_PORTAL_SHELL >= 3) return;
-  window.__DR_PORTAL_SHELL = 3;
+  if (window.__DR_PORTAL_SHELL >= 4) return;
+  window.__DR_PORTAL_SHELL = 4;
 
   var CSS_ID = 'dr-portal-shell-css';
   var BG_ID = 'dr-portal-ambient';
   var _busy = false;
 
   function honeycombSvg(stroke) {
-    var R = 48, SQ3 = Math.sqrt(3), horiz = SQ3 * R, vert = 1.5 * R;
-    var cols = 14, rows = 10, paths = [];
+    var R = 48,
+      SQ3 = Math.sqrt(3),
+      horiz = SQ3 * R,
+      vert = 1.5 * R;
+    var cols = 14,
+      rows = 10,
+      paths = [];
     for (var r = 0; r < rows; r++) {
       for (var c = 0; c < cols; c++) {
         var cx = c * horiz + (r % 2 ? horiz * 0.5 : 0);
@@ -67,10 +72,8 @@
       'body.dr-portal-ok,body.is-portal{',
       'background:radial-gradient(ellipse at top,#1a1530 0%,#0c0618 55%,#06040e 100%)!important;',
       'background-attachment:fixed!important}',
-      '#' +
-        BG_ID +
-        '{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;',
-      'opacity:0.22;transition:opacity .45s ease}',
+      '#' + BG_ID + '{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;',
+      'opacity:0.22;transition:none}',
       'body:not(.dr-portal-ok):not(.is-portal) #' + BG_ID + '{display:none!important;opacity:0}',
       '#' + BG_ID + ' .dr-hc{position:absolute;inset:0}',
       '#' + BG_ID + ' .dr-hc svg{width:100%;height:100%}',
@@ -79,17 +82,17 @@
     ].join('');
   }
 
-  function ensureAmbient() {
+  function ensureAmbient(forceShow) {
     injectCss();
+    if (!document.body) return false;
     var on =
-      document.body &&
-      (document.body.classList.contains('dr-portal-ok') ||
-        document.body.classList.contains('is-portal'));
+      forceShow ||
+      document.body.classList.contains('dr-portal-ok') ||
+      document.body.classList.contains('is-portal') ||
+      document.documentElement.getAttribute('data-dr-portal-pref') === 'employee' ||
+      document.documentElement.getAttribute('data-dr-portal-pref') === 'admin';
+
     var el = document.getElementById(BG_ID);
-    if (!on) {
-      if (el) el.style.display = 'none';
-      return false;
-    }
     if (!el) {
       el = document.createElement('div');
       el.id = BG_ID;
@@ -98,9 +101,14 @@
         '<div class="dr-hc">' + honeycombSvg('rgba(167,139,250,0.34)') + '</div>';
       document.body.insertBefore(el, document.body.firstChild);
     }
-    el.style.display = 'block';
-    el.style.opacity = '0.22';
-    return true;
+    if (on) {
+      el.style.display = 'block';
+      el.style.opacity = '0.22';
+      el.style.visibility = 'visible';
+      return true;
+    }
+    el.style.display = 'none';
+    return false;
   }
 
   function enforce() {
@@ -150,26 +158,34 @@
   function tick() {
     try {
       injectCss();
-      ensureAmbient();
+      ensureAmbient(false);
       enforce();
     } catch (e) {}
   }
 
-  tick();
+  function earlyWarm() {
+    try {
+      ensureAmbient(true);
+    } catch (e) {}
+    tick();
+  }
+
+  earlyWarm();
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function () {
-      tick();
-      setTimeout(tick, 0);
-      setTimeout(tick, 80);
+      earlyWarm();
+      setTimeout(earlyWarm, 0);
+      setTimeout(tick, 40);
+      setTimeout(tick, 120);
     });
   } else {
-    setTimeout(tick, 0);
-    setTimeout(tick, 50);
+    setTimeout(earlyWarm, 0);
+    setTimeout(tick, 40);
   }
-  setTimeout(tick, 200);
-  setTimeout(tick, 500);
-  setTimeout(tick, 1200);
-  setTimeout(tick, 2500);
+  setTimeout(tick, 150);
+  setTimeout(tick, 400);
+  setTimeout(tick, 900);
+  setTimeout(tick, 1800);
   setInterval(tick, 5000);
 
   document.addEventListener(
@@ -186,5 +202,5 @@
     true
   );
 
-  window.DRPortalShell = { v: 3, refresh: tick, ensureAmbient: ensureAmbient };
+  window.DRPortalShell = { v: 4, refresh: tick, ensureAmbient: ensureAmbient };
 })();
