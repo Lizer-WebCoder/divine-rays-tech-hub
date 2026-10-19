@@ -1,16 +1,16 @@
 /**
- * Divine Rays — ECG + gears v32 — no redraw if already drawn
+ * Divine Rays — ECG + gears v33 — portal gears under boot (no pop after fade)
  */
 (function () {
   'use strict';
-  if (window.__DR_HEARTBEAT_DRAW >= 32) return;
+  if (window.__DR_HEARTBEAT_DRAW >= 33) return;
   try {
     if (window.__DR_ECG_TIMER) clearTimeout(window.__DR_ECG_TIMER);
     if (window.__DR_ECG_INTERVAL) clearInterval(window.__DR_ECG_INTERVAL);
   } catch (e0) {}
-  window.__DR_HEARTBEAT_DRAW = 32;
+  window.__DR_HEARTBEAT_DRAW = 33;
 
-  var CSS_ID = 'dr-gears-bg-v32';
+  var CSS_ID = 'dr-gears-bg-v33';
   var BOX_ID = 'dr-lifeline';
   var lastTheme = null;
   var lastMode = null;
@@ -38,7 +38,9 @@
       return document.documentElement.getAttribute('data-theme') === 'light';
     }
   }
-  function themeKey() { return isLight() ? 'light' : 'dark'; }
+  function themeKey() {
+    return isLight() ? 'light' : 'dark';
+  }
   function isBooting() {
     try {
       if (window.__DR_BOOT_DONE === true) {
@@ -47,16 +49,21 @@
         if (oDone.classList.contains('is-done')) {
           try {
             return parseFloat(window.getComputedStyle(oDone).opacity || '0') > 0.08;
-          } catch (eF) { return false; }
+          } catch (eF) {
+            return false;
+          }
         }
       }
       if (document.body && document.body.classList.contains('dr-boot-holding')) return true;
       var o = document.getElementById('dr-boot-overlay');
       if (o && !o.classList.contains('is-done') && !o.classList.contains('dr-boot-removed')) return true;
-      if (o && o.classList.contains('is-done')) {
+      var phase = document.getElementById('dr-phase-boot');
+      if (phase && !phase.classList.contains('is-done')) return true;
+      var boot = document.getElementById('boot');
+      if (boot && !boot.classList.contains('is-done') && !boot.classList.contains('dr-skip')) {
         try {
-          if (parseFloat(window.getComputedStyle(o).opacity || '0') > 0.08) return true;
-        } catch (e3) {}
+          if (parseFloat(window.getComputedStyle(boot).opacity || '1') > 0.08) return true;
+        } catch (eB) {}
       }
     } catch (e) {}
     return false;
@@ -73,12 +80,22 @@
     return true;
   }
   function portalActive() {
-    if (isBooting() || loginVisible()) return false;
+    if (loginVisible()) return false;
     try {
       var pa = document.getElementById('portal-agent');
       var pc = document.getElementById('portal-customer');
       if (pa && pa.classList.contains('active')) return true;
       if (pc && pc.classList.contains('active')) return true;
+    } catch (e) {}
+    return false;
+  }
+  function isPortalSession() {
+    try {
+      if (portalActive()) return true;
+      var pref = document.documentElement.getAttribute('data-dr-portal-pref') || '';
+      if (pref === 'employee' || pref === 'admin') return true;
+      var tab = sessionStorage.getItem('dr_login_tab') || '';
+      if (tab === 'customer' || tab === 'agent') return true;
     } catch (e) {}
     return false;
   }
@@ -98,7 +115,9 @@
     if (isLight()) return { a: '#7c6af0', b: '#9b8af5', c: '#b8a9fc', opacity: '0.28' };
     return { a: '#a78bfa', b: '#8b7cf0', c: '#6d5ef5', opacity: '0.34' };
   }
-  function ecgStroke() { return isLight() ? '#7c3aed' : '#f3e8ff'; }
+  function ecgStroke() {
+    return isLight() ? '#7c3aed' : '#f3e8ff';
+  }
   function ecgGlowStroke() {
     return isLight() ? 'rgba(167,139,250,0.45)' : 'rgba(233,213,255,0.42)';
   }
@@ -122,17 +141,48 @@
     var d = 'M' + pts[0][0].toFixed(2) + ' ' + pts[0][1].toFixed(2);
     for (var j = 1; j < pts.length; j++) d += ' L' + pts[j][0].toFixed(2) + ' ' + pts[j][1].toFixed(2);
     d += ' Z';
-    d += ' M' + holeR + ' 0 A' + holeR + ' ' + holeR + ' 0 1 0 ' + -holeR + ' 0 A' + holeR + ' ' + holeR + ' 0 1 0 ' + holeR + ' 0 Z';
+    d +=
+      ' M' +
+      holeR +
+      ' 0 A' +
+      holeR +
+      ' ' +
+      holeR +
+      ' 0 1 0 ' +
+      -holeR +
+      ' 0 A' +
+      holeR +
+      ' ' +
+      holeR +
+      ' 0 1 0 ' +
+      holeR +
+      ' 0 Z';
     return d;
   }
   function oneGear(cls, fill, teeth, outer, inner, hole, cx, cy, scale) {
     var d = gearPath(teeth, outer, inner, hole);
     var s = scale || 1;
     return (
-      '<g transform="translate(' + cx + ' ' + cy + ') scale(' + s + ')">' +
-      '<g class="' + cls + '">' +
-      '<path fill="' + fill + '" fill-rule="evenodd" d="' + d + '"/>' +
-      '<circle cx="0" cy="0" r="' + (hole * 0.55).toFixed(1) + '" fill="' + fill + '" opacity="0.85"/>' +
+      '<g transform="translate(' +
+      cx +
+      ' ' +
+      cy +
+      ') scale(' +
+      s +
+      ')">' +
+      '<g class="' +
+      cls +
+      '">' +
+      '<path fill="' +
+      fill +
+      '" fill-rule="evenodd" d="' +
+      d +
+      '"/>' +
+      '<circle cx="0" cy="0" r="' +
+      (hole * 0.55).toFixed(1) +
+      '" fill="' +
+      fill +
+      '" opacity="0.85"/>' +
       '</g></g>'
     );
   }
@@ -140,7 +190,9 @@
     var c = colors();
     return (
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice" ' +
-      'width="100%" height="100%" style="display:block;opacity:' + c.opacity + '">' +
+      'width="100%" height="100%" style="display:block;opacity:' +
+      c.opacity +
+      '">' +
       oneGear('dr-spin-cw', c.a, 12, 90, 62, 22, 180, 200, 1.15) +
       oneGear('dr-spin-ccw', c.b, 10, 70, 48, 18, 340, 280, 1) +
       oneGear('dr-spin-cw-fast', c.c, 14, 110, 76, 26, 620, 180, 1.25) +
@@ -154,8 +206,8 @@
   }
 
   var CSS = [
-    '#' + BOX_ID + '{z-index:0!important;pointer-events:none!important;overflow:visible!important;background:transparent!important}',
-    '#dr-lifeline,#dr-lifeline *{pointer-events:none!important}',
+    '#' + BOX_ID + '{z-index:0!important;pointer-events:none!important;overflow:visible!important;background:transparent!important;filter:none!important}',
+    '#dr-lifeline,#dr-lifeline *{pointer-events:none!important;filter:none!important;-webkit-filter:none!important}',
     '#dr-lifeline svg{width:100%;height:100%;display:block;overflow:visible}',
     '#dr-lifeline .dr-spin-cw{transform-origin:0 0;animation:drGearCW 30s linear infinite}',
     '#dr-lifeline .dr-spin-ccw{transform-origin:0 0;animation:drGearCCW 24s linear infinite}',
@@ -191,11 +243,23 @@
     var fid = 'drEcgBlur' + Date.now();
     return (
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 100" preserveAspectRatio="none" width="100%" height="100%" style="display:block;overflow:visible">' +
-      '<defs><filter id="' + fid + '" x="-25%" y="-60%" width="150%" height="220%">' +
+      '<defs><filter id="' +
+      fid +
+      '" x="-25%" y="-60%" width="150%" height="220%">' +
       '<feGaussianBlur in="SourceGraphic" stdDeviation="1.6" result="blur"/>' +
       '<feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>' +
-      '<path class="dr-ecg-glow" fill="none" stroke="' + glow + '" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" filter="url(#' + fid + ')" opacity="0.55" d="' + d + '"/>' +
-      '<path class="dr-ecg-core" fill="none" stroke="' + core + '" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="' + d + '"/>' +
+      '<path class="dr-ecg-glow" fill="none" stroke="' +
+      glow +
+      '" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" filter="url(#' +
+      fid +
+      ')" opacity="0.55" d="' +
+      d +
+      '"/>' +
+      '<path class="dr-ecg-core" fill="none" stroke="' +
+      core +
+      '" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="' +
+      d +
+      '"/>' +
       '</svg>'
     );
   }
@@ -216,7 +280,9 @@
       var login = document.getElementById('login-screen') || document.querySelector('.login-screen');
       var w = (login && login.clientWidth) || window.innerWidth || 1200;
       return w < 320 ? 320 : w;
-    } catch (e) { return 1200; }
+    } catch (e) {
+      return 1200;
+    }
   }
 
   function ecgDurationSec() {
@@ -262,8 +328,13 @@
   }
 
   function clearEcgTimer() {
-    if (ecgTimer) { clearTimeout(ecgTimer); ecgTimer = null; }
-    try { if (window.__DR_ECG_TIMER) clearTimeout(window.__DR_ECG_TIMER); } catch (e) {}
+    if (ecgTimer) {
+      clearTimeout(ecgTimer);
+      ecgTimer = null;
+    }
+    try {
+      if (window.__DR_ECG_TIMER) clearTimeout(window.__DR_ECG_TIMER);
+    } catch (e) {}
     window.__DR_ECG_TIMER = null;
   }
 
@@ -292,7 +363,10 @@
 
     box.innerHTML = ecgMarkup();
     var paths = box.querySelectorAll('.dr-ecg-core, .dr-ecg-glow');
-    if (!paths.length) { __ecgBusy = false; return; }
+    if (!paths.length) {
+      __ecgBusy = false;
+      return;
+    }
 
     var len = 1600;
     try {
@@ -323,27 +397,34 @@
       var pj = paths[j];
       pj.style.opacity = '1';
       if (pj.classList.contains('dr-ecg-core')) {
-        pj.style.animation = animName + ' ' + durCss + ' linear forwards, drEcgCorePulse 2.4s ease-in-out infinite';
+        pj.style.animation =
+          animName + ' ' + durCss + ' linear forwards, drEcgCorePulse 2.4s ease-in-out infinite';
       } else {
-        pj.style.animation = animName + ' ' + durCss + ' linear forwards, drEcgGlowPulse 2.4s ease-in-out infinite';
+        pj.style.animation =
+          animName + ' ' + durCss + ' linear forwards, drEcgGlowPulse 2.4s ease-in-out infinite';
       }
     }
 
     requestAnimationFrame(function () {
       requestAnimationFrame(function () {
-        try { box.style.opacity = '1'; } catch (eOp) {}
+        try {
+          box.style.opacity = '1';
+        } catch (eOp) {}
       });
     });
 
     __ecgBusy = false;
     window.__DR_ECG_TIMER = null;
-    try { window.__DR_ECG_DRAWN = 1; } catch (eD) {}
+    try {
+      window.__DR_ECG_DRAWN = 1;
+    } catch (eD) {}
   }
 
   function ensureGears(force) {
-    if (isBooting()) return;
+    // Portal: draw gears under boot overlay so they are ready when boot fades (no pop)
+    if (isBooting() && !isPortalSession()) return;
     var box = ensureBox();
-    var mode = portalActive() ? 'portal' : 'login';
+    var mode = isPortalSession() || portalActive() ? 'portal' : 'login';
     if (mode === 'login') {
       if (!loginVisible()) return;
       box.style.display = 'block';
@@ -362,12 +443,13 @@
     if (box.parentNode !== document.body) document.body.insertBefore(box, document.body.firstChild);
     box.style.cssText =
       'position:fixed!important;inset:0!important;width:100%!important;height:100%!important;' +
-      'z-index:0!important;pointer-events:none!important;overflow:hidden!important;opacity:1!important;display:block!important';
+      'z-index:0!important;pointer-events:none!important;overflow:hidden!important;opacity:1!important;display:block!important;filter:none!important';
     var theme = themeKey();
     if (force || !box.querySelector('.dr-spin-cw') || lastTheme !== theme || lastMode !== 'portal') {
       box.innerHTML = svgMarkup();
       lastTheme = theme;
       lastMode = 'portal';
+      document.documentElement.setAttribute('data-dr-gears-ready', '1');
     }
   }
 
@@ -397,20 +479,38 @@
     tick(true);
   }
 
+  function warmPortalGears() {
+    try {
+      if (isPortalSession()) ensureGears(true);
+    } catch (eW) {}
+  }
+  warmPortalGears();
+  setTimeout(warmPortalGears, 0);
+  setTimeout(warmPortalGears, 100);
+  setTimeout(warmPortalGears, 300);
+  setTimeout(warmPortalGears, 700);
+  setTimeout(warmPortalGears, 1400);
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function () { setTimeout(waitForLogin, 40); });
+    document.addEventListener('DOMContentLoaded', function () {
+      setTimeout(waitForLogin, 40);
+      warmPortalGears();
+    });
   } else {
     setTimeout(waitForLogin, 40);
   }
 
   window.__DR_ECG_INTERVAL = setInterval(function () {
-    if (isBooting()) return;
+    if (isBooting() && !isPortalSession()) return;
     if (loginInputFocused()) return;
     if (loginVisible() && window.__DR_ECG_OK) tick(false);
+    if (isPortalSession()) warmPortalGears();
   }, 2500);
 
   window.DRHeartbeatDraw = {
-    refresh: function () { tick(false); },
+    refresh: function () {
+      tick(false);
+    },
     force: function () {
       if (window.__DR_ECG_DRAWN || document.querySelector('#dr-lifeline .dr-ecg-core')) return;
       __startedOnce = false;
@@ -421,6 +521,11 @@
         window.__DR_BOOT_DONE = true;
       } catch (e) {}
       tick(true);
+    },
+    ensureGears: ensureGears,
+    isGearsReady: function () {
+      var box = document.getElementById(BOX_ID);
+      return !!(box && box.querySelector('.dr-spin-cw'));
     }
   };
   window.DRGearsBg = window.DRHeartbeatDraw;
