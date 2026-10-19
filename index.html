@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <title>Divine Rays Tech Hub — Support</title>
+  <title>Divine Rays Tech Hub - Support</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <style>
     html,body{margin:0;min-height:100vh;font-family:Inter,system-ui,sans-serif;
@@ -69,7 +69,7 @@
 </head>
 <body>
   <div id="boot" role="status" aria-live="polite">
-    <svg class="boot-logo" viewBox="0 0 64" width="72" height="72" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <svg class="boot-logo" viewBox="0 0 64 64" width="72" height="72" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="drBootBg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6d5a9a"/><stop offset="100%" stop-color="#2a1f3d"/></linearGradient>
         <linearGradient id="drBootMetal" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#f3e8ff"/><stop offset="100%" stop-color="#c4b5fd"/></linearGradient>
@@ -89,14 +89,14 @@
       </g>
     </svg>
     <h1 class="boot-title">Divine Rays Tech Hub</h1>
-    <p class="boot-sub">Loading…</p>
+    <p class="boot-sub">Loading...</p>
   </div>
   <div id="dr-post-login-boot" aria-live="polite">
     <div class="pl-rings" aria-hidden="true">
       <div class="pl-ring"></div><div class="pl-ring"></div><div class="pl-ring"></div>
       <div class="pl-core"></div>
     </div>
-    <p class="pl-title">Opening portal…</p>
+    <p class="pl-title">Opening portal...</p>
     <p class="pl-sub">Preparing your workspace</p>
     <div class="pl-bar"><i></i></div>
   </div>
@@ -132,6 +132,7 @@
       CDN + '6f36ad029df2c2fc849caf60c0d362cf59771774/js/portal-ready-gate.js',
       CDN + 'ebd7a2d601084d1c9844f911a5d9530357df7569/js/portal-shell-fix.js',
       CDN + 'd9cf1842274bec3c620c454d483326878733f43b/js/portal-ambient-lock.js',
+      CDN + '27555b8dba5baa16509d49bd6cef0cbe7d116ca3/js/portal-bg-clean.js',
       CDN + '0091e77d27bbb73e655a498ddd1ebf944583e000/js/force-light-bg.js',
       CDN + '63199d78495d2c10382c7706d12701f7ccf7d167/js/login-ambient-galaxy.js',
       CDN + '707874e9a98cb77fc1136c520de0376e1dbda2e1/js/login-bg-single.js',
@@ -142,7 +143,9 @@
       CDN + '1bdb127bcd22c1b27717c422fb415b2ec4a3af8f/js/gears-stable.js',
       CDN + '285ddef480fb50d86b24e35a398cde22fb0979e8/js/portal-gears-keep.js',
       CDN + '25af070717de0697a7841c1667e3ad827dd3a3c0/js/force-pending-block.js',
-      CDN + '405cd6094feb38cb6a757663c0853114d60cecad/js/login-auth-v11.js',
+      CDN + '7d382fcc8ac7dbdbd7c83490d9b044b17d23a3fc/js/login-auth-v11.js',
+      CDN + '042f9445771a542db7bf8cc38e74b2f0a90dab5c/js/login-auth-fields-fix.js',
+      CDN + 'a2f8aa59755b19fdae8c65dfc71d57c82f2b626e/js/overlay-pin-v1.js',
       CDN + '3087a49f5649f410f3d96c1eacb00b155435b1ef/js/phase-bcd.js',
       CDN + 'b19db6229e1db592722f55c0ea4e1a4e5eb61e0b/js/users-admin-approval-ui.js',
       CDN + '46f6a5a15fcce4e4f43cce945c3cd6c70cf3b26d/js/login-tab-labels.js',
@@ -171,7 +174,7 @@
         var boot = document.getElementById('boot');
         if (boot && !boot.classList.contains('is-done') && !skipGear) {
           var sub = boot.querySelector('.boot-sub');
-          if (sub) sub.textContent = 'Still loading… try hard refresh if this stays.';
+          if (sub) sub.textContent = 'Still loading... try hard refresh if this stays.';
         }
       } catch (e) {}
     }, 8000);
@@ -276,7 +279,7 @@
         '#dr-phase-boot .boot-title{font-size:1.35rem;font-weight:650;margin:0;color:#eeeef6}' +
         '#dr-phase-boot .boot-sub{font-size:.85rem;color:#9494ae;margin:0}';
       var bootSvg = document.getElementById('boot') && document.getElementById('boot').innerHTML;
-      if (!bootSvg) bootSvg = '<p class="boot-sub">Loading…</p>';
+      if (!bootSvg) bootSvg = '<p class="boot-sub">Loading...</p>';
       var bootHtml = '<style id="dr-phase-boot-css">' + bootCss + '</style><div id="dr-phase-boot" role="status">' + bootSvg + '</div>';
       if (html.indexOf('<body') !== -1) html = html.replace(/<body([^>]*)>/, '<body$1>' + bootHtml);
       else html = bootHtml + html;
@@ -295,7 +298,7 @@
         '#dr-post-login-boot .pl-bar>i{display:block;height:100%;width:40%;border-radius:99px;background:linear-gradient(90deg,#7c6af0,#c4b5fd,#7c6af0);animation:drPlBar 1.4s ease-in-out infinite}' +
         '@keyframes drPlBar{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}</style>' +
         '<div id="dr-post-login-boot" class="is-on"><div class="pl-rings"><div class="pl-ring"></div><div class="pl-ring"></div><div class="pl-ring"></div><div class="pl-core"></div></div>' +
-        '<p class="pl-title">Opening portal…</p><p class="pl-sub">Preparing your workspace</p><div class="pl-bar"><i></i></div></div>';
+        '<p class="pl-title">Opening portal...</p><p class="pl-sub">Preparing your workspace</p><div class="pl-bar"><i></i></div></div>';
       if (html.indexOf('<body') !== -1) html = html.replace(/<body([^>]*)>/, '<body$1>' + rings);
       else html = rings + html;
     }
