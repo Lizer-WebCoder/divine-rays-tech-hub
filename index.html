@@ -131,8 +131,8 @@
       'profile.js': BASE, 'kb.js': BASE
     };
     var OVERLAYS = [
-      CDN + '2b4cddf330c85982c85315f23fc3ac6fc353945f/js/portal-ready-gate.js',
-      CDN + '6e4861dd52fbae1a4819ae6fb1f097bb6046c6ac/js/portal-shell-fix.js',
+      CDN + '6f36ad029df2c2fc849caf60c0d362cf59771774/js/portal-ready-gate.js',
+      CDN + '1018ff0f89089092fd169bde14df90476ff30642/js/portal-shell-fix.js',
       CDN + '0091e77d27bbb73e655a498ddd1ebf944583e000/js/force-light-bg.js',
       CDN + '63199d78495d2c10382c7706d12701f7ccf7d167/js/login-ambient-galaxy.js',
       CDN + 'c4c9680a872e4299ec4f862a1c0195969b599465/js/login-visual-restore.js',
@@ -214,12 +214,16 @@
         'drFadeBoot(true);' +
         'try{var pb=document.getElementById("dr-phase-boot");if(pb){pb.style.display="none";pb.remove();}}catch(e5){}' +
         '}else{' +
+        'var portalPref=false;try{portalPref=!!document.documentElement.getAttribute("data-dr-portal-pref")||sessionStorage.getItem("dr_login_tab")==="customer"||sessionStorage.getItem("dr_login_tab")==="agent";}catch(eP){}' +
+        'function drAmbientOk(){try{if(window.DRPortalShell&&window.DRPortalShell.isReady&&window.DRPortalShell.isReady())return true;var a=document.getElementById("dr-portal-ambient");return!!(a&&a.getAttribute("data-dr-ready")==="1");}catch(eA){return false;}}' +
         'var n=0;var iv=setInterval(function(){n++;' +
         'try{if(window.DRPortalShell&&window.DRPortalShell.ensureAmbient)window.DRPortalShell.ensureAmbient(true);}catch(eW){}' +
-        'if(drLoginReady()||n>50){clearInterval(iv);' +
-        'setTimeout(function(){drFadeBoot(false);},450);' +
-        '}},100);' +
-        'setTimeout(function(){drFadeBoot(false);},5000);' +
+        'var loginOk=drLoginReady();' +
+        'var ambOk=!portalPref||drAmbientOk();' +
+        'if((loginOk&&ambOk)||n>55){clearInterval(iv);' +
+        'setTimeout(function(){drFadeBoot(false);},portalPref?200:350);' +
+        '}},90);' +
+        'setTimeout(function(){drFadeBoot(false);},5500);' +
         '}' +
         '}catch(e){}})();<\/script>';
       if (html.indexOf('</body>') !== -1) return html.replace('</body>', tags + bootFlags + '</body>');
