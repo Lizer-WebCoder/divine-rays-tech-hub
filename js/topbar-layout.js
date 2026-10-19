@@ -1,12 +1,12 @@
 /**
- * Divine Rays — topbar-layout v2
- * Separate sticky top bars for Employee portal and Admin portal.
- * Same features for now; isolated so each can diverge later.
+ * Divine Rays — topbar-layout v3
+ * Separate sticky top bars for Employee + Admin portals.
+ * Username opens Profile via DR_PROFILE; Employee brand ends with Employees Portal.
  */
 (function () {
   'use strict';
-  if (window.__DR_TOPBAR_LAYOUT >= 2) return;
-  window.__DR_TOPBAR_LAYOUT = 2;
+  if (window.__DR_TOPBAR_LAYOUT >= 3) return;
+  window.__DR_TOPBAR_LAYOUT = 3;
 
   var CSS_ID = 'dr-topbar-layout-css';
   var EMP_BAR_ID = 'mode-bar-employee';
@@ -147,6 +147,12 @@
 
   function openProfile(which) {
     try {
+      if (window.DR_PROFILE && typeof window.DR_PROFILE.open === 'function') {
+        window.DR_PROFILE.open({ readOnly: false, portal: which });
+        return;
+      }
+    } catch (e0) {}
+    try {
       if (window.DRProfile && typeof window.DRProfile.open === 'function') {
         window.DRProfile.open({ readOnly: false, portal: which });
         return;
@@ -159,11 +165,19 @@
       }
     } catch (e2) {}
     try {
+      var legacy =
+        document.getElementById('btn-my-profile') || document.getElementById('btn-profile');
+      if (legacy) {
+        legacy.click();
+        return;
+      }
+    } catch (e3) {}
+    try {
       var nav = document.querySelector(
         '[data-view="profile"], #nav-profile, button[data-nav="profile"], .nav-btn[data-view="profile"]'
       );
       if (nav) nav.click();
-    } catch (e3) {}
+    } catch (e4) {}
   }
 
   function triggerLogout() {
@@ -300,7 +314,7 @@
       barClass: 'mode-bar-employee',
       userId: EMP_USER_ID,
       logoutId: EMP_LOGOUT_ID,
-      brand: 'Divine Rays Tech Hub · Employees'
+      brand: 'Divine Rays Tech Hub · Employees Portal'
     });
     ensureBar({
       which: 'admin',
@@ -339,7 +353,7 @@
   );
 
   window.DRTopbarLayout = {
-    v: 2,
+    v: 3,
     refresh: tick,
     openProfile: openProfile,
     employeeBarId: EMP_BAR_ID,
