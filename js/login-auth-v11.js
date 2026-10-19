@@ -1,11 +1,10 @@
 /**
- * Divine Rays — login-auth v11 — pending gate + role gate (no false approve)
- * Clears residual pending/tab-gate state so Developer login is not an empty shell.
+ * Divine Rays — login-auth v12 — Admin success uses same reload/loader path as Employee
  */
 (function () {
   'use strict';
-  if (window.__DR_LOGIN_AUTH_V11 >= 1) return;
-  window.__DR_LOGIN_AUTH_V11 = 1;
+  if (window.__DR_LOGIN_AUTH_V12 >= 1) return;
+  window.__DR_LOGIN_AUTH_V12 = 1;
 
   var DEVS = {
     kirzhianquijano: 1,
@@ -13,11 +12,22 @@
     'kirzhianquijano@gmail.com': 1,
     'iiyasora2002@gmail.com': 1
   };
-  function norm(s) { return String(s || '').trim().toLowerCase(); }
-  function isDev(n) { return !!(norm(n) && DEVS[norm(n)]); }
+  function norm(s) {
+    return String(s || '').trim().toLowerCase();
+  }
+  function isDev(n) {
+    return !!(norm(n) && DEVS[norm(n)]);
+  }
 
   var EMP_JOBS = {
-    cashier: 1, doctor: 1, hr: 1, medtech: 1, radtech: 1, staff: 1, utility: 1, employee: 1
+    cashier: 1,
+    doctor: 1,
+    hr: 1,
+    medtech: 1,
+    radtech: 1,
+    staff: 1,
+    utility: 1,
+    employee: 1
   };
   function isEmployeeProfile(p) {
     if (!p) return false;
@@ -91,7 +101,9 @@
     var au =
       document.getElementById('agent-username') ||
       document.getElementById('agent-user') ||
-      la.querySelector('input[type="email"], input[type="text"], input:not([type="password"]):not([type="hidden"])');
+      la.querySelector(
+        'input[type="email"], input[type="text"], input:not([type="password"]):not([type="hidden"])'
+      );
     var passEl = document.getElementById('agent-password') || la.querySelector('input[type="password"]');
     var userOrEmail = au ? String(au.value || '').trim() : '';
     var password = passEl ? passEl.value : '';
@@ -156,13 +168,12 @@
       var m = JSON.parse(localStorage.getItem('dr_staff_approval') || '{}') || {};
       var mA = JSON.parse(localStorage.getItem('dr_approval_map') || '{}') || {};
       var isExplPending =
-        (!isDev(emHint) && !isDev(unHint)) &&
-        (
-          (emHint && m['pending:' + emHint] === 'pending') ||
+        !isDev(emHint) &&
+        !isDev(unHint) &&
+        ((emHint && m['pending:' + emHint] === 'pending') ||
           (unHint && m['pending:' + unHint] === 'pending') ||
           (emHint && mA[emHint] === 'pending') ||
-          (unHint && mA[unHint] === 'pending')
-        );
+          (unHint && mA[unHint] === 'pending'));
       if (isExplPending) {
         triggerPendingUI('Your account is pending Administrator approval.');
         return;
@@ -235,13 +246,19 @@
             if (unHint) ma[unHint] = 'pending';
             localStorage.setItem('dr_approval_map', JSON.stringify(ma));
           } catch (eMap) {}
-          try { await client.auth.signOut({ scope: 'local' }); } catch (eSo2) {}
+          try {
+            await client.auth.signOut({ scope: 'local' });
+          } catch (eSo2) {}
           try {
             document.body.classList.remove('dr-portal-ok', 'is-portal');
             document.body.classList.add('is-login', 'dr-tab-blocked');
             document.documentElement.classList.add('dr-tab-blocked');
             var lsP = document.getElementById('login-screen');
-            if (lsP) { lsP.hidden = false; lsP.removeAttribute('hidden'); lsP.style.cssText = ''; }
+            if (lsP) {
+              lsP.hidden = false;
+              lsP.removeAttribute('hidden');
+              lsP.style.cssText = '';
+            }
             ['portal-customer', 'portal-agent', 'dr-post-login-boot', 'dr-portal-loader'].forEach(function (id) {
               var el = document.getElementById(id);
               if (!el) return;
@@ -303,42 +320,56 @@
       try {
         window.__DR_TAB_GATE_LOCK = 0;
         window.__DR_TAB_GATE_MSG = '';
-        try { sessionStorage.removeItem('dr_tab_gate_err'); } catch (eG2) {}
+        try {
+          sessionStorage.removeItem('dr_tab_gate_err');
+        } catch (eG2) {}
         try {
           if (window.DRForcePending && window.DRForcePending.clearPendingUI)
             window.DRForcePending.clearPendingUI(true);
           if (window.DRForcePending && window.DRForcePending.unlockPortal)
             window.DRForcePending.unlockPortal();
         } catch (eFp) {}
-        document.body.classList.add('dr-portal-ok', 'is-portal');
-        document.body.classList.remove('dr-pending-blocked', 'is-login', 'dr-tab-blocked');
+
+        // Same post-login path as Employee: flags + loader + reload (prevents empty Admin shell)
+        try {
+          sessionStorage.setItem('dr_login_tab', 'agent');
+          sessionStorage.setItem('dr_dev_portal_pref', 'admin');
+          sessionStorage.setItem('dr_post_login_boot', '1');
+          sessionStorage.setItem('dr_skip_boot_gear', '1');
+        } catch (eSs) {}
+        document.documentElement.removeAttribute('data-dr-hold-portal');
+        document.documentElement.setAttribute('data-dr-portal-pref', 'admin');
+        document.body.classList.add('dr-portal-ok', 'is-portal', 'is-portal-admin');
+        document.body.classList.remove(
+          'dr-pending-blocked',
+          'is-login',
+          'dr-tab-blocked',
+          'is-portal-employee'
+        );
         document.documentElement.classList.remove('dr-tab-blocked');
-        var ls = document.getElementById('login-screen');
-        if (ls) {
-          ls.hidden = true;
-          ls.style.cssText = 'display:none!important';
-        }
-        var pa = document.getElementById('portal-agent');
-        if (pa) {
-          pa.hidden = false;
-          pa.removeAttribute('hidden');
-          pa.classList.add('active');
-          try {
-            pa.style.removeProperty('display');
-            pa.style.setProperty('display', 'flex', 'important');
-            pa.style.visibility = 'visible';
-            pa.style.opacity = '1';
-          } catch (ePa) {}
-        }
-        var pc = document.getElementById('portal-customer');
-        if (pc) {
-          pc.classList.remove('active');
-          try { pc.style.setProperty('display', 'none', 'important'); } catch (ePc) {}
-        }
+        try {
+          if (window.showPortalLoader) window.showPortalLoader('Opening portal…');
+        } catch (eL) {}
         if (window.DR && window.DR.toast) window.DR.toast('Successfully logged in', 'success');
-        if (typeof window.showApp === 'function') {
-          window.showApp(profile);
-        }
+        setTimeout(function () {
+          try {
+            location.reload();
+          } catch (eR) {
+            try {
+              if (window.DRDevPortal && window.DRDevPortal.showPortal)
+                window.DRDevPortal.showPortal('admin');
+              else if (typeof window.showApp === 'function') window.showApp(profile);
+              document.documentElement.removeAttribute('data-dr-hold-portal');
+              var pa2 = document.getElementById('portal-agent');
+              if (pa2) {
+                pa2.hidden = false;
+                pa2.classList.add('active');
+                pa2.style.setProperty('display', 'flex', 'important');
+                pa2.style.opacity = '1';
+              }
+            } catch (eF) {}
+          }
+        }, 350);
       } catch (eP) {}
     } catch (err) {
       console.error(err);
@@ -349,9 +380,9 @@
 
   function install() {
     var prev = window.__drDoAgentLogin;
-    if (prev && prev.__drAuthV11) return;
-    if (prev) doLogin.__drAuthV11Orig = prev;
-    doLogin.__drAuthV11 = 1;
+    if (prev && prev.__drAuthV12) return;
+    if (prev) doLogin.__drAuthV12Orig = prev;
+    doLogin.__drAuthV12 = 1;
     window.__drDoAgentLogin = doLogin;
   }
   install();
@@ -359,5 +390,6 @@
   setTimeout(install, 1000);
   setTimeout(install, 2500);
 
-  window.DRLoginAuthV11 = { v: 11, doLogin: doLogin };
+  window.DRLoginAuthV12 = { v: 12, doLogin: doLogin };
+  window.DRLoginAuthV11 = window.DRLoginAuthV12;
 })();
