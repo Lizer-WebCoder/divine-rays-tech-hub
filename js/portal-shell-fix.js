@@ -1,11 +1,11 @@
 /**
- * Divine Rays — portal-shell-fix v4
- * Pre-build honeycomb ambient under boot so pattern is ready before fade.
+ * Divine Rays — portal-shell-fix v5
+ * Honeycomb ambient fades in smoothly (no hard pop).
  */
 (function () {
   'use strict';
-  if (window.__DR_PORTAL_SHELL >= 4) return;
-  window.__DR_PORTAL_SHELL = 4;
+  if (window.__DR_PORTAL_SHELL >= 5) return;
+  window.__DR_PORTAL_SHELL = 5;
 
   var CSS_ID = 'dr-portal-shell-css';
   var BG_ID = 'dr-portal-ambient';
@@ -73,7 +73,7 @@
       'background:radial-gradient(ellipse at top,#1a1530 0%,#0c0618 55%,#06040e 100%)!important;',
       'background-attachment:fixed!important}',
       '#' + BG_ID + '{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;',
-      'opacity:0.22;transition:none}',
+      'opacity:0;transition:opacity 0.85s ease}',
       'body:not(.dr-portal-ok):not(.is-portal) #' + BG_ID + '{display:none!important;opacity:0}',
       '#' + BG_ID + ' .dr-hc{position:absolute;inset:0}',
       '#' + BG_ID + ' .dr-hc svg{width:100%;height:100%}',
@@ -97,17 +97,31 @@
       el = document.createElement('div');
       el.id = BG_ID;
       el.setAttribute('aria-hidden', 'true');
+      el.style.opacity = '0';
       el.innerHTML =
         '<div class="dr-hc">' + honeycombSvg('rgba(167,139,250,0.34)') + '</div>';
       document.body.insertBefore(el, document.body.firstChild);
     }
     if (on) {
       el.style.display = 'block';
-      el.style.opacity = '0.22';
       el.style.visibility = 'visible';
+      if (el.getAttribute('data-dr-faded') !== '1') {
+        el.style.opacity = '0';
+        el.setAttribute('data-dr-faded', '1');
+        requestAnimationFrame(function () {
+          requestAnimationFrame(function () {
+            el.style.transition = 'opacity 0.85s ease';
+            el.style.opacity = '0.22';
+          });
+        });
+      } else {
+        el.style.opacity = '0.22';
+      }
       return true;
     }
     el.style.display = 'none';
+    el.style.opacity = '0';
+    el.removeAttribute('data-dr-faded');
     return false;
   }
 
@@ -202,5 +216,5 @@
     true
   );
 
-  window.DRPortalShell = { v: 4, refresh: tick, ensureAmbient: ensureAmbient };
+  window.DRPortalShell = { v: 5, refresh: tick, ensureAmbient: ensureAmbient };
 })();
