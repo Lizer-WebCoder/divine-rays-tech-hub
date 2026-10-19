@@ -1,11 +1,12 @@
 /**
- * Divine Rays — login-auth v13 — Admin success uses same reload/loader path as Employee
- * v13: robust password/email read after logout (visible agent fields)
+ * Divine Rays - login-auth v14 - Admin success uses same reload/loader path as Employee
+ * v14: robust password read after logout; overrides broken partial v13
  */
 (function () {
   'use strict';
-  if (window.__DR_LOGIN_AUTH_V11 >= 13) return;
-  window.__DR_LOGIN_AUTH_V11 = 13;
+  if (window.__DR_LOGIN_AUTH_V12 >= 14) return;
+  window.__DR_LOGIN_AUTH_V12 = 14;
+  window.__DR_LOGIN_AUTH_V13 = 14;
 
   var DEVS = {
     kirzhianquijano: 1,
@@ -107,36 +108,18 @@
       );
     var passEl = document.getElementById('agent-password');
     if (!passEl || !String(passEl.value || '').length) {
-      var passList = la.querySelectorAll('input[type="password"], input[data-dr-pass="1"]');
+      var passList = la.querySelectorAll('input[type="password"]');
       for (var pi = 0; pi < passList.length; pi++) {
-        var pEl = passList[pi];
-        if (pEl && String(pEl.value || '').length) {
-          passEl = pEl;
+        if (passList[pi] && String(passList[pi].value || '').length) {
+          passEl = passList[pi];
           break;
         }
-        if (!passEl) passEl = pEl;
+        if (!passEl) passEl = passList[pi];
       }
     }
     if (!passEl) passEl = la.querySelector('input[type="password"]');
     var userOrEmail = au ? String(au.value || '').trim() : '';
     var password = passEl ? String(passEl.value || '') : '';
-    if ((!userOrEmail || !password) && document.activeElement) {
-      try {
-        var card = la.closest('.login-card') || document.querySelector('.login-card');
-        if (card) {
-          if (!userOrEmail) {
-            var visEmail = card.querySelector(
-              '#agent-username, #agent-user, input[type="email"], input[autocomplete="username"]'
-            );
-            if (visEmail && String(visEmail.value || '').trim()) userOrEmail = String(visEmail.value).trim();
-          }
-          if (!password) {
-            var visPass = card.querySelector('#agent-password, input[type="password"]');
-            if (visPass && String(visPass.value || '').length) password = String(visPass.value);
-          }
-        }
-      } catch (eFb) {}
-    }
     if (!userOrEmail || !password) {
       showError(!userOrEmail ? 'Enter your email' : 'Enter your password');
       return;
@@ -164,7 +147,7 @@
         window.__drAgentLoginBusy = !!on;
         if (!btn) return;
         btn.disabled = !!on;
-        btn.textContent = on ? 'Signing in…' : prev;
+        btn.textContent = on ? 'Signing in...' : prev;
         btn.style.opacity = on ? '0.85' : '';
       } catch (eB) {}
     }
@@ -321,83 +304,80 @@
       }
 
       try {
-        if (isDev(profile.email) || isDev(profile.username) || isDev(emHint)) {
-          window.__drIsDeveloper = true;
-        }
-        sessionStorage.setItem('dr_dev_portal_pref', 'admin');
-        sessionStorage.setItem('dr_login_tab', 'agent');
-        sessionStorage.setItem('dr_skip_boot_gear', '1');
-        sessionStorage.setItem('dr_post_login_boot', '1');
+        window.__DR_TAB_GATE_LOCK = 0;
+        window.__DR_TAB_GATE_MSG = '';
+        try {
+          sessionStorage.removeItem('dr_tab_gate_err');
+        } catch (eG2) {}
+        try {
+          if (window.DRForcePending && window.DRForcePending.clearPendingUI)
+            window.DRForcePending.clearPendingUI(true);
+          if (window.DRForcePending && window.DRForcePending.unlockPortal)
+            window.DRForcePending.unlockPortal();
+        } catch (eFp) {}
+
+        try {
+          sessionStorage.setItem('dr_login_tab', 'agent');
+          sessionStorage.setItem('dr_dev_portal_pref', 'admin');
+          sessionStorage.setItem('dr_post_login_boot', '1');
+          sessionStorage.setItem('dr_skip_boot_gear', '1');
+        } catch (eSs) {}
+        document.documentElement.removeAttribute('data-dr-hold-portal');
         document.documentElement.setAttribute('data-dr-portal-pref', 'admin');
-      } catch (eSs) {}
-
-      try {
-        if (window.DRForcePending && window.DRForcePending.clearPendingUI)
-          window.DRForcePending.clearPendingUI(true);
-        if (window.DRForcePending && window.DRForcePending.unlockPortal)
-          window.DRForcePending.unlockPortal();
-      } catch (eClp) {}
-
-      try {
+        document.body.classList.add('dr-portal-ok', 'is-portal', 'is-portal-admin');
         document.body.classList.remove(
           'dr-pending-blocked',
+          'is-login',
           'dr-tab-blocked',
-          'is-login'
+          'is-portal-employee'
         );
         document.documentElement.classList.remove('dr-tab-blocked');
-      } catch (eRm) {}
-
-      setBusy(false);
-
-      try {
-        if (window.DRLoginEmployee && typeof window.DRLoginEmployee.finishPostLoginBoot === 'function') {
-          window.DRLoginEmployee.finishPostLoginBoot('admin');
-          return;
-        }
-      } catch (eFin) {}
-
-      try {
-        location.reload();
-      } catch (eRel) {}
+        try {
+          if (isDev(profile.email) || isDev(profile.username) || isDev(emHint)) {
+            window.__drIsDeveloper = true;
+          }
+        } catch (eDev) {}
+        try {
+          if (window.showPortalLoader) window.showPortalLoader('Opening portal...');
+        } catch (eL) {}
+        if (window.DR && window.DR.toast) window.DR.toast('Successfully logged in', 'success');
+        setTimeout(function () {
+          try {
+            location.reload();
+          } catch (eR) {
+            try {
+              if (window.DRDevPortal && window.DRDevPortal.showPortal)
+                window.DRDevPortal.showPortal('admin');
+              else if (typeof window.showApp === 'function') window.showApp(profile);
+              document.documentElement.removeAttribute('data-dr-hold-portal');
+              var pa2 = document.getElementById('portal-agent');
+              if (pa2) {
+                pa2.hidden = false;
+                pa2.classList.add('active');
+                pa2.style.setProperty('display', 'flex', 'important');
+                pa2.style.opacity = '1';
+              }
+            } catch (eF) {}
+          }
+        }, 350);
+      } catch (eP) {}
     } catch (err) {
-      showError((err && err.message) || 'Login failed');
+      console.error(err);
+      showError(err.message || String(err));
       setBusy(false);
     }
   }
 
-  function bind() {
-    try {
-      var la = document.getElementById('login-agent');
-      if (!la || la.__drAuthV13) return;
-      la.__drAuthV13 = 1;
-      la.addEventListener(
-        'submit',
-        function (ev) {
-          ev.preventDefault();
-          ev.stopPropagation();
-          doLogin(ev.submitter || la.querySelector('button[type="submit"]'));
-        },
-        true
-      );
-      la.querySelectorAll('button[type="submit"], button.btn-primary, button.btn').forEach(function (b) {
-        b.addEventListener(
-          'click',
-          function (ev) {
-            ev.preventDefault();
-            ev.stopPropagation();
-            doLogin(b);
-          },
-          true
-        );
-      });
-    } catch (e) {}
+  function install() {
+    doLogin.__drAuthV14 = 1;
+    window.__drDoAgentLogin = doLogin;
   }
+  install();
+  setTimeout(install, 300);
+  setTimeout(install, 1000);
+  setTimeout(install, 2500);
 
-  bind();
-  setTimeout(bind, 200);
-  setTimeout(bind, 800);
-  setTimeout(bind, 2000);
-
-  window.DRLoginAuth = { doLogin: doLogin, v: 13 };
-  window.__drDoAgentLogin = doLogin;
+  window.DRLoginAuthV14 = { v: 14, doLogin: doLogin };
+  window.DRLoginAuthV12 = window.DRLoginAuthV14;
+  window.DRLoginAuthV11 = window.DRLoginAuthV14;
 })();
