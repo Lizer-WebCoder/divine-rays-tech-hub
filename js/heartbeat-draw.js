@@ -1,16 +1,17 @@
 /**
- * Divine Rays — ECG + gears v37
+ * Divine Rays — ECG + gears v38
  * Login: full ECG lifeline centered in #dr-lifeline.
  * Portal: #dr-lifeline cleared — spinning gears live in portal-shell ambient only.
+ * v38: do not restart ECG within 2.5s (stops reset twitch after hard refresh).
  */
 (function () {
   'use strict';
-  if (window.__DR_HEARTBEAT_DRAW >= 37) return;
+  if (window.__DR_HEARTBEAT_DRAW >= 38) return;
   try {
     if (window.__DR_ECG_TIMER) clearTimeout(window.__DR_ECG_TIMER);
     if (window.__DR_ECG_INTERVAL) clearInterval(window.__DR_ECG_INTERVAL);
   } catch (e0) {}
-  window.__DR_HEARTBEAT_DRAW = 37;
+  window.__DR_HEARTBEAT_DRAW = 38;
 
   var BOX_ID = 'dr-lifeline';
   var CSS_ID = 'dr-heartbeat-css';
@@ -19,6 +20,7 @@
   var lastEcgWidth = 0;
   var ecgIndex = 0;
   var __ecgBusy = false;
+  var __ecgStartedAt = 0;
   var ECG_SPEED_PX_PER_SEC = 95;
 
   var ECG_PATTERNS = [
@@ -214,6 +216,7 @@
     if (!loginVisible()) return;
     if (isPortalSession() || portalActive()) return;
     __ecgBusy = true;
+    __ecgStartedAt = Date.now();
     clearEcgTimer();
 
     var box = ensureBox();
@@ -309,9 +312,11 @@
         document.body.classList.add('is-login');
         document.body.classList.remove('dr-portal-ok', 'is-portal');
       } catch (e) {}
-      if (box.querySelector('.dr-ecg-core') && !force) {
-        lastMode = 'login';
-        return;
+      if (box.querySelector('.dr-ecg-core')) {
+        if (!force || Date.now() - __ecgStartedAt < 2500) {
+          lastMode = 'login';
+          return;
+        }
       }
       lastMode = 'login';
       runEcgCycle();
@@ -372,7 +377,7 @@
     ensureGears: ensureGears,
     isGearsReady: isGearsReady,
     refresh: tick,
-    v: 37
+    v: 38
   };
   window.DRGearsBg = window.DRHeartbeatDraw;
 })();
