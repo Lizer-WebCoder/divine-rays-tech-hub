@@ -1,13 +1,13 @@
 /**
- * Divine Rays — portal-shell-fix v9 — honeycomb + baked SMIL gears
+ * Divine Rays — portal-shell-fix v10 — never paint on login — honeycomb + baked SMIL gears
  * Static honeycomb (no glow/reaction on click).
  * Pre-paint under boot; exposes isReady for boot wait.
  * Gears live inside ambient so hard-refresh always shows them.
  */
 (function () {
   'use strict';
-  if (window.__DR_PORTAL_SHELL >= 9) return;
-  window.__DR_PORTAL_SHELL = 9;
+  if (window.__DR_PORTAL_SHELL >= 10) return;
+  window.__DR_PORTAL_SHELL = 10;
 
   var CSS_ID = 'dr-portal-shell-css';
   var BG_ID = 'dr-portal-ambient';
@@ -19,118 +19,109 @@
       horiz = SQ3 * R,
       vert = 1.5 * R;
     var cols = 28,
-      rows = 18,
-      paths = [];
-    for (var r = 0; r < rows; r++) {
-      for (var c = 0; c < cols; c++) {
-        var cx = c * horiz + (r % 2 ? horiz * 0.5 : 0);
-        var cy = r * vert + R;
+      rows = 18;
+    var parts = [];
+    for (var row = 0; row < rows; row++) {
+      for (var col = 0; col < cols; col++) {
+        var x = col * horiz + (row % 2 ? horiz / 2 : 0);
+        var y = row * vert;
         var pts = [];
         for (var i = 0; i < 6; i++) {
           var a = (Math.PI / 180) * (60 * i - 30);
-          pts.push((cx + R * Math.cos(a)).toFixed(1) + ' ' + (cy + R * Math.sin(a)).toFixed(1));
+          pts.push((x + R * Math.cos(a)).toFixed(1) + ',' + (y + R * Math.sin(a)).toFixed(1));
         }
-        paths.push('M' + pts.join('L') + 'Z');
+        parts.push('<polygon points="' + pts.join(' ') + '" fill="none" stroke="' + stroke + '" stroke-width="1"/>');
       }
     }
-    var vbW = Math.ceil(cols * horiz + horiz);
-    var vbH = Math.ceil(rows * vert + 2 * R);
     return (
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' +
-      vbW +
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice" width="100%" height="100%">' +
+      parts.join('') +
+      '</svg>'
+    );
+  }
+
+  function gearPath(cx, cy, teeth, outer, inner, hole) {
+    var parts = [];
+    var step = (Math.PI * 2) / teeth;
+    for (var i = 0; i < teeth; i++) {
+      var a0 = i * step;
+      var a1 = a0 + step * 0.35;
+      var a2 = a0 + step * 0.5;
+      var a3 = a0 + step * 0.85;
+      function p(r, a) {
+        return (cx + r * Math.cos(a)).toFixed(1) + ',' + (cy + r * Math.sin(a)).toFixed(1);
+      }
+      parts.push(p(outer, a0), p(outer, a1), p(inner, a2), p(inner, a3));
+    }
+    return (
+      'M' +
+      parts[0] +
+      ' L' +
+      parts.slice(1).join(' L') +
+      ' Z M' +
+      (cx + hole) +
+      ',' +
+      cy +
+      ' A' +
+      hole +
+      ',' +
+      hole +
+      ' 0 1,0 ' +
+      (cx - hole) +
+      ',' +
+      cy +
+      ' A' +
+      hole +
+      ',' +
+      hole +
+      ' 0 1,0 ' +
+      (cx + hole) +
+      ',' +
+      cy +
+      ' Z'
+    );
+  }
+
+  function one(cls, fill, teeth, outer, inner, hole, x, y, scale, dur, reverse) {
+    var path = gearPath(0, 0, teeth, outer, inner, hole);
+    return (
+      '<g class="' +
+      cls +
+      '" transform="translate(' +
+      x +
       ' ' +
-      vbH +
-      '" preserveAspectRatio="xMidYMid slice" width="100%" height="100%">' +
-      '<g fill="none" stroke="' +
-      (stroke || 'rgba(196,181,253,0.50)') +
-      '" stroke-width="1.15">' +
-      '<path d="' +
-      paths.join(' ') +
+      y +
+      ') scale(' +
+      scale +
+      ')">' +
+      '<path fill="' +
+      fill +
+      '" opacity="0.85" d="' +
+      path +
       '"/>' +
-      '</g></svg>'
+      '<animateTransform attributeName="transform" type="rotate" from="0" to="' +
+      (reverse ? -360 : 360) +
+      '" dur="' +
+      dur +
+      's" repeatCount="indefinite" additive="sum"/>' +
+      '</g>'
     );
   }
 
   function gearsSvg() {
-    function gearPath(teeth, outer, inner, hole) {
-      var pts = [],
-        step = (Math.PI * 2) / teeth;
-      for (var i = 0; i < teeth; i++) {
-        var a0 = i * step,
-          a1 = a0 + step * 0.35,
-          a2 = a0 + step * 0.5,
-          a3 = a0 + step * 0.85;
-        pts.push([Math.cos(a0) * outer, Math.sin(a0) * outer]);
-        pts.push([Math.cos(a1) * outer, Math.sin(a1) * outer]);
-        pts.push([Math.cos(a2) * inner, Math.sin(a2) * inner]);
-        pts.push([Math.cos(a3) * inner, Math.sin(a3) * inner]);
-      }
-      var d = 'M' + pts[0][0].toFixed(2) + ' ' + pts[0][1].toFixed(2);
-      for (var j = 1; j < pts.length; j++) d += 'L' + pts[j][0].toFixed(2) + ' ' + pts[j][1].toFixed(2);
-      d += 'Z';
-      d +=
-        'M' +
-        hole +
-        ' 0A' +
-        hole +
-        ' ' +
-        hole +
-        ' 0 1 0 ' +
-        -hole +
-        ' 0A' +
-        hole +
-        ' ' +
-        hole +
-        ' 0 1 0 ' +
-        hole +
-        ' 0Z';
-      return d;
-    }
-    function one(cls, fill, teeth, outer, inner, hole, cx, cy, scale, dur, ccw) {
-      var d = gearPath(teeth, outer, inner, hole);
-      var to = ccw ? '-360' : '360';
-      return (
-        '<g transform="translate(' +
-        cx +
-        ' ' +
-        cy +
-        ') scale(' +
-        (scale || 1) +
-        ')">' +
-        '<g class="' +
-        cls +
-        '">' +
-        '<animateTransform attributeName="transform" type="rotate" from="0 0 0" to="' +
-        to +
-        ' 0 0" dur="' +
-        (dur || 30) +
-        's" repeatCount="indefinite"/>' +
-        '<path fill="' +
-        fill +
-        '" fill-rule="evenodd" d="' +
-        d +
-        '"/>' +
-        '<circle cx="0" cy="0" r="' +
-        (hole * 0.55).toFixed(1) +
-        '" fill="' +
-        fill +
-        '" opacity="0.85"/>' +
-        '</g></g>'
-      );
-    }
-    var a = 'rgba(139,92,246,0.28)',
-      b = 'rgba(167,139,250,0.22)',
-      c = 'rgba(109,90,154,0.26)';
+    var a = 'rgba(167,139,250,0.55)';
+    var b = 'rgba(196,181,253,0.4)';
+    var c = 'rgba(139,92,246,0.45)';
     return (
       '<svg class="dr-gears-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice" width="100%" height="100%" style="display:block;opacity:0.95">' +
-      one('dr-spin-cw', a, 12, 90, 62, 22, 180, 200, 1.15, 30, 0) +
-      one('dr-spin-ccw', b, 10, 70, 48, 18, 340, 280, 1, 24, 1) +
-      one('dr-spin-cw-fast', c, 14, 110, 76, 26, 620, 180, 1.25, 18, 0) +
-      one('dr-spin-ccw-slow', a, 9, 55, 38, 14, 900, 320, 0.95, 36, 1) +
-      one('dr-spin-cw', b, 11, 80, 55, 20, 1050, 160, 1.1, 28, 0) +
-      one('dr-spin-ccw', c, 13, 95, 66, 24, 480, 480, 1.05, 22, 1) +
-      one('dr-spin-cw-fast', a, 8, 48, 32, 12, 200, 520, 0.9, 16, 0) +
-      one('dr-spin-ccw-slow', b, 12, 88, 60, 20, 780, 520, 1, 34, 1) +
+      one('dr-spin-cw', a, 12, 48, 32, 12, 180, 160, 1.2, 30, 0) +
+      one('dr-spin-ccw', b, 10, 40, 26, 10, 320, 280, 1, 24, 1) +
+      one('dr-spin-cw', c, 14, 56, 36, 14, 520, 140, 1.35, 36, 0) +
+      one('dr-spin-ccw', a, 9, 34, 22, 8, 700, 300, 0.95, 20, 1) +
+      one('dr-spin-cw', b, 11, 44, 28, 11, 900, 180, 1.15, 28, 0) +
+      one('dr-spin-ccw', c, 13, 50, 32, 12, 1050, 320, 1.1, 32, 1) +
+      one('dr-spin-cw-fast', a, 8, 28, 18, 7, 240, 480, 0.85, 16, 0) +
+      one('dr-spin-ccw-slow', b, 12, 42, 28, 10, 800, 500, 1, 40, 1) +
       '</svg>'
     );
   }
@@ -174,15 +165,41 @@
     ].join('');
   }
 
+  function loginVisible() {
+    try {
+      var ls = document.getElementById('login-screen') || document.querySelector('.login-screen');
+      if (ls && !ls.hidden) {
+        var st = window.getComputedStyle ? getComputedStyle(ls) : null;
+        if (!st || (st.display !== 'none' && st.visibility !== 'hidden' && parseFloat(st.opacity || '1') > 0.05))
+          return true;
+      }
+      if (document.body && document.body.classList.contains('is-login') && !document.body.classList.contains('dr-portal-ok'))
+        return true;
+    } catch (e) {}
+    return false;
+  }
+
   function ensureAmbient(forceShow) {
     injectCss();
     if (!document.body) return false;
+    if (loginVisible()) {
+      var hideEl = document.getElementById(BG_ID);
+      if (hideEl) {
+        hideEl.style.display = 'none';
+        hideEl.style.visibility = 'hidden';
+        hideEl.style.opacity = '0';
+        hideEl.removeAttribute('data-dr-ready');
+      }
+      return false;
+    }
     var on =
-      forceShow ||
       document.body.classList.contains('dr-portal-ok') ||
       document.body.classList.contains('is-portal') ||
-      document.documentElement.getAttribute('data-dr-portal-pref') === 'employee' ||
-      document.documentElement.getAttribute('data-dr-portal-pref') === 'admin';
+      document.body.classList.contains('is-portal-employee') ||
+      document.body.classList.contains('is-portal-admin') ||
+      (forceShow &&
+        (document.documentElement.getAttribute('data-dr-portal-pref') === 'employee' ||
+          document.documentElement.getAttribute('data-dr-portal-pref') === 'admin'));
 
     var el = document.getElementById(BG_ID);
     if (!el) {
@@ -275,7 +292,7 @@
 
   function earlyWarm() {
     try {
-      ensureAmbient(true);
+      ensureAmbient(false);
     } catch (e) {}
     tick();
   }
@@ -299,7 +316,7 @@
   setInterval(tick, 4000);
 
   window.DRPortalShell = {
-    v: 9,
+    v: 10,
     refresh: tick,
     ensureAmbient: ensureAmbient,
     isReady: function () {
