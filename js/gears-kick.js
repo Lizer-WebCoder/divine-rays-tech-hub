@@ -1,14 +1,15 @@
 /**
- * Divine Rays - gears-kick v1
- * After portal paints / post-login fade, SMIL gears often stay frozen until a
- * hard refresh. Force-restart every animateTransform once the ambient is visible.
+ * Divine Rays - gears-kick v2
+ * Single SMIL restart after post-login (no multi-kick shake).
+ * Earlier v1 called beginElement many times → gears looked like they were resetting.
  */
 (function () {
   'use strict';
-  if (window.__DR_GEARS_KICK >= 1) return;
-  window.__DR_GEARS_KICK = 1;
+  if (window.__DR_GEARS_KICK >= 2) return;
+  window.__DR_GEARS_KICK = 2;
 
-  var lastKick = 0;
+  var kickedThisCycle = false;
+  var lastKickAt = 0;
 
   function portalMode() {
     try {
@@ -30,132 +31,149 @@
     return false;
   }
 
-  function restartSmil(root) {
+  function hasGears() {
+    try {
+      var amb = document.getElementById('dr-portal-ambient');
+      return !!(amb && amb.querySelector('animateTransform'));
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function ensurePainted() {
+    try {
+      var amb = document.getElementById('dr-portal-ambient');
+      if (!amb && window.DRPortalShell && window.DRPortalShell.ensureAmbient) {
+        window.DRPortalShell.ensureAmbient(true);
+        amb = document.getElementById('dr-portal-ambient');
+      }
+      if (!amb) return null;
+      amb.style.setProperty('display', 'block', 'important');
+      amb.style.setProperty('visibility', 'visible', 'important');
+      amb.style.setProperty('opacity', '1', 'important');
+      return amb;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function restartSmilOnce(root) {
     if (!root) return 0;
     var n = 0;
     try {
-      root.querySelectorAll('animateTransform, animate, animateMotion').forEach(function (a) {
+      root.querySelectorAll('animateTransform').forEach(function (a) {
         try {
           if (typeof a.beginElement === 'function') {
             a.beginElement();
             n++;
-          } else {
-            var parent = a.parentNode;
-            if (parent) {
-              var clone = a.cloneNode(true);
-              parent.replaceChild(clone, a);
-              n++;
-            }
           }
-        } catch (e1) {
-          try {
-            var p = a.parentNode;
-            if (p) {
-              p.appendChild(a);
-              n++;
-            }
-          } catch (e2) {}
-        }
+        } catch (e1) {}
       });
     } catch (e) {}
     return n;
   }
 
-  function kick(force) {
+  function kickOnce() {
     if (!portalMode()) return;
+    if (kickedThisCycle) return;
     var now = Date.now();
-    if (!force && now - lastKick < 800) return;
-    lastKick = now;
-    try {
-      var amb = document.getElementById('dr-portal-ambient');
-      if (!amb) {
-        if (window.DRPortalShell && window.DRPortalShell.ensureAmbient) {
-          window.DRPortalShell.ensureAmbient(true);
-          amb = document.getElementById('dr-portal-ambient');
-        }
-      }
-      if (!amb) return;
-      amb.style.setProperty('display', 'block', 'important');
-      amb.style.setProperty('visibility', 'visible', 'important');
-      amb.style.setProperty('opacity', '1', 'important');
-      var gears = amb.querySelector('.dr-gears, .dr-gears-svg') || amb;
-      restartSmil(gears);
-      setTimeout(function () {
-        restartSmil(document.getElementById('dr-portal-ambient'));
-      }, 120);
-      setTimeout(function () {
-        restartSmil(document.getElementById('dr-portal-ambient'));
-      }, 400);
-    } catch (e) {}
+    if (now - lastKickAt < 2000) return;
+    kickedThisCycle = true;
+    lastKickAt = now;
+    var amb = ensurePainted();
+    if (!amb) {
+      kickedThisCycle = false;
+      return;
+    }
+    restartSmilOnce(amb);
   }
 
-  function onLoaderGone() {
-    kick(true);
+  function warmOnly() {
+    if (!portalMode() && !document.documentElement.classList.contains('dr-post-login')) return;
+    ensurePainted();
+  }
+
+  function onLoaderLeaving() {
     setTimeout(function () {
-      kick(true);
-    }, 300);
-    setTimeout(function () {
-      kick(true);
-    }, 900);
+      kickOnce();
+    }, 180);
   }
 
   function watchLoader() {
     try {
-      var ids = ['dr-post-login-boot', 'dr-portal-loader', 'dr-phase-boot'];
-      ids.forEach(function (id) {
-        var el = document.getElementById(id);
-        if (!el || el.__drKickObs) return;
-        el.__drKickObs = true;
-        var obs = new MutationObserver(function () {
-          try {
-            if (
-              el.classList.contains('is-done') ||
-              el.classList.contains('is-fading') ||
-              el.classList.contains('is-gone') ||
-              el.style.display === 'none' ||
-              el.style.opacity === '0'
-            ) {
-              onLoaderGone();
-            }
-          } catch (e) {}
-        });
-        obs.observe(el, { attributes: true, attributeFilter: ['class', 'style'] });
+      var el = document.getElementById('dr-post-login-boot');
+      if (!el || el.__drKickObsV2) return;
+      el.__drKickObsV2 = true;
+      var fired = false;
+      var obs = new MutationObserver(function () {
+        if (fired) return;
+        try {
+          if (
+            el.classList.contains('is-fading') ||
+            el.classList.contains('is-done') ||
+            el.classList.contains('is-gone') ||
+            el.style.display === 'none'
+          ) {
+            fired = true;
+            onLoaderLeaving();
+            try {
+              obs.disconnect();
+            } catch (eD) {}
+          }
+        } catch (e) {}
       });
+      obs.observe(el, { attributes: true, attributeFilter: ['class', 'style'] });
     } catch (e) {}
   }
 
-  function earlyWarm() {
-    if (!portalMode() && !document.documentElement.classList.contains('dr-post-login')) return;
-    try {
-      if (window.DRPortalShell && window.DRPortalShell.ensureAmbient) {
-        window.DRPortalShell.ensureAmbient(true);
-      }
-      kick(true);
-    } catch (e) {}
-  }
+  try {
+    if (
+      sessionStorage.getItem('dr_skip_boot_gear') === '1' ||
+      sessionStorage.getItem('dr_post_login_boot') === '1'
+    ) {
+      kickedThisCycle = false;
+    }
+  } catch (e) {}
 
-  earlyWarm();
+  warmOnly();
   watchLoader();
-  setTimeout(earlyWarm, 200);
-  setTimeout(earlyWarm, 600);
-  setTimeout(watchLoader, 400);
+  setTimeout(warmOnly, 300);
+  setTimeout(watchLoader, 500);
   setTimeout(function () {
-    kick(true);
-  }, 1000);
-  setTimeout(function () {
-    kick(true);
-  }, 1800);
-  setTimeout(function () {
-    kick(true);
-  }, 2800);
+    if (portalMode()) {
+      ensurePainted();
+      var pl = document.getElementById('dr-post-login-boot');
+      if (
+        !kickedThisCycle &&
+        hasGears() &&
+        pl &&
+        (pl.classList.contains('is-done') ||
+          pl.classList.contains('is-fading') ||
+          pl.style.display === 'none')
+      ) {
+        kickOnce();
+      }
+    }
+  }, 1600);
 
   document.addEventListener(
     'visibilitychange',
     function () {
-      if (!document.hidden && portalMode()) kick(true);
+      if (document.hidden || !portalMode()) return;
+      if (!hasGears()) {
+        ensurePainted();
+        kickedThisCycle = false;
+        kickOnce();
+      }
     },
     true
   );
 
-  window.DRGearsKick = { v: 1, kick: kick };
+  window.DRGearsKick = {
+    v: 2,
+    kick: function () {
+      kickedThisCycle = false;
+      kickOnce();
+    }
+  };
 })();
