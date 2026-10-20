@@ -1,13 +1,12 @@
 /**
- * Divine Rays — portal-bg-clean v1
- * On portals: hide login ambient layers (force-light + galaxy) so only portal-shell shows.
- * On login: hide portal ambient, keep single login ambient.
- * Stops background flash/twitch between login ↔ portal.
+ * Divine Rays - portal-bg-clean v2
+ * Keep login ambient and portal ambient mutually exclusive.
+ * portalMode requires a real active portal panel — never pref alone.
  */
 (function () {
   'use strict';
-  if (window.__DR_PORTAL_BG_CLEAN >= 1) return;
-  window.__DR_PORTAL_BG_CLEAN = 1;
+  if (window.__DR_PORTAL_BG_CLEAN >= 2) return;
+  window.__DR_PORTAL_BG_CLEAN = 2;
 
   function loginVisible() {
     try {
@@ -25,20 +24,31 @@
   function portalMode() {
     try {
       if (loginVisible()) return false;
+      if (document.body && document.body.classList.contains('is-login') && !document.body.classList.contains('dr-portal-ok'))
+        return false;
+      var pc = document.getElementById('portal-customer');
+      var pa = document.getElementById('portal-agent');
+      if (pc && pc.classList.contains('active')) {
+        try {
+          var st = getComputedStyle(pc);
+          if (st.display !== 'none' && st.visibility !== 'hidden') return true;
+        } catch (e1) { return true; }
+      }
+      if (pa && pa.classList.contains('active')) {
+        try {
+          var st2 = getComputedStyle(pa);
+          if (st2.display !== 'none' && st2.visibility !== 'hidden') return true;
+        } catch (e2) { return true; }
+      }
       if (
         document.body &&
         (document.body.classList.contains('dr-portal-ok') ||
           document.body.classList.contains('is-portal') ||
           document.body.classList.contains('is-portal-employee') ||
           document.body.classList.contains('is-portal-admin'))
-      )
-        return true;
-      var pc = document.getElementById('portal-customer');
-      var pa = document.getElementById('portal-agent');
-      if (pc && pc.classList.contains('active')) return true;
-      if (pa && pa.classList.contains('active')) return true;
-      var pref = document.documentElement.getAttribute('data-dr-portal-pref') || '';
-      if (pref === 'employee' || pref === 'admin') return true;
+      ) {
+        if ((pc && pc.classList.contains('active')) || (pa && pa.classList.contains('active'))) return true;
+      }
     } catch (e) {}
     return false;
   }
@@ -71,15 +81,6 @@
           layers[i].parentNode.removeChild(layers[i]);
         } catch (e) {}
       }
-      var amb = document.getElementById('dr-login-ambient');
-      if (amb) {
-        var hcs = amb.querySelectorAll('.dr-honeycomb');
-        for (var h = 1; h < hcs.length; h++) {
-          try {
-            hcs[h].parentNode.removeChild(hcs[h]);
-          } catch (eH) {}
-        }
-      }
     } catch (e2) {}
   }
 
@@ -87,60 +88,34 @@
     try {
       var loginAmb = document.getElementById('dr-login-ambient');
       var portalAmb = document.getElementById('dr-portal-ambient');
-
+      dedupeLoginAmbient();
       if (loginVisible()) {
-        hide(portalAmb);
-        dedupeLoginAmbient();
-        loginAmb = document.getElementById('dr-login-ambient');
-        if (loginAmb) show(loginAmb);
         try {
           document.body.classList.add('is-login');
           document.body.classList.remove('dr-portal-ok', 'is-portal');
-        } catch (eB) {}
+        } catch (e) {}
+        hide(portalAmb);
+        if (loginAmb) show(loginAmb);
         return;
       }
-
       if (portalMode()) {
-        hide(loginAmb);
-        document.querySelectorAll('#dr-login-ambient').forEach(function (n) {
-          hide(n);
-        });
-        if (portalAmb) {
-          show(portalAmb);
-          portalAmb.setAttribute('data-dr-ready', '1');
-        }
         try {
-          document.body.classList.remove('is-login');
           document.body.classList.add('dr-portal-ok', 'is-portal');
-        } catch (eB2) {}
+          document.body.classList.remove('is-login');
+        } catch (e) {}
+        hide(loginAmb);
+        if (portalAmb) show(portalAmb);
+        return;
       }
-    } catch (e3) {}
-  }
-
-  function patchPainters() {
-    try {
-      if (window.DRAmbientGalaxy && !window.DRAmbientGalaxy.__drPortalClean) {
-        var g = window.DRAmbientGalaxy.refresh;
-        window.DRAmbientGalaxy.refresh = function () {
-          if (portalMode()) return;
-          if (typeof g === 'function') g();
-        };
-        window.DRAmbientGalaxy.__drPortalClean = 1;
-      }
+      hide(portalAmb);
     } catch (e) {}
   }
 
   apply();
-  patchPainters();
   setTimeout(apply, 50);
   setTimeout(apply, 200);
-  setTimeout(apply, 500);
-  setTimeout(apply, 1000);
-  setTimeout(apply, 2000);
-  setInterval(function () {
-    apply();
-    patchPainters();
-  }, 2500);
-
-  window.DRPortalBgClean = { v: 1, refresh: apply };
+  setTimeout(apply, 600);
+  setTimeout(apply, 1500);
+  setInterval(apply, 4000);
+  window.DRPortalBgClean = { v: 2, refresh: apply };
 })();
