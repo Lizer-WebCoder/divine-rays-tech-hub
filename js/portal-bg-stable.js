@@ -1,15 +1,13 @@
 /**
- * Divine Rays - portal-bg-stable v1
- * Stops portal background light flicker caused by:
- * - force-light / galaxy still visible under portal ambient
- * - body background CSS being rewritten
- * - repeated hide/show of ambient layers
+ * Divine Rays - portal-bg-stable v2 — never treat pref alone as portal
+ * Stops portal background light flicker.
  * On portal: one static ambient only (portal-shell gears+honeycomb).
+ * CRITICAL: leftover data-dr-portal-pref must NOT force portal mode (empty gear flash on login).
  */
 (function () {
   'use strict';
-  if (window.__DR_PORTAL_BG_STABLE >= 1) return;
-  window.__DR_PORTAL_BG_STABLE = 1;
+  if (window.__DR_PORTAL_BG_STABLE >= 2) return;
+  window.__DR_PORTAL_BG_STABLE = 2;
 
   var STYLE_ID = 'dr-portal-bg-stable-css';
   var lastMode = '';
@@ -30,20 +28,35 @@
   function portalMode() {
     try {
       if (loginVisible()) return false;
+      if (document.body && document.body.classList.contains('is-login') && !document.body.classList.contains('dr-portal-ok'))
+        return false;
+      var pc = document.getElementById('portal-customer');
+      var pa = document.getElementById('portal-agent');
+      if (pc && pc.classList.contains('active')) {
+        try {
+          var st = getComputedStyle(pc);
+          if (st.display !== 'none' && st.visibility !== 'hidden') return true;
+        } catch (e1) {
+          return true;
+        }
+      }
+      if (pa && pa.classList.contains('active')) {
+        try {
+          var st2 = getComputedStyle(pa);
+          if (st2.display !== 'none' && st2.visibility !== 'hidden') return true;
+        } catch (e2) {
+          return true;
+        }
+      }
       if (
         document.body &&
         (document.body.classList.contains('dr-portal-ok') ||
           document.body.classList.contains('is-portal') ||
           document.body.classList.contains('is-portal-employee') ||
           document.body.classList.contains('is-portal-admin'))
-      )
-        return true;
-      var pc = document.getElementById('portal-customer');
-      var pa = document.getElementById('portal-agent');
-      if (pc && pc.classList.contains('active')) return true;
-      if (pa && pa.classList.contains('active')) return true;
-      var pref = document.documentElement.getAttribute('data-dr-portal-pref') || '';
-      if (pref === 'employee' || pref === 'admin') return true;
+      ) {
+        if ((pc && pc.classList.contains('active')) || (pa && pa.classList.contains('active'))) return true;
+      }
     } catch (e) {}
     return false;
   }
@@ -58,7 +71,6 @@
     el.textContent = [
       'body.is-portal #dr-login-ambient,',
       'body.dr-portal-ok #dr-login-ambient,',
-      'html[data-dr-portal-pref] #dr-login-ambient,',
       'body.is-portal-employee #dr-login-ambient,',
       'body.is-portal-admin #dr-login-ambient{',
       'display:none!important;visibility:hidden!important;opacity:0!important;',
@@ -66,21 +78,20 @@
       'body.is-portal #dr-login-ambient .dr-star-twinkle,',
       'body.dr-portal-ok #dr-login-ambient .dr-star-twinkle,',
       'body.is-portal #dr-login-ambient .dr-pulse{animation:none!important;opacity:0!important}',
-      'body.is-portal,body.dr-portal-ok,body.is-portal-employee,body.is-portal-admin,',
-      'html[data-dr-portal-pref] body{',
+      'body.is-portal,body.dr-portal-ok,body.is-portal-employee,body.is-portal-admin{',
       'background-color:#0c0618!important;',
       'background-image:radial-gradient(ellipse at 50% 40%,#1e1240 0%,#0c0618 70%)!important;',
       'background-attachment:fixed!important}',
-      '#dr-portal-ambient{',
+      'body.is-portal #dr-portal-ambient,body.dr-portal-ok #dr-portal-ambient,',
+      'body.is-portal-employee #dr-portal-ambient,body.is-portal-admin #dr-portal-ambient{',
       'display:block!important;visibility:visible!important;opacity:1!important;',
       'pointer-events:none!important;transition:none!important;animation:none!important;',
       'filter:none!important}',
-      '#dr-portal-ambient .dr-hc,',
-      '#dr-portal-ambient .dr-honeycomb{',
-      'opacity:0.40!important;transition:none!important;animation:none!important;',
-      'filter:none!important}',
-      '#dr-portal-ambient .dr-gears,',
-      '#dr-portal-ambient .dr-gears-svg{',
+      'body.is-login:not(.dr-portal-ok) #dr-portal-ambient{',
+      'display:none!important;visibility:hidden!important;opacity:0!important}',
+      'body.is-portal #dr-portal-ambient .dr-hc,body.dr-portal-ok #dr-portal-ambient .dr-hc{',
+      'opacity:0.40!important;transition:none!important;animation:none!important}',
+      'body.is-portal #dr-portal-ambient .dr-gears,body.dr-portal-ok #dr-portal-ambient .dr-gears{',
       'opacity:0.95!important;transition:none!important;filter:none!important}',
       'body.is-portal #dr-force-bg-lock{display:none!important}'
     ].join('');
@@ -107,18 +118,6 @@
       pa.style.setProperty('transition', 'none', 'important');
       pa.style.setProperty('filter', 'none', 'important');
       pa.setAttribute('data-dr-ready', '1');
-      pa.querySelectorAll('.dr-hc, .dr-honeycomb, .dr-gears, .dr-gears-svg').forEach(function (n) {
-        try {
-          n.style.setProperty('transition', 'none', 'important');
-          n.style.setProperty('filter', 'none', 'important');
-        } catch (e2) {}
-      });
-      pa.querySelectorAll('.dr-hc, .dr-honeycomb').forEach(function (n) {
-        try {
-          n.style.setProperty('opacity', '0.40', 'important');
-          n.style.setProperty('animation', 'none', 'important');
-        } catch (e3) {}
-      });
     } catch (e) {}
   }
 
@@ -129,13 +128,6 @@
           if (portalMode()) return;
         };
         window.DRForceLightBg.__drStable = 1;
-      }
-      var lock = document.getElementById('dr-force-bg-lock');
-      if (lock && portalMode()) {
-        lock.textContent =
-          'html,body,#app-shell{background-color:#0c0618!important;' +
-          'background-image:radial-gradient(ellipse at 50% 40%,#1e1240 0%,#0c0618 70%)!important;' +
-          'background-attachment:fixed!important}';
       }
     } catch (e) {}
   }
@@ -153,42 +145,27 @@
     } catch (e) {}
   }
 
-  function patchPortalShell() {
-    try {
-      if (window.DRPortalShell && window.DRPortalShell.ensureAmbient && !window.DRPortalShell.__drStable) {
-        var orig = window.DRPortalShell.ensureAmbient;
-        window.DRPortalShell.ensureAmbient = function (forceShow) {
-          if (portalMode()) {
-            var el = document.getElementById('dr-portal-ambient');
-            if (el && el.querySelector('.dr-spin-cw')) {
-              freezePortalAmbient();
-              return true;
-            }
-          }
-          var r = orig.call(window.DRPortalShell, forceShow);
-          if (portalMode()) freezePortalAmbient();
-          return r;
-        };
-        window.DRPortalShell.__drStable = 1;
-      }
-    } catch (e) {}
-  }
-
   function apply() {
     injectPortalCss();
     if (portalMode()) {
-      if (lastMode !== 'portal') lastMode = 'portal';
+      lastMode = 'portal';
       hideLoginAmbient();
       freezePortalAmbient();
       patchForceLight();
       patchGalaxy();
-      patchPortalShell();
       try {
         document.body.classList.add('dr-portal-ok', 'is-portal');
         document.body.classList.remove('is-login');
       } catch (e) {}
     } else if (loginVisible()) {
       lastMode = 'login';
+      try {
+        var pa = document.getElementById('dr-portal-ambient');
+        if (pa) {
+          pa.style.setProperty('display', 'none', 'important');
+          pa.style.setProperty('opacity', '0', 'important');
+        }
+      } catch (e2) {}
     }
   }
 
@@ -198,6 +175,10 @@
   setTimeout(apply, 1000);
   setTimeout(apply, 2000);
   setInterval(function () {
+    if (loginVisible()) {
+      apply();
+      return;
+    }
     if (!portalMode()) return;
     hideLoginAmbient();
     patchForceLight();
@@ -208,5 +189,5 @@
     }
   }, 3000);
 
-  window.DRPortalBgStable = { v: 1, refresh: apply };
+  window.DRPortalBgStable = { v: 2, refresh: apply };
 })();
