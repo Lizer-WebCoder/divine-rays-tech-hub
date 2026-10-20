@@ -8,7 +8,8 @@
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <style>
     html,body{margin:0;min-height:100vh;font-family:Inter,system-ui,sans-serif;
-      background:radial-gradient(ellipse at 50% 40%,#1e1240 0%,#0c0618 70%);color:#eeeef6}
+      background:radial-gradient(ellipse at 50% 40%,#1e1240 0%,#0c0618 70%);color:#eeeef6;overflow-x:hidden}
+    body.is-login,html.dr-login-lock{overflow:hidden!important;height:100%!important;max-height:100vh!important}
     #dr-portal-ambient{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}
     body.dr-portal-ok #dr-portal-ambient,body.is-portal #dr-portal-ambient,
     body.is-portal-employee #dr-portal-ambient,body.is-portal-admin #dr-portal-ambient{display:block!important;visibility:visible!important;opacity:1!important}
@@ -155,6 +156,7 @@
       CDN + 'd9cf1842274bec3c620c454d483326878733f43b/js/portal-ambient-lock.js',
       CDN + '6c5c2d8c58d3aa71ed8e30e8b5bbc2c7a27b0f45/js/portal-bg-clean.js',
       CDN + 'f74fd928fedf7ac72685c4ded0e3903331f00822/js/portal-bg-stable.js',
+      CDN + 'd9f1f202a7fbd1d77d1736cc8e107e049e5a4e66/js/login-layout-lock.js',
       CDN + '8bb699a833056590a8f40a790b48e56fcd7a8fc4/js/gears-kick.js',
       CDN + 'a6b03b13271210063dad2202c184ff73bd6d6180/js/post-login-layout-lock.js',
       CDN + 'fcd78a8524e76fc1f343b2a1d39aac3190095683/js/login-top-seal.js',
@@ -171,7 +173,7 @@
       CDN + '25af070717de0697a7841c1667e3ad827dd3a3c0/js/force-pending-block.js',
       CDN + '7d382fcc8ac7dbdbd7c83490d9b044b17d23a3fc/js/login-auth-v11.js',
       CDN + '042f9445771a542db7bf8cc38e74b2f0a90dab5c/js/login-auth-fields-fix.js',
-      CDN + '6914e79896b027bfa419070e89b2d6e2e027c456/js/overlay-pin-v1.js',
+      CDN + '6de3d59a63dbefc82a844b142bc58fbdb7330ffd/js/overlay-pin-v1.js',
       CDN + '85f1defcdbc2e1e627865313a5c505bb007b9ee0/js/emp-login-fix.js',
       CDN + '3087a49f5649f410f3d96c1eacb00b155435b1ef/js/phase-bcd.js',
       CDN + 'b19db6229e1db592722f55c0ea4e1a4e5eb61e0b/js/users-admin-approval-ui.js',
