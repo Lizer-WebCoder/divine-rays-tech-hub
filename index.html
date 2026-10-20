@@ -9,6 +9,9 @@
   <style>
     html,body{margin:0;min-height:100vh;font-family:Inter,system-ui,sans-serif;
       background:radial-gradient(ellipse at 50% 40%,#1e1240 0%,#0c0618 70%);color:#eeeef6}
+    #dr-portal-ambient{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}
+    body.dr-portal-ok #dr-portal-ambient,body.is-portal #dr-portal-ambient,
+    body.is-portal-employee #dr-portal-ambient,body.is-portal-admin #dr-portal-ambient{display:block!important;visibility:visible!important;opacity:1!important}
     #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:1.25rem;text-align:center;padding:1.5rem;
       transition:opacity 0.75s ease,visibility 0.75s ease}
     #boot.is-done,#boot.dr-skip{opacity:0!important;visibility:hidden!important;pointer-events:none!important;display:none!important}
@@ -40,28 +43,47 @@
   <script>
   (function () {
     try {
-      var tab = sessionStorage.getItem('dr_login_tab') || '';
-      var pref = sessionStorage.getItem('dr_dev_portal_pref') || '';
+      var skip = false;
+      try { skip = sessionStorage.getItem('dr_skip_boot_gear') === '1'; } catch (eS) {}
+      var tab = '';
+      var pref = '';
+      try {
+        tab = sessionStorage.getItem('dr_login_tab') || '';
+        pref = sessionStorage.getItem('dr_dev_portal_pref') || '';
+      } catch (eT) {}
       var want = '';
       if (tab === 'customer' || pref === 'employee') want = 'employee';
       else if (tab === 'agent' || pref === 'admin') want = 'admin';
-      if (want) {
-        document.documentElement.setAttribute('data-dr-portal-pref', want);
-        var s0 = document.createElement('style');
-        s0.id = 'dr-early-portal-pref';
-        var hideLogin = '#login-screen,.login-screen{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}';
-        if (want === 'employee') {
-          s0.textContent = hideLogin + '#portal-agent,.mode-bar-admin,#mode-bar-admin,#mode-bar-admin *{display:none!important;visibility:hidden!important;opacity:0!important}#portal-customer{visibility:visible!important}';
-        } else {
-          s0.textContent = hideLogin + '#portal-customer,.mode-bar-employee,#mode-bar-employee,#mode-bar-employee *{display:none!important;visibility:hidden!important;opacity:0!important}#portal-agent{visibility:visible!important}';
+      var sAmb = document.createElement('style');
+      sAmb.id = 'dr-early-hide-portal-ambient';
+      sAmb.textContent = '#dr-portal-ambient{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}' +
+        'body.dr-portal-ok #dr-portal-ambient,body.is-portal #dr-portal-ambient,' +
+        'body.is-portal-employee #dr-portal-ambient,body.is-portal-admin #dr-portal-ambient{' +
+        'display:block!important;visibility:visible!important;opacity:1!important}';
+      document.head.appendChild(sAmb);
+      if (skip) {
+        if (want) {
+          document.documentElement.setAttribute('data-dr-portal-pref', want);
+          var s0 = document.createElement('style');
+          s0.id = 'dr-early-portal-pref';
+          var hideLogin = '#login-screen,.login-screen{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}';
+          if (want === 'employee') {
+            s0.textContent = hideLogin + '#portal-agent,.mode-bar-admin,#mode-bar-admin,#mode-bar-admin *{display:none!important;visibility:hidden!important;opacity:0!important}#portal-customer{visibility:visible!important}';
+          } else {
+            s0.textContent = hideLogin + '#portal-customer,.mode-bar-employee,#mode-bar-employee,#mode-bar-employee *{display:none!important;visibility:hidden!important;opacity:0!important}#portal-agent{visibility:visible!important}';
+          }
+          document.head.appendChild(s0);
         }
-        document.head.appendChild(s0);
-      }
-      if (sessionStorage.getItem('dr_skip_boot_gear') === '1') {
         document.documentElement.classList.add('dr-post-login');
         var s = document.createElement('style');
         s.textContent = '#boot,#dr-phase-boot{display:none!important}#dr-post-login-boot{display:flex!important;z-index:100000!important;opacity:1}';
         document.head.appendChild(s);
+      } else {
+        try { document.documentElement.removeAttribute('data-dr-portal-pref'); } catch (eClr) {}
+        var sHide = document.createElement('style');
+        sHide.id = 'dr-early-login-only';
+        sHide.textContent = '#portal-customer,#portal-agent,#mode-bar-employee,#mode-bar-admin,.mode-bar,#dr-dev-portal-switch{display:none!important;visibility:hidden!important;opacity:0!important}';
+        document.head.appendChild(sHide);
       }
     } catch (e) {}
   })();
@@ -127,7 +149,9 @@
     };
     var OVERLAYS = [
       CDN + '6f36ad029df2c2fc849caf60c0d362cf59771774/js/portal-ready-gate.js',
-      CDN + 'ebd7a2d601084d1c9844f911a5d9530357df7569/js/portal-shell-fix.js',
+      CDN + '8475cdbe8dcaef3241cee2615c581949b409cf71/js/portal-shell-login-gate.js',
+      CDN + '6c8955366057ece141f8e69831563957158bd848/js/portal-shell-fix.js',
+      CDN + '67cfedf51efdb703f0cf74f3b7aceba7b2a70fb6/js/portal-shell-v10-override.js',
       CDN + 'd9cf1842274bec3c620c454d483326878733f43b/js/portal-ambient-lock.js',
       CDN + '27555b8dba5baa16509d49bd6cef0cbe7d116ca3/js/portal-bg-clean.js',
       CDN + '9d81f394dc777943bc12a97c737c1ed11bd633f0/js/portal-bg-stable.js',
@@ -147,7 +171,7 @@
       CDN + '25af070717de0697a7841c1667e3ad827dd3a3c0/js/force-pending-block.js',
       CDN + '7d382fcc8ac7dbdbd7c83490d9b044b17d23a3fc/js/login-auth-v11.js',
       CDN + '042f9445771a542db7bf8cc38e74b2f0a90dab5c/js/login-auth-fields-fix.js',
-      CDN + 'a193d4ab4e6a6ddd23ce8f6d5ac5fb4a44dd7da9/js/overlay-pin-v1.js',
+      CDN + 'd1f1e09a51c9d4e0e370fa17db7df40e759a2d48/js/overlay-pin-v1.js',
       CDN + '85f1defcdbc2e1e627865313a5c505bb007b9ee0/js/emp-login-fix.js',
       CDN + '3087a49f5649f410f3d96c1eacb00b155435b1ef/js/phase-bcd.js',
       CDN + 'b19db6229e1db592722f55c0ea4e1a4e5eb61e0b/js/users-admin-approval-ui.js',
