@@ -1,17 +1,19 @@
 /**
- * Divine Rays - overlay-pin-v5
+ * Divine Rays - overlay-pin-v6
  * Late-load critical auth/bg fixes if bootloader pins are stale.
  */
 (function () {
   'use strict';
-  if (window.__DR_OVERLAY_PIN_V1 >= 5) return;
-  window.__DR_OVERLAY_PIN_V1 = 5;
+  if (window.__DR_OVERLAY_PIN_V1 >= 6) return;
+  window.__DR_OVERLAY_PIN_V1 = 6;
   var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
   var pins = [
     ['27555b8dba5baa16509d49bd6cef0cbe7d116ca3', 'js/portal-bg-clean.js', '__DR_PORTAL_BG_CLEAN'],
     ['9d81f394dc777943bc12a97c737c1ed11bd633f0', 'js/portal-bg-stable.js', '__DR_PORTAL_BG_STABLE'],
     ['8bb699a833056590a8f40a790b48e56fcd7a8fc4', 'js/gears-kick.js', '__DR_GEARS_KICK'],
     ['a6b03b13271210063dad2202c184ff73bd6d6180', 'js/post-login-layout-lock.js', '__DR_POST_LOGIN_LAYOUT'],
+    ['fcd78a8524e76fc1f343b2a1d39aac3190095683', 'js/login-top-seal.js', '__DR_LOGIN_TOP_SEAL'],
+    ['fcd78a8524e76fc1f343b2a1d39aac3190095683', 'js/login-auth-fail-hard.js', '__DR_LOGIN_AUTH_FAIL_HARD'],
     ['7d382fcc8ac7dbdbd7c83490d9b044b17d23a3fc', 'js/login-auth-v11.js', '__DR_LOGIN_AUTH_V12'],
     ['042f9445771a542db7bf8cc38e74b2f0a90dab5c', 'js/login-auth-fields-fix.js', '__DR_LOGIN_AUTH_FIELDS'],
     ['85f1defcdbc2e1e627865313a5c505bb007b9ee0', 'js/emp-login-fix.js', '__DR_EMP_LOGIN_FIX']
