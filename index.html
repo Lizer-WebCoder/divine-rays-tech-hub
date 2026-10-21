@@ -41,22 +41,39 @@
       background:linear-gradient(90deg,#7c6af0,#c4b5fd,#7c6af0);animation:drPlBar 1.4s ease-in-out infinite}
     @keyframes drPlBar{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}
   </style>
-  <script>
-  (function () {
-    try {
-      var skip = false;
-      try { skip = sessionStorage.getItem('dr_skip_boot_gear') === '1'; } catch (eS) {}
-      var tab = '';
-      var pref = '';
-    } catch (e) {}
-  })();
-  </script>
 </head>
 <body>
-<div id="boot"><p>Restoring…</p></div>
-<script>
-/* FULL CONTENT WILL BE PUSHED - temporary stub if this lands */
-alert('index restore in progress');
-</script>
+  <div id="boot">
+    <svg class="boot-logo" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <rect width="64" height="64" rx="14" fill="#1a1230"/>
+      <g class="boot-gear-spin">
+        <path fill="#a78bfa" d="M32 12l2.4 6.5 6.8-1.2-1.2 6.8 6.5 2.4-4.5 5.3 4.5 5.3-6.5 2.4 1.2 6.8-6.8-1.2L32 52l-2.4-6.5-6.8 1.2 1.2-6.8-6.5-2.4 4.5-5.3-4.5-5.3 6.5-2.4-1.2-6.8 6.8 1.2z"/>
+        <circle cx="32" cy="32" r="7" fill="#1a1230"/>
+      </g>
+    </svg>
+    <p class="boot-title">Loading Divine Rays Tech Hub…</p>
+    <p class="boot-sub">Preparing secure workspace</p>
+  </div>
+  <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@5a31c819f1070475166ce370f488bdf394f9008c/js/portal-shell-fix.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@8db4990c66e10c09e6865e2cbe2a57dac9de7453/js/heartbeat-draw.js"></script>
+  <script>
+  (function () {
+    var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
+    var BASE = '5e1107f2';
+    var appUrl = CDN + BASE + '/app.html';
+    // Minimal restore: fetch full shell from known good commit then rewrite pins
+    fetch(CDN + '5a31c819f1070475166ce370f488bdf394f9008c/index.html').then(function(r){return r.text()}).then(function(html){
+      html = html.replace(/bf3f206b2fdc2d44a6a05f03d044ce26c526e28c\/js\/heartbeat-draw\.js/g, '8db4990c66e10c09e6865e2cbe2a57dac9de7453/js/heartbeat-draw.js');
+      html = html.replace(/6c8955366057ece141f8e69831563957158bd848\/js\/portal-shell-fix\.js/g, '5a31c819f1070475166ce370f488bdf394f9008c/js/portal-shell-fix.js');
+      // If this is the full bootloader page, extract and run the script portion is complex;
+      // instead document.write the patched index from that commit after pin replace
+      document.open();
+      document.write(html);
+      document.close();
+    }).catch(function(err){
+      document.getElementById('boot').innerHTML = '<p class="err">Boot failed: '+err+'</p>';
+    });
+  })();
+  </script>
 </body>
 </html>
