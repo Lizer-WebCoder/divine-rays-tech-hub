@@ -52,7 +52,6 @@
   <script>
   (function () {
     var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
-    // Real full app shell (login + portals) — NOT the redirect app.html
     var SHELL = '830dac02096eb08be1b2dc22bdc191a14df91a04';
     var BASE = '5e1107f2';
     var REWRITE = {
@@ -82,7 +81,7 @@
       CDN + 'eb85ae53c151af844aef0e50041535728ebf512f/js/ambient-once.js',
       CDN + '66c593bdda30b47abf48bb02682a6aac62d282c4/js/ambient-stable.js',
       CDN + 'c4c9680a872e4299ec4f862a1c0195969b599465/js/login-visual-restore.js',
-      CDN + '9a13b6cda88ff64e8b86948b411da7103b1b7057/js/heartbeat-draw.js',
+      CDN + 'b1740bf208dc5dc99f632cb0d6bafae1c1933237/js/heartbeat-draw.js',
       CDN + '1bdb127bcd22c1b27717c422fb415b2ec4a3af8f/js/gears-stable.js',
       CDN + 'e51a6a54c855992cd69d4fed15f30332dde7aa0b/js/portal-gears-keep.js',
       CDN + '25af070717de0697a7841c1667e3ad827dd3a3c0/js/force-pending-block.js',
@@ -131,9 +130,7 @@
       Promise.all(OVERLAYS.map(loadScript))
     ]).then(function (results) {
       var html = results[0];
-      if (html.indexOf('login-screen') === -1) {
-        throw new Error('Shell missing login-screen');
-      }
+      if (html.indexOf('login-screen') === -1) throw new Error('Shell missing login-screen');
       Object.keys(REWRITE).forEach(function (name) {
         var pin = REWRITE[name];
         var re1 = new RegExp('src=["\']js/' + name.replace('.', '\\.') + '[^"\']*["\']', 'g');
