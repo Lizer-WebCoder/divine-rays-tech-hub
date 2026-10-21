@@ -8,45 +8,55 @@
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <style>
     html,body{margin:0;min-height:100vh;font-family:Inter,system-ui,sans-serif;
-      background:radial-gradient(ellipse at 50% 40%,#1e1240 0%,#0c0618 70%);color:#eeeef6;overflow-x:hidden}
-    body.is-login,html.dr-login-lock{overflow:hidden!important;height:100%!important;max-height:100vh!important}
-    #dr-portal-ambient{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}
-    body.dr-portal-ok #dr-portal-ambient,body.is-portal #dr-portal-ambient,
-    body.is-portal-employee #dr-portal-ambient,body.is-portal-admin #dr-portal-ambient{display:block!important;visibility:visible!important;opacity:1!important}
-    #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:1.25rem;text-align:center;padding:1.5rem;
-      transition:opacity 0.75s ease,visibility 0.75s ease}
-    #boot.is-done,#boot.dr-skip{opacity:0!important;visibility:hidden!important;pointer-events:none!important;display:none!important}
-    #boot .boot-logo{width:72px;height:72px;border-radius:16px;display:block;box-shadow:0 8px 32px rgba(109,90,154,.35)}
-    #boot .boot-gear-spin{transform-origin:32px 32px;transform-box:view-box;animation:drBootGearSpin 1.4s linear infinite}
-    #boot .boot-title{font-size:1.35rem;font-weight:650;margin:0;color:#eeeef6}
-    #boot .boot-sub{font-size:.85rem;color:#9494ae;margin:0}
-    #boot .err{color:#fca5a5;font-size:.9rem;max-width:28rem}
+      background:radial-gradient(ellipse at 50% 40%,#1e1240 0%,#0c0618 70%);color:#eeeef6}
+    #boot{display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:1.25rem;text-align:center;padding:1.5rem}
+    .boot-title{font-size:1.35rem;font-weight:650;margin:0;color:#eeeef6}
+    .boot-sub{font-size:.85rem;color:#9494ae;margin:0}
+    .err{color:#fca5a5;font-size:.9rem;max-width:28rem}
+    .boot-logo{width:72px;height:72px;border-radius:16px;display:block;box-shadow:0 8px 32px rgba(109,90,154,.35)}
+    .boot-gear-spin{transform-origin:32px 32px;transform-box:view-box;animation:drBootGearSpin 1.4s linear infinite}
     @keyframes drBootGearSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-    #dr-post-login-boot{position:fixed;inset:0;z-index:100000;display:none;align-items:center;justify-content:center;
-      flex-direction:column;gap:1.35rem;background:radial-gradient(ellipse at 50% 40%,#1e1240 0%,#0c0618 70%);opacity:1;
-      transition:opacity 0.85s ease,visibility 0.85s ease}
-    #dr-post-login-boot.is-on{display:flex}
-    #dr-post-login-boot.is-done,#dr-post-login-boot.is-fading{opacity:0!important;visibility:hidden!important;pointer-events:none!important}
-    #dr-post-login-boot .pl-rings{position:relative;width:76px;height:76px}
-    #dr-post-login-boot .pl-ring{position:absolute;inset:0;border-radius:50%;border:2.5px solid rgba(167,139,250,0.15);
-      border-top-color:#c4b5fd;animation:drPlSpin 1.25s linear infinite}
-    #dr-post-login-boot .pl-ring:nth-child(2),#dr-post-login-boot .pl-ring:nth-child(3){display:none}
-    #dr-post-login-boot .pl-core{position:absolute;inset:18px;border-radius:50%;
-      background:radial-gradient(circle,#ddd6fe 0%,#7c6af0 70%);box-shadow:0 0 28px rgba(139,92,246,.55)}
-    @keyframes drPlSpin{to{transform:rotate(360deg)}}
-    #dr-post-login-boot .pl-title{color:#eeeef6;font-weight:650;font-size:1.1rem;margin:0}
-    #dr-post-login-boot .pl-sub{color:#9494ae;font-size:.82rem;margin:0}
-    #dr-post-login-boot .pl-bar{width:160px;height:4px;border-radius:99px;background:rgba(139,92,246,.2);overflow:hidden}
-    #dr-post-login-boot .pl-bar>i{display:block;height:100%;width:40%;border-radius:99px;
-      background:linear-gradient(90deg,#7c6af0,#c4b5fd,#7c6af0);animation:drPlBar 1.4s ease-in-out infinite}
-    @keyframes drPlBar{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}
   </style>
 </head>
 <body>
-<div id="boot"><p class="boot-title">Restoring…</p></div>
-<script>
-/* Temporary stub - full file push next */
-location.reload();
-</script>
+  <div id="boot">
+    <svg class="boot-logo" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <rect width="64" height="64" rx="14" fill="#1a1230"/>
+      <g class="boot-gear-spin">
+        <path fill="#a78bfa" d="M32 12l2.4 6.5 6.8-1.2-1.2 6.8 6.5 2.4-4.5 5.3 4.5 5.3-6.5 2.4 1.2 6.8-6.8-1.2L32 52l-2.4-6.5-6.8 1.2 1.2-6.8-6.5-2.4 4.5-5.3-4.5-5.3 6.5-2.4-1.2-6.8 6.8 1.2z"/>
+        <circle cx="32" cy="32" r="7" fill="#1a1230"/>
+      </g>
+    </svg>
+    <p class="boot-title">Loading Divine Rays Tech Hub…</p>
+    <p class="boot-sub">Restoring workspace</p>
+  </div>
+  <script>
+  (function () {
+    // Load the last known-good full bootloader (commit 9894858) — full overlay stack + shell
+    var urls = [
+      'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@989485835a213c6312ee1dba740ff32259b506f0/index.html',
+      'https://raw.githubusercontent.com/Lizer-WebCoder/divine-rays-tech-hub/989485835a213c6312ee1dba740ff32259b506f0/index.html'
+    ];
+    function fail(msg) {
+      var b = document.getElementById('boot');
+      if (b) b.innerHTML = '<p class="err">' + msg + '</p><p class="boot-sub">Hard refresh (Ctrl+Shift+R) and try again</p>';
+    }
+    function tryFetch(i) {
+      if (i >= urls.length) { fail('Could not restore app'); return; }
+      fetch(urls[i], { cache: 'no-store' }).then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.text();
+      }).then(function (html) {
+        if (!html || html.indexOf('OVERLAYS') === -1) throw new Error('bad bootloader');
+        document.open();
+        document.write(html);
+        document.close();
+      }).catch(function () {
+        tryFetch(i + 1);
+      });
+    }
+    tryFetch(0);
+  })();
+  </script>
 </body>
 </html>
