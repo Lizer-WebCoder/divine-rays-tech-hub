@@ -1,13 +1,13 @@
 /**
- * Divine Rays — portal-shell-fix v11 — larger gears restored — never paint on login — honeycomb + baked SMIL gears
+ * Divine Rays — portal-shell-fix v12 — larger gears, softer opacity so cards stay readable
  * Static honeycomb (no glow/reaction on click).
  * Gears live inside ambient so hard-refresh always shows them.
- * v11: restore larger gear radii (v9-scale); force rebuild via data-gears-v.
+ * v12: keep large radii; lower gear opacity; never paint on login.
  */
 (function () {
   'use strict';
-  if (window.__DR_PORTAL_SHELL >= 11) return;
-  window.__DR_PORTAL_SHELL = 11;
+  if (window.__DR_PORTAL_SHELL >= 12) return;
+  window.__DR_PORTAL_SHELL = 12;
 
   var BG_ID = 'dr-portal-ambient';
   var CSS_ID = 'dr-portal-shell-css';
@@ -45,7 +45,7 @@
   }
 
   function honeycombSvg() {
-    var stroke = 'rgba(167,139,250,0.18)';
+    var stroke = 'rgba(167,139,250,0.14)';
     var R = 28;
     var horiz = 1.5 * R * Math.sqrt(3);
     var vert = 1.5 * R;
@@ -104,7 +104,7 @@
       ')">' +
       '<path fill="' +
       fill +
-      '" opacity="0.85" d="' +
+      '" opacity="0.42" d="' +
       path +
       '"/>' +
       '<animateTransform attributeName="transform" type="rotate" from="0" to="' +
@@ -117,11 +117,11 @@
   }
 
   function gearsSvg() {
-    var a = 'rgba(167,139,250,0.55)';
-    var b = 'rgba(196,181,253,0.4)';
-    var c = 'rgba(139,92,246,0.45)';
+    var a = 'rgba(167,139,250,0.38)';
+    var b = 'rgba(196,181,253,0.28)';
+    var c = 'rgba(139,92,246,0.32)';
     return (
-      '<svg class="dr-gears-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice" width="100%" height="100%" style="display:block;opacity:0.95">' +
+      '<svg class="dr-gears-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice" width="100%" height="100%" style="display:block;opacity:0.55">' +
       one('dr-spin-cw', a, 12, 88, 60, 20, 180, 180, 1.15, 30, 0) +
       one('dr-spin-ccw', b, 10, 72, 48, 16, 340, 300, 1.05, 24, 1) +
       one('dr-spin-cw', c, 14, 102, 70, 24, 560, 150, 1.2, 36, 0) +
@@ -155,7 +155,7 @@
       'opacity:1!important;min-height:calc(100vh - 49px)!important}',
       '#' + BG_ID + '{position:fixed;inset:0;width:100%;height:100%;z-index:0;',
       'pointer-events:none!important;overflow:hidden}',
-      '#' + BG_ID + ' .dr-hc{position:absolute;inset:0;width:100%;height:100%;z-index:0;opacity:0.40}',
+      '#' + BG_ID + ' .dr-hc{position:absolute;inset:0;width:100%;height:100%;z-index:0;opacity:0.32}',
       '#' + BG_ID + ' .dr-hc svg{width:100%;height:100%;display:block}',
       '#' + BG_ID + ' .dr-gears{position:absolute;inset:0;width:100%;height:100%;z-index:1;',
       'pointer-events:none}',
@@ -200,8 +200,8 @@
         '<div class="dr-gears" aria-hidden="true">' +
         gearsSvg() +
         '</div>';
-      el.setAttribute('data-gears-v', '11');
-    } else if (!el.querySelector('.dr-gears .dr-spin-cw') || !el.querySelector('animateTransform') || el.getAttribute('data-gears-v') !== '11') {
+      el.setAttribute('data-gears-v', '12');
+    } else if (!el.querySelector('.dr-gears .dr-spin-cw') || !el.querySelector('animateTransform') || el.getAttribute('data-gears-v') !== '12') {
       var gears = el.querySelector('.dr-gears');
       if (gears) {
         gears.innerHTML = gearsSvg();
@@ -213,7 +213,7 @@
             '</div>'
         );
       }
-      el.setAttribute('data-gears-v', '11');
+      el.setAttribute('data-gears-v', '12');
     }
     el.style.setProperty('display', 'block', 'important');
     el.style.setProperty('visibility', 'visible', 'important');
@@ -240,6 +240,6 @@
   window.DRPortalShell = {
     ensureAmbient: ensureAmbient,
     hideAmbient: hideAmbient,
-    v: 11
+    v: 12
   };
 })();
