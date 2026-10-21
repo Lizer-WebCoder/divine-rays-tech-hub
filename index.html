@@ -41,82 +41,22 @@
       background:linear-gradient(90deg,#7c6af0,#c4b5fd,#7c6af0);animation:drPlBar 1.4s ease-in-out infinite}
     @keyframes drPlBar{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}
   </style>
-</head>
-<body>
-  <div id="boot">
-    <svg class="boot-logo" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <rect width="64" height="64" rx="14" fill="#1a1230"/>
-      <g class="boot-gear-spin">
-        <path fill="#a78bfa" d="M32 12l2.4 6.5 6.8-1.2-1.2 6.8 6.5 2.4-4.5 5.3 4.5 5.3-6.5 2.4 1.2 6.8-6.8-1.2L32 52l-2.4-6.5-6.8 1.2 1.2-6.8-6.5-2.4 4.5-5.3-4.5-5.3 6.5-2.4-1.2-6.8 6.8 1.2z"/>
-        <circle cx="32" cy="32" r="7" fill="#1a1230"/>
-      </g>
-    </svg>
-    <p class="boot-title">Loading Divine Rays Tech Hub…</p>
-    <p class="boot-sub">Preparing secure workspace</p>
-  </div>
   <script>
   (function () {
-    var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
-    var BASE = '5e1107f2';
-    var REWRITE = {
-      'app.js': '5e1107f2',
-      'admin.js': 'c54201aa340f2f53d81f10aa0bb07680811f58c4',
-      'filters.js': 'e65c070009674e02288c96a305daab5e0245e28e',
-      'config.js': BASE, 'extras.js': BASE, 'polish.js': BASE,
-      'team-board.js': BASE, 'saved-views.js': BASE, 'delete-ticket.js': BASE,
-      'profile.js': BASE, 'kb.js': BASE
-    };
-    var OVERLAYS = [
-      CDN + '6f36ad029df2c2fc849caf60c0d362cf59771774/js/portal-ready-gate.js',
-      CDN + '8475cdbe8dcaef3241cee2615c581949b409cf71/js/portal-shell-login-gate.js',
-      CDN + '5a31c819f1070475166ce370f488bdf394f9008c/js/portal-shell-fix.js',
-      CDN + 'e51a6a54c855992cd69d4fed15f30332dde7aa0b/js/portal-shell-v10-override.js',
-      CDN + 'd9cf1842274bec3c620c454d483326878733f43b/js/portal-ambient-lock.js',
-      CDN + '6c5c2d8c58d3aa71ed8e30e8b5bbc2c7a27b0f45/js/portal-bg-clean.js',
-      CDN + 'f74fd928fedf7ac72685c4ded0e3903331f00822/js/portal-bg-stable.js',
-      CDN + 'd9f1f202a7fbd1d77d1736cc8e107e049e5a4e66/js/login-layout-lock.js',
-      CDN + '8bb699a833056590a8f40a790b48e56fcd7a8fc4/js/gears-kick.js',
-      CDN + 'a6b03b13271210063dad2202c184ff73bd6d6180/js/post-login-layout-lock.js',
-      CDN + 'fcd78a8524e76fc1f343b2a1d39aac3190095683/js/login-top-seal.js',
-      CDN + 'fcd78a8524e76fc1f343b2a1d39aac3190095683/js/login-auth-fail-hard.js',
-      CDN + '0091e77d27bbb73e655a498ddd1ebf944583e000/js/force-light-bg.js',
-      CDN + '63199d78495d2c10382c7706d12701f7ccf7d167/js/login-ambient-galaxy.js',
-      CDN + '707874e9a98cb77fc1136c520de0376e1dbda2e1/js/login-bg-single.js',
-      CDN + 'eb85ae53c151af844aef0e50041535728ebf512f/js/ambient-once.js',
-      CDN + '66c593bdda30b47abf48bb02682a6aac62d282c4/js/ambient-stable.js',
-      CDN + 'c4c9680a872e4299ec4f862a1c0195969b599465/js/login-visual-restore.js',
-      CDN + '8db4990c66e10c09e6865e2cbe2a57dac9de7453/js/heartbeat-draw.js',
-      CDN + '1bdb127bcd22c1b27717c422fb415b2ec4a3af8f/js/gears-stable.js',
-      CDN + 'e51a6a54c855992cd69d4fed15f30332dde7aa0b/js/portal-gears-keep.js',
-      CDN + '25af070717de0697a7841c1667e3ad827dd3a3c0/js/force-pending-block.js',
-      CDN + '7d382fcc8ac7dbdbd7c83490d9b044b17d23a3fc/js/login-auth-v11.js',
-      CDN + '042f9445771a542db7bf8cc38e74b2f0a90dab5c/js/login-auth-fields-fix.js',
-      CDN + '6de3d59a63dbefc82a844b142bc58fbdb7330ffd/js/overlay-pin-v1.js',
-      CDN + '85f1defcdbc2e1e627865313a5c505bb007b9ee0/js/emp-login-fix.js',
-      CDN + '3087a49f5649f410f3d96c1eacb00b155435b1ef/js/phase-bcd.js',
-      CDN + 'b19db6229e1db592722f55c0ea4e1a4e5eb61e0b/js/users-admin-approval-ui.js',
-      CDN + '46f6a5a15fcce4e4f43cce945c3cd6c70cf3b26d/js/login-tab-labels.js',
-      CDN + '2fa75790ec38bd9625b2dd0d6f3088fc4fa4ca7b/js/login-register-restore.js',
-      CDN + '35fe30dc9e44ef30e685790ce2f66cf4c3760d51/js/login-register-cards.js',
-      CDN + '053a6c0f983a40d19b6be2b86bc8063b66c60575/js/login-reg-polish.js',
-      CDN + '5f7baca7cc23a283b6ddd0d5682fe11425f87e56/js/login-reg-validate.js',
-      CDN + '3caae1bfbccf559f87bdc8706c3974e1e4a1c38e/js/login-password-toggle.js',
-      CDN + 'b9b80a796683682c88f1f989c97eaf15c380a015/js/developer-portal-access.js',
-      CDN + '73566a7bb55045f4d0d34900a92e4560f1595067/js/logout-confirm.js',
-      CDN + '52dcc738386608a65c21c13db5d6d5218bf53201/js/login-pending-and-busy-fix.js',
-      CDN + '1117b22e6ee1b209de55f904c2e8b273c0badd5b/js/login-employee-and-perf-fix.js',
-      CDN + '88ac3eb41279925ac6c3104eca06289f44a2273b/js/post-login-transition.js',
-      CDN + '4f433dbeb2f5663f82903f3a4326f218b2aa6159/js/topbar-layout.js',
-      CDN + 'f84cd956faf474658036d7891ac940adc4290b3f/js/boot-freeze-guard.js',
-      CDN + '090fd731d30cd3c91d50a33ac2c15874f096e50a/js/login-label-lock.js',
-      CDN + 'dcadf3f9b020f13774b8226f5ba932fb526dc57b/js/login-fast-fix.js',
-      CDN + '91d1f4b2eb42572a9a129b2a00dac825c23d94e8/js/login-perf.js',
-      CDN + '6919b5c7a6fb24ae00c7837ac2c728bf57ad117b/js/login-ambient-no-pause.js',
-      CDN + '19bc1007aec81f9f0525fe7a3167b9ec84fa05b6/js/tab-session.js',
-      CDN + '761f65a9a4148efcabd6a78afb7e13f144943fa6/js/agent-username-auth.js'
-    ];
-    // truncated for tool - will fix with full file
+    try {
+      var skip = false;
+      try { skip = sessionStorage.getItem('dr_skip_boot_gear') === '1'; } catch (eS) {}
+      var tab = '';
+      var pref = '';
+    } catch (e) {}
   })();
   </script>
+</head>
+<body>
+<div id="boot"><p>Restoring…</p></div>
+<script>
+/* FULL CONTENT WILL BE PUSHED - temporary stub if this lands */
+alert('index restore in progress');
+</script>
 </body>
 </html>
