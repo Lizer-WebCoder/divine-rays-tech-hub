@@ -1,17 +1,17 @@
 /**
- * Divine Rays — ECG + gears v41
+ * Divine Rays — ECG + gears v42
  * Continuous lifeline always on login: full path + traveling pulse.
- * Behind login card (z-index 0); card forced above.
- * Aggressive start after boot; never blank loop.
+ * z-index 1 (above honeycomb ambient 0, below login card 6).
+ * Brighter stroke so it is actually visible.
  */
 (function () {
   'use strict';
-  if (window.__DR_HEARTBEAT_DRAW >= 41) return;
+  if (window.__DR_HEARTBEAT_DRAW >= 42) return;
   try {
     if (window.__DR_ECG_TIMER) clearTimeout(window.__DR_ECG_TIMER);
     if (window.__DR_ECG_INTERVAL) clearInterval(window.__DR_ECG_INTERVAL);
   } catch (e0) {}
-  window.__DR_HEARTBEAT_DRAW = 41;
+  window.__DR_HEARTBEAT_DRAW = 42;
   window.__DR_ECG_OK = true;
   try { document.documentElement.setAttribute('data-ecg', 'on'); } catch (e) {}
 
@@ -121,17 +121,18 @@
       (document.head || document.documentElement).appendChild(el);
     }
     el.textContent = [
-      '#' + BOX_ID + '{z-index:0!important;pointer-events:none!important;overflow:visible!important;background:transparent!important;filter:none!important}',
+      '#' + BOX_ID + '{z-index:1!important;pointer-events:none!important;overflow:visible!important;background:transparent!important;filter:none!important}',
       '#dr-lifeline,#dr-lifeline *{pointer-events:none!important}',
       '#dr-lifeline svg{width:100%;height:100%;display:block;overflow:visible}',
       '@keyframes drEcgTravel{0%{stroke-dashoffset:0}100%{stroke-dashoffset:-1600}}',
-      '@keyframes drEcgGlowPulse{0%,100%{opacity:0.22}50%{opacity:0.38}}',
-      '@keyframes drEcgBasePulse{0%,100%{opacity:0.55}50%{opacity:0.72}}',
+      '@keyframes drEcgGlowPulse{0%,100%{opacity:0.35}50%{opacity:0.55}}',
+      '@keyframes drEcgBasePulse{0%,100%{opacity:0.75}50%{opacity:0.95}}',
       'body.dr-portal-ok #dr-lifeline,body.is-portal #dr-lifeline,body.is-portal-employee #dr-lifeline,body.is-portal-admin #dr-lifeline{opacity:0!important;visibility:hidden!important;pointer-events:none!important;display:none!important}',
-      'body.is-login #dr-lifeline{opacity:1!important;visibility:visible!important;display:block!important;z-index:0!important}',
+      'body.is-login #dr-lifeline{opacity:1!important;visibility:visible!important;display:block!important;z-index:1!important}',
       'body.is-login #dr-lifeline .dr-ecg-base,body.is-login #dr-lifeline .dr-ecg-glow,body.is-login #dr-lifeline .dr-ecg-head{display:block!important;visibility:visible!important}',
       'body.is-login #login-screen,body.is-login .login-screen{z-index:5!important;position:relative}',
       'body.is-login .login-card,body.is-login #login-card,body.is-login .auth-card,body.is-login [class*="login-card"]{z-index:6!important;position:relative}',
+      'body.is-login #dr-login-ambient,body.is-login #dr-ambient-galaxy{z-index:0!important}',
       'body.is-login #boot,body.is-login #dr-phase-boot,#boot.is-done,#dr-phase-boot.is-done{display:none!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important}',
       'body.dr-portal-ok #login-screen,body.is-portal #login-screen,body.is-portal-employee #login-screen,body.is-portal-admin #login-screen,',
       'body.dr-portal-ok .login-screen,body.is-portal .login-screen{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}'
@@ -178,24 +179,24 @@
     box.style.cssText =
       'position:fixed!important;left:0!important;right:0!important;width:100%!important;' +
       'top:50%!important;height:160px!important;margin-top:-80px!important;' +
-      'z-index:0!important;pointer-events:none!important;opacity:1!important;visibility:visible!important;' +
+      'z-index:1!important;pointer-events:none!important;opacity:1!important;visibility:visible!important;' +
       'background:transparent!important;overflow:visible!important;display:block!important';
 
     if (box.querySelector('.dr-ecg-base') && __ecgReady) return;
 
-    var core = isLight() ? '#7c3aed' : '#e9d5ff';
-    var glow = isLight() ? 'rgba(167,139,250,0.4)' : 'rgba(233,213,255,0.35)';
-    var head = isLight() ? '#a78bfa' : '#f5f3ff';
-    var fid = 'drEcgBlurV41';
+    var core = isLight() ? '#7c3aed' : '#f3e8ff';
+    var glow = isLight() ? 'rgba(167,139,250,0.5)' : 'rgba(243,232,255,0.55)';
+    var head = isLight() ? '#a78bfa' : '#ffffff';
+    var fid = 'drEcgBlurV42';
 
     box.innerHTML =
       '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 100" preserveAspectRatio="none" width="100%" height="100%" style="display:block;overflow:visible">' +
       '<defs><filter id="' + fid + '" x="-25%" y="-60%" width="150%" height="220%">' +
-      '<feGaussianBlur in="SourceGraphic" stdDeviation="1.8" result="blur"/>' +
+      '<feGaussianBlur in="SourceGraphic" stdDeviation="2.2" result="blur"/>' +
       '<feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>' +
-      '<path class="dr-ecg-glow" fill="none" stroke="' + glow + '" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" filter="url(#' + fid + ')" d="' + ECG_D + '"/>' +
-      '<path class="dr-ecg-base" fill="none" stroke="' + core + '" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" d="' + ECG_D + '"/>' +
-      '<path class="dr-ecg-head" fill="none" stroke="' + head + '" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" d="' + ECG_D + '"/>' +
+      '<path class="dr-ecg-glow" fill="none" stroke="' + glow + '" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" filter="url(#' + fid + ')" d="' + ECG_D + '"/>' +
+      '<path class="dr-ecg-base" fill="none" stroke="' + core + '" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" d="' + ECG_D + '"/>' +
+      '<path class="dr-ecg-head" fill="none" stroke="' + head + '" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" d="' + ECG_D + '"/>' +
       '</svg>';
 
     var len = 1600;
@@ -215,7 +216,7 @@
       base.style.strokeDasharray = 'none';
       base.style.strokeDashoffset = '0';
       base.style.animation = 'drEcgBasePulse 2.8s ease-in-out infinite';
-      base.style.opacity = '0.65';
+      base.style.opacity = '0.85';
     }
     if (glowP) {
       glowP.style.strokeDasharray = 'none';
@@ -227,7 +228,7 @@
       headP.style.strokeDasharray = seg + ' ' + Math.max(1, Math.round(len - seg));
       headP.style.strokeDashoffset = '0';
       headP.style.animation = 'drEcgTravel 10s linear infinite';
-      headP.style.filter = 'drop-shadow(0 0 6px ' + head + ')';
+      headP.style.filter = 'drop-shadow(0 0 8px ' + head + ')';
       headP.style.opacity = '0.95';
     }
 
@@ -314,6 +315,6 @@
     ensureGears: ensureGears,
     isGearsReady: isGearsReady,
     refresh: tick,
-    v: 41
+    v: 42
   };
 })();
