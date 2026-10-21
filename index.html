@@ -103,7 +103,7 @@
     var OVERLAYS = [
       CDN + '6f36ad029df2c2fc849caf60c0d362cf59771774/js/portal-ready-gate.js',
       CDN + '8475cdbe8dcaef3241cee2615c581949b409cf71/js/portal-shell-login-gate.js',
-      CDN + '5a31c819f1070475166ce370f488bdf394f9008c/js/portal-shell-fix.js',
+      CDN + '2326cb1c0e4334a556371bc49ab97345425ef1fe/js/portal-shell-fix.js',
       CDN + 'e51a6a54c855992cd69d4fed15f30332dde7aa0b/js/portal-shell-v10-override.js',
       CDN + 'd9cf1842274bec3c620c454d483326878733f43b/js/portal-ambient-lock.js',
       CDN + '6c5c2d8c58d3aa71ed8e30e8b5bbc2c7a27b0f45/js/portal-bg-clean.js',
@@ -119,7 +119,7 @@
       CDN + 'eb85ae53c151af844aef0e50041535728ebf512f/js/ambient-once.js',
       CDN + '66c593bdda30b47abf48bb02682a6aac62d282c4/js/ambient-stable.js',
       CDN + 'c4c9680a872e4299ec4f862a1c0195969b599465/js/login-visual-restore.js',
-      CDN + '8db4990c66e10c09e6865e2cbe2a57dac9de7453/js/heartbeat-draw.js',
+      CDN + '2326cb1c0e4334a556371bc49ab97345425ef1fe/js/heartbeat-draw.js',
       CDN + '1bdb127bcd22c1b27717c422fb415b2ec4a3af8f/js/gears-stable.js',
       CDN + 'e51a6a54c855992cd69d4fed15f30332dde7aa0b/js/portal-gears-keep.js',
       CDN + '25af070717de0697a7841c1667e3ad827dd3a3c0/js/force-pending-block.js',
@@ -159,18 +159,6 @@
         (document.head || document.documentElement).appendChild(s);
       });
     }
-    function sealBootEarly() {
-      try {
-        var b = document.getElementById('boot');
-        if (b) {
-          b.classList.add('is-done', 'dr-skip');
-          b.style.setProperty('display', 'none', 'important');
-          b.style.setProperty('opacity', '0', 'important');
-          b.style.setProperty('visibility', 'hidden', 'important');
-        }
-        window.__DR_BOOT_DONE = true;
-      } catch (e) {}
-    }
     var appUrl = CDN + BASE + '/app.html';
     Promise.all([
       fetch(appUrl).then(function (r) { if (!r.ok) throw new Error('app ' + r.status); return r.text(); }),
@@ -184,7 +172,6 @@
           return 'src="' + CDN + pin + '/js/' + name + '"';
         });
       });
-      // Keep phase boot visible until app paints
       var bootCss =
         '#dr-phase-boot{position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;' +
         'flex-direction:column;gap:1.25rem;text-align:center;padding:1.5rem;' +
