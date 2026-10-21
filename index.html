@@ -22,39 +22,10 @@
     #boot .boot-sub{font-size:.85rem;color:#9494ae;margin:0}
     #boot .err{color:#fca5a5;font-size:.9rem;max-width:28rem}
     @keyframes drBootGearSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-    #dr-post-login-boot{position:fixed;inset:0;z-index:100000;display:none;align-items:center;justify-content:center;
-      flex-direction:column;gap:1.35rem;background:radial-gradient(ellipse at 50% 40%,#1e1240 0%,#0c0618 70%);opacity:1;
-      transition:opacity 0.85s ease,visibility 0.85s ease}
-    #dr-post-login-boot.is-on{display:flex}
-    #dr-post-login-boot.is-done,#dr-post-login-boot.is-fading{opacity:0!important;visibility:hidden!important;pointer-events:none!important}
-    #dr-post-login-boot .pl-rings{position:relative;width:76px;height:76px}
-    #dr-post-login-boot .pl-ring{position:absolute;inset:0;border-radius:50%;border:2.5px solid rgba(167,139,250,0.15);
-      border-top-color:#c4b5fd;animation:drPlSpin 1.25s linear infinite}
-    #dr-post-login-boot .pl-ring:nth-child(2),#dr-post-login-boot .pl-ring:nth-child(3){display:none}
-    #dr-post-login-boot .pl-core{position:absolute;inset:18px;border-radius:50%;
-      background:radial-gradient(circle,#ddd6fe 0%,#7c6af0 70%);box-shadow:0 0 28px rgba(139,92,246,.55)}
-    @keyframes drPlSpin{to{transform:rotate(360deg)}}
-    #dr-post-login-boot .pl-title{color:#eeeef6;font-weight:650;font-size:1.1rem;margin:0}
-    #dr-post-login-boot .pl-sub{color:#9494ae;font-size:.82rem;margin:0}
-    #dr-post-login-boot .pl-bar{width:160px;height:4px;border-radius:99px;background:rgba(139,92,246,.2);overflow:hidden}
-    #dr-post-login-boot .pl-bar>i{display:block;height:100%;width:40%;border-radius:99px;
-      background:linear-gradient(90deg,#7c6af0,#c4b5fd,#7c6af0);animation:drPlBar 1.4s ease-in-out infinite}
-    @keyframes drPlBar{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}
   </style>
   <script>
   (function () {
     try {
-      var skip = false;
-      try { skip = sessionStorage.getItem('dr_skip_boot_gear') === '1'; } catch (eS) {}
-      var tab = '';
-      var pref = '';
-      try {
-        tab = sessionStorage.getItem('dr_login_tab') || '';
-        pref = sessionStorage.getItem('dr_dev_portal_pref') || '';
-      } catch (eT) {}
-      var want = '';
-      if (tab === 'customer' || pref === 'employee') want = 'employee';
-      else if (tab === 'agent' || pref === 'admin') want = 'admin';
       var sAmb = document.createElement('style');
       sAmb.id = 'dr-early-hide-portal-ambient';
       sAmb.textContent = '#dr-portal-ambient{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}' +
@@ -62,16 +33,6 @@
         'body.is-portal-employee #dr-portal-ambient,body.is-portal-admin #dr-portal-ambient{' +
         'display:block!important;visibility:visible!important;opacity:1!important}';
       document.head.appendChild(sAmb);
-      if (skip) {
-        if (want) {
-          document.documentElement.setAttribute('data-dr-portal-pref', want);
-          var s0 = document.createElement('style');
-          s0.id = 'dr-early-portal-pref';
-          var hideLogin = '#login-screen,.login-screen{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}';
-          s0.textContent = hideLogin + 'body{--dr-portal-pref:' + want + '}';
-          document.head.appendChild(s0);
-        }
-      }
     } catch (e) {}
   })();
   </script>
@@ -91,6 +52,8 @@
   <script>
   (function () {
     var CDN = 'https://cdn.jsdelivr.net/gh/Lizer-WebCoder/divine-rays-tech-hub@';
+    // Real full app shell (login + portals) — NOT the redirect app.html
+    var SHELL = '830dac02096eb08be1b2dc22bdc191a14df91a04';
     var BASE = '5e1107f2';
     var REWRITE = {
       'app.js': '5e1107f2',
@@ -159,16 +122,25 @@
         (document.head || document.documentElement).appendChild(s);
       });
     }
-    var appUrl = CDN + BASE + '/app.html';
+    var shellUrl = CDN + SHELL + '/index.html';
     Promise.all([
-      fetch(appUrl).then(function (r) { if (!r.ok) throw new Error('app ' + r.status); return r.text(); }),
+      fetch(shellUrl).then(function (r) {
+        if (!r.ok) throw new Error('shell ' + r.status);
+        return r.text();
+      }),
       Promise.all(OVERLAYS.map(loadScript))
     ]).then(function (results) {
       var html = results[0];
+      if (html.indexOf('login-screen') === -1) {
+        throw new Error('Shell missing login-screen');
+      }
       Object.keys(REWRITE).forEach(function (name) {
         var pin = REWRITE[name];
-        var re = new RegExp('(src=["\'][^"\']*' + name.replace('.', '\\.') + '["\'])', 'g');
-        html = html.replace(re, function () {
+        var re1 = new RegExp('src=["\']js/' + name.replace('.', '\\.') + '[^"\']*["\']', 'g');
+        html = html.replace(re1, 'src="' + CDN + pin + '/js/' + name + '"');
+        var re2 = new RegExp('src=["\'][^"\']*' + name.replace('.', '\\.') + '[^"\']*["\']', 'g');
+        html = html.replace(re2, function (m) {
+          if (m.indexOf(CDN) !== -1 && m.indexOf(pin) !== -1) return m;
           return 'src="' + CDN + pin + '/js/' + name + '"';
         });
       });
@@ -193,7 +165,11 @@
       document.close();
     }).catch(function (err) {
       var b = document.getElementById('boot');
-      if (b) b.innerHTML = '<p class="err">Boot failed: ' + (err && err.message ? err.message : err) + '</p>';
+      if (b) {
+        b.innerHTML = '<p class="err">Boot failed: ' + (err && err.message ? err.message : err) +
+          '</p><p class="boot-sub">Try hard refresh (Ctrl+Shift+R)</p>';
+      }
+      console.error('[DR boot]', err);
     });
   })();
   </script>
